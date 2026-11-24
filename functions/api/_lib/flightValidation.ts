@@ -43,7 +43,6 @@ export async function parseFlightBody(
   return input
 }
 
-/** Validate create bodies independently, with one reference lookup per table for the whole set. */
 export async function parseFlightBodies(
   db: D1Database,
   raws: unknown[],

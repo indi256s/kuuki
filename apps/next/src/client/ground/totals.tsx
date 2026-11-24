@@ -1,7 +1,4 @@
 'use client'
-// Per-mode totals of COMPLETED journeys, one quiet line per mode under the History heading. Distances are straight-line
-// approximations; a total built from only some journeys says so (coverage note). Missing optional measures are
-// omitted, never shown as zero.
 
 import { useId } from 'react'
 import { Car, Train } from '@keyline-icons/react'
@@ -47,7 +44,6 @@ function Line({ locale, mode, totals }: { locale: Locale; mode: Mode; totals: Mo
   )
 }
 
-/** Completed modes only; optional missing facts remain available in journey details. */
 export function GroundTotals({
   locale,
   totals,
@@ -57,7 +53,6 @@ export function GroundTotals({
   locale: Locale
   totals: { rail: ModeTotals; road: ModeTotals }
   mode: Mode | null
-  /** 3 inside the History section, 2 when the totals stand on their own. */
   level: 2 | 3
 }) {
   const t = copy[locale]

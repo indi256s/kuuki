@@ -1,13 +1,11 @@
 'use client'
 import { useState } from 'react'
-// Keyline Upload is the platform share glyph (tray and arrow) the boards draw.
 import { Check, Upload as ShareGlyph } from '@keyline-icons/react'
 import { Field } from '../ui/field'
 import { Button } from '../ui/button'
 import type { Locale } from '../../lib/format'
 import './profile.css'
 
-/** Native share sheet on touch devices that have one; everywhere else the link is copied (spec: owner Share). */
 export function ShareProfile({
   url,
   title,

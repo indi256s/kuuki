@@ -87,7 +87,6 @@ it('removes one chip at a time and offers Clear all once several conditions appl
   const user = userEvent.setup()
   mount(withGround, { scope: 'flights', period: { years: [2024] }, airlines: ['BA'] })
   await user.click(screen.getByRole('button', { name: 'Clear all' }))
-  // Clear all resets facets and period; the page-level scope stays.
   expect(screen.getByLabelText('Active filters')).toHaveTextContent('{"scope":"flights"}')
   expect(screen.getByRole('button', { name: /^Filter$/ })).toHaveFocus()
   cleanup()

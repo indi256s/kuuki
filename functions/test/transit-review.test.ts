@@ -1,5 +1,3 @@
-// T09 / ADR 0001 §4 and §5: the transit cleanup read changes nothing; apply and dismiss use receipts, a marker and the
-// same concurrency rules as confirmation.
 import { describe, expect, it } from 'vitest'
 import { apiContext, count } from './harness'
 import { hasSql, instrumentDb } from './db-hooks'
@@ -18,7 +16,6 @@ import { stateOf } from '../api/_services/derivedState'
 import { readJournalAll } from '../api/_services/journal'
 import { readTransitReviewAvailability } from '../api/_services/transitReview'
 
-/** Two historical logged flights joined at Istanbul (a precise third-country connection) plus an unrelated one. */
 const HISTORY: FixtureFlight[] = [
   {
     id: 1,
@@ -110,7 +107,7 @@ describe('GET /api/me/transit-review', () => {
       expect(entry.affectedCountries).toEqual(['TR'])
       expect(body.wouldRemoveStamp).toEqual({ TR: true })
       expect(body).toMatchObject({ marker: null, derivedState: 'ready' })
-      expect(await pressed(db)).toEqual(['AE', 'GB', 'GE', 'TR', 'US']) // history keeps the hub until the member says otherwise
+      expect(await pressed(db)).toEqual(['AE', 'GB', 'GE', 'TR', 'US'])
     } finally {
       await dispose()
     }
@@ -303,7 +300,7 @@ describe('POST /api/me/transit-review apply', () => {
         pendingCountryCount: 0,
         results: [{ flightId: 1, arrivalTransit: true, arrivalTransitLegId: 2 }],
       })
-      expect(await row(db, 1)).toEqual({ ...before, t: 1, leg: 2 }) // state, provenance and confirmed_at untouched
+      expect(await row(db, 1)).toEqual({ ...before, t: 1, leg: 2 })
       expect(await row(db, 2)).toMatchObject({ t: null })
       expect(await pressed(db)).toEqual(['AE', 'GB', 'GE', 'US'])
       expect(await marker(db)).toEqual({ status: 'completed' })
@@ -358,8 +355,7 @@ describe('POST /api/me/transit-review apply', () => {
       expect(other.status).toBe(409)
       expect(other.body).toMatchObject({ code: 'IDEMPOTENCY_CONFLICT', cause: 'operation_reused' })
       const dismissed = await postTransitReview(db, { operationId: op, action: 'dismiss' })
-      expect(dismissed.body.code).toBe('IDEMPOTENCY_CONFLICT') // the action is part of the digest
-      // A confirm receipt with the same operation id is a different kind of operation.
+      expect(dismissed.body.code).toBe('IDEMPOTENCY_CONFLICT')
     } finally {
       await dispose()
     }
@@ -415,7 +411,6 @@ describe('POST /api/me/transit-review apply', () => {
       expect(foreign).toEqual(missing)
       expect(foreign.body).toEqual({ error: 'Flight not found', code: 'NOT_FOUND' })
       expect(await row(db, 90)).toMatchObject({ t: null })
-      // Flight 3 is logged and legacy but has no connection: the token cannot match.
       const changed = await apply(db, [
         [1, t[1]],
         [3, 'z'.repeat(64)],
@@ -436,7 +431,7 @@ describe('POST /api/me/transit-review apply', () => {
     const { db, dispose } = await queueAccount(HISTORY)
     try {
       const t = await reviewTokens(db)
-      await db.prepare("UPDATE flights SET date = '2026-03-03' WHERE id = 2").run() // the leg moved
+      await db.prepare("UPDATE flights SET date = '2026-03-03' WHERE id = 2").run()
       const { status, body } = await apply(db, [[1, t[1]]])
       expect(status).toBe(409)
       expect(body.code).toBe('CANDIDATES_CHANGED')
@@ -492,10 +487,9 @@ describe('POST /api/me/transit-review apply', () => {
         cause: 'not_reviewable',
         items: [{ flightId: 1, cause: 'already_decided' }],
       })
-      expect(await row(raw, 4)).toMatchObject({ t: null }) // all or nothing
+      expect(await row(raw, 4)).toMatchObject({ t: null })
       expect(await receipts(raw)).toHaveLength(1)
 
-      // Flight 5 is deleted between the loser's read and its batch: the decision about flight 4 is no longer valid.
       const next = instrumentDb(raw)
       next.hooks.beforeBatch(hasSql('INSERT INTO lifecycle_operation_receipts'), async () => {
         await raw.batch([
@@ -595,7 +589,7 @@ describe('POST /api/me/transit-review dismiss', () => {
       })
       const read = await getTransitReview(db)
       expect(read.body.marker).toEqual({ status: 'dismissed', matchesCandidates: true })
-      expect(read.body.candidates).toHaveLength(1) // dismissing hides the banner, it does not remove the option
+      expect(read.body.candidates).toHaveLength(1)
       expect(await readTransitReviewAvailability(db, USER.id, journalFlights)).toBe(false)
     } finally {
       await dispose()

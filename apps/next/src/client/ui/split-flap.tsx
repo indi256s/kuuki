@@ -1,9 +1,6 @@
 import { useState } from 'react'
 import './split-flap.css'
 
-// Split-flap text: one flipping tile per character. Used by Journal "Next up" for the day count; sizes and colours come from --split-flap-* properties on the caller's class.
-
-/** One tile. It flips in when `entering`, then only when its character changes after mount (e.g. a day change seen while open). */
 function Flap({
   digit,
   index,
@@ -35,7 +32,6 @@ function Flap({
   )
 }
 
-/** Screen readers get `label` (default `value`) once; the tiles are hidden. Keyed from the aligned end so 9 → 10 keeps the ones digit. */
 export function SplitFlap({
   value,
   entering,
@@ -45,7 +41,6 @@ export function SplitFlap({
 }: {
   value: string
   entering: boolean
-  /** Milliseconds added to every digit's flip delay. */
   delay?: number
   label?: string
   className?: string

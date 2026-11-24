@@ -68,7 +68,6 @@ export function parseAircraftResults(
   return parsed.results
 }
 
-/** A source-backed suggestion still requires review; this does not authorize a journal write. */
 export function normalizeAircraftEvidence(
   row: ProviderAircraft,
   flight: FlightToEnrich,

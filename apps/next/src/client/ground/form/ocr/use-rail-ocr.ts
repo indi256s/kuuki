@@ -22,11 +22,6 @@ import {
 } from './model'
 import type { StoredOcrRow } from '../rail-editor'
 
-/**
- * Runs the per-file requests, two at a time, in the order the files were chosen. Stop aborts what is running and
- * starts nothing new; an answer is applied only if its request was not aborted, its row is still reading that
- * attempt, and the session is the one that sent it. Received rows are never rolled back.
- */
 export function useRailOcr(restored: readonly StoredOcrRow[] = []) {
   const [rows, setRows] = useState<OcrRow[]>(() => restored.map(rowFromStored))
   const [cutOff, setCutOff] = useState(false)

@@ -21,8 +21,7 @@ describe('Disclosure', () => {
       trigger.getAttribute('aria-controls') as string,
     ) as HTMLElement
     expect(panel.hasAttribute('inert')).toBe(true)
-    expect(screen.queryByRole('button', { name: 'Inner action' })).not.toBeInTheDocument() // hidden from the accessibility tree
-    // jsdom does not implement `inert`, so user-event's Tab would still land inside; browsers skip anything under [inert].
+    expect(screen.queryByRole('button', { name: 'Inner action' })).not.toBeInTheDocument()
     expect(screen.getByText('Inner action', { selector: 'button' }).closest('[inert]')).toBe(panel)
     await user.tab()
     expect(trigger).toHaveFocus()

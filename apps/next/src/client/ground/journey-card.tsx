@@ -1,9 +1,4 @@
 'use client'
-// One journey in the list. The title is a real link (`?journey=<id>` with the current filters), so it is shareable and
-// middle-clickable; a click is handled in place so the page keeps its history rules. The route leads, departure left
-// and destination right, with a stop-order schematic beneath; a small map of the route sits beside it on a wide card
-// and below it on a narrow one. Mode is an icon AND a word, and active status is a word, never colour alone. Missing
-// optional facts stay in the details.
 
 import { Fragment } from 'react'
 import Link from 'next/link'
@@ -17,7 +12,6 @@ import { journeyPlaces, RouteMiniMap } from './route-sketch'
 import { countryNamer } from '../passport/model'
 import { groundHref, type GroundView } from './url'
 
-/** Days since 1970-01-01 for an ISO date; null for anything else. */
 function dayNumber(value: string): number | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
   if (!match) return null
@@ -31,14 +25,12 @@ const rangeFormats: Partial<Record<Locale, Intl.DateTimeFormat>> = {}
 export function dateRange(locale: Locale, start: string | null, end: string | null): string {
   const t = copy[locale]
   if (!start && !end) return t.dateUnknown
-  // Keep each localized date whole; a range can still wrap around its separator.
   const date = (value: string) => formatDateOnly(locale, value, 'medium').replaceAll(' ', '\u00a0')
   if (!start) return `${t.dateUnknown}, ${date(end!)}`
   const from = dayNumber(start)
   const to = end === null ? null : dayNumber(end)
   if (from === null || to === null || to <= from)
     return end && end !== start ? `${date(start)} – ${date(end)}` : date(start)
-  // One range shares the month and year it repeats: "Nov 13 – 29, 2026", «13–29 нояб. 2026 г.».
   const format = (rangeFormats[locale] ??= new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'short',
@@ -50,14 +42,12 @@ export function dateRange(locale: Locale, start: string | null, end: string | nu
     .replaceAll(' ', '\u00a0')
 }
 
-/** Calendar days a dated journey spans, both ends included; null unless both dates are known and in order. */
 export function journeyDays(start: string | null, end: string | null): number | null {
   const from = start === null ? null : dayNumber(start)
   const to = end === null ? null : dayNumber(end)
   return from === null || to === null || to < from ? null : to - from + 1
 }
 
-/** "today", "tomorrow" or "in 29 days" for a plan that has not started; empty otherwise. */
 export function countdown(locale: Locale, journey: GroundJourneyDto, today: string): string {
   if (journey.status !== 'planned' || !journey.startDate) return ''
   const from = dayNumber(today)
@@ -80,7 +70,6 @@ export function statusWord(locale: Locale, status: GroundJourneyDto['status']): 
       : t.statusCancelled
 }
 
-/** "A → B", "A and back" for a round trip, or the title-less fallback. */
 export function routeText(locale: Locale, journey: GroundJourneyDto): string {
   const { from, to } = endpoints(journey)
   if (!from || !to) return journey.title ?? copy[locale].detailTitleFallback
@@ -97,7 +86,6 @@ export function Facts({ locale, journey }: { locale: Locale; journey: GroundJour
     metrics.distanceKm === null ? coverageNote(locale, metrics.distanceCoverage) : ''
   const trainNote = coverageNote(locale, metrics.trainMinutesCoverage)
   const length = journeyDays(journey.startDate, journey.endDate)
-  // "9 212 km" and "17 days" read without a label; the unit is quieter than the number.
   const [amount, unit] =
     metrics.distanceKm === null
       ? [t.distanceUnknown, '']
@@ -131,16 +119,11 @@ export function Facts({ locale, journey }: { locale: Locale; journey: GroundJour
   )
 }
 
-/** "9 212 km" → ["9 212", " km"], splitting at the last no-break space. */
 function splitUnit(value: string): [string, string] {
   const at = value.lastIndexOf('\u00a0')
   return at < 0 ? [value, ''] : [value.slice(0, at), value.slice(at)]
 }
 
-/**
- * Stop order, not geography: start outline, intermediate dots, filled destination with the arrowhead beside it.
- * Disjoint rail legs leave a gap instead of a line. Decorative; the route text and "Via" line carry the meaning.
- */
 function RouteLine({ route }: { route: RouteStop[] }) {
   if (route.length < 2) return null
   return (
@@ -195,7 +178,6 @@ export function JourneyCard({
     : []
   const viaText = via.slice(0, 3).join(', ') + (via.length > 3 ? ` +${via.length - 3}` : '')
   const loop = !!from && !!to && placeKey(from) === placeKey(to)
-  // Departure and destination flank the schematic, each with its country beneath; a round trip spans the row instead.
   const split = !!from && !!to && !loop
   const country = countryNamer(locale)
   const soon = countdown(locale, journey, today)

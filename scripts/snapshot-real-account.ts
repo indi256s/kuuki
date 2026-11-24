@@ -1,14 +1,10 @@
-// Read one production account into a private local snapshot that `pnpm next:preview` loads as me@example.test.
-// Read-only on remote D1: every statement is a SELECT. Credentials, sessions and the Gemini key are never copied.
 import { execFileSync } from 'node:child_process'
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { ROOT } from './_cli'
 import { REAL_SNAPSHOT_PATH, type RealSnapshot } from './fixtures/real-account'
 
-// Copied whole so the account's airports, aircraft and badges resolve; the fixture inserts them OR IGNORE.
 const REFERENCE_TABLES = ['airports_reference', 'aircraft_reference', 'badge_definitions']
-// Credentials, sessions and tokens stay in production; leaderboards are rebuilt by the fixture.
 const SKIPPED_USER_TABLES = new Set([
   'account_activation_tokens',
   'auth_sessions',

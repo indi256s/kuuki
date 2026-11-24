@@ -30,7 +30,6 @@ function realDate(value: string) {
     : ('missing' as const)
 }
 
-/** One specific, localized message per invalid field. Empty optional fields are valid. */
 export function validateFlightValues(
   values: FlightValues,
   locale: Locale,
@@ -46,9 +45,13 @@ export function validateFlightValues(
       'This date does not exist. Check the day and month.',
       'Такой даты нет. Проверьте день и месяц.',
     )
-  const airport = say(locale, 'Choose an airport from the list.', 'Выберите аэропорт из списка.')
+  const airport = {
+    origin: say(locale, 'Choose a departure airport.', 'Выберите аэропорт вылета.'),
+    destination: say(locale, 'Choose an arrival airport.', 'Выберите аэропорт прилёта.'),
+  }
   for (const field of ['origin', 'destination'] as const)
-    if (!/^[A-Z]{3}$/.test(values[field]) || !findAirport(values[field])) errors[field] = airport
+    if (!/^[A-Z]{3}$/.test(values[field]) || !findAirport(values[field]))
+      errors[field] = airport[field]
   if (!errors.origin && !errors.destination && values.origin === values.destination)
     errors.destination = say(locale, 'Choose a different airport.', 'Выберите другой аэропорт.')
   const fromList = say(
@@ -71,7 +74,6 @@ export function validateFlightValues(
   return errors
 }
 
-/** Localized, calm copy for a failed load, save or delete. Never shows raw error text, class names or English developer messages. */
 export function flightErrorMessage(
   cause: unknown,
   locale: Locale,

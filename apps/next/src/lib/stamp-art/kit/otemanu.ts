@@ -1,7 +1,3 @@
-// Bora Bora: Mount Otemanu, a basalt plug with a notched summit, about 40% of the width and
-// centred, the lower Pahia shoulder behind it on the left and a ragged band of forest at the foot.
-// Rock follows the shared rule: strata and fracture on the lit left, T4 on the shaded right, no
-// vertical drapes. The box is the whole massif; its bottom is the waterline of the lagoon.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, occlude, stroke, toneFill } from '../grid'
 import { canopyNodes } from './mass-b'
@@ -14,7 +10,6 @@ export const otemanu: KitModule = ([x, y, w, h], p) => {
   const Y = (v: number) => y + h * v
   const base = y + h
   const out: SvgNode[] = []
-  // Pahia: the lower, rounder shoulder on the left, T2.
   const pahia: Pt[] = [
     [X(0.0), base],
     [X(0.03), Y(0.78)],
@@ -30,7 +25,6 @@ export const otemanu: KitModule = ([x, y, w, h], p) => {
     ...toneFill(pahia, 'T2', { gap: 3.0 }),
     stroke('line', pahia.slice(1, -1)),
   )
-  // Otemanu: steep plug, left peak higher than the right, a notch between them.
   const cx = X(0.5)
   const half = w * 0.19
   const R = (dx: number, v: number): Pt => [cx + (dx / 33) * half, Y(v)]
@@ -66,7 +60,6 @@ export const otemanu: KitModule = ([x, y, w, h], p) => {
       cracks: 0,
     }),
   )
-  // Forest at the foot of both: crowns, lit, over a ragged band.
   out.push(...canopyNodes(X(0.0), X(0.36), base, h * 0.2, rand, { crowns: 3, thr: 0.25 }))
   out.push(...canopyNodes(X(0.34), X(0.66), base, h * 0.14, rand, { crowns: 3, thr: 0.25 }))
   out.push(...canopyNodes(X(0.62), X(0.8), base, h * 0.12, rand, { crowns: 2, thr: 0.25 }))

@@ -1,5 +1,3 @@
-// Every string of the compact review step (spec O21–O22, boards 15.5, 15.9, 18.x), written in English and Russian
-// together. Russian addresses the member as «вы» and uses no em dashes in prose. The server's messages are never shown.
 import type { CountForms } from '../../../lib/format'
 
 const p = (en: string, ru: string) => ({ en, ru })

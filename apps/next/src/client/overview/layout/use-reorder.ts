@@ -43,7 +43,6 @@ type Gesture = {
   needsMeasure: boolean
   anchor?: { x: number; y: number }
 }
-/** A drag from activation until the ghost has settled. The gesture ends at release; the session outlives it while the ghost glides home. */
 type Session = {
   id: SectionId
   ids: SectionId[]
@@ -51,7 +50,6 @@ type Session = {
   parent: HTMLElement
   ghost: Ghost
 }
-/** Pointer travel (px) required after a preview change before the next one: masonry repacking can move cards under a still pointer, and without this a boundary flickers. */
 const MIN_TRAVEL = 12
 
 export function useReorder(options: Options) {
@@ -71,7 +69,6 @@ export function useReorder(options: Options) {
   })
   const signature = options.ids.join(',')
 
-  /** Ends the pointer gesture only: listeners, timers, capture. */
   function stop() {
     const current = gesture.current
     gesture.current = null
@@ -86,7 +83,6 @@ export function useReorder(options: Options) {
     if (current?.handle.hasPointerCapture?.(current.pointerId))
       current.handle.releasePointerCapture(current.pointerId)
   }
-  /** Removes the ghost and every preview side effect; idempotent. */
   function teardown(render = true) {
     const current = session.current
     session.current = null
@@ -113,7 +109,6 @@ export function useReorder(options: Options) {
       window.removeEventListener('kuuki:identity-reset', reset)
     }
   }, [])
-  // The cards changed under a live gesture (hidden, data swap): drop it. A settling ghost after a commit also sees new ids and is left to finish.
   useLayoutEffect(
     () => () => {
       if (gesture.current) abortRef.current()
@@ -136,7 +131,6 @@ export function useReorder(options: Options) {
       !reducedMotion(),
     )
   }
-  /** Drop target among the other cards as they are laid out now (placeholder included, slides ignored). Only the pointer decides; a change needs the pointer past the neighbour's midpoint and some travel since the last change. */
   function measure(force = false) {
     const current = gesture.current
     if (!current?.active || (!force && !current.needsMeasure)) return
@@ -210,7 +204,6 @@ export function useReorder(options: Options) {
     setActiveId(current.id)
     raf.current = requestAnimationFrame(frame)
   }
-  /** Releases the ghost into the placeholder's slot. */
   function settle(duration: number) {
     const current = session.current
     if (!current) return
@@ -294,7 +287,6 @@ export function useReorder(options: Options) {
     const scroll = () => {
       if (gesture.current) gesture.current.needsMeasure = true
     }
-    // Once active, the finger drags the card instead of the page. Before activation a touch move is a scroll and cancels the long-press.
     const block = (e: TouchEvent) => {
       if (gesture.current?.active && e.cancelable) e.preventDefault()
     }
@@ -319,7 +311,6 @@ export function useReorder(options: Options) {
     }
     if (coarse) timer.current = setTimeout(activate, 400)
   }
-  /** Commit keeps the preview and glides the ghost home over 200ms; anything else reverts the preview and returns it faster. One commit, one announcement. */
   function finish(commit: boolean, id: SectionId, index: number, released: boolean) {
     const wasActive = gesture.current?.active === true
     stop()

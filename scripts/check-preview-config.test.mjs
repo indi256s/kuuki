@@ -28,8 +28,6 @@ binding = "CACHE"
 id = "22222222222222222222222222222222"
 `
 
-// The CLI is the admission boundary. These fixtures exercise actual config parsing,
-// including absent optional bindings and unsafe preview/production resource reuse.
 for (const [name, app, cron, accepted] of [
   ['no cache is required', application, databases, true],
   ['aligned isolated optional caches', application + cache, databases + cache, true],

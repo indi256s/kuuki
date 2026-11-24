@@ -7,8 +7,8 @@
 .ov3-timeline > .ov3-timeline-key {
   margin: calc(-1 * var(--space-2)) 0 var(--space-3);
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   text-wrap: pretty;
 }
 .ov3-odometer {
@@ -17,8 +17,8 @@
 .ov3-timeline-landmarks {
   margin: 8px 0 0;
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   text-wrap: pretty;
 }
 .ov3-timeline-range {
@@ -32,5 +32,5 @@
   gap: 8px;
   margin-top: 8px;
   color: var(--text-muted);
-  font: 13px/20px var(--font-mono);
+  font: 0.8125rem/1.25rem var(--font-mono);
 }

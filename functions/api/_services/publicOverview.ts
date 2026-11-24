@@ -20,7 +20,6 @@ export async function readPublicOverview(
   if (!profile?.is_public) return null
   const ownerId = profile.id
   const payload = await readOverviewData(db, ownerId)
-  // Recheck visibility and section consent after the private read, as publicProfiles does.
   const current = await db
     .prepare('SELECT is_public, overview_prefs FROM profiles WHERE id = ?')
     .bind(ownerId)

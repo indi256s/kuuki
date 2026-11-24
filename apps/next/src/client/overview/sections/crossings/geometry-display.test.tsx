@@ -11,7 +11,6 @@ vi.mock('../../store/overview-context', () => ({ useOverview: () => context.valu
 vi.mock('../../charts/lazy-chart', () => ({ LazyChart: () => null }))
 afterEach(cleanup)
 
-// The "Lines you crossed" Details columns: the value under the label that starts with `name`.
 const column = (container: HTMLElement, name: string) => {
   const term = [...container.querySelectorAll('.ov3-card-columns dt')].find((dt) =>
     dt.textContent?.startsWith(name),

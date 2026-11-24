@@ -8,23 +8,17 @@ export type TicketState = 'upcoming' | 'today' | 'awaiting' | 'logged'
 export type TicketEndpoint = { iata: string; city: string }
 
 export type TicketProps = {
-  /** Presentation only: the caller decides the state (no lifecycle logic in here). */
   state: TicketState
   locale: Locale
   origin: TicketEndpoint
   destination: TicketEndpoint
-  /** 'YYYY-MM-DD', formatted without time-zone shifts. */
   date: string
   flightNumber?: string
   airline?: string
   distanceKm?: number
-  /** Overrides the default chip text, e.g. «Через 12 дней». The countdown is the caller's concern. */
   statusLabel?: string
-  /** Question for the awaiting state, e.g. «Вы долетели до Бостона?». */
   prompt?: ReactNode
-  /** Lifecycle buttons. Rendered as HTML outside the decorative SVG. */
   actions?: ReactNode
-  /** Perforated stub content, e.g. a pressed Stamp for the logged state. */
   stub?: ReactNode
   className?: string
 }

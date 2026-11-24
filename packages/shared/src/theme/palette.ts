@@ -1,7 +1,3 @@
-// Mirror of the shared roles in src/app/styles.css, whose values follow design-system/palette.json (the White Sheet
-// spec). styles.css stays the single UI token source; this table feeds consumers that cannot read CSS variables (PNG
-// renderer, favicon, meta theme-color). apps/next/src/app/tokens.test.ts fails when a resolved CSS token drifts from
-// any value below, and when styles.css drifts from palette.json.
 import type { MakerSlot } from '../../../data/src/aircraft-makers'
 
 export const MODES = ['light', 'dark'] as const
@@ -25,16 +21,13 @@ export type AccentTheme = {
   foreground: string
   tint: string
   text: string
-  /** The rest of a peak-vs-rest metric; independent of the heat ramp. */
   markRest: string
-  /** The selected reading; equals `text`. */
   markPeak: string
   comparison: readonly [string, string, string, string, string]
   heat: readonly [HeatStep, HeatStep, HeatStep, HeatStep]
   contour: string
 }
 
-/** The domain's maker slots (type-only import: the palette must not load the aircraft reference). */
 export type MakerKey = MakerSlot
 
 export const REGION_KEYS = [
@@ -310,7 +303,6 @@ export const MAKERS: Record<Mode, Record<MakerKey, string>> = {
   },
 }
 
-/** In palette order. `MAKERS` is typed by the domain's slots, so a maker without a colour fails the type check. */
 export const MAKER_KEYS = Object.keys(MAKERS.light) as MakerKey[]
 
 export const REGIONS: Record<Mode, Record<RegionKey, string>> = {
@@ -332,11 +324,6 @@ export const REGIONS: Record<Mode, Record<RegionKey, string>> = {
   },
 }
 
-/**
- * Distinct neutral roles. They may share a hex but never a meaning: `zero` is a known zero,
- * `missing` is no data, `makerUnknown` is the outline for an unknown category (never a fill),
- * `markGhost` is the baseline, `brandNeutral` stands in for an airline without a catalog colour.
- */
 export type Neutrals = {
   zero: string
   missing: string
@@ -362,7 +349,6 @@ export const NEUTRALS: Record<Mode, Neutrals> = {
   },
 }
 
-/** The profile holder's data page: laminate rule, guilloche, perforation, MRZ band and the UV print's fluorescent tint. */
 export type HolderInks = {
   rule: string
   guilloche: string
@@ -388,7 +374,6 @@ export const HOLDER: Record<Mode, HolderInks> = {
   },
 }
 
-// Accent names retired by earlier palettes; public/bootstrap.js keeps the same table for the device cookie.
 const LEGACY_ACCENTS: Readonly<Record<string, AccentKey>> = {
   terracotta: 'shu',
   kincha: 'shu',
@@ -403,7 +388,6 @@ const LEGACY_ACCENTS: Readonly<Record<string, AccentKey>> = {
   coral: 'sakura',
 }
 
-/** Canonical accents pass and retired names map to their successor; anything else is not recognized. */
 export function recognizeAccentKey(value: unknown): AccentKey | null {
   if ((ACCENT_KEYS as readonly unknown[]).includes(value)) return value as AccentKey
   return typeof value === 'string' && Object.hasOwn(LEGACY_ACCENTS, value)

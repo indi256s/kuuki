@@ -1,4 +1,3 @@
-/* Journal states. Tokens only; no divider lines. */
 .journal-empty-actions {
   display: flex;
   flex-wrap: wrap;
@@ -11,8 +10,8 @@
   align-items: center;
   min-height: 44px;
   color: var(--accent-text);
-  font-size: 15px;
-  line-height: 24px;
+  font-size: 0.9375rem;
+  line-height: 1.5rem;
   text-underline-offset: 3px;
 }
 .journal-refresh-failed {
@@ -20,12 +19,11 @@
 }
 .journal-note {
   margin: 0 0 var(--space-3);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   color: var(--text-muted);
 }
 
-/* Result-set crossfade: opacity only. Two identical keyframes with different names restart the animation when the attribute alternates. */
 @keyframes journal-fade-a {
   from {
     opacity: 0;

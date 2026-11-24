@@ -1,7 +1,6 @@
 import { expect, it } from 'vitest'
 import { narrate, narratorCopy, type NarratorState } from './narrator'
 
-// Digit-free params: any digit in a line would be a literal in the copy, not a fact from the payload.
 const params = {
   place: '#P',
   name: 'olga',

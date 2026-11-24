@@ -22,7 +22,6 @@ const copy = {
   },
 }
 
-/** The globe's key on wide Overview bands: the map's countries by visits, each with its legend bucket swatch. A row toggles that country's filter. */
 export function CountryList() {
   const { scope, payload, filter, locale, actions } = useOverview()
   const heading = useId()
@@ -44,10 +43,8 @@ export function CountryList() {
       <div>
         <h2 id={heading}>{t(legend, locale)}</h2>
       </div>
-      {/* The list scrolls inside what the band leaves; it is out of flow so the globe and figures set the band's height. */}
       <div className="globe-country-slot">
         <div className="globe-country-fill">
-          {/* Fades at the ends say the list scrolls (scroll-state queries in globe.css); browsers without them show none. */}
           <div className="globe-country-fade" data-edge="top" aria-hidden="true" />
           {!countries.length ? (
             <p className="globe-country-note">{t(S.noCountries, locale)}</p>

@@ -7,16 +7,10 @@ import { useFigureK } from '../../layout/figure-box'
 import { useRepin } from './use-repin'
 import '../../iso/map.css'
 
-/** One record route as the map draws it. */
 export type Leg = { key: string; from: MapPin; to: MapPin; equator: boolean }
 
-// The sheet's size does not depend on the airports, so every route is drawn at the scale this one fits.
 const SIZING = [mapPin('AAA'), mapPin('BBB')] as const
 
-/**
- * The folded map in the chapter card's figure box (figure-box.ts). `reading` is the key of the route it shows, one of `legs`.
- * A pick re-pins the map (map.css, use-repin.ts); a change that is not a pick swaps the route with no motion. Without legs the sheet is blank and unlit.
- */
 export function RecordMapFigure({
   legs,
   reading,

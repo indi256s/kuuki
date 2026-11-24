@@ -31,40 +31,28 @@ export type ChapterCardDetails = {
 }
 export type ChapterCardProps = {
   state: 'ready' | 'loading' | 'empty'
-  /** The aria-hidden iso figure, already sized by the chapter. */
   figure: ReactNode
   figureAction?: ReactNode
-  /** A transparent button over the figure stage (44px or more on both sides). */
   figureButton?: { label: string; onPress(): void }
   hero: {
     value: string
     unit?: string
     caption: ReactNode
-    /** The "Only …" offer; null or absent while the reading is the headline. */
     only?: { label: string; onPress(): void } | null
-    /** The value in the mono face (codes). */
     mono?: boolean
   }
-  /** Roll the value on change: pass `picked` from `useReading`. Without it a changed value swaps at once. */
   rollValue?: boolean
-  /** `table` is the plot's screen-reader alternative, outside the collapsible Details. */
   chart: {
     caption: string
     toggle?: ReactNode
     plot: ReactNode
     table?: ChartTable
-    /** Content-sized desktop analysis; the mobile sheet retains its stable stage. */
     layout?: 'content'
   }
   details?: ChapterCardDetails
   empty?: { title: string; line: string; action: ReactNode }
 }
 
-/**
- * One chapter's layout, the same bands in the mobile sheet and the desktop card (the span comes from ChapterContext):
- * figure stage, hero, chart stage, details. The bands have fixed boxes (chapter-card.css), so a swipe lines two chapters up
- * and loading, empty and ready never move what is below them.
- */
 export function ChapterCard({
   state,
   figure,
@@ -81,7 +69,6 @@ export function ChapterCard({
   const loading = state === 'loading',
     blank = state === 'empty'
   const label = t(S.loading, locale)
-  // Applying "Only …" removes its own button, which would drop focus to <body>. Hand it to the picked mark (the applied row) instead.
   const card = useRef<HTMLDivElement>(null)
   const pressedAt = useRef(0)
   const hasOnly = !!hero.only
@@ -91,7 +78,6 @@ export function ChapterCard({
     const frame = requestAnimationFrame(() => {
       const active = document.activeElement
       if (active && active !== document.body) return
-      // One selector list would return whichever comes first in the DOM; the picked mark wins over the figure button.
       const target =
         card.current?.querySelector<HTMLElement>('[data-picked]') ??
         card.current?.querySelector<HTMLElement>('.ov3-card-figure-button')
@@ -99,7 +85,6 @@ export function ChapterCard({
     })
     return () => cancelAnimationFrame(frame)
   }, [hasOnly])
-  // The value rolls only on a pick. A change that is not a pick (a filter, a reset) starts a new SlotText, which renders its first value still.
   const [roll, setRoll] = useState({ value: hero.value, epoch: 0 })
   let epoch = roll.epoch
   if (roll.value !== hero.value) {
@@ -212,7 +197,6 @@ export function ChapterCard({
           </Disclosure>
         </div>
       ) : loading ? (
-        // A ready chapter closes with its Details row, so loading keeps that row's height too.
         <div className="ov3-card-details">
           <div className="ov3-card-details-loading">
             <Skeleton height={24} label={label} />
@@ -225,10 +209,6 @@ export function ChapterCard({
 
 const STAGE = { wide: false, box: STAGE_BOX }
 
-/**
- * A desktop card's figure layout from its own content width (cardLayout); the sheet always uses the stage. Measured before paint so a wide
- * card never flashes the stage layout; the state changes only when the width crosses a step, so a window drag does not re-render per pixel.
- */
 function useCardLayout(
   card: RefObject<HTMLDivElement | null>,
   enabled: boolean,

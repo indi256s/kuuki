@@ -7,7 +7,6 @@ import { HttpError } from './http'
 const PREFIX = 'password-reset:'
 const TTL_SECONDS = 30 * 60
 
-/** The main app origin is the sole destination; activation has its own isolated host. */
 export function configuredRecoveryOrigin(env: Env): string {
   try {
     const parsed = new URL(env.PAGES_ORIGIN)
@@ -16,9 +15,7 @@ export function configuredRecoveryOrigin(env: Env): string {
       (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1')
     if ((parsed.protocol === 'https:' || localHttp) && parsed.origin === env.PAGES_ORIGIN)
       return parsed.origin
-  } catch {
-    /* invalid configuration */
-  }
+  } catch {}
   throw new HttpError(503, 'Password recovery is temporarily unavailable', 'RECOVERY_UNAVAILABLE')
 }
 
@@ -74,7 +71,6 @@ export async function requestPasswordRecovery(
   }
 }
 
-/** D1 batch is atomic; every mutation is additionally guarded against a lost claim. */
 export async function completePasswordRecovery(
   db: D1Database,
   token: string,

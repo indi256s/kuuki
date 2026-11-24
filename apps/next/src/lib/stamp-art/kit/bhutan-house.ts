@@ -1,8 +1,3 @@
-// Bhutanese farmhouse (Paro valley): a broad three-storey rammed-earth house, walls leaning in a
-// little, a ground floor with slit windows and a door, a middle floor of projecting wooden window
-// bays, an open gallery under a wide low gable roof with deep eaves (shingle lines along the fall,
-// stones on top), and terraced fields stepping across the foot. The right of the walls is shaded.
-// The box is the house plus fields; its bottom is the ground.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, hline, rectPts, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
@@ -19,7 +14,6 @@ export const bhutanHouse: KitModule = ([x, y, w, h], p) => {
   const wallTop = floor - wallH
   const roofH = h * 0.3
   const batter = 2.2
-  // Terraces under the house: stepped strips.
   for (let k = 0; k < 3; k++) {
     const ty = floor + (fields * k) / 3
     const strip: Pt[] = [
@@ -34,7 +28,6 @@ export const bhutanHouse: KitModule = ([x, y, w, h], p) => {
       ...toneFill(rectPts(x, ty + 1.2, w, fields / 3 - 1), 'T3', { gap: [4, 4], inset: 0.2 }),
     )
   }
-  // Walls.
   const wall: Pt[] = [
     [cx - hw, floor],
     [cx - hw + batter, wallTop],
@@ -57,7 +50,6 @@ export const bhutanHouse: KitModule = ([x, y, w, h], p) => {
   const f1 = wallTop + wallH * 0.38
   const f2 = wallTop + wallH * 0.7
   out.push(hline('hair', cx - hw + 1, cx + hw - 1, f2))
-  // Top floor: dark open gallery with posts.
   out.push(
     ...toneFill(rectPts(cx - hw + 5, wallTop + 3, hw * 2 - 10, f1 - wallTop - 3), 'T4', {
       gap: [4.6, 4.6],
@@ -74,7 +66,6 @@ export const bhutanHouse: KitModule = ([x, y, w, h], p) => {
     )
   }
   out.push(hline('hair', cx - hw + 3, cx + hw - 3, f1))
-  // Middle floor: wooden window bays.
   const bays = 4
   for (let i = 0; i < bays; i++) {
     const bx = cx - hw + 5 + ((hw * 2 - 22) * i) / (bays - 1)
@@ -84,10 +75,8 @@ export const bhutanHouse: KitModule = ([x, y, w, h], p) => {
     out.push(fill(rectPts(bx + 8.4, f1 + 5.2, 2.6, f2 - f1 - 8)))
     out.push(hline('bold', bx - 1.5, bx + 12.5, f1 + 2))
   }
-  // Ground floor: slits and the door.
   for (const fx of [-0.6, 0.6]) out.push(fill(rectPts(cx + hw * fx - 0.8, f2 + 3, 1.8, 5)))
   out.push(fill(rectPts(cx - 3.2, f2 + 2.4, 6.4, floor - f2 - 2.4)))
-  // Roof: wide low gable with deep eaves, shingle lines along the fall, ridge stones.
   const eave = hw + 7
   const roof: Pt[] = [
     [cx - eave, wallTop + 1],

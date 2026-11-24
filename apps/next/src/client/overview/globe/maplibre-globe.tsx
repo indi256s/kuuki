@@ -47,7 +47,6 @@ export type MaplibreGlobeProps = {
   all: GlobeData
   airports: OverviewPayload['refs']['airports']
   filter: OverviewFilter
-  /** The effective scope: 'all' while no ground data exists, whatever the stored filter says. */
   travelScope: 'all' | 'flights' | 'ground'
   locale: Locale
   fullscreen: boolean
@@ -59,7 +58,6 @@ export type MaplibreGlobeProps = {
   routeDistances: ReadonlyMap<string, number | null>
   replay: ReturnType<typeof useReplay>
   timeline: TimelineItem[]
-  /** Replay has not been started: every route is drawn at full strength, as a still map. */
   still: boolean
   onReady: () => void
   onError: () => void
@@ -67,8 +65,6 @@ export type MaplibreGlobeProps = {
 const token = (name: string) =>
   resolveColor(getComputedStyle(document.documentElement).getPropertyValue(name).trim())
 const empty = (): GeoJSON.FeatureCollection => ({ type: 'FeatureCollection', features: [] })
-// Approximate Natural Earth 10m admin-0 label points (5.1.0), not capitals/centroids.
-// https://raw.githubusercontent.com/nvkelso/natural-earth-vector/ca96624a56bd078437bca8184e78163e5039ad19/geojson/ne_10m_admin_0_label_points.geojson
 const MICROSTATES: Record<string, [number, number]> = {
   MC: [7.398449, 43.746141],
   VA: [12.453364, 41.903327],
@@ -89,8 +85,6 @@ const layers = [
   'globe-route-casing',
   'globe-airport-labels',
 ]
-// Routes used the land ramp, so a route over a country in its own bucket measured 1:1. They now draw in ink over a land-toned halo: one of the two holds 3:1 on every bucket, theme and accent.
-// The core stays fine (1.25–2.5px by visit bucket); the halo is solid for its first half-pixel and blurs out over 2px, so it separates the line without outlining it.
 const routeWidth: ExpressionSpecification = [
   'interpolate',
   ['linear'],
@@ -142,7 +136,6 @@ function GlobeLayers({
       const ref = coordinates(props.airports[iata])
       return ref ? [ref.lon, ref.lat] : null
     }
-    // Under ground the flight context must not leak in as faint lines.
     const flightContext = props.travelScope !== 'ground'
     const routes = (flightContext ? props.all.routes : []).flatMap((route) => {
       const geometry = routeGeometry({ from: point(route.a), to: point(route.b) })
@@ -248,7 +241,6 @@ function GlobeLayers({
       microstates: { type: 'FeatureCollection' as const, features: microstates },
     }
   }, [routeFeatures, props.globe, props.airports, land])
-  // A filter that leaves no ground in scope still frames where the ground journeys are, not the default view.
   const groundPoints = useMemo(() => {
     const scoped = props.globe.ground.flatMap((journey) => journey.runs.flat())
     return scoped.length ? scoped : props.all.ground.flatMap((journey) => journey.runs.flat())
@@ -299,7 +291,6 @@ function GlobeLayers({
         source: sources[0],
         paint: { 'fill-opacity': ['case', ['boolean', ['feature-state', 'ghost'], false], 1, 0] },
       })
-      // Ground sits under the flight layers.
       addGroundLines(map)
       map.addLayer({
         id: layers[6],
@@ -328,7 +319,6 @@ function GlobeLayers({
         id: layers[4],
         type: 'circle',
         source: sources[2],
-        // Every route ends on a bead in its own ink, so a line over a fully filled country still reads as arriving somewhere.
         paint: { 'circle-radius': 3, 'circle-stroke-width': 1.5 },
       })
       map.addLayer({
@@ -362,7 +352,6 @@ function GlobeLayers({
     } catch {
       latest.current.onError()
     }
-    // Watchdog for the first render only: `map.loaded()` is false whenever a style or source update is pending, so polling it later fails a working globe.
     const timeout = window.setTimeout(() => {
       if (!disposed) latest.current.onError()
     }, 12000)
@@ -388,7 +377,6 @@ function GlobeLayers({
               key: route.key,
               count: route.count,
               distanceKm: latest.current.routeDistances.get(route.key) ?? null,
-              // The popover flips and shifts at the edges itself; the anchor stays on the clicked arc.
               x: event.point.x,
               y: event.point.y,
             }
@@ -472,7 +460,6 @@ function GlobeLayers({
     props.filter.makers,
     themeRevision,
   ])
-  // Ground icons and colours follow the theme only, not the filter.
   useEffect(() => {
     if (!map || !ready || !land) return
     paintGround(map, token('--globe-route'), token('--globe-route-casing'))
@@ -497,7 +484,6 @@ function GlobeLayers({
       props.reduced || props.still || !props.timeline.length
         ? true
         : ['in', ['get', 'key'], ['literal', revealed]]
-    // Routes not yet flown in the replay stay visible but secondary (about 2:1); filtered-out context stays a .15 ghost.
     map.setPaintProperty(layers[2], 'line-opacity', [
       'case',
       ['!', ['get', 'selected']],
@@ -519,9 +505,6 @@ function GlobeLayers({
   useEffect(() => {
     framing.current = { groundPoints }
   }, [groundPoints])
-  // The camera frames the travel when the map first shows and on entering or leaving Fullscreen. A filter or scope
-  // change keeps the member's view. A resize refits the framing until the member moves the globe, then only keeps
-  // the zoom inside the new limits.
   useEffect(() => {
     if (!map || !ready || !props.active) return
     const { globe, travelScope, reduced } = latest.current
@@ -665,8 +648,6 @@ const fitZoom = (map: LibreMap, latitude: number, fit: 'cover' | 'contain' = 'co
     map.getVerticalFieldOfView(),
     fit,
   )
-// Zoom out stops where the whole sphere shows and stays there; zoom in goes a few cities deep past the cover fit.
-// On a globe MapLibre applies both limits at the equator and corrects them for the center's latitude itself, so they are fitted at 0°.
 function setZoomLimits(map: LibreMap) {
   map.setMaxZoom(fitZoom(map, 0, 'cover') + GLOBE_ZOOM_RANGE)
   map.setMinZoom(fitZoom(map, 0, 'contain'))
@@ -686,7 +667,6 @@ function moveCamera(map: LibreMap, center: [number, number], reduced: boolean) {
 type Bounds = [[number, number], [number, number]]
 function fitGround(map: LibreMap, bounds: Bounds, reduced: boolean) {
   setZoomLimits(map)
-  // Clear the card's overlays: the filter bar sits on the top edge of wide cards, the legend on the bottom edge.
   const wide = map.getContainer().clientWidth >= 480
   map.fitBounds(bounds, {
     padding: { top: wide ? 80 : 48, bottom: 56, left: 32, right: 32 },

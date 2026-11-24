@@ -1,5 +1,3 @@
-// EN and RU wording for the ground-travel list and detail sheet. Sentence case; unknown values are words, never 0.
-
 import type { CountForms } from '../../lib/format'
 
 export const journeys: CountForms = {
@@ -46,7 +44,6 @@ export const days: CountForms = {
   en: { one: '{count} day', other: '{count} days' },
   ru: { one: '{count} день', few: '{count} дня', many: '{count} дней', other: '{count} дня' },
 }
-/** How soon a plan starts, after its date: "in 29 days". Today and tomorrow are words. */
 export const startsIn: CountForms = {
   en: { one: 'in {count} day', other: 'in {count} days' },
   ru: {
@@ -88,7 +85,6 @@ export const copy = {
     datePassed: 'Date passed',
     datePassedHint: 'Complete it to add it to your history.',
     roundTrip: (place: string) => `${place} and back`,
-    /** Read between the endpoints of a card route; the schematic shows the direction visually. */
     routeJoin: ' to ',
     distance: 'Distance',
     distanceUnknown: 'Distance unknown',
@@ -118,7 +114,6 @@ export const copy = {
     offlineReason: 'Offline',
     deletedNotice: 'Journey deleted.',
     resultCount: (count: string, filter: string) => `${count} · ${filter}`,
-    // Detail sheet
     detailRegion: 'Journey details',
     close: 'Close journey details',
     detailTitleFallback: 'Journey',

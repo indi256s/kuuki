@@ -57,7 +57,6 @@ export default async function Overview({
   const locale = await getRequestLocale()
   const normalized = normalizeOverviewQuery(await searchParams)
   if (!normalized.canonical) redirect(withQuery('/overview', normalized.query))
-  // A phone draws tiles, so only a larger screen fetches the chapter code while the data is still being read. A wrong guess only costs or skips that early fetch.
   const requestHeaders = await headers()
   const phone =
     requestHeaders.get('sec-ch-ua-mobile') === '?1' ||

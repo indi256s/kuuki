@@ -3,7 +3,6 @@ import { HEAT_MISSING, type HeatBucket } from './helpers'
 
 export type HeatKeyEntry = { level: HeatBucket | typeof HEAT_MISSING; label: string }
 
-/** Numeric legend for a heat scale. Weak levels carry the same contour as their cells; a missing entry is the dashed empty outline. */
 export function HeatKey({ entries }: { entries: readonly HeatKeyEntry[] }) {
   return (
     <div className="ov3-heat-legend">

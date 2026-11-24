@@ -53,8 +53,6 @@ async function post(
   } as never)
 }
 
-// Acknowledge only the recipient each send asked for, as the real provider does;
-// the sender rejects any receipt that names someone else and then deletes the token.
 function mockMail() {
   return vi.spyOn(globalThis, 'fetch').mockImplementation(async (_url, init) => {
     const { to } = JSON.parse(String(init?.body)) as { to: string[] }
@@ -110,7 +108,6 @@ it('returns the same generic result for every account state and mails only the m
     const reset = mails.find((mail) => mail.to[0] === 'active@example.test')!
     expect(reset.subject).toBe('Reset your Kuuki password')
     expect(reset.text).toContain(`${ORIGIN}/reset-password#token=`)
-    // Delivery was acknowledged, so both tokens must survive and the emailed links must work.
     expect(
       (
         await db

@@ -38,11 +38,6 @@ const SORT_LABELS: Record<PassportSort, Record<Locale, string>> = {
   records: { en: 'Records', ru: 'По визитам' },
 }
 
-/**
- * Search, Cards/Map, Filters and (for the owner) a compact sort. Everything applies at once and lives in the URL.
- * Reset appears only while a search or filter is active. A visitor has no sources group and no sort: the collection
- * is always by name.
- */
 export function PassportToolbar({
   locale,
   owner,
@@ -57,10 +52,8 @@ export function PassportToolbar({
   locale: Locale
   owner: boolean
   state: PassportState
-  /** The search text as typed; the URL follows it. */
   query: string
   onQuery: (value: string) => void
-  /** Active conditions behind the Filters button (region and sources; search is its own field). */
   filterCount: number
   filtersActive: boolean
   onReset: () => void
@@ -106,7 +99,6 @@ export function PassportToolbar({
         ]}
       />
       {owner && state.view === 'map' ? (
-        // The owner's map controls share a row on phones, where Filters is its icon (passport.css).
         <div className="passport-toolbar-row">
           <MapScopeControl locale={locale} state={state} navigate={navigate} />
           <FiltersPopover
@@ -159,10 +151,6 @@ export function PassportToolbar({
   )
 }
 
-/**
- * The owner's map picks which travel fills the countries. It writes the same `src` the Sources filter does; any other
- * combination is named instead, and the toolbar's Reset clears it.
- */
 function MapScopeControl({
   locale,
   state,

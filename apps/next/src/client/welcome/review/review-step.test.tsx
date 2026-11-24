@@ -31,7 +31,6 @@ const fields = (over: Partial<Draft['fields']> = {}): Draft['fields'] => ({
   ...over,
 })
 
-/** `count` flights that look right, then the three unsure kinds' stand-ins and one left-out row. */
 function batchOf(count: number, extra: Draft[] = []): Draft[] {
   const included = Array.from({ length: count }, (_, index) =>
     draft({ id: `r${index}`, ordinal: 10 + index, fields: fields() }),
@@ -272,7 +271,6 @@ describe('ReviewStep', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Save 3 flights' }))
     expect(await screen.findByText('Couldn’t save')).toBeTruthy()
     expect(screen.getByText('Nothing is lost. Your fixes are kept.')).toBeTruthy()
-    // The picked airport stays on its row, and the left-out rows stay left out.
     expect(screen.getByText('LHR → LIS')).toBeTruthy()
     expect(screen.getAllByRole('button', { name: /put back/i })).toHaveLength(2)
     expect(handlers.onSaved).not.toHaveBeenCalled()
@@ -304,7 +302,6 @@ describe('ReviewStep', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Save 2 flights' }))
     expect(await screen.findByText('Couldn’t save')).toBeTruthy()
     expect(handlers.onSaved).not.toHaveBeenCalled()
-    // The batch is read again after a conflict, and the refused row is unsure.
     await waitFor(() => expect(m.readBatch.mock.calls.length).toBeGreaterThan(1))
     expect(screen.getByRole('heading', { level: 1, name: '2 flights. Check 1.' })).toBeTruthy()
 

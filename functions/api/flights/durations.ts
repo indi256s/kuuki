@@ -1,6 +1,3 @@
-// GET /api/flights/durations — completed flights with aircraft + duration, for the durations chart.
-// Matches useFlightDurations: FlightDuration { aircraft_icao, duration_minutes }, both non-null.
-
 import { runHandler, json } from '../_lib/http'
 import { requireUser, type RequestData } from '../_lib/auth'
 

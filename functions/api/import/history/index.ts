@@ -1,5 +1,3 @@
-// GET /api/import/history — the owner's Flighty imports (latest 20, summaries only).
-// POST /api/import/history — open a run for one parsed CSV, idempotent on `operationId` (ADR 0008).
 import { json, readJson, runHandler } from '../../_lib/http'
 import { rateLimit } from '../../_lib/ratelimit'
 import { requireCsrf, requireUser, type RequestData } from '../../_lib/auth'

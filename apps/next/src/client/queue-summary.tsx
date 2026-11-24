@@ -32,12 +32,6 @@ const ROWS = {
 const LABEL = { en: 'To review', ru: 'На проверку' }
 const UNAVAILABLE = { en: 'Unavailable', ru: 'Недоступно' }
 
-/**
- * Menu row for the confirmation queue. Hides a zero count; an initial transport failure has an explicit
- * unavailable state unless `showUnavailable` is off. C4 supplies actionableCount; transport failures remain unknown
- * rather than empty. The accessible name starts with the visible label. `field` draws it as a field on the account
- * menu's stub: the label above the count, no icon.
- */
 export function QueueMenuItem({
   count,
   locale = 'en',

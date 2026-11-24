@@ -38,13 +38,11 @@ function field<T>(schema: z.ZodType<T>, value: unknown, fallback: T): T {
   return parsed.success ? parsed.data : fallback
 }
 
-// Section ids retired by Overview cards v2, mapped to the card that absorbed them.
 const LEGACY_SECTIONS: Record<string, SectionId> = {
   fleet: 'aircraft',
   manufacturers: 'aircraft',
   timeline: 'rhythm',
 }
-// Cards a merged id replaced in a pre-v2 layout.
 const REPLACED: Partial<Record<SectionId, string[]>> = {
   aircraft: ['fleet', 'manufacturers'],
   rhythm: ['rhythm', 'timeline'],
@@ -70,7 +68,6 @@ export function normalizeLayout(raw: {
       Array.isArray(value) &&
       value.some((id) => typeof id === 'string' && Object.hasOwn(LEGACY_SECTIONS, id)),
   )
-  // In a pre-v2 layout a merged card is hidden only if every card it replaced was hidden.
   const isHidden = (id: SectionId) =>
     legacy && REPLACED[id] ? REPLACED[id].every((old) => rawHidden.has(old)) : rawHidden.has(id)
   return {
@@ -99,7 +96,6 @@ export function parsePrefs(raw: string | null): OverviewPrefs {
         const key = rawKey as keyof OverviewFilter
         const parsed = filterSchema.shape[key].safeParse(stored.filter[key])
         if (!parsed.success || parsed.data === undefined) continue
-        // Every reference manufacturer has its own slot now, so a saved Other would match no flight: drop it.
         const value =
           key === 'makers'
             ? (parsed.data as MakerKey[]).filter((maker) => maker !== 'other')

@@ -1,4 +1,3 @@
-/* The journal total leads; static artwork leaves every fact and action available. */
 .ov3-hero-panel {
   min-width: 0;
   padding: 24px;
@@ -186,14 +185,13 @@
   }
 }
 
-/* Next flight strip (next-strip.tsx). */
 .ov3-next-review {
   gap: 4px;
   min-height: 44px;
   display: inline-flex;
   align-items: center;
   color: var(--accent-text);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 .ov3-next-flight:focus-visible,
@@ -231,19 +229,19 @@
   color: var(--accent-on-tint);
   border-radius: var(--radius-full);
   padding: 3px 8px;
-  font-size: 12px;
+  font-size: 0.75rem;
   letter-spacing: 0.06em;
   font-weight: 600;
   white-space: nowrap;
 }
 .ov3-next-route {
-  font: 500 15px/20px var(--font-mono);
+  font: 500 0.9375rem/1.25rem var(--font-mono);
   color: var(--text);
 }
 .ov3-next-details,
 .ov3-next-more {
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   color: var(--text-muted);
 }
 .ov3-next-more {
@@ -252,9 +250,6 @@
   display: inline-flex;
   align-items: center;
 }
-/* At the head of the figures column the strip is its own small card, with the figures card below it.
-   The flight fills the card's left side edge to edge, so its hover and focus read as the card's; "+1 more booked" keeps the right side,
-   on the date's line. Text starts at the figures card's 32px inset. Phones keep their own card on the flight button (below). */
 @media (min-width: 701px) {
   [data-region='figures'] > .ov3-next-strip {
     display: grid;
@@ -293,8 +288,6 @@
   [data-region='figures'] .ov3-next-review {
     padding-inline: 32px;
   }
-  /* The flight is the card: hover and focus mark the whole card, not a box that stops where "+1 more booked" begins.
-     The card clips its corners, so the link's own ring sits inside the edge. */
   [data-region='figures'] > .ov3-next-strip {
     transition: background-color var(--dur-fast) var(--ease-out);
   }
@@ -351,8 +344,8 @@
   }
   .ov3-next-route {
     grid-column: 1;
-    font-size: 28px;
-    line-height: 32px;
+    font-size: 1.75rem;
+    line-height: 2rem;
   }
   .ov3-next-details {
     grid-column: 1;

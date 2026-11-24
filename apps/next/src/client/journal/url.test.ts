@@ -41,7 +41,7 @@ describe('parseJournalUrl', () => {
     )
     expect(parse('period=2023').filters.years).toEqual([2023])
     expect(parse('isUpcoming=true').filters.status).toEqual(['upcoming'])
-    expect(parse('isUpcoming=false').filters.status).toEqual([]) // legacy `completed`: the default contents
+    expect(parse('isUpcoming=false').filters.status).toEqual([])
     expect(parse('status=completed').filters.status).toEqual([])
     expect(parse('sort=distance_km').sort).toEqual({ key: 'distance', order: 'desc' })
     for (const legacySort of ['origin', 'airline_iata', 'aircraft_icao', 'nonsense'])

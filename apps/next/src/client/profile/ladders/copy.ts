@@ -1,5 +1,3 @@
-// Achievement ladder strings in English and Russian together (Russian addresses the member as «вы»).
-// Rung names, Normal and To-go lines are sober; the Sarcastic lines are the witty register and aim at habits, machines and timetables.
 import {
   formatCount,
   formatDistanceKm,
@@ -79,7 +77,6 @@ export const RUNG_NAME: Record<LadderId, Pair[]> = {
   ],
 }
 
-/** One line per rung. Airlines rung 2 carries `{n}`; fill it with `sarcastic()`. */
 export const SARCASTIC: Record<LadderId, Pair[]> = {
   flights: [
     p(
@@ -243,7 +240,6 @@ export const SARCASTIC: Record<LadderId, Pair[]> = {
   ],
 }
 
-/** The Sarcastic line for a 1-based rung; `{n}` (Airlines rung 2) takes the current airlines count or the threshold. */
 export function sarcastic(id: LadderId, rung: number, n: number, locale: Locale): string {
   const pair = SARCASTIC[id][rung - 1]
   return pair ? t(pair, locale).replaceAll('{n}', formatNumber(locale, n)) : ''
@@ -267,7 +263,6 @@ const NORMAL: Record<Exclude<LadderId, 'distance' | 'time-aloft'>, Pair> = {
   'aircraft-types': p('Aircraft types: {n}.', 'Типов самолётов: {n}.'),
 }
 
-/** The sober line with the current value in display units (hours for time aloft: days from 48 h, else hours). */
 export function normal(id: LadderId, value: number, locale: Locale): string {
   if (id === 'distance') {
     const km = formatDistanceKm(locale, Math.floor(value))
@@ -293,7 +288,6 @@ const TO_GO: Record<LadderId, Pair> = {
   'aircraft-types': p('Types to go: {n}', 'Осталось типов: {n}'),
 }
 
-/** The one-line label of the next strip slot; `remaining` is in display units. */
 export function toGo(id: LadderId, remaining: number, locale: Locale): string {
   return t(TO_GO[id], locale).replace('{n}', formatNumber(locale, remaining))
 }
@@ -302,7 +296,6 @@ export const rungOf = (n: number, m: number, locale: Locale) =>
   locale === 'ru' ? `Ступень ${n} из ${m}` : `Rung ${n} of ${m}`
 
 export const FOUNDING = {
-  // The name stays English in both locales (owner, 2026-10-12).
   name: p('Founding crew', 'Founding crew'),
   normal: p('Here since before launch.', 'С нами с самого начала.'),
   sarcastic: p(
@@ -315,7 +308,6 @@ export const NEW = p('New', 'Новое')
 export const EARNED = (date: string, locale: Locale) =>
   locale === 'ru' ? `Получено ${date}` : `Earned ${date}`
 export const TOP_RUNG = p('Top rung', 'Верхняя ступень')
-/** Visually hidden state after a strip slot's rung name. */
 export const SLOT_EARNED = p(', earned', ', получено')
 export const SLOT_LOCKED = p(', locked', ', закрыто')
 export const SLOT_NEXT = p(', next', ', следующая')

@@ -12,13 +12,8 @@ import '../../iso/fleet.css'
 const key = (plan: ShedPlan) =>
   `${plan.blank}|${plan.sheds.map((shed) => `${shed.key}:${shed.name}:${shed.share}`).join(',')}`
 
-/** The labels the sheds print: shares, or a dash while there is nothing to share out. */
 export const labelOf = (plan: ShedPlan) => (share: number) => (plan.blank ? '—' : shareText(share))
 
-/**
- * The Aircraft card's hangars in the card's figure box (figure-box.ts), drawn at the k that fits this journal's sheds.
- * `lit` is the shed key to light, or null; `picked` enables the 150ms crossfade (hangars.css). The sheds never move.
- */
 export function HangarsFigure({
   plan,
   lit,
@@ -45,7 +40,6 @@ export function HangarsFigure({
   )
 }
 
-/** Reuse the measured airframe drawing for the selected ICAO type, drawn at the width of the card's figure box. */
 export function FleetFigure({ icao, body }: { icao: string; body: string | null }) {
   const { width } = useFigureBox()
   const figure = useMemo(() => fleet([{ icao, body }], width, 'lineup'), [icao, body, width])

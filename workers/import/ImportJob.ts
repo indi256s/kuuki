@@ -36,7 +36,6 @@ import {
 import { FlightScanner } from './scanner'
 import { parseStructuredText } from '../../functions/api/import/_text'
 
-/** Rows per fenced D1 batch when a deterministic parse is written in runs. */
 const LOCAL_RUN = 50
 
 export interface ImportEnv {
@@ -57,7 +56,6 @@ const frame = (event: ImportEvent, snapshot = false, reupload = false) =>
 const packet = (event: ImportEvent, snapshot = false, reupload = false) =>
   encoder.encode(frame(event, snapshot, reupload))
 
-/** One server-owned request per batch. Durable storage contains only the fence, never source or provider output. */
 export class ImportJob {
   private fence?: BatchFence
   private controller?: AbortController
@@ -109,7 +107,7 @@ export class ImportJob {
               this.fence.generation !== fence.generation
             )
               return new HttpError(409, 'Job fence differs')
-            return // A duplicate start never makes a second provider call, including after a restart.
+            return
           }
           this.fence = fence
           await this.ctx.storage.put('fence', fence)
@@ -117,7 +115,6 @@ export class ImportJob {
           this.controller = new AbortController()
           this.ctx.waitUntil(
             this.recognize(source, fence, this.controller, flownRequired).catch(() => {
-              // No exception payload is logged: database errors may contain extracted values.
               console.error(JSON.stringify({ event: 'import_job_error', code: 'INTERNAL' }))
             }),
           )
@@ -167,7 +164,6 @@ export class ImportJob {
       timedOut = true
       controller.abort()
     }, PROVIDER_TIMEOUT_MS)
-    // Race every provider await against abort, including providers that ignore the signal.
     let rejectAbort: (reason: unknown) => void = () => undefined
     const aborted = new Promise<never>((_, reject) => {
       rejectAbort = reject
@@ -182,7 +178,7 @@ export class ImportJob {
     let finalized = false
     const emitted = new Map<number, string>()
     const extracted = new Map<number, ExtractedFlight>()
-    const rejectedOrdinals = new Set<number>() // the final pass revisits rows already refused while streaming
+    const rejectedOrdinals = new Set<number>()
     let iterator: AsyncIterator<string> | undefined
     const persist = async (value: unknown, ordinal: number) => {
       if (controller.signal.aborted) throw new DOMException('Aborted', 'AbortError')
@@ -274,9 +270,6 @@ export class ImportJob {
       this.notify(started)
       const local = source.type === 'text' ? parseStructuredText(source.content) : null
       if (local) {
-        // A deterministic parse has every row up front: write contiguous runs in one fenced batch each, so up to
-        // MAX_DRAFTS_DETERMINISTIC rows cost a few D1 batches. It never passes through the provider scanner, whose
-        // output cap a long paste would exceed after truncation.
         limit = MAX_DRAFTS_DETERMINISTIC
         if (!(await persistLocal(local.flights))) return
       } else {
@@ -300,7 +293,6 @@ export class ImportJob {
       let seen = local?.flights.length ?? 0
       if (!local) {
         const final = scanner.finish()
-        // Source ordinals survive rejected rows; existing drafts (including member edits) are never overwritten.
         for (const [ordinal, value] of emitted) {
           if (JSON.stringify(final[ordinal]) !== value)
             throw new HttpError(
@@ -434,7 +426,6 @@ export class ImportJob {
                 batch.error_code === 'JOB_INTERRUPTED',
               ),
             )
-          // One bounded replay chunk keeps the 128-event history independent of the 16-chunk live queue.
           else if (newer.length)
             controller.enqueue(encoder.encode(newer.map((event) => frame(event)).join('')))
           if (batch.status === 'processing' && !request.signal.aborted) {
@@ -454,7 +445,6 @@ export class ImportJob {
       },
       { highWaterMark: MAX_EVENT_QUEUE },
     )
-    // A final write may have run while the initial D1 read was pending, before registration.
     if (this.subscribers.has(subscriber!)) {
       const latest = await ownedBatch(this.env.DB, userId, batchId)
       if (!latest || latest.status !== 'processing' || latest.generation !== batch.generation) {
@@ -476,7 +466,7 @@ export class ImportJob {
   private notify(event: ImportEvent, terminal = false) {
     this.replay.push(event)
     if (this.replay.length > MAX_REPLAY_EVENTS) this.replay.shift()
-    if (terminal) return // The final snapshot and status are read from D1 by finish().
+    if (terminal) return
     for (const subscriber of this.subscribers) {
       try {
         if ((subscriber.controller.desiredSize ?? 0) <= 2) {
@@ -531,7 +521,6 @@ export class ImportJob {
 
   private startHeartbeat() {
     if (this.heartbeat !== undefined) return
-    // Reconcile outside termination even while the provider is idle; comment frames flush disconnects.
     this.heartbeat = setInterval(() => {
       this.ctx.waitUntil(
         this.checkSubscribers().catch(() => {

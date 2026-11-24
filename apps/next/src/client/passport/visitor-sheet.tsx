@@ -7,10 +7,6 @@ import { isCatalogCountry } from './model'
 import { SHEET_STAMP_SIZE } from './stamp-sizes'
 import './passport.css'
 
-/**
- * The read-only country sheet for visitors and the owner's visitor preview: the large stamp and the name, nothing
- * else. A catalog country outside the public set shows the name alone, with no stamp that would claim a visit.
- */
 export function VisitorSheet({
   code: selected,
   inCollection,
@@ -21,7 +17,6 @@ export function VisitorSheet({
   onCloseAutoFocus,
 }: {
   code: string | null
-  /** True when the code is in the public set. */
   inCollection: boolean
   locale: Locale
   mobile: boolean

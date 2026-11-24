@@ -1,13 +1,7 @@
-// Lagoon ring seen from above (Kiritimati). Two parts of one picture: `part: 'sea'` is a backdrop
-// layer that hatches the window (dense open ocean outside the ring, a few fine ripples in the
-// lagoon); `part: 'land'` is the subject, a lit ring of land with a single pass, islets in the
-// lagoon and black palm tufts along the rim. Geometry is absolute (cx, cy, rx, ry in grid units)
-// so both parts agree.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, fill, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
 
-/** A palm seen from above: a small solid star of narrow fronds. */
 export function tuft(cx: number, cy: number, r: number, rand: () => number): SvgNode[] {
   const out: SvgNode[] = []
   const n = 7
@@ -27,7 +21,6 @@ export function tuft(cx: number, cy: number, r: number, rand: () => number): Svg
   return out
 }
 
-/** Irregular closed ring outline: a wobbling ellipse. */
 function wobble(cx: number, cy: number, rx: number, ry: number, rand: () => number, n = 56): Pt[] {
   const ph = [rand() * 6, rand() * 6, rand() * 6]
   return Array.from({ length: n }, (_, i) => {
@@ -47,7 +40,7 @@ export const lagoonRing: KitModule = ([x, y, w, h], p) => {
   const rx = num(p, 'rx', 66)
   const ry = num(p, 'ry', 40)
   const band = num(p, 'band', 11)
-  const passAt = num(p, 'pass', 0.12) // fraction of the turn, from east, clockwise on screen
+  const passAt = num(p, 'pass', 0.12)
   const passW = num(p, 'passW', 0.05)
   const seed = Math.round(num(p, 'seed', 7))
   const rand = mulberry32(seed)
@@ -67,7 +60,6 @@ export const lagoonRing: KitModule = ([x, y, w, h], p) => {
     out.push(...toneFill(win, 'T3', { gap: [2.3, 1.9], ramp: [y, y + h] }))
     return out
   }
-  // Land ring: split into a lit band with a pass. Pass cut as a gap in both outlines.
   const cut = (pts: Pt[]): Pt[][] => {
     const n = pts.length
     const a = Math.round(passAt * n)
@@ -79,14 +71,12 @@ export const lagoonRing: KitModule = ([x, y, w, h], p) => {
   out.push(...toneFill(inner, 'T1', { gap: 5, weight: 'fine', inset: 3 }))
   for (const seg of cut(outer)) out.push(stroke('line', seg))
   for (const seg of cut(inner)) out.push(stroke('hair', seg))
-  // Pass: short cross strokes at the cut ends so the ring reads as open.
   const n = outer.length
   const a = Math.round(passAt * n)
   const g = Math.max(2, Math.round(passW * n))
   for (const i of [a % n, (a + g) % n]) {
     out.push(stroke('line', [outer[i], inner[i]]))
   }
-  // Lagoon islets.
   for (const [fx, fy, r] of [
     [-0.3, 0.1, 4.5],
     [0.22, -0.18, 3.6],
@@ -95,7 +85,6 @@ export const lagoonRing: KitModule = ([x, y, w, h], p) => {
     const isl = wobble(cx + rx * fx, cy + ry * fy, r * 1.6, r, rand, 14)
     out.push(...[occlude(isl, { halo: 1.5 }), stroke('hair', isl, true)])
   }
-  // Palm tufts along the band, skipping the pass.
   const m = 20
   for (let i = 0; i < m; i++) {
     const idx = Math.round((i / m) * n) % n

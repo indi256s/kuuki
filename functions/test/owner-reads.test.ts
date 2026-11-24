@@ -205,7 +205,6 @@ it('returns the whole owner journal with countries, refs, firsts and revisions',
     const guest = await getJournal({ ...apiContext(db, request) } as never)
     expect(guest.status).toBe(401)
 
-    // A page rendered for another account (cross-tab switch) is refused before its read, and so is an unbound read.
     const switched = await getJournal({
       ...apiContext(db, new Request(`https://kuuki.test/api/flights/journal?owner=${other.id}`)),
       data: { user: USER },

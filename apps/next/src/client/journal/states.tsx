@@ -7,9 +7,6 @@ import { EmptyState } from '../ui/empty-state'
 import type { Locale } from '../../lib/format'
 import './states.css'
 
-// Presentational Journal states. Props in, markup out: the store decides which one shows.
-// Copy rules: sentence case, no em dashes, no claim that edits work offline.
-
 const copy = {
   en: {
     emptyTitle: 'Your journal is empty',
@@ -37,7 +34,6 @@ const copy = {
   },
 } as const
 
-/** The member has no flights at all. One primary action, one inline alternative. */
 export function EmptyJournal({ locale }: { locale: Locale }) {
   const t = copy[locale]
   return (
@@ -57,7 +53,6 @@ export function EmptyJournal({ locale }: { locale: Locale }) {
   )
 }
 
-/** Flights exist but the filters or search hide all of them. */
 export function NoMatches({
   locale,
   onClearFilters,
@@ -78,7 +73,6 @@ export function NoMatches({
   )
 }
 
-/** A background refresh failed. Sits above the rows; the rows stay. */
 export function RefreshFailed({ locale, onRetry }: { locale: Locale; onRetry: () => void }) {
   const t = copy[locale]
   return (
@@ -106,7 +100,6 @@ export function PublicationPending({ locale }: { locale: Locale }) {
   )
 }
 
-/** Controls that are blocked offline point `aria-describedby` at `id`. */
 export function OfflineNote({ locale, id }: { locale: Locale; id: string }) {
   return (
     <p id={id} className="journal-note">

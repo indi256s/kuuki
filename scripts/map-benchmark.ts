@@ -2,8 +2,6 @@ import { performance } from 'node:perf_hooks'
 import { routeGeometry } from '../apps/next/src/client/maps/geometry'
 import type { ProjectedRoute } from '../apps/next/src/client/maps/types'
 
-// Synthetic distinct directed airport pairs; compares source/layer setup shape
-// and serialized route geometry. GPU/worker/frame time needs a browser proof.
 for (const count of [50, 500, 5000]) {
   const routes: ProjectedRoute[] = Array.from({ length: count }, (_, index) => {
     const longitude = -170 + ((index * 37) % 340)

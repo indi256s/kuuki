@@ -1,5 +1,3 @@
-// Cliff castle (lane C): a compact castle with a hip-roofed keep, a gabled hall and a curtain wall
-// on a sheer rock face that drops into the water (Bled Castle, SI). The box base is the waterline.
 import { type Pt, type SvgNode, body, fill, hatchPoly, occlude, rectPts, stroke } from '../grid'
 import { mulberry32 } from '../hash'
 import { type KitModule, num } from './util'
@@ -10,7 +8,6 @@ export const cliffCastle: KitModule = ([x, y, w, h], p) => {
   const X = (f: number) => x + f * w
   const Y = (f: number) => y + f * h
   const out: SvgNode[] = []
-  // rock: sheer on the right, stepped slope on the left
   const prof: [number, number][] = [
     [0.04, 1],
     [0.12, 0.84],
@@ -38,7 +35,6 @@ export const cliffCastle: KitModule = ([x, y, w, h], p) => {
   const shade: Pt[] = edge.filter(([px]) => px > X(0.46))
   const shadePoly: Pt[] = [[X(0.46), Y(0.55)], ...shade, [X(0.78), Y(1)], [X(0.46), Y(1)]]
   out.push(...hatchPoly(shadePoly, { angle: 90, gap: 2.8, weight: 'hair' }))
-  // bedding ticks on the lit side
   for (let i = 0; i < 9; i++) {
     const ty = Y(0.66 + i * 0.04)
     const tx = X(0.14 + rand() * 0.14)
@@ -50,12 +46,10 @@ export const cliffCastle: KitModule = ([x, y, w, h], p) => {
     )
   }
   const base = Y(0.55)
-  // curtain wall
   const wallTop = base - h * 0.12
   out.push(...body(rectPts(X(0.2), wallTop, X(0.7) - X(0.2), base - wallTop + 1), 'line'))
   for (let mx = X(0.2); mx < X(0.7) - 3; mx += 5)
     out.push(...body(rectPts(mx, wallTop - 2.2, 3, 2.2), 'hair'))
-  // hall with gable roof
   const hx = X(0.3)
   const hw = X(0.56) - X(0.3)
   const hTop = wallTop - h * 0.16
@@ -68,7 +62,6 @@ export const cliffCastle: KitModule = ([x, y, w, h], p) => {
   ]
   out.push(occlude(roof), fill(roof))
   for (let i = 0; i < 3; i++) out.push(fill(archPts(hx + 4 + i * (hw / 3.2), hTop + 3, 3, 6)))
-  // keep: tall square tower with a hip cap
   const kx = X(0.58)
   const kw = X(0.68) - X(0.58)
   const kTop = Y(0.2)
@@ -91,7 +84,6 @@ export const cliffCastle: KitModule = ([x, y, w, h], p) => {
     fill(archPts(kx + kw * 0.2, kTop + 5, 3, 7)),
     fill(archPts(kx + kw * 0.2, kTop + 20, 3, 7)),
   )
-  // west tower with a cone
   const tx = X(0.2)
   const tw = 9
   const tTop = Y(0.38)

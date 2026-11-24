@@ -1,5 +1,3 @@
-// GET /api/badges — public list of all badge definitions (criteria JSON-parsed by the mapper).
-
 import { runHandler, json } from '../_lib/http'
 import type { RequestData } from '../_lib/auth'
 import { toBadgeDefinition } from '../_lib/badges'

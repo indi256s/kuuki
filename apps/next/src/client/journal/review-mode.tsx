@@ -1,29 +1,4 @@
 'use client'
-/**
- * Review mode in the Journal detail sheet (spec "Detail sheet → Review mode", D1, D6; ticket 12).
- *
- * `useJournalReview({ locale, docked, queue, offlineNoteId })` runs in the page beside `<JournalDetail>`. Outside review mode
- * (`view.review` false) it returns null. In review mode it returns the sheet's slots:
- * - `status`: "Review 2 of 3", plus the pending "Did not fly" Undo line while the sheet is the modal overlay (focus cannot reach
- *   the toast region there).
- * - `top`: "Did you take this flight?" with I flew and Did not fly, the arrival transit choice the old queue offered, and a live
- *   line for the last outcome ("Confirmed TBS → IST. New stamp: Türkiye.").
- * - `footer`: "Next to review", which moves on without writing; disabled on the last flight.
- * - `placeholder`: when nothing is left, "Nothing to confirm" or "All confirmed" with Close.
- *
- * The review set is every awaiting flight in the payload, ignoring filters (D6), minus rows a pending delete hides and flights
- * this session confirmed, oldest first (date, departure_utc, id). The shown flight is `view.flight` when it is in the set, else
- * the first; the hook keeps the URL on it with `openFlight(id, { review: true })` (a replace while the sheet is open).
- *
- * - I flew: `confirmFlights` for that one flight with the queue's candidate token and, when the member changed it, the transit
- *   choice. Confirmed: advance to the next flight in the set (wrapping to the first remaining), refresh and announce the
- *   lifecycle change; newly stamped countries show in the outcome line. A confirmation whose publication is still pending waits
- *   for it (`awaitPublication`) and then reads the operation's receipt again for the stamps, as the old queue did. Any other
- *   outcome stays on the flight with an inline message.
- * - Did not fly: the page's one deferred delete (`journal-delete.tsx`, D1), then advance. Undo brings the flight back and returns
- *   the sheet to it.
- * - Offline: both actions are blocked and described by the page's offline note.
- */
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
 import { api, getAuthGeneration } from '@kuuki/client/apiClient'
 import type {
@@ -110,7 +85,6 @@ const copy = {
 
 type QueueEntry = AwaitingQueue['awaitingFlights'][number]
 type Note = { text: string; alert: boolean }
-/** How the session ended up with nothing left: it never had anything, the last action confirmed, or the last action removed. */
 type Ending = 'empty' | 'confirmed' | 'removed'
 
 export type JournalReviewSlots = {
@@ -122,11 +96,8 @@ export type JournalReviewSlots = {
 
 export type JournalReviewOptions = {
   locale: Locale
-  /** `useDockedDetail()`: the docked pane is not modal, so the toast's Undo is reachable and takes focus. */
   docked: boolean
-  /** `useAwaiting().data`: candidate tokens and the arrival transit suggestion per flight. */
   queue: AwaitingQueue | null
-  /** The page's offline note; blocked actions point `aria-describedby` at it. */
   offlineNoteId: string
 }
 
@@ -135,7 +106,6 @@ const oldestFirst = (a: JournalFlight, b: JournalFlight) =>
   (a.departure_utc ?? '').localeCompare(b.departure_utc ?? '') ||
   a.id - b.id
 
-/** The awaiting flights to review, oldest first. Pure. */
 export function reviewSet(
   flights: readonly JournalFlight[],
   exclude: (id: number) => boolean,
@@ -145,7 +115,6 @@ export function reviewSet(
     .sort(oldestFirst)
 }
 
-/** The flight after `id`, wrapping to the first remaining one; null when `id` is the only one. */
 function nextAfter(set: readonly JournalFlight[], id: number): JournalFlight | null {
   const index = set.findIndex((flight) => flight.id === id)
   const rest = set.filter((flight) => flight.id !== id)
@@ -170,7 +139,6 @@ function stampText(locale: Locale, codes: readonly string[] | null): string {
   return ` ${copy[locale].stamps(codes.map(label).join(', '), codes.length)}`
 }
 
-/** The default transport, keeping the last confirm request and answer so a pending publication can read the receipt again. */
 function receiptTransport() {
   let last: { request: ConfirmRequest; outcome: ConfirmOutcome } | null = null
   const transport: ConfirmTransport = {
@@ -194,7 +162,6 @@ export function useJournalReview({
   const { payload, view, hidden, openFlight, closeSheet, refresh, online } = useJournalStore()
   const { scheduleDelete, pending, undo } = useJournalDelete()
 
-  // Flights this session confirmed leave the set at once; each is forgotten once the payload no longer shows it awaiting.
   const [resolved, setResolved] = useState<ReadonlySet<number>>(() => new Set())
   const [seenPayload, setSeenPayload] = useState(payload)
   if (seenPayload !== payload) {
@@ -218,7 +185,6 @@ export function useJournalReview({
   const [removedId, setRemovedId] = useState<number | null>(null)
   const [focusKey, setFocusKey] = useState(0)
 
-  // Leaving review mode ends the session: its outcome line and ending do not follow the member into the next one.
   const [reviewSession, setReviewSession] = useState(0)
   const [wasReview, setWasReview] = useState(view.review)
   if (wasReview !== view.review) {
@@ -241,7 +207,6 @@ export function useJournalReview({
   const current = set[index] ?? null
   const target = current?.id ?? null
 
-  // Keep the sheet on a flight of the set: the first when none is chosen (the pill) or the chosen one left the set.
   useEffect(() => {
     if (view.review && view.flight !== target) openFlight(target, { review: true })
   }, [view.review, view.flight, target, openFlight])
@@ -266,7 +231,6 @@ export function useJournalReview({
     const controller = new AbortController()
     operations.current.add(controller)
     const generation = getAuthGeneration()
-    // A completed request may refresh data after closing, but its feedback belongs to the original review session.
     const report = (next: Note) =>
       latest.current.view.review && latest.current.reviewSession === reviewSession ? say(next) : -1
     const receipts = receiptTransport()
@@ -278,7 +242,6 @@ export function useJournalReview({
       transport: receipts.transport,
       ...(transit === undefined ? {} : { arrivalTransit: new Map([[flight.id, transit]]) }),
     })
-    // Unmounted: nothing here belongs to a page any more.
     if (controller.signal.aborted) {
       operations.current.delete(controller)
       return
@@ -288,7 +251,6 @@ export function useJournalReview({
       case 'confirmed': {
         setResolved((old) => new Set(old).add(flight.id))
         const { view: now, set: shown } = latest.current
-        // Advance only when the sheet is still on this flight in review mode (the member may have closed it meanwhile).
         if (
           now.review &&
           latest.current.reviewSession === reviewSession &&
@@ -310,7 +272,6 @@ export function useJournalReview({
           })
           return
         }
-        // Publication is pending: wait for it, then read this operation's receipt again for the stamps.
         const seq = report({ text: `${confirmed} ${t.publishing}`, alert: false })
         const isCurrent = () => !controller.signal.aborted && generation === getAuthGeneration()
         const release = trackPrivateOperation(controller)
@@ -327,7 +288,6 @@ export function useJournalReview({
               text = confirmed + stampText(locale, receipt.newlyStampedCountries)
           }
         } catch {
-          /* the delayed line stays */
         } finally {
           release()
           operations.current.delete(controller)
@@ -341,7 +301,6 @@ export function useJournalReview({
         return
       case 'nothing':
         operations.current.delete(controller)
-        // No token: the flight is beyond the queue's first 100 or the queue could not be read. Otherwise it already left the queue.
         report({ text: result.skipped.noToken.length ? t.noToken : t.notAwaiting, alert: true })
         if (!result.skipped.noToken.length) void refresh()
         return
@@ -351,7 +310,6 @@ export function useJournalReview({
         void refresh()
         return
       default:
-        // `unknown` (and `partial`, which one flight cannot reach): it may have committed.
         operations.current.delete(controller)
         report({ text: t.unknown, alert: true })
         void refresh()
@@ -367,7 +325,6 @@ export function useJournalReview({
     setRemovedId(flight.id)
     scheduleDelete([flight.id], {
       label: t.removing(routeOf(flight)),
-      // The docked pane is not modal: the toast's Undo takes focus. The overlay traps focus, so its own Undo line does.
       focusUndo: docked,
       onUndo: () => {
         openFlight(flight.id, { review: true })
@@ -446,7 +403,6 @@ export function useJournalReview({
   }
 }
 
-/** The outcome line. Both live regions stay mounted with the block, so a message after an advance is still announced. */
 function ReviewNote({ note }: { note: Note | null }) {
   return (
     <>
@@ -488,7 +444,6 @@ function ReviewQuestion({
   const t = copy[locale]
   const questionId = useId()
   const flew = useRef<HTMLButtonElement>(null)
-  // After Undo returns the sheet to a removed flight, focus lands on its question.
   useEffect(() => {
     if (focusKey) flew.current?.focus()
   }, [focusKey])
@@ -511,7 +466,6 @@ function ReviewQuestion({
             {t.connection}: {entry.flight.destination}
             {candidate.leg && <> → {candidate.leg.destination}</>} · {basis}
           </p>
-          {/* Same default as the old queue: unticked means transit (the server's suggestion) until the member says otherwise. */}
           {candidate.kind === 'link' && (
             <Checkbox
               label={t.leftAirport}
@@ -544,7 +498,6 @@ function ReviewQuestion({
   )
 }
 
-/** The overlay's own Undo for a review "Did not fly": the modal sheet keeps focus and pointer input inside it. */
 function ReviewUndo({
   locale,
   pending,
@@ -573,7 +526,6 @@ function ReviewEmpty({
   children: ReactNode
 }) {
   const close = useRef<HTMLButtonElement>(null)
-  // The question that had focus is gone: land on Close rather than the page body.
   useEffect(() => {
     if (document.activeElement === null || document.activeElement === document.body)
       close.current?.focus()

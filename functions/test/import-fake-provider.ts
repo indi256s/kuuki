@@ -1,4 +1,3 @@
-// Bundled in the Miniflare fixture instead of the network SDK. Production has no fake-provider flag.
 export const Type = {
   OBJECT: 'OBJECT',
   ARRAY: 'ARRAY',
@@ -39,7 +38,6 @@ export class GoogleGenAI {
         }),
       })
       const reader = response.body!.getReader()
-      // Deliberately ignore abort so the job must fence late callbacks and enforce its own deadline.
       return (async function* () {
         const decoder = new TextDecoder()
         let pending = ''

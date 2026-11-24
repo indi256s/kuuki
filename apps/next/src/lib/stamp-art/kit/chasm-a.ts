@@ -1,8 +1,3 @@
-// Matapa Chasm seen down the slot (lane A, `-a` until consolidated), one-point perspective. Part
-// `walls` is a backdrop: two coral walls in T4 whose verticals break at every ledge, T5 undercuts
-// biting into each face, lit end faces in front with strata, a narrow lit gap of sea and sky at the
-// end and a T1 pool in the foreground. Part `rocks` is the subject: stepping rocks across the pool.
-// Everything is laid out on the window box; the vanishing point sits at the centre of the gap.
 import { mulberry32 } from '../hash'
 import {
   type Pt,
@@ -22,8 +17,8 @@ export const chasmA: KitModule = ([x, y, w, h], p) => {
   const part = str(p, 'part', ['walls', 'rocks'] as const, 'walls')
   const cx = x + w / 2
   const vy = y + h * num(p, 'vanish', 0.45)
-  const near = w * num(p, 'near', 0.5) // distance of the near wall edge from the centre line
-  const k = num(p, 'far', 0.25) // far edge scale
+  const near = w * num(p, 'near', 0.5)
+  const k = num(p, 'far', 0.25)
   const nearTop = y - 2
   const nearBot = y + h * 0.97
   const out: SvgNode[] = []
@@ -50,7 +45,6 @@ export const chasmA: KitModule = ([x, y, w, h], p) => {
   }
 
   const rand = mulberry32(Math.round(num(p, 'seed', 6)))
-  // The gap: lit sky above, sea below the horizon, drawn inside a paper window.
   const gap = rectPts(gx0, gapTop, gx1 - gx0, gapBot - gapTop)
   out.push(occlude(gap))
   const horizon = gapTop + (gapBot - gapTop) * 0.55
@@ -63,7 +57,6 @@ export const chasmA: KitModule = ([x, y, w, h], p) => {
   )
   out.push(hline('line', gx0, gx1, horizon))
 
-  // Pool: horizontal lines closing toward the viewer, inside the floor trapezoid.
   const floor: Pt[] = [
     [gx0, gapBot],
     [gx1, gapBot],
@@ -75,8 +68,6 @@ export const chasmA: KitModule = ([x, y, w, h], p) => {
   out.push(occlude(floor))
   out.push(...hatchPoly(floor, { angle: 0, gap: [4.2, 2.6], weight: 'fine' }))
 
-  // Walls: inner faces (T4 with ledge breaks, undercut pockets) and lit end faces. The near edge
-  // leans in toward the top and wobbles, so the slot narrows and the faces are not flat ruled cards.
   const span = nearBot - nearTop
   const lean = near * 0.2
   const wob = (side: number, t: number) =>
@@ -116,7 +107,6 @@ export const chasmA: KitModule = ([x, y, w, h], p) => {
           )
       }
     }
-    // Undercut pockets: dark lenses under a ledge, tapering into the distance.
     for (const [f0, u0, u1] of [
       [0.22, 0.1, 0.85],
       [0.58, 0.0, 0.7],
@@ -138,7 +128,6 @@ export const chasmA: KitModule = ([x, y, w, h], p) => {
       stroke('line', [P(0, nearBot), P(1, nearBot)]),
     )
     out.push(stroke('line', [P(1, nearTop), P(1, nearBot)]))
-    // Lit end face: paper with broken strata.
     const nx = (yn: number) => cx + side * xn(side, yn)
     const ex = side < 0 ? x - 4 : x + w + 4
     const end: Pt[] = [[ex, nearTop], ...ys.map((yn): Pt => [nx(yn), yn]), [ex, nearBot + 2]]

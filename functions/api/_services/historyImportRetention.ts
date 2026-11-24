@@ -1,12 +1,5 @@
-// Retention and deletion statements for Flighty history rows (ADR 0008 "Private source data and deletion").
-// Each one is meant for the caller's own D1 batch, so the private cells disappear in the same transaction as the
-// flight, the run or the account they belong to.
 import { nowIso } from '../_lib/time'
 
-/**
- * Before `DELETE FROM flights` in the same batch: rows linked to these owned flights lose their cells and link and
- * become `removed`. Digest, Flighty ID and match key remain as the tombstone that stops a silent re-creation.
- */
 export function tombstoneHistoryRowsStatement(
   db: D1Database,
   userId: string,
@@ -23,14 +16,9 @@ export function tombstoneHistoryRowsStatement(
     .bind(now, now, userId, JSON.stringify(flightIds), userId)
 }
 
-/** States a row can still leave by an owner decision: the one list the SQL, the page filter and patches read. */
 export const OPEN_ROW_STATE_LIST = ['ready', 'needs_review', 'error'] as const
 export const OPEN_ROW_STATES = `(${OPEN_ROW_STATE_LIST.map((state) => `'${state}'`).join(',')})`
 
-/**
- * Maintenance: 30 days after a run opened, its unconfirmed rows become `ignored`/`expired`, ignored rows lose their
- * cells and the run closes. Committed rows keep their cells; no row disappears, so totals still add up.
- */
 export function expireHistoryRunsStatements(
   db: D1Database,
   instant: string,

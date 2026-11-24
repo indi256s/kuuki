@@ -54,7 +54,6 @@ function run(query: string, flights: JournalFlight[], locale: 'en' | 'ru' = 'en'
     .map((row) => row.id)
 }
 
-// The same four rows as the server tests in functions/test/flights.test.ts.
 const server = {
   a: flight('2025-04-03', 'TBS', 'IST', { flight_number: 'Q%_99', airline_iata: 'TK' }),
   b: flight('2025-04-04', 'IST', 'TBS', { flight_number: 'Q100', airline_iata: 'TK' }),

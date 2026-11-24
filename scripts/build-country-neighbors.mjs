@@ -1,10 +1,3 @@
-// Derives land neighbors from the pinned country geometry and writes packages/data/src/country-neighbors.ts.
-//
-//   node scripts/build-country-neighbors.mjs
-//
-// world-atlas is TopoJSON: neighboring countries share the same arcs, so after decoding they share identical
-// consecutive vertices. Two countries are neighbors when at least one boundary edge (two consecutive vertices)
-// is shared. A single shared point (a tripoint touch) is not enough. Only catalog codes are kept.
 import { readFileSync, writeFileSync } from 'node:fs'
 
 const geometryPath = 'apps/next/public/maps/countries-110m-2.0.2-r2.geojson'

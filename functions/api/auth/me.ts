@@ -1,5 +1,3 @@
-// GET /api/auth/me — session bootstrap. Returns { user, profile } or { user: null }.
-
 import { runHandler, json } from '../_lib/http'
 import type { RequestData } from '../_lib/auth'
 import { getProfileRow, toOwnProfile } from '../_lib/profiles'

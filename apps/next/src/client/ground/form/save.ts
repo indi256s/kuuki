@@ -1,7 +1,3 @@
-// The save flow of a ground journey as a small state machine. A write that returns no usable answer is
-// "unknown", never "failed": the frozen command keeps its operation key, so Check result reads the receipt and
-// Retry original save replays the very same write. A new create id or key is never a way around it.
-
 import { ApiError } from '@kuuki/client/apiClient'
 import type {
   GroundCommand,
@@ -13,13 +9,10 @@ import type { CommandBody } from './model'
 
 export type SaveOutcome =
   | { kind: 'saved'; result: GroundMutationResult }
-  /** No answer: network loss, timeout or a server error. The write may or may not have committed. */
   | { kind: 'unknown' }
-  /** The journey moved on (409). `current` is the saved version when it could be read. */
   | { kind: 'conflict'; current: GroundJourneyDto | null }
   | { kind: 'gone' }
   | { kind: 'rejected'; message: string }
-  /** The session changed under the request; the page is leaving, nothing to show. */
   | { kind: 'aborted' }
 
 export interface SaveDeps {
@@ -31,7 +24,6 @@ export interface SaveDeps {
 const sessionChanged = (error: unknown) =>
   error instanceof DOMException && error.name === 'AbortError'
 
-/** Sorts a transport error into the outcome the form can act on. */
 export async function classifyFailure(
   error: unknown,
   command: GroundCommand,
@@ -53,7 +45,6 @@ export async function classifyFailure(
     if (error.status >= 400 && error.status < 500 && error.status !== 408 && error.status !== 429)
       return { kind: 'rejected', message: error.message }
   }
-  // Timeouts, network errors, 408/429 and 5xx: the answer is missing, not negative.
   return { kind: 'unknown' }
 }
 
@@ -71,7 +62,6 @@ export async function attemptSave(
 
 export type CheckOutcome =
   | { kind: 'saved'; result: Omit<GroundMutationResult, 'replayed'> & { replayed?: boolean } }
-  /** No receipt: never written, expired, or another owner's. Retrying the original is safe. */
   | { kind: 'not-found' }
   | { kind: 'failed' }
   | { kind: 'aborted' }
@@ -97,7 +87,6 @@ export type RereadOutcome =
   | { kind: 'failed' }
   | { kind: 'aborted' }
 
-/** Reads the saved version again after a 409 whose first read failed, so the conflict panel is never a dead end. */
 export async function rereadSaved(
   id: string,
   deps: Pick<SaveDeps, 'read'>,
@@ -113,22 +102,13 @@ export async function rereadSaved(
   }
 }
 
-// ---------------------------------------------------------------------------
-// Operation keys
-// ---------------------------------------------------------------------------
-
 export interface Attempt {
   key: string
-  /** The command body the key was issued for. */
   signature: string
 }
 
 const signatureOf = (body: CommandBody) => JSON.stringify(body)
 
-/**
- * The same payload keeps the same operation key across resubmits (double click, retry after an error); a changed
- * payload is a different request and gets a new one. The server rejects a reused key with a different payload.
- */
 export function commandFor(
   body: CommandBody,
   previous: Attempt | null,
@@ -139,19 +119,13 @@ export function commandFor(
   return { command: { ...body, operationKey: key } as GroundCommand, attempt: { key, signature } }
 }
 
-// ---------------------------------------------------------------------------
-// UI state
-// ---------------------------------------------------------------------------
-
 export type SaveState =
   | { phase: 'idle' }
   | { phase: 'saving'; command: GroundCommand }
   | {
       phase: 'unknown'
-      /** The frozen request: shown, re-sent or checked as is; later edits never replace it. */
       command: GroundCommand
       checking: boolean
-      /** The receipt lookup found nothing, so the original write can be retried. */
       notFound: boolean
       checkFailed: boolean
     }
@@ -159,7 +133,6 @@ export type SaveState =
       phase: 'conflict'
       command: GroundCommand
       current: GroundJourneyDto | null
-      /** Reading the saved version again; belongs to this conflict, so a new conflict starts from idle. */
       reread: 'idle' | 'reading' | 'failed'
     }
   | { phase: 'gone' }
@@ -175,7 +148,6 @@ export type SaveEvent =
   | { type: 'reread-start' }
   | { type: 'reread-done'; failed: boolean }
 
-/** `saved` and `aborted` are handled by the caller (navigate / nothing); the reducer returns to idle for them. */
 export function saveReducer(state: SaveState, event: SaveEvent): SaveState {
   switch (event.type) {
     case 'start':

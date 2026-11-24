@@ -1,16 +1,4 @@
 'use client'
-// Selection and bulk actions on the Journal (spec "Selection and bulk actions", D1, D5). The floating bar shows while
-// any ticked flight passes the filters and acts only on those (`selected`, the store's `selectedVisible`), never on
-// ticks the filters hide.
-//
-// - Delete and Did not fly: no confirm dialog. The selection clears and the rows go to the page's one deferred delete
-//   (`journal-delete.tsx`): hidden at once, 6 s Undo in the toast region with focus on it. Undo brings the rows back and
-//   focuses the first; a failed delete brings them back and says so. A new delete commits a pending one first.
-// - Set aircraft: fills only flights without an aircraft unless "Replace all" is ticked, through `aircraft-batch` in
-//   sequential chunks of 20.
-// - I flew: `confirmFlights` over the awaiting flights; upcoming and flown ones are skipped and counted.
-// - Export: OpenFlights CSV of the selection, built in the browser.
-// Offline, every write is blocked and points at the page's offline note; Export still works.
 import {
   useEffect,
   useId,
@@ -85,7 +73,6 @@ const plural = {
       other: 'Подтверждено {count} перелёта.',
     },
   ),
-  /** "for N flights", the noun after "for" / «для». */
   forFlights: forms(
     { one: '{count} flight', other: '{count} flights' },
     {
@@ -204,15 +191,11 @@ type Status = { key: string; text: string; alert: boolean }
 
 export type JournalBulkActionsProps = {
   locale: Locale
-  /** Ticked flights that pass the filters, in ledger order (the store's `selectedVisible`). Every action uses only these. */
   selected: readonly JournalFlight[]
-  /** Every flight the filters match, for "Select all M matching". */
   matching: readonly JournalFlight[]
   refs: JournalRefs
-  /** `useAwaiting().data`: its candidate tokens are tried first for I flew. */
   queue: AwaitingQueue | null
   online: boolean
-  /** The page's `OfflineNote` id; blocked writes point `aria-describedby` at it while offline. */
   offlineNoteId: string
   onSelectAll: (ids: number[]) => void
   onClear: () => void
@@ -251,7 +234,6 @@ export function JournalBulkActions({
   const key = ids.join(',')
   const parts = useMemo(() => partitionPending(selected), [selected])
 
-  // Deferred delete (spec D1): Delete and Did not fly both end in the page's one deferred delete.
   const remove = (target: number[]) => {
     if (!online || !target.length) return
     onClear()
@@ -266,7 +248,6 @@ export function JournalBulkActions({
     operations.current.add(controller)
     const result = await confirmFlights({ flights: selected, queue, signal: controller.signal })
     operations.current.delete(controller)
-    // Unmounted, signed out or switched owner: nothing here belongs to this page any more.
     if (result.outcome === 'stale') return
     setConfirming(false)
     if (result.outcome !== 'nothing') {
@@ -284,7 +265,6 @@ export function JournalBulkActions({
     focusRowOrHeading(ids)
   }
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    // The aircraft dialog renders in a portal: React bubbles its keys here, the DOM does not contain them.
     if (
       event.key !== 'Escape' ||
       event.defaultPrevented ||
@@ -430,7 +410,6 @@ type SetAircraftProps = {
   flights: readonly JournalFlight[]
   online: boolean
   offlineNoteId: string
-  /** Offline or another write is running. */
   blocked: boolean
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -439,7 +418,6 @@ type SetAircraftProps = {
   operations: RefObject<Set<AbortController>>
 }
 
-/** "Set aircraft": fill-only by default (D5), "Replace all" needs its own tick. Sequential `aircraft-batch` chunks of 20. */
 function SetAircraft({
   locale,
   flights,
@@ -461,7 +439,6 @@ function SetAircraft({
   const [message, setMessage] = useState<{ text: string; alert: boolean } | null>(null)
   const replaceId = useId()
 
-  // The aircraft catalogue is large: load it the first time the dialog opens.
   const [loadAttempt, setLoadAttempt] = useState(0)
   useEffect(() => {
     if (!open || choices) return
@@ -534,7 +511,6 @@ function SetAircraft({
       release()
       operations.current.delete(controller)
     }
-    // A sign-out or owner switch happened meanwhile: this answer belongs to another identity and is never shown.
     if (!current()) return
     setSaving(false)
     const counts = countAircraftRun(run.rows.values())

@@ -1,7 +1,4 @@
 'use client'
-// The Flighty CSV import (ADR 0008): one summary of counts, one question per group, the records that still need an
-// answer paged from the server, and one Save that the controller walks in server pages. Everything shown comes from
-// the server run, so a refresh lands on the same decisions.
 import { X } from '@keyline-icons/react'
 import {
   useEffect,
@@ -62,15 +59,10 @@ const TIME_ISSUES = new Set([
   'DURATION_OUT_OF_RANGE',
 ])
 
-/** An answered or skipped card or row fades for this long before it leaves the list. */
 const LEAVE_MS = 140
 
 type Leaving<T> = { id: string; item: T; leaving: boolean }
 
-/**
- * The list with items that were just removed kept for one fade. Only ids in `fading` (pointer-initiated answers) are
- * kept; a kept item is marked `leaving` and is treated as gone by everything but its own fade.
- */
 function useLeaving<T>(
   items: readonly T[],
   idOf: (item: T) => string,
@@ -99,14 +91,12 @@ function useLeaving<T>(
   const hasLeaving = current.some((entry) => entry.leaving)
   useEffect(() => {
     if (!hasLeaving) return
-    // The fade is CSS; this releases the item once it has run (or at once if it never started).
     const timer = window.setTimeout(
       () => setEntries((all) => all.filter((entry) => !entry.leaving)),
       LEAVE_MS,
     )
     return () => window.clearTimeout(timer)
   }, [current, hasLeaving])
-  // `index` counts only the items still in place (what focus-after counts); a leaving item shares its successor's.
   let placed = 0
   return current.map((entry) => ({ ...entry, index: entry.leaving ? placed : placed++ }))
 }
@@ -133,19 +123,16 @@ export function HistoryImport({
   const { run, failure } = state
   const reselect = useRef<HTMLInputElement>(null)
   const root = useRef<HTMLDivElement>(null)
-  // After an answer or Skip removes an item, focus moves to the item now in its place, as in QuestionDeck.
   const focusAfter = useRef<{ list: string; index: number; id: string } | null>(null)
   useEffect(() => {
     const target = focusAfter.current
     if (!target || !root.current) return
-    // A leaving item is gone already: focus never waits on its fade.
     const liveItems = (list: Element | null) =>
       (list ? Array.from(list.children as HTMLCollectionOf<HTMLElement>) : []).filter(
         (item) => !item.hasAttribute('data-leaving'),
       )
     const items = liveItems(root.current.querySelector(`[data-history-list="${target.list}"]`))
     if (items.some((item) => item.dataset.historyItem === target.id)) {
-      // Still there: the answer is on its way, or it failed or left the item open; focus stays put.
       if (!state.busy.has(target.id)) focusAfter.current = null
       return
     }
@@ -154,8 +141,6 @@ export function HistoryImport({
       item?.querySelector<HTMLElement>(
         '[data-question-heading], input:not(:disabled), button:not(:disabled)',
       )
-    // The item now in its place; when its list emptied, the first item of another list, then Save, then the title:
-    // never a section heading, which unmounts with its last item.
     ;(
       focusable(items[Math.min(target.index, items.length - 1)]) ??
       focusable(
@@ -165,11 +150,8 @@ export function HistoryImport({
       root.current.querySelector<HTMLElement>('h1')
     )?.focus()
   })
-  // Leaving the view stops the wait for the stamps' publication.
   useEffect(() => () => session.stopStamps(), [session])
-  // A pointer answer fades its card or row out; a keyboard one (and reduced motion) removes it at once.
   const lastInput = useRef<'pointer' | 'key'>('key')
-  // State, not a ref: useLeaving reads it during render.
   const [fading, setFading] = useState<ReadonlySet<string>>(() => new Set())
   const track = (list: string, index: number, id: string) => {
     focusAfter.current = { list, index, id }
@@ -185,7 +167,6 @@ export function HistoryImport({
   const groups = useLeaving(run?.groups ?? [], (group) => group.group, fading)
   const exceptions = useLeaving(state.exceptions, (row) => row.id, fading)
   const readyRows = useLeaving(state.ready?.rows ?? [], (row) => row.id, fading)
-  // The hero flips only when the run finished while this view was open; a reload onto a finished run is static.
   const [wasOpen, setWasOpen] = useState(false)
   if (run && run.status !== 'completed' && run.status !== 'closed' && !wasOpen) setWasOpen(true)
   const arrived = wasOpen && run?.status === 'completed'
@@ -198,13 +179,10 @@ export function HistoryImport({
   const receiving = run?.status === 'receiving'
   const finished = run?.status === 'completed' || run?.status === 'closed'
   const busyRun = state.reading || Boolean(state.upload) || Boolean(state.saving)
-  // The logbook lies on the inspection table while the file is read or sent, and its tray is stacked once the run is over.
-  // The monitor never lights: this file is not sent for recognition.
   const laneHistory = state.reading || receiving ? 'reading' : finished ? 'done' : null
   const deciding = state.busy.size > 0
   const stateCount = (key: keyof typeof STATE_LABEL) =>
     key === 'open' ? open : (run?.totals.states[key as 'ready'] ?? 0)
-  // The other non-zero states, as "label n" joined by dots.
   const others = (skip: Array<keyof typeof STATE_LABEL>) =>
     SUMMARY.filter((key) => !skip.includes(key) && stateCount(key) > 0)
       .map((key) => `${STATE_LABEL[key][locale]} ${formatNumber(locale, stateCount(key))}`)
@@ -339,7 +317,7 @@ export function HistoryImport({
             </section>
           )}
 
-          {groups.length || state.settled.length ? (
+          {!finished && (groups.length || state.settled.length) ? (
             <section className="import-questions" aria-labelledby="history-questions">
               <h2 id="history-questions" tabIndex={-1}>
                 {H.questions[locale]}
@@ -546,11 +524,9 @@ export function HistoryImport({
   )
 }
 
-/** The name shown under an airport or airline code ('' when the reference has none). */
 const codeName = (kind: string, code: string) =>
   (kind === 'airport' ? findAirportLabel(code)?.name : airlineName(code)) ?? ''
 
-/** What the owner answered, as short as the question was: the airline or airport code and name, or the choice label. */
 function settledAnswer(locale: Locale, group: string, answer: string | boolean | null) {
   const kind = groupKind(group)
   if (kind === 'canceled') return answer ? H.cancelled[locale] : H.flew[locale]
@@ -562,21 +538,18 @@ function settledAnswer(locale: Locale, group: string, answer: string | boolean |
   return name ? `${answer} ${name}` : answer
 }
 
-/** What the question was about: the quoted source token, or a name for the token-less groups. */
 function settledSubject(locale: Locale, group: string, token: string) {
   if (token) return locale === 'ru' ? `«${token}»` : `“${token}”`
   if (groupKind(group) === 'canceled') return H.emptyField[locale]
   return group === 'match:new_since_import' ? H.matchNew[locale] : H.matchExisting[locale]
 }
 
-/** «token» → answer · N records. */
 const settledLine = (
   locale: Locale,
   { group, token, answer, rows }: HistoryState['settled'][number],
 ) =>
   `${settledSubject(locale, group, token)} → ${settledAnswer(locale, group, answer)} · ${hcount(locale, 'records', rows)}`
 
-/** The answer buttons of a question or a record: two equal halves, or an auto-fit grid. */
 function AnswerGrid({ pair, children }: { pair: boolean; children: ReactNode }) {
   return (
     <div
@@ -589,7 +562,6 @@ function AnswerGrid({ pair, children }: { pair: boolean; children: ReactNode }) 
   )
 }
 
-/** A typed airport or airline answer: the shared searchable Combobox, applied the moment a choice is made. */
 function ChoiceAnswer({
   label,
   kind,
@@ -604,8 +576,6 @@ function ChoiceAnswer({
   onChoose: (code: string) => void
 }) {
   const [value, setValue] = useState('')
-  // Leaving the field settles a typed exact code (Combobox does that on blur); here an answer is sent at once, so only
-  // an explicit choice sends it, and a click on Skip or another answer is never preceded by this one.
   const blurring = useRef(false)
   return (
     <div
@@ -629,7 +599,6 @@ function ChoiceAnswer({
   )
 }
 
-/** One answer button with the code over its name (an airport or an airline). */
 function CandidateButton({
   code,
   name,
@@ -887,7 +856,6 @@ function RecordRow({
   )
 }
 
-/** A corrected date with its own Apply. */
 function DateAnswer({
   locale,
   busy,

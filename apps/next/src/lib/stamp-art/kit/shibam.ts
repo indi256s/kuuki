@@ -1,7 +1,3 @@
-// Shibam, Hadramawt: a dense cluster of tall mud-brick tower houses, flat-topped, packed shoulder
-// to shoulder. A back row stands in dark vertical hatching so the lit front row reads against it;
-// each front tower has a whitewashed top band, rows of small dark windows and a shaded right
-// third. The box bottom is the foot of the towers; they stand on a dark rock plinth.
 import { mulberry32 } from '../hash'
 import {
   type Pt,
@@ -57,7 +53,6 @@ function tower(x: number, base: number, w: number, h: number, lit: boolean, rand
     out.push(...toneFill(poly, 'T4', { gap: 4, weight: 'fine', inset: 0.5 }))
     return out
   }
-  // Mud-brick lower storeys in fine vertical hatching, whitewashed upper storeys left bare.
   const split = top + h * 0.64
   const at = (yy: number, side: -1 | 1) =>
     side < 0 ? x + (inset * (base - yy)) / h : x + w - (inset * (base - yy)) / h
@@ -69,7 +64,6 @@ function tower(x: number, base: number, w: number, h: number, lit: boolean, rand
   ]
   out.push(...toneFill(lower, 'T4', { gap: 3.1, weight: 'fine', inset: 0.5 }))
   out.push(hline('bold', at(split, -1) - 0.6, at(split, 1) + 0.6, split))
-  // Notched parapet.
   for (let tx = x + inset + 1; tx < x + w - inset - 2.4; tx += 4) {
     out.push(
       stroke('hair', [
@@ -80,7 +74,6 @@ function tower(x: number, base: number, w: number, h: number, lit: boolean, rand
       ]),
     )
   }
-  // A few window rows in the white storeys, hand-cut and uneven.
   const rows = Math.max(1, Math.round((split - top - 4) / 10))
   for (let r = 0; r < rows; r++) {
     const yy = top + 4 + r * ((split - top - 6) / rows)
@@ -90,7 +83,6 @@ function tower(x: number, base: number, w: number, h: number, lit: boolean, rand
       out.push(fill(rectPts(xx, yy + (rand() - 0.5), 1.8, 3.2)))
     }
   }
-  // Shaded right quarter of the white storeys.
   out.push(
     ...toneFill(
       [
@@ -112,7 +104,6 @@ export const shibam: KitModule = ([x, y, w, h], p) => {
   const lift = num(p, 'lift', 0)
   const base = y + h - plinth
   const tallest = base - y
-  // The rock spur rises toward both ends, so the cluster fits a narrow window.
   const baseAt = (t: number) => base - lift * Math.pow(Math.abs(2 * t - 1), 2)
   const out: SvgNode[] = []
   for (const [tx, tw, th] of BACK) {
@@ -123,7 +114,6 @@ export const shibam: KitModule = ([x, y, w, h], p) => {
     const b = baseAt(tx + tw / 2)
     out.push(...tower(x + w * tx, b, w * tw, (tallest - lift * 0.3) * th, true, rand))
   }
-  // Rock mound under the cluster: dark, hatched, with a bold top line.
   const edge: Pt[] = []
   for (let t = 0; t <= 1.001; t += 0.05)
     edge.push([x + w * t, baseAt(t) + 1 + Math.sin(t * 19) * 0.8])

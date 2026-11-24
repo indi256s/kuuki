@@ -1,4 +1,3 @@
-// Live, opt-in import evaluator. Source files and predictions stay in ignored .scratch/import-eval.
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 import { GoogleGenAI } from '@google/genai'
@@ -388,9 +387,7 @@ async function main() {
             const partial = normalizeFlights({ flights: structuredClone(raw) })
             normalized = partial.flights
             rejected = partial.rejected ?? []
-          } catch {
-            /* Retain complete raw rows even if none normalize. */
-          }
+          } catch {}
         }
         const drafts = normalized.map((flight) => rowOf(flight))
         const metrics = manifest[fixture]

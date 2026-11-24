@@ -2,10 +2,8 @@ import { notFound } from 'next/navigation'
 import { StampSheet, type Row, type SheetState } from './stamps'
 import type { ReviewFile } from './review-store'
 
-// Development-only contact sheet for the passport stamps: every recipe, state strips, worst-case ring names, owner marks.
 export const dynamic = 'force-dynamic'
 
-/** Build fresh art and metadata together; no generated assets or persistent output cache. */
 async function buildRows(): Promise<Row[]> {
   const { SHAPE_NAMES } = await import('../../../lib/stamp-art/frame')
   const { lintGeometry } = await import('../../../lib/stamp-art/lint')

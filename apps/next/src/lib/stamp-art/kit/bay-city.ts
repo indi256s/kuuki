@@ -1,5 +1,3 @@
-// A low harbour city along the horizon: flat-roofed blocks of unequal height, shaded on their right
-// third with vertical fine hatching, and a couple of crane masts. The box bottom is the horizon.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, hline, occlude, rectPts, stroke, toneFill, vline } from '../grid'
 import { type KitModule, num } from './util'

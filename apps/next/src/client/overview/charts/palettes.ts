@@ -10,7 +10,6 @@ export const DEFAULT_PALETTE: ChartPalette = {
   '--kc-chart-5': 'var(--cmp-5)',
 }
 
-// Unknown is an outline role (stroke only, with a «?»), so it has no chart slot to fill.
 export const MAKER_PALETTE: ChartPalette = {
   '--kc-chart-1': 'var(--cat-maker-airbus)',
   '--kc-chart-2': 'var(--cat-maker-boeing)',

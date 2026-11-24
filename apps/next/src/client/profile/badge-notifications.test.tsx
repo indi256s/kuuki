@@ -63,12 +63,9 @@ it('keeps the cabinet unboxing baseline separate from the toast, so a toast neve
       storage.set(key, value)
     },
   }
-  // First profile visit: baseline only, no replay of badges earned before.
   expect(unseenBadges('cabinet-owner', [award(1)], device, 'badge-cabinet').badges).toEqual([])
-  // The toast notices a new award first (its own first snapshot is a baseline too).
   unseenBadges('cabinet-owner', [award(1)], device)
   expect(unseenBadges('cabinet-owner', [award(1), award(2)], device).badges).toEqual([award(2)])
-  // The next profile visit still presses it into its slot, once.
   expect(
     unseenBadges('cabinet-owner', [award(1), award(2)], device, 'badge-cabinet').badges,
   ).toEqual([award(2)])
@@ -92,7 +89,6 @@ it('announces a single batch, clears on identity reset and rejects late account 
   })
   const notice = (await screen.findByText('Новые достижения')).closest('.ui-toast')!
   expect(notice).toHaveTextContent('Новые достижения')
-  // One line per ladder: a batch that climbs two rungs names only the higher one.
   expect(notice).toHaveTextContent('Завсегдатай')
   expect(notice).not.toHaveTextContent('Взлёт')
   act(() => window.dispatchEvent(new Event('kuuki:identity-reset')))

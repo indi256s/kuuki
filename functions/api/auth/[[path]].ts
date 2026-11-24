@@ -1,4 +1,3 @@
-// Better Auth client endpoints; account provisioning keeps Kuuki's atomic D1 batch.
 import { onRequestPost as signIn } from './signin'
 import { onRequestPost as signUp } from './signup'
 import { onRequestPost as signOut } from './signout'
@@ -55,7 +54,6 @@ export const onRequest: PagesFunction<Env> = (context) =>
               cookie.startsWith(`__Secure-${BETTER_AUTH_COOKIE}=`),
           )
       ) {
-        // A late response renewing the replaced cookie must not restore its old identity.
         if (hasBetterAuthCookie(context.request)) {
           const previous = await createAuth(context.env).api.getSession({
             headers: context.request.headers,

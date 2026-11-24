@@ -1,7 +1,4 @@
 'use client'
-// The ground-travel page's composition root: view state (URL), list read, and plain props for the presentational
-// pieces (cards, totals, states, detail sheet). The transport filter is local; "Cancelled" is a different list. The page is
-// the Journal's Ground section: the same heading and section switch as `/journal`; adding lives in the shared Add list.
 
 import { Fragment, useEffect, useId, useMemo, useState } from 'react'
 import { formatCount, type Locale } from '../../lib/format'
@@ -32,7 +29,6 @@ import { useGroundView } from './use-ground-view'
 import type { GroundMode } from '@kuuki/shared/groundTravel'
 import './ground.css'
 
-/** True once `active` has lasted `delayMs`, so a fast reload never flashes a status. */
 function useLate(active: boolean, delayMs: number) {
   const [late, setLate] = useState(false)
   useEffect(() => {
@@ -81,8 +77,6 @@ export function GroundTravelPage({
         ? t.road
         : t.all
   const empty = !view.cancelled && list?.journeys.length === 0
-  // Totals summarise completed journeys, so they open the history under its heading; with no history on screen they
-  // close the list at the section level.
   const totals = (level: 2 | 3) =>
     list && !view.cancelled && list.journeys.length > 0 ? (
       <GroundTotals locale={locale} totals={list.totals} mode={view.mode} level={level} />
@@ -97,7 +91,6 @@ export function GroundTravelPage({
       </header>
       {!online && <OfflineNote locale={locale} id={offlineNoteId} />}
       <FilterToolbar label={t.filtersLabel} className="gt-toolbar">
-        {/* One facet chip, as in the Journal toolbar: no value is "All"; Rail or Road is picked in its menu. */}
         <ChipGroup label={t.transport}>
           <span className="gt-chip" data-empty={modeLabel ? undefined : true}>
             <FacetChip

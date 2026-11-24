@@ -25,7 +25,6 @@ export function RouteCard({
   onClose: () => void
 }) {
   const label = route.key.replace('-', '–')
-  // The shared popover owns focus entry/return, Escape, outside presses and edge collisions; a 0×0 anchor marks the arc.
   return (
     <PopoverRoot open onOpenChange={(open) => !open && onClose()}>
       <PopoverAnchor asChild>

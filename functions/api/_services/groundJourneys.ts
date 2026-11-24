@@ -1,16 +1,3 @@
-// Ground journey mutations (.scratch/ground-travel/storage-contract.md): receipt-first, one D1 batch each.
-//
-// Order of work: session + CSRF, static command shape and digest (no resource reads), the owner's receipt for the
-// operation key, and only for a new command the current state (owner, mode, status, version, manual places).
-// One batch holds
-//   1. INSERT receipt (complete 0, applied 0, fresh nonce)       - a duplicate key aborts the batch
-//   2. parent CAS (insert / update / tombstone)
-//   3. UPDATE receipt SET applied = changes()                    - right after the CAS, never carried further
-//   4. child DELETE / INSERT ... guarded by "receipt of this nonce is applied and open" (+ parent live)
-//   5. dirty increment guarded the same way
-//   6. UPDATE receipt SET complete = 1 ...                       - CHECK (complete = 0 OR applied = 1) aborts the
-//                                                                  whole batch when the CAS matched nothing
-// so a lost CAS, even on a journey without children, commits nothing: no receipt, no dirty revision.
 import { HttpError } from '../_lib/http'
 import { sha256Hex } from '../_lib/crypto'
 import { isCatalogCountry } from '../_lib/regions'
@@ -45,10 +32,6 @@ const gone = () => new HttpError(410, 'Journey was deleted', 'GONE')
 const stateConflict = (message: string, cause: string) =>
   new HttpError(409, message, 'STATE_CONFLICT', { cause })
 
-// ---------------------------------------------------------------------------
-// Static command shape
-// ---------------------------------------------------------------------------
-
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
 
@@ -56,7 +39,6 @@ function text(value: unknown, max: number, field: string): string | null {
   if (value === null || value === undefined) return null
   if (typeof value !== 'string') throw invalid(`${field} must be text`)
   const trimmed = value.trim()
-  // SQLite length() counts characters, so count code points rather than UTF-16 units.
   if ([...trimmed].length > max) throw invalid(`${field} is too long`)
   return trimmed.length === 0 ? null : trimmed
 }
@@ -86,7 +68,6 @@ function place(value: unknown, field: string): GroundPlaceSnapshot {
   return parsed
 }
 
-/** Dates only: times sit in the place's own zone, which may be unknown. ISO dates compare as text. */
 function assertDatesInOrder(from: string | null, to: string | null, message: string) {
   if (from && to && to < from) throw invalid(message)
 }
@@ -174,16 +155,11 @@ function parseCountries(value: unknown): string[] | undefined {
   return value as string[]
 }
 
-// ASCII only, so JS length and the receipt table's SQL length() CHECK count the same thing.
 const OPERATION_KEY = /^[A-Za-z0-9._:-]{8,128}$/
 
 const CONTENT_ACTIONS = new Set(['create', 'update', 'complete'])
 const PATCH_ACTIONS = new Set(['update', 'complete', 'reopen', 'cancel', 'restore'])
 
-/**
- * Validates one request body into a GroundCommand. `route` carries what the path fixes: POST creates, DELETE
- * deletes, PATCH takes the action from the body; the journey id of PATCH/DELETE comes from the path.
- */
 export function parseGroundCommand(
   body: unknown,
   route: { method: 'POST' | 'PATCH' | 'DELETE'; journeyId?: string },
@@ -258,7 +234,6 @@ export function parseGroundCommand(
   }
 }
 
-/** JSON with recursively sorted object keys; arrays keep their order. */
 export function canonicalJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`
   if (value && typeof value === 'object') {
@@ -270,15 +245,10 @@ export function canonicalJson(value: unknown): string {
   return JSON.stringify(value)
 }
 
-/** The request identity: the normalized command without the operation key itself. */
 export function commandDigest(command: GroundCommand): Promise<string> {
   const { operationKey: _key, ...rest } = command
   return sha256Hex(canonicalJson(rest))
 }
-
-// ---------------------------------------------------------------------------
-// Execution
-// ---------------------------------------------------------------------------
 
 interface ParentRow {
   user_id: string
@@ -298,18 +268,8 @@ const operationReused = () =>
     cause: 'operation_reused',
   })
 
-/**
- * Largest documented request, at 4 UTF-8 bytes per character (supplementary-plane text):
- *   place snapshot  name, nameRu, nameEn, region 4 x 200 x 4 = 3 200 + ids/timezone/version/keys ~800 = 4 000
- *   road point      note 10 000 x 4 = 40 000 + snapshot 4 000 + id/dates/nights/keys 200       = 44 200
- *   rail leg        2 snapshots 8 000 + stations 2 x 200 x 4 + operator 200 x 4 + train 40 x 4 + keys ~500 = 11 000
- *   journey         title 200 x 4 + note 10 000 x 4 + 300 countries x 5 + envelope ~500          = 42 800
- *   100 road points 4 420 000 + 42 800 = 4 462 800 bytes
- * 5 MiB (5 242 880) leaves ~17% headroom. The 128 KB JSON default is far below it.
- */
 export const GROUND_BODY_MAX_BYTES = 5 * 1024 * 1024
 
-/** D1 caps one bound string at 2 MB, so child rows go in several INSERTs; 20 x 44 200 bytes stays under 1 MB. */
 const CHILD_CHUNK = 20
 
 export interface GroundMutationResponse {
@@ -317,7 +277,6 @@ export interface GroundMutationResponse {
   result: GroundMutationResult
 }
 
-/** Applies a validated command for the session owner; the owner id never comes from the request. */
 export async function applyGroundCommand(
   db: D1Database,
   userId: string,
@@ -332,11 +291,9 @@ export async function applyGroundCommand(
   const replay = async (receipt: ReceiptRow): Promise<GroundMutationResponse> => {
     if (receipt.request_digest !== digest) throw operationReused()
     const result = await resultOf(db, userId, receipt, true)
-    // The journey is gone: an old save has nothing left to show, a repeated delete only acknowledges.
     if (receipt.outcome === 'saved' && result.current === null) throw gone()
     return { status: 200, result }
   }
-  /** A same command may have committed meanwhile: look again before reporting a state-dependent error. */
   const fail = async (error: HttpError): Promise<never> => {
     const late = await readReceipt()
     if (late) throw new Replay(await replay(late))
@@ -354,11 +311,9 @@ export async function applyGroundCommand(
       try {
         await db.batch(mutationStatements(db, userId, command, digest, nonce, now))
       } catch (error) {
-        // Duplicate key, lost CAS (finalize CHECK), or a colliding child id: rolled back whole. Look again.
         if (!isConstraintError(error)) throw error
         continue
       }
-      // Publication failure is not a save failure: the receipt is committed, readiness is reported honestly.
       await repairUserDerivedState(db, userId).catch(() => undefined)
       const receipt = await readReceipt()
       if (!receipt) throw new Error('Committed ground receipt is missing')
@@ -402,7 +357,6 @@ async function resultOf(
   }
 }
 
-/** Every status move a command may make: the guard in `classify` and the write in the batch both read it. */
 const TRANSITIONS = {
   complete: { from: 'planned', to: 'completed' },
   reopen: { from: 'completed', to: 'planned' },
@@ -410,10 +364,8 @@ const TRANSITIONS = {
   restore: { from: 'cancelled', to: 'planned' },
 } as const
 
-/** Statuses an `update` may edit; cancelled is a dead state that only `restore` leaves. */
 const UPDATABLE_FROM = ['planned', 'completed'] as const
 
-/** Reads the target and decides whether a new command may run; every refusal re-checks the receipt first. */
 async function classify(
   db: D1Database,
   userId: string,
@@ -424,7 +376,6 @@ async function classify(
 
   if (command.action === 'create') {
     if (parent) {
-      // A tombstone or any existing id, another owner's included, is never reused.
       if (parent.user_id === userId && parent.deleted_at) await fail(gone())
       await fail(stateConflict('Journey id is already in use', 'id_in_use'))
     }
@@ -460,7 +411,6 @@ async function classify(
   if ('journey' in command) await assertChildrenUsable(db, userId, command, fail)
 }
 
-/** Manual places must be the owner's; child ids must not belong to another journey (primary keys are global). */
 async function assertChildrenUsable(
   db: D1Database,
   userId: string,
@@ -520,7 +470,6 @@ function mutationStatements(
   const parentLive = () =>
     `EXISTS (SELECT 1 FROM ground_journeys WHERE id = ? AND user_id = ? AND mode = ? AND deleted_at IS NULL)`
   const statements: D1PreparedStatement[] = [
-    // An expired receipt under this key no longer counts; free the key for the new command.
     db
       .prepare(
         'DELETE FROM ground_operation_receipts WHERE user_id = ? AND operation_key = ? AND expires_at <= ?',
@@ -535,7 +484,6 @@ function mutationStatements(
       .bind(userId, key, digest, id, command.action, expected, nonce, instant, expires),
   ]
 
-  // Parent CAS; the next statement records whether it matched.
   const fields = 'journey' in command ? command.journey : null
   const bindFields = fields ? [fields.startDate, fields.endDate, fields.title, fields.note] : []
   switch (command.action) {
@@ -629,7 +577,6 @@ function mutationStatements(
       .bind(...guard),
   )
 
-  // Children: each statement checks its own receipt guard (and the parent), never changes().
   const deleteChildren = (table: string) =>
     db
       .prepare(`DELETE FROM ${table} WHERE journey_id = ? AND user_id = ? AND ${guardSql()}`)
@@ -722,7 +669,6 @@ function mutationStatements(
   }
 
   statements.push(
-    // Upsert form of the dirty mark, guarded by this batch's own applied receipt.
     db
       .prepare(
         `INSERT INTO user_derived_state (user_id, revision, published_revision, last_error, updated_at)
@@ -731,7 +677,6 @@ function mutationStatements(
            revision = user_derived_state.revision + 1, last_error = NULL, updated_at = excluded.updated_at`,
       )
       .bind(userId, instant, ...guard),
-    // The CHECK fails here when the CAS matched nothing (applied = 0) and rolls the whole batch back.
     db
       .prepare(
         `UPDATE ground_operation_receipts SET complete = 1, outcome = ?,

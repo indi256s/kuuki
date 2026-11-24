@@ -22,11 +22,11 @@ export function NextStrip() {
   }, [isCurrent])
   useEffect(() => {
     return () => {
-      // Retired owners must not notify consumers; a newer preview owns its own cleanup.
       if (current.current() && bus.getSnapshot().hoverGhost === id) bus.setHoverGhost(null)
     }
   }, [bus, id])
   if (!payload || !scope || !all) return <p role="status">{t(S.loading, locale)}</p>
+  if (scope.figures.scope === 'ground') return null
   if (!next) {
     const awaiting = all.figures.awaiting
     if (!awaiting) return null

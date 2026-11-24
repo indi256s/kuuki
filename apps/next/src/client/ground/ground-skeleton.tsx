@@ -4,11 +4,8 @@ import { JournalHeading, JournalSections } from '../journal-sections'
 import { copy } from './copy'
 import './ground.css'
 
-// Static placeholders at the final card size, with a totals block before the last card (where history starts).
-// The h1 is real so RouteFocus has a heading to land on; no motion.
 const bar = (className: string) => <span className={`gt-skeleton-bar ${className}`} />
 
-/** The list region's placeholder; the page keeps its header, toolbar and detail sheet mounted around it. */
 export function GroundListSkeleton({
   locale,
   cards = 3,
@@ -24,7 +21,6 @@ export function GroundListSkeleton({
       <span className="sr-only">{t.loading}</span>
       <div className="gt-skeleton" aria-hidden="true">
         {toolbar && bar('is-toolbar')}
-        {/* The plans, then the totals line under the history, each in the list's card grid. */}
         {[1, Math.max(0, cards - 1)].map((count, group) => (
           <Fragment key={group}>
             {group === 1 && count > 0 && (
@@ -58,7 +54,6 @@ export function GroundSkeleton({ locale, cards = 3 }: { locale: Locale; cards?: 
   )
 }
 
-/** The form's placeholder: a title bar (only where the page has no real heading yet) and three section blocks. */
 export function GroundFormSkeleton({ label, title = false }: { label: string; title?: boolean }) {
   return (
     <div role="status" aria-busy="true">

@@ -1,11 +1,6 @@
 import type { Locale } from '../../../lib/format'
 import { catalogRegionOf } from '@kuuki/shared/regions'
 
-/**
- * Travel regions: a display-only grouping for the phone atlas's pages (GLOSSARY "Travel region"). They exist because a
- * catalog region frames too wide on a portrait phone (Asia runs Türkiye to Japan), so they never feed filters, totals
- * or badges. West to east, the order a swipe walks.
- */
 export const TRAVEL_REGIONS = [
   'north-america',
   'caribbean',
@@ -23,7 +18,6 @@ export const TRAVEL_REGIONS = [
 ] as const
 export type TravelRegion = (typeof TRAVEL_REGIONS)[number]
 
-/** Countries placed explicitly; Europe, Oceania and Antarctica otherwise follow the catalog region. */
 const PLACED: Partial<Record<TravelRegion, string>> = {
   'north-america': 'US CA MX GL BM PM',
   caribbean:
@@ -51,7 +45,6 @@ const FOLLOWS_CATALOG: Partial<Record<string, TravelRegion>> = {
   antarctica: 'antarctica',
 }
 
-/** The country's travel region; null outside the catalog. */
 export const travelRegionOf = (code: string): TravelRegion | null =>
   BY_CODE.get(code) ?? FOLLOWS_CATALOG[catalogRegionOf(code) ?? ''] ?? null
 
@@ -90,11 +83,6 @@ export const TRAVEL_REGION_NAMES: Record<Locale, Record<TravelRegion | 'world', 
   },
 }
 
-/**
- * Where a huge country frames: its main populated part, not its whole outline ([west, south, east, north]). A stand-in
- * for the places the member actually visited, which the Passport payload does not carry yet. The country is still
- * drawn and filled whole.
- */
 export const FRAME_ANCHORS: Readonly<Record<string, readonly [number, number, number, number]>> = {
   RU: [30, 43, 50, 60],
   US: [-125, 24, -66, 49],

@@ -28,7 +28,6 @@ export type Row = {
   preview: StampPreview
 }
 
-/** The longest current ring names by estimated width. */
 function longestNames(rows: Row[], locale: Locale, count: number): Row[] {
   const width = (row: Row) => emWidth(row.names[locale].toLocaleUpperCase(locale))
   return [...rows].sort((a, b) => width(b) - width(a)).slice(0, count)
@@ -60,7 +59,6 @@ export function StampSheet({
 
   const headingRef = useRef<HTMLHeadingElement>(null)
   const gridRef = useRef<HTMLDivElement>(null)
-  // The card to focus once the list has re-rendered without the card that was just marked.
   const focusAfter = useRef<string | null | undefined>(undefined)
   useEffect(() => {
     const target = focusAfter.current
@@ -72,7 +70,6 @@ export function StampSheet({
     ;(accept ?? headingRef.current)?.focus()
   }, [review])
 
-  /** Resolves true when the mark reached the file. */
   function save(iso2: string, status: ReviewStatus | null, note: string): Promise<boolean> {
     const operation = saveQueue.current.then(async () => {
       try {
@@ -233,7 +230,6 @@ function Card({
   t: (en: string, rus: string) => string
 }) {
   const meta = row.preview.meta
-  // Built in the click handler, so markup never carries it during SSR; the timestamp keeps a replay after a reload from hitting the session's pressed memory.
   const [impressionId, setImpressionId] = useState<string>()
   const [note, setNote] = useState(mark?.note ?? '')
   const [failed, setFailed] = useState(false)

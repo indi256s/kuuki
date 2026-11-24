@@ -8,7 +8,6 @@ describe('comparison drawing scale', () => {
       { width: 400, height: 500, boundsM: [-3000, -2000, 3000, 2000] },
     ]
     const ppm = comparisonScale(panels)
-    // BER-like wide extent is constrained to 400/6000, including the smaller panel.
     expect(1000 * ppm).toBeCloseTo(200 / 3)
     for (const panel of panels) {
       expect((panel.boundsM[2] - panel.boundsM[0]) * ppm).toBeLessThanOrEqual(panel.width)
@@ -17,7 +16,6 @@ describe('comparison drawing scale', () => {
       expect(bar.pixels / bar.metres).toBe(ppm)
       expect(bar.pixels).toBeLessThanOrEqual(Math.min(140, panel.width * 0.4))
     }
-    // Stacked mobile panels retain the same metre size despite different heights.
     expect(comparisonScale(panels.map((panel) => ({ ...panel, width: 320 })))).toBeCloseTo(
       320 / 6000,
     )

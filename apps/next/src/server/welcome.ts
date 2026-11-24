@@ -10,15 +10,10 @@ export const isWelcomeStep = (value: unknown): value is WelcomeStep =>
 export const welcomePath = (step: WelcomeStep, batch?: string | null) =>
   batch ? `/welcome/${step}?batch=${encodeURIComponent(batch)}` : `/welcome/${step}`
 
-/** Where an unfinished member picks the card back up (spec O4), with the batch it belongs to. */
 export type WelcomeResume = { step: WelcomeStep; batch: string | null; reading: boolean }
 
 type ResumeProfile = { display_name: string | null }
 
-/**
- * `name` until there is a name; then the newest unexpired batch decides: still `processing` → the flights step
- * reading it, drafts left to review → review. Saved flights with nothing open → the reveal. Otherwise flights.
- */
 export async function getWelcomeResume(
   userId: string,
   profile: ResumeProfile,
@@ -44,7 +39,6 @@ export async function getWelcomeResume(
   return { step: flight ? 'ready' : 'flights', batch: null, reading: false }
 }
 
-/** Whether `batch` is the member's own, unexpired and in the given states. */
 export async function ownsOpenBatch(userId: string, batch: string, statuses: string[]) {
   const { DB } = await getRequestEnv()
   return !!(await DB.prepare(

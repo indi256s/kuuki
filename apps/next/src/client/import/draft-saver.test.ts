@@ -140,8 +140,8 @@ describe('DraftSaver', () => {
     pending.resolve(draft({ id: 'd1', version: 2 }))
     await first
     expect(drafts).toEqual([])
-    expect(states).toHaveLength(1) // no state published after dispose
-    expect(patch).toHaveBeenCalledTimes(1) // the queued second edit is never sent
+    expect(states).toHaveLength(1)
+    expect(patch).toHaveBeenCalledTimes(1)
     expect(saver.hasUnsaved()).toBe(false)
     await saver.save(draft({ id: 'd2' }), { selected: false })
     expect(patch).toHaveBeenCalledTimes(1)

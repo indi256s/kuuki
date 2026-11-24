@@ -48,7 +48,6 @@ it('skips idle playback gaps and loop boundaries only after planes finish, while
 })
 
 it('keeps year labels from overlapping on the replay scrubber', () => {
-  // Nov 2017 to Feb 2026: the first tick sits two months before 2018, the last a month before the end.
   const months = 100
   const ticks = [{ year: '2017', at: 0 }].concat(
     Array.from({ length: 9 }, (_, index) => ({

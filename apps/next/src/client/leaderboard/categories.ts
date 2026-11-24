@@ -7,16 +7,13 @@ import {
 export const categories: Record<LeaderboardCategory, [string, string]> = {
   flights: ['Flights', 'Перелёты'],
   distance: ['Distance', 'Расстояние'],
-  // The same name as the Achievements ladder: flight and legacy countries only, never the Passport total.
   countries: ['Countries on flights', 'Страны в перелётах'],
   cities: ['Airports', 'Аэропорты'],
   airlines: ['Airlines', 'Авиакомпании'],
   rail: ['Trains', 'Поезда'],
-  // The tile's label, so its spoken name matches what is printed (WCAG 2.5.3); the unit stays "road trips".
   road: ['Cars', 'Машины'],
   ground_countries: ['Countries by land', 'Страны по земле'],
 }
-/** Tile labels: short, because the group ("In the sky" / "On the ground") already says which countries. */
 export const tileLabels: Record<LeaderboardCategory, [string, string]> = {
   flights: ['Flights', 'Перелёты'],
   distance: ['Distance', 'Расстояние'],

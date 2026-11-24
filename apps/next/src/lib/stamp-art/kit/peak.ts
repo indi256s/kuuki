@@ -1,10 +1,3 @@
-// Peak module (lane C): one mountain mass drawn from data, as fractions of the box (tip toward the
-// top, foot on the box bottom). `sil` is the skyline from the left foot to the right foot. Each
-// face is a polygon filled with a tone of the ladder and clipped to the silhouette, so a polygon
-// may overshoot the skyline; `cut` polygons are paper (snow gullies, ledges) and stay unhatched.
-// `lines` are arêtes, couloirs and rock lines; `fills` are solid T5 shapes (pine clumps); `outline:
-// false` drops the skyline stroke (a mist band is only an occluder with a tone). Faces lit from the left: T0 snow stays bare paper,
-// T1/T2 model the lit rock, T4 is the vertical hatch of the shadow face. No radial striping.
 import { clipStrokeInside, clipStrokeOutside } from '../geom'
 import {
   type Pt,

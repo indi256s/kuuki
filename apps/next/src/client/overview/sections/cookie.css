@@ -1,4 +1,3 @@
-/* Shared layout of the cookie cards: a tile body (half or full span) and the section head. */
 .ov3-cookie-value {
   display: block;
   margin: 0;
@@ -11,12 +10,11 @@
 .ov3-cookie-detail {
   margin: 0;
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
   font-weight: 400;
 }
 
-/* Tile body: the figure, then the text group. Each line is in the DOM once; the span decides which show. */
 .ov3-cookie {
   display: flex;
   flex-direction: column;
@@ -27,12 +25,10 @@
   justify-content: center;
   padding-top: 2px;
 }
-/* The half tiles' figures are 96 (map), 108 (clock) and 112 (tape) tall; the shared box includes its 2px top padding so their values line up. */
 .ov3-tile[data-tile-span='half'] .ov3-cookie-figure {
   min-height: 114px;
   align-items: flex-end;
 }
-/* Figures are built at the width their tile has at 390px (TILE_FIGURE_WIDTH); this only guards narrower viewports. */
 .ov3-cookie-figure .iso {
   max-width: 100%;
   height: auto;
@@ -44,8 +40,8 @@
   min-width: 0;
 }
 .ov3-tile[data-tile-span='half'] .ov3-cookie-value {
-  font-size: 24px;
-  line-height: 28px;
+  font-size: 1.5rem;
+  line-height: 1.75rem;
 }
 .ov3-tile[data-tile-span='half'] .ov3-cookie-label {
   order: 1;
@@ -71,11 +67,10 @@
   order: -1;
 }
 .ov3-tile[data-tile-span='full'] .ov3-cookie-value {
-  font-size: 28px;
-  line-height: 32px;
+  font-size: 1.75rem;
+  line-height: 2rem;
 }
 
-/* Section head: the headline figure on the left, the cookie on the right; the cookie drops under the text when the row is too narrow. */
 .ov3-cookie-head {
   display: flex;
   flex-wrap: wrap;
@@ -92,19 +87,18 @@
   min-width: 0;
 }
 .ov3-cookie-head .ov3-cookie-value {
-  font-size: 40px;
-  line-height: 44px;
+  font-size: 2.5rem;
+  line-height: 2.75rem;
 }
 .ov3-cookie-sub {
   margin: 0;
   color: var(--text-muted);
-  font-size: 15px;
-  line-height: 24px;
+  font-size: 0.9375rem;
+  line-height: 1.5rem;
   font-weight: 400;
   text-wrap: pretty;
 }
 
-/* A line that belongs to one span only, for cards whose caption and eyebrow differ. */
 .ov3-tile[data-tile-span='full'] .ov3-cookie-half,
 .ov3-tile[data-tile-span='half'] .ov3-cookie-full {
   display: none;

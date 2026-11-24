@@ -42,7 +42,6 @@ const map = {
   dragPan: { enable() {}, disable() {} },
 }
 
-// jsdom lacks PointerEvent; retain the primary-pointer flag the pager uses to recognize pinches.
 if (!('PointerEvent' in window))
   Object.assign(window, {
     PointerEvent: class extends MouseEvent {
@@ -98,11 +97,9 @@ it.each(['swipe', 'scroll', 'pinch', 'cancel'] as const)(
       fireEvent.pointerCancel(canvas, press)
     }
     fireEvent.pointerUp(canvas, press)
-    // Touch browsers can deliver a compatibility click after pointerup. MapLibre listens inside this container.
     fireEvent.click(canvas, { detail: 1 })
     expect(selectCountry).not.toHaveBeenCalled()
 
-    // Keyboard activation has no pointer press and must stay available after a gesture.
     fireEvent.click(canvas, { detail: 0 })
     expect(selectCountry).toHaveBeenCalledTimes(1)
 
@@ -115,8 +112,6 @@ it.each(['swipe', 'scroll', 'pinch', 'cancel'] as const)(
   },
 )
 
-// A swipe that ends back on its page leaves the camera on that page's frame, so a later resize or a reordered page
-// list refits it instead of treating the camera as explored.
 it.each(['animated', 'reduced'] as const)(
   'refits a %s page after a cancelled swipe when the map resizes',
   (motionMode) => {

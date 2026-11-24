@@ -14,9 +14,7 @@ export function AirportOverviewEntry({ iata }: { iata: string }) {
   let scope: string | null = null
   try {
     scope = encodeAirportScope(filter)
-  } catch {
-    /* The explicit action below reports a transport failure. */
-  }
+  } catch {}
   const label = locale === 'ru' ? 'Открыть аэропорт' : 'Open airport'
   return (
     <>

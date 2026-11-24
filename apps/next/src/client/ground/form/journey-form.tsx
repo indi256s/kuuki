@@ -89,7 +89,6 @@ const useOnline = () =>
     () => true,
   )
 
-/** Whether the form still says what the frozen command sent: same route, dates, title, note and countries. */
 function sameContent(command: GroundCommand, body: CommandBody | null): boolean {
   if (!body || !('journey' in command) || !('journey' in body)) return false
   return (
@@ -108,22 +107,14 @@ export interface JourneyFormProps {
   ownerId: string
   locale: Locale
   mode: GroundMode
-  /** The stored journey when editing or completing; absent when creating. */
   existing?: GroundJourneyDto
-  /** `?complete=1`: the stored plan is being completed through the review. */
   complete?: boolean
-  /** Allowlisted list address (see return-context.ts) for Cancel and for the saved journey. */
   returnTo: string
-  /**
-   * Mount point for the rail ticket reader. Called with the entry point that hands recognized legs to the
-   * form (`onCandidates(legs, 'append' | 'replace', replaceLegId?)`); rail journeys only.
-   */
   ocrSlot?: (api: RailOcrSlotApi) => ReactNode
 }
 
 export function JourneyForm(props: JourneyFormProps) {
   const mounted = useMounted()
-  // Unfinished input lives in localStorage, so the form is built on the client only: no hydration mismatch.
   if (!mounted) return <GroundFormSkeleton label={copy[props.locale].loadingForm} />
   return <FormBody {...props} />
 }
@@ -161,7 +152,6 @@ function boot(
   if (stored.status === 'invalid') return { ...fresh, unreadable: true }
   if (stored.status === 'none') return fresh
   const { draft } = stored
-  // An edit draft belongs to this journey; a leftover for another status choice is not carried over.
   return {
     state: existing && complete ? { ...draft.state, status: 'completed' } : draft.state,
     journeyId: existing?.id ?? draft.journeyId,
@@ -203,7 +193,6 @@ function FormBody({
   const [ocrEpoch, setOcrEpoch] = useState(0)
   const [laterEdits, setLaterEdits] = useState(false)
   const [rebased, setRebased] = useState(false)
-  /** Set synchronously, so two fast clicks cannot both start a re-read before the reducer shows it. */
   const focusCountries = useRef(false)
   const journeyId = initial.journeyId
   const [save, dispatch] = useReducer(saveReducer, initial.pending, (pending) =>
@@ -232,7 +221,6 @@ function FormBody({
   )
   useEffect(() => {
     alive.current = true
-    // A write queued for the owner who just left must not land after the identity reset.
     const unwatch = writer.watchIdentityReset()
     return () => {
       alive.current = false
@@ -254,11 +242,9 @@ function FormBody({
       ocr: ocrRows,
     }
     writer.schedule(draft)
-    // A write in flight is unconfirmed the moment the page may go away: record it now, not after the debounce.
     if (pending) writer.flush()
   }, [state, touched, pending, baseVersion, existingStatus, journeyId, ocrRows, writer])
 
-  // What the async save paths compare against: the form as it is now, not as it was when the request left.
   const latest = useRef({ state, existingStatus, baseVersion })
   useEffect(() => {
     latest.current = { state, existingStatus, baseVersion }
@@ -292,8 +278,6 @@ function FormBody({
     result: { journeyId: string; derivedState: 'ready' | 'pending'; savedVersion: number },
     command: GroundCommand,
   ) => {
-    // A late answer must not erase what was typed after the request left: keep the form and the draft, move the
-    // baseline to what was saved, and say the newer edits still need their own save.
     const now = latest.current
     if (!sameContent(command, buildCommandBody(now.state, bodyTarget(now)))) {
       attempt.current = null
@@ -395,7 +379,6 @@ function FormBody({
   const applyOnTop = () => {
     if (save.phase !== 'conflict' || !save.current) return
     const current = save.current
-    // The baseline moves first, so even a refused apply leaves the next save aimed at the version on the server.
     setExistingStatus(current.status)
     setBaseVersion(current.version)
     attempt.current = null
@@ -405,7 +388,6 @@ function FormBody({
       expectedVersion: current.version,
     })
     if (!body) {
-      // The saved journey was completed elsewhere and this edit is still a plan: it needs the countries answer.
       setState((value) => ({ ...value, status: 'completed' }))
       setShowErrors(true)
       setRebased(true)
@@ -463,7 +445,6 @@ function FormBody({
   }
   const children = state.mode === 'rail' ? state.legs.length : state.points.length
 
-  // A journey created by this very form is stored from then on: further saves are edits of it.
   const stored = existing !== undefined || existingStatus !== undefined
   const intent = stored
     ? review && existingStatus !== 'completed'
@@ -733,7 +714,6 @@ const STOPS = {
   },
 }
 
-/** The route of a frozen command, as plain text for the notice. */
 function commandRoute(command: GroundCommand, locale: Locale): string {
   if (!('journey' in command)) return ''
   const journey = command.journey
@@ -776,7 +756,6 @@ function SaveNotices({
     const route = commandRoute(save.command, locale)
     return (
       <div ref={noticeRef} tabIndex={-1} className="gt-notices">
-        {/* One live alert; the buttons sit outside it so a re-render never re-announces them. */}
         <Alert
           variant="warning"
           urgent

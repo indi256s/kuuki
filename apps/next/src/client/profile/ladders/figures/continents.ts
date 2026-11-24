@@ -22,17 +22,9 @@ import {
   type Ramp,
 } from './parts'
 
-// A cork map board on a tabletop easel. The board leans back on the easel's tray, held at the top by a clamp on the mast.
-// Mitred wooden frame with a bevel, cork recessed inside it, a printed world map pinned to the cork by two tacks with its bottom corners lifting.
-// Rung r has r + 1 map pins in; the newest stands upright with an accent head, the earlier ones lean a little.
-// Rung 5: the sixth pin went in so hard it tore the map and split the frame; a chip lies on the table.
-//
-// Everything on the board is placed in board coordinates (u, v, w): u along the board (world x), v up its face, w out of it toward the viewer.
-
 const LEAN = (9 * Math.PI) / 180,
   SL = Math.sin(LEAN),
   CL = Math.cos(LEAN)
-/** The whole stand is turned 22° about z so the board's face looks more at the viewer; (x, y, z) below are in that turned frame. */
 const TURN = (22 * Math.PI) / 180
 const X: P3 = [Math.cos(TURN), -Math.sin(TURN), 0],
   Y: P3 = [Math.sin(TURN), Math.cos(TURN), 0]
@@ -41,7 +33,6 @@ const U = X,
   V: P3 = comb([0, 0, 0], [-SL, Y], [CL, [0, 0, 1]]),
   N: P3 = comb([0, 0, 0], [CL, Y], [SL, [0, 0, 1]])
 
-/** Board: outer size, frame bar width, bevel width and drop, frame front, cork face, backing board. */
 const W = 144,
   H = 74,
   BAR = 7,
@@ -50,12 +41,10 @@ const W = 144,
   FT = 6.5,
   CK = 3,
   BK = 1
-/** Easel tray: top face height, plank front, lip. */
 const TZ = 9,
   TY0 = -1.5,
   TY1 = 11.5,
   LIP = 2
-/** Paper map and its printed area. */
 const PU0 = 15,
   PU1 = W - 15,
   PV0 = 14,
@@ -68,22 +57,18 @@ const PU0 = 15,
   LAT0 = -58,
   LAT1 = 86,
   PW = CK + 0.12
-/** Map coordinates: longitude and latitude to board (u, v). */
 const mapU = (lon: number) => MU0 + ((lon + 180) / 360) * (MU1 - MU0)
 const mapV = (lat: number) => MV0 + ((lat - LAT0) / (LAT1 - LAT0)) * (MV1 - MV0)
 
-/** The board's back-bottom edge rests on the tray at y = 0. */
 const ORIGIN: P3 = wp(0, BK * CL, TZ + BK * SL)
 const at = (u: number, v: number, w: number): P3 => comb(ORIGIN, [u, U], [v, V], [w, N])
 
-/** Light falling on the board face: a point `h` off the face throws its shadow by (du, dv)·h. */
 const LN = dot(LIGHT, N),
   SHU = -dot(LIGHT, U) / LN,
   SHV = -dot(LIGHT, V) / LN
 
 type Region = { name: string; pin: Pt; tilt: Pt }
 
-/** One pin per continent, in the order they go in; `pin` is (lon, lat), `tilt` leans an older pin in (u, v) per unit of height. */
 const REGIONS: readonly Region[] = [
   { name: 'europe', pin: [10, 50], tilt: [-0.24, 0.12] },
   { name: 'north-america', pin: [-100, 45], tilt: [0.26, 0.1] },
@@ -93,24 +78,18 @@ const REGIONS: readonly Region[] = [
   { name: 'oceania', pin: [134, -25], tilt: [0, 0] },
 ]
 
-/** Simplified coastlines: rings of `lon,lat` pairs. */
 const LAND: readonly (readonly Pt[])[] = [
-  // North and Central America
   '-166,68 -163,71 -156,71.5 -140,70 -128,70.5 -115,68.5 -100,68 -94,72 -82,70 -80,63 -94,59 -92,57 ' +
     '-82,55 -78,61 -70,60 -64,60 -62,55 -56,52 -60,47 -66,44 -70,42 -74,40 -76,35 -81,31 -80,26 -81,25 ' +
     '-83,29 -89,30 -97,27 -97,22 -94,18 -90,21 -87,21 -88,16 -84,15 -83,10 -79,9 -77,8 -80,7 -83,8 -86,12 ' +
     '-92,14 -97,16 -105,20 -110,24 -113,30 -117,33 -121,35 -124,40 -124,46 -123,49 -130,54 -136,58 ' +
     '-140,60 -148,60 -152,58 -158,56 -162,55 -158,58 -164,60 -165,63',
-  // Greenland
   '-73,78 -60,82 -40,83.5 -22,82 -18,77 -22,70 -32,68 -40,65 -43,60 -50,62 -54,67 -56,72 -66,76',
-  // Cuba
   '-85,22 -80,23 -74,20 -78,20 -84,21.5',
-  // South America
   '-80,9 -76,11 -72,12 -64,10.5 -60,8 -52,5 -50,1 -44,-2 -35,-6 -35,-9 -39,-14 -40,-22 -44,-23 -48,-26 ' +
     '-49,-29 -53,-34 -58,-35 -57,-38 -62,-39 -65,-41 -65,-45 -68,-47 -66,-49 -69,-51 -68,-53 -71,-54 ' +
     '-74,-52 -75,-47 -73,-42 -73,-37 -71,-30 -70,-20 -71,-18 -76,-14 -79,-8 -81,-5 -80,-2 -79,1 -77,4 ' +
     '-77,7',
-  // Eurasia
   '-9,37 -9,43 -2,43.5 -1,46 -4,48 -1,49.5 2,51 4,52 8,54 8,57 10,57.5 10,55 13,54 20,54.5 22,57 ' +
     '24,59.5 29,60 22,60.5 21,63 25,65.5 22,66 17,62 19,60 16,56 12,56 10,59 6,58 5,62 12,66 16,69 ' +
     '22,70.5 29,71 33,69 41,67 40,64 44,66 44,68 53,68 60,69 69,73 73,71 80,73 88,75 100,77 106,77 114,74 ' +
@@ -120,23 +99,19 @@ const LAND: readonly (readonly Pt[])[] = [
     '103,4 104,1 101,3 98,8 98,16 94,17 93,21 89,22 86,20 80,15 80,10 77,8 73,16 72,21 69,23 66,25 58,25 ' +
     '57,26 56,24 59,22.5 55,17 52,16 45,13 43,15 39,21 35,28 34,31 35,33 36,36 30,36.5 27,37 26,40 24,40 ' +
     '23,37 21,38 19,42 13,46 12,44 16,41 18,40 16,38 15,40 12,42 9,44 3,43 3,42 0,40 -1,37 -6,36',
-  // Britain, Ireland, Iceland
   '-5.5,50 1.5,51 1.5,53 -0.5,54.5 -2,56 -3,58.6 -5,58.6 -6,56.5 -4.5,55 -3,53.5 -4.5,52 -5,51.5',
   '-10,51.5 -6,52 -6,54 -8,55.2 -10,54',
   '-24,64 -22,66 -15,66.5 -13,65 -18,63.4',
-  // Africa and Madagascar
   '-17,21 -16,24 -13,28 -10,30 -9,33 -6,36 0,36 10,37 11,34 10,33 15,32 20,31 25,32 32,31 34,28 38,22 ' +
     '39,17 43,12 51,12 51,10 48,5 44,1 40,-3 40,-10 41,-15 35,-20 35,-24 33,-27 30,-31 27,-34 20,-35 ' +
     '18,-33 18,-30 15,-26 12,-18 12,-13 14,-9 12,-5 9,-1 9,4 6,4.5 2,6 -3,5 -8,4.5 -12,7 -15,11 -17,15',
   '44,-16 50,-15 49.5,-20 47,-25 44,-24 43,-21',
-  // Japan, the Philippines and the islands south of Asia
   '130,31 132,34 135,34 140,35 141,38 142,40 141.5,42 145,43.5 142,45.5 140,42 139,38 136,36 132,35.5',
   '120,18 122,18 124,12 126,7 122,7 121,13',
   '95,5.5 98,4 104,-2 106,-6 102,-4 98,0',
   '105,-6 114,-7 115,-8.5 106,-7',
   '109,1.5 111,2 117,7 119,5 118,1 116,-4 110,-3',
   '131,-1 135,-3 141,-2.5 146,-5 150,-10 146,-8.5 143,-9 138,-8 137,-5 132,-4',
-  // Australia, Tasmania, New Zealand
   '114,-22 117,-20.5 122,-18 125,-14.5 129,-15 131,-12 136,-12 137,-16 140,-17.5 142,-11 144,-14 ' +
     '146,-19 150,-22.5 153,-26 153,-30 151,-34 150,-37.5 146,-39 140,-38 138,-35 136,-35 135,-34 ' +
     '131,-31.5 124,-33.5 118,-35 115,-34 115,-30 113,-26',
@@ -150,7 +125,6 @@ const LAND: readonly (readonly Pt[])[] = [
   }),
 )
 
-/** Mulberry32: the speckle's only source of randomness. */
 function seeded(seed: number) {
   let a = seed
   return () => {
@@ -166,17 +140,12 @@ const smooth = (a: number, b: number, x: number) => {
   return t * t * (3 - 2 * t)
 }
 
-/** Newell normal of a planar loop. */
 function normalOf(pts: readonly P3[]): P3 {
   let n: P3 = [0, 0, 0]
   for (let i = 0; i < pts.length; i++) n = add(n, cross(pts[i], pts[(i + 1) % pts.length]))
   return unit(n)
 }
 
-/**
- * A convex solid from its vertices and faces (index loops): each face that looks at the viewer is filled by its light, its edges in `edge`, then one outline round the whole solid.
- * Faces need no particular winding; normals are turned away from the centroid.
- */
 function convex(
   s: Scene,
   verts: readonly P3[],
@@ -200,7 +169,6 @@ function convex(
   s.poly2(hull(s.pp(verts)), 'none', o.outline ?? 'line', o.width)
 }
 
-/** Faces of an 8-vertex block indexed iu + 2·iv + 4·iw. */
 const BLOCK = [
   [0, 2, 6, 4],
   [1, 3, 7, 5],
@@ -214,13 +182,10 @@ const blockVerts = (p: (u: number, v: number, w: number) => P3, u: Pt, v: Pt, w:
   for (let i = 0; i < 8; i++) out.push(p(u[i & 1], v[(i >> 1) & 1], w[(i >> 2) & 1]))
   return out
 }
-/** A block on the board, in board coordinates. */
 const boardBlock = (s: Scene, u: Pt, v: Pt, w: Pt) => convex(s, blockVerts(at, u, v, w), BLOCK)
-/** An upright block in the turned frame, and a soft shadow on the table. */
 const standBlock = (s: Scene, x: Pt, y: Pt, z: Pt) => convex(s, blockVerts(wp, x, y, z), BLOCK)
 const shadowOn = (s: Scene, x0: number, y0: number, x1: number, y1: number) =>
   s.poly([wp(x0, y0, 0), wp(x1, y0, 0), wp(x1, y1, 0), wp(x0, y1, 0)], 'shadow', 'none')
-/** A square batten of side `t` from a to b. */
 function beam(s: Scene, a: P3, b: P3, t: number) {
   const F = frameAlong(a, sub(b, a))
   const h = t / 2
@@ -228,7 +193,6 @@ function beam(s: Scene, a: P3, b: P3, t: number) {
   convex(s, blockVerts(p, [0, 1], [-h, h], [-h, h]), BLOCK)
 }
 
-/** The frame bars' section, (inward d, out w): back, front, bevel start, bevel foot, back again. */
 const PROFILE: readonly Pt[] = [
   [0, 0],
   [0, FT],
@@ -243,7 +207,6 @@ const BARS: Record<'bottom' | 'right' | 'top' | 'left', Bar> = {
   top: { a: [W, H], b: [0, H], e: [-1, 0], n: [0, -1] },
   left: { a: [0, H], b: [0, 0], e: [0, -1], n: [1, 0] },
 }
-/** A point on a bar: `t` along it from its start mitre's outer corner, `d` in from the outer edge, `w` out. */
 const barAt = (B: Bar, t: number, d: number, w: number) =>
   at(B.a[0] + B.e[0] * t + B.n[0] * d, B.a[1] + B.e[1] * t + B.n[1] * d, w)
 const barLen = (B: Bar) => Math.abs(B.b[0] - B.a[0]) + Math.abs(B.b[1] - B.a[1])
@@ -257,7 +220,6 @@ export const continents: LadderFigureDef = {
     const pinCount = rung + 1
     const cracked = rung === 5
 
-    /** Mitred bar: the profile swept from mitre to mitre. */
     const bar = (B: Bar) => {
       const L = barLen(B)
       const verts = [
@@ -272,15 +234,12 @@ export const continents: LadderFigureDef = {
       ]
       convex(s, verts, faces, { outline: 'crease' })
       if (!hero) return
-      // Grain along the flat face, from mitre seam to mitre seam.
       s.segs(
         [1.5, 3.4].map((d) => [barAt(B, d, d, FT), barAt(B, L - d, d, FT)]),
         'detail',
         0.45,
       )
     }
-
-    // ------------------------------------------------------------ easel base: shadow, feet, legs, tray
 
     const legs: [P3, P3][] = [
       [
@@ -295,10 +254,8 @@ export const continents: LadderFigureDef = {
     if (hero) {
       shadowOn(s, -8, TY0 - 4, W + 8, TY1 + 3)
       for (const [, f] of legs) shadowOn(s, f[0] - 5, f[1] - 5, f[0] + 5, f[1] + 5)
-      // Felt pads under the feet.
       for (const [, f] of legs)
         standBlock(s, [f[0] - 2.4, f[0] + 2.4], [f[1] - 2.4, f[1] + 2.4], [0, 0.8])
-      // Stretcher between the legs, its ends inside them.
       const fr = 0.55
       const mid = legs.map(([a, b]) => add(a, mul(sub(b, a), fr)))
       beam(s, wp(...mid[0]), wp(...mid[1]), 2.2)
@@ -306,9 +263,6 @@ export const continents: LadderFigureDef = {
     for (const [a, b] of legs) beam(s, wp(...a), wp(...b), 3.2)
     standBlock(s, [-4, W + 4], [TY0, TY1], [TZ - 2, TZ])
 
-    // ------------------------------------------------------------ the board, then the clamp and the mast's top
-
-    // Backing board, a little inside the frame's outer edge.
     boardBlock(s, [0.6, W - 0.6], [0.6, H - 0.6], [-BK, 0])
 
     if (hero) {
@@ -316,7 +270,6 @@ export const continents: LadderFigureDef = {
       bar(BARS.left)
     } else boardBlock(s, [0, W], [0, H], [0, FT])
 
-    // Cork.
     const corkUV: Pt[] = [
       [BAR, BAR],
       [W - BAR, BAR],
@@ -331,7 +284,6 @@ export const continents: LadderFigureDef = {
       0.5,
     )
 
-    /** Paper lift near the two free bottom corners. */
     const lift = (u: number, v: number) => {
       const d = Math.min(Math.hypot(u - PU0, v - PV0), Math.hypot(u - PU1, v - PV0))
       const f = Math.max(0, 1 - d / 13)
@@ -339,7 +291,6 @@ export const continents: LadderFigureDef = {
     }
     const paperAt = (u: number, v: number, dw = 0): P3 =>
       at(u, v, (hero ? PW : FT) + lift(u, v) + dw)
-    /** The paper outline, sampled finely so the lifted corners curve. */
     const paperRing: Pt[] = []
     {
       const corners: Pt[] = [
@@ -355,7 +306,6 @@ export const continents: LadderFigureDef = {
           paperRing.push([p[0] + ((q[0] - p[0]) * j) / n, p[1] + ((q[1] - p[1]) * j) / n])
       })
     }
-    /** A straight run across the paper, sampled so it follows the lift. */
     const run = (a: Pt, b: Pt, dw = 0.02) => {
       const n = Math.max(2, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 3))
       return Array.from({ length: n + 1 }, (_, i) =>
@@ -364,7 +314,6 @@ export const continents: LadderFigureDef = {
     }
 
     if (hero) {
-      // Real cork: a fine speckle that thins out toward the frame, with a few old pin holes, only where the map leaves it bare.
       const rnd = seeded(2024)
       const flecks: P3[][] = [],
         dots: P3[][] = []
@@ -400,7 +349,6 @@ export const continents: LadderFigureDef = {
       ]
       for (const [u, v] of holes)
         s.poly(s.circle(at(u, v, CK + 0.03), U, V, 0, 0, 0.35, 8), 'shade', 'none')
-      // The top bar's shadow on the cork.
       s.poly(
         [
           at(BAR, H - BAR, CK + 0.02),
@@ -411,7 +359,6 @@ export const continents: LadderFigureDef = {
         'shadow',
         'none',
       )
-      // Shadows under the lifted corners.
       for (const cu of [PU0, PU1]) {
         const pts = paperRing.filter(([u, v]) => lift(u, v) > 0.05 && Math.abs(u - cu) < 14)
         const shad = pts.map(([u, v]) => {
@@ -426,7 +373,6 @@ export const continents: LadderFigureDef = {
       }
     }
 
-    // The map.
     s.poly(
       paperRing.map(([u, v]) => paperAt(u, v)),
       'top',
@@ -435,7 +381,6 @@ export const continents: LadderFigureDef = {
       hero ? 0.6 : 1,
     )
     if (hero) {
-      // Border: a ruled band of alternating degree cells between two lines, then the graticule and the land.
       const B0 = 1,
         B1 = P_IN
       const band: P3[][] = []
@@ -500,20 +445,16 @@ export const continents: LadderFigureDef = {
         )
     }
 
-    // Front frame bars, over the cork's edges.
     if (hero) {
       bar(BARS.right)
       bar(BARS.top)
     }
-    // The frame's outline: the board's outer corners, backing included.
     s.poly2(hull(s.pp(blockVerts(at, [0, W], [0, H], [-BK, FT]))), 'none', 'line')
 
-    // Top clamp: a block sliding on the mast, hooked over the top bar, with a thumb screw.
     const MU = W / 2
     boardBlock(s, [MU - 5, MU + 5], [H, H + 3], [-BK - 3.4, FT])
     boardBlock(s, [MU - 2.5, MU + 2.5], [H + 3, H + (hero ? 9 : 8)], [-BK - 3, -BK])
     if (hero) {
-      // Chamfered mast top.
       const cap = [
         at(MU - 2.5, H + 9, -BK - 3),
         at(MU + 2.5, H + 9, -BK - 3),
@@ -532,7 +473,6 @@ export const continents: LadderFigureDef = {
         [4, 5, 7, 6],
         [0, 1, 3, 2],
       ])
-      // Thumb screw on the clamp's top, in front of the mast.
       const sc = at(MU, H + 3, 2.4)
       const F = frameAlong(sc, V)
       disc(s, add(sc, mul(V, 0.25)), V, 1.2, 0.5, { ring: 20, width: 0.7 })
@@ -553,7 +493,6 @@ export const continents: LadderFigureDef = {
       knob.seam(1.3)
       knob.seam(2.5)
     }
-    // Lip over the top bar's front, with two screws.
     boardBlock(s, [MU - 5, MU + 5], [H - 3.6, H + 3], [FT, FT + 1.2])
     if (hero)
       for (const du of [-3, 3]) {
@@ -562,16 +501,12 @@ export const continents: LadderFigureDef = {
         s.poly(s.circle(c, U, V, 0, 0, 0.42, 8), 'line', 'none')
       }
 
-    // ------------------------------------------------------------ rung 5: the split
-
     const lastPin = REGIONS[pinCount - 1].pin
     const cu = mapU(lastPin[0])
     if (cracked) {
       const B = BARS.bottom
-      // The crack's centre wanders as it runs from the cork, up the inner wall, over the bevel and down the front; it opens toward the outer edge.
       const path: [number, number, number, number][] = hero
         ? [
-            // [d, w, jitter, gap]
             [BAR, CK, 0, 0],
             [BAR, FT - BD, 0.5, 0.5],
             [BAR - BV, FT, -0.4, 0.9],
@@ -589,7 +524,6 @@ export const continents: LadderFigureDef = {
       const left = path.map(([d, w, j, g]) => barAt(B, cu + j - g / 2, d, w))
       const right = path.map(([d, w, j, g]) => barAt(B, cu + j + g / 2, d, w))
       s.poly([...left, ...right.reverse()], 'line', 'line', undefined, hero ? 0.6 : 1.2)
-      // Thumb: one bold jagged line from the pin to the split.
       if (!hero)
         s.line(
           [
@@ -602,7 +536,6 @@ export const continents: LadderFigureDef = {
           1.5,
         )
       if (hero) {
-        // The chip came off the front edge beside the split: bare wood shows.
         s.poly(
           [
             barAt(B, cu + 1.45, 0, FT),
@@ -616,7 +549,6 @@ export const continents: LadderFigureDef = {
           undefined,
           0.6,
         )
-        // The split runs on across the cork and tears the map up to the pin.
         const tear: Pt[] = [
           [cu, BAR],
           [cu + 0.5, BAR + 2.4],
@@ -643,7 +575,6 @@ export const continents: LadderFigureDef = {
         )
       }
     }
-    // The chip on the table in front of the tray, and a splinter beside it.
     const chips = () => {
       if (!cracked) return
       if (!hero) return standBlock(s, [cu + 2, cu + 9], [TY1 + 3, TY1 + 7], [0, 1.6])
@@ -672,7 +603,6 @@ export const continents: LadderFigureDef = {
         )
     }
 
-    // The tray's lip, in front of the board's foot, with screws over the legs.
     standBlock(s, [-4, W + 4], [TY1 - LIP, TY1], [TZ, TZ + 2.6])
     if (hero)
       for (const [a] of legs) {
@@ -680,8 +610,6 @@ export const continents: LadderFigureDef = {
         s.poly(s.circle(c, X, [0, 0, 1], 0, 0, 0.42, 8), 'line', 'none')
       }
     chips()
-
-    // ------------------------------------------------------------ pins
 
     type Pin = {
       u: number
@@ -725,13 +653,11 @@ export const continents: LadderFigureDef = {
       }
     pins.sort((a, b) => a.depth - b.depth)
 
-    /** Map pin, along its axis from the paper: needle, ferrule collar, neck, dome head. Pushed home, the needle is all in. */
     const NEEDLE = 1.5,
       HEAD = 3.6
     const pinLen = (p: Pin) => (cracked && p.newest ? 0 : NEEDLE)
 
     if (hero) {
-      // Shadows first, all on the paper.
       for (const p of pins) {
         const h = p.tack ? 0.7 : pinLen(p) + 0.5 + 0.9 + 1.5,
           r = p.tack ? 1.7 : HEAD * 0.9
@@ -744,7 +670,6 @@ export const continents: LadderFigureDef = {
       for (const p of pins) {
         const b = paperAt(p.u, p.v)
         if (p.tack) {
-          // Drawing-pin: a flat brass head with a small boss.
           disc(s, add(b, mul(N, 0.3)), N, 1.7, 0.4, { ring: 24, width: 0.7 })
           disc(s, add(b, mul(N, 0.75)), N, 0.6, 0.5, { ring: 16, width: 0.6 })
           continue
@@ -752,7 +677,6 @@ export const continents: LadderFigureDef = {
         const draw = () => {
           const nl = pinLen(p)
           if (cracked && p.newest) {
-            // Pressed so hard the paper dished round it.
             for (const r of [1.6, 2.4])
               s.poly(
                 s.circle(paperAt(p.u, p.v, 0.04), U, V, 0, 0, r, 20),
@@ -805,7 +729,6 @@ export const continents: LadderFigureDef = {
             const outline = hull(s.pp(ring))
             s.glow(1.6, () => s.poly2(outline, 'accent', 'none'))
           }
-          // The dome stops short of the pole in a small flat crown (a zero section has no normal to shade).
           const body = lathe(s, F, head, H0, H0 + HL * 0.92, {
             steps: 12,
             ring: 32,
@@ -814,14 +737,12 @@ export const continents: LadderFigureDef = {
             crease: 'none',
             width: 0.8,
           })
-          // A moulding line round the dome's rim.
           body.seam(H0 + 0.35, crease, 0.45)
         }
         if (p.newest) s.group('lit', draw)
         else draw()
       }
     } else {
-      // Thumb: needle and a bold head, so each pin counts; the newest stands taller and wider.
       for (const p of pins) {
         const rad = p.newest ? 9.5 : 6.5,
           len = cracked && p.newest ? 5 : p.newest ? 11 : 8,

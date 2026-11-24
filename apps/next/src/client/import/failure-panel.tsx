@@ -8,7 +8,6 @@ import { ACTION, FAILURE, S, UNFINISHED_EMPTY, UNFINISHED_ITEM, relativeInstant 
 import type { Failure, FailureAction } from './import-errors'
 import type { UnfinishedImport } from './import-types'
 
-/** A stated cause with its own actions. It replaces the review: it is never rendered beside empty-review copy. */
 export function FailurePanel({
   failure,
   locale,

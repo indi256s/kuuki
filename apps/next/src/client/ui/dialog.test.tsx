@@ -143,7 +143,6 @@ it('restores in-dialog focus when reopened before its pointer exit finishes', as
   const notes = screen.getByRole('textbox', { name: 'Notes' })
   notes.focus()
   rerender(view(false))
-  // In a browser, making the closing content inert removes focus from it.
   notes.blur()
   rerender(view(true))
   expect(screen.getByRole('dialog')).toBe(dialog)

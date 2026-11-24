@@ -31,7 +31,6 @@ type StateRow = {
 const derivedStateOf = (state: StateRow | undefined): JournalData['derivedState'] =>
   !state || isDerivedReady(state) ? 'ready' : state.last_error ? 'error' : 'pending'
 
-/** One owner-scoped batch supplies the page, count, and revision metadata. */
 export async function readJournal(
   db: D1Database,
   userId: string,
@@ -87,7 +86,6 @@ const flightColumns = FLIGHT_COLUMNS.split(',')
   .map((column) => `f.${column.trim()}`)
   .join(', ')
 
-/** The whole journal (spec D3): every owner flight with its endpoint countries, refs, firsts and revisions in one batch. */
 export async function readJournalAll(db: D1Database, userId: string): Promise<JournalPayload> {
   const statements = [
     db

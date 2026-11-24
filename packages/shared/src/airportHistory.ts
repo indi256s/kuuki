@@ -64,7 +64,6 @@ export function decodeAirportScope(scope: string): OverviewFilter {
       JSON.parse(decoder.decode(Uint8Array.from(binary, (char) => char.charCodeAt(0)))),
     )
     if (!parsed.success) throw new AirportScopeError()
-    // Reject alternate encodings as well as malformed base64 trailing bits.
     if (encodeAirportScope(parsed.data.filter) !== scope) throw new AirportScopeError()
     return parsed.data.filter
   } catch {

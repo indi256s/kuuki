@@ -3,7 +3,6 @@ import { fileURLToPath } from 'node:url'
 import { freePort } from '../../../scripts/free-port'
 
 const root = fileURLToPath(new URL('../../../', import.meta.url))
-// Set once in the runner so workers, which re-read this config, inherit the same port.
 process.env.KUUKI_NEXT_PORT ??= String(freePort())
 const port = process.env.KUUKI_NEXT_PORT
 export default defineConfig({
@@ -15,7 +14,6 @@ export default defineConfig({
   expect: { timeout: 10_000 },
   use: {
     baseURL: `http://127.0.0.1:${port}`,
-    // Journeys start past the first-visit kuukie notice; client/kuukies.test.tsx owns it.
     storageState: {
       cookies: [],
       origins: [

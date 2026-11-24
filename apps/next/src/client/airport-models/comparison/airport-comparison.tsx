@@ -38,7 +38,6 @@ export type AirportComparisonProps = {
   names?: readonly [string, string]
 }
 
-/** Flat north-up SVG plans work independently of WebGL and never load a second 3D model. */
 export function AirportComparison({ plans, locale, names }: AirportComparisonProps) {
   const first = useRef<SVGSVGElement>(null),
     second = useRef<SVGSVGElement>(null)

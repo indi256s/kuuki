@@ -35,7 +35,6 @@ export function CategoryStrip({
   locale: Locale
   category: LeaderboardCategory
   period: Period
-  /** All-time ranks to show instead of the published ones while a rank-up waits to flip. */
   shownRanks: Partial<Record<LeaderboardCategory, number>>
   navRef: RefObject<HTMLElement | null>
   onSelect: (category: LeaderboardCategory) => void
@@ -43,14 +42,21 @@ export function CategoryStrip({
   const scroller = useRef<HTMLDivElement>(null)
   const id = useId()
   const [announced, setAnnounced] = useState('')
-  // Centre the selected tile by moving only the strip, never the page.
   useEffect(() => {
     const element = scroller.current
     const selected = element?.querySelector<HTMLElement>('[aria-current="page"]')
-    if (element && selected && element.scrollWidth > element.clientWidth)
-      element.scrollLeft = selected.offsetLeft - (element.clientWidth - selected.offsetWidth) / 2
-  }, [])
-  // The strip scrolls sideways on phones; a fade shows only on an edge that can still scroll.
+    if (!element || !selected || element.scrollWidth <= element.clientWidth) return
+    const edge = 28
+    const box = element.getBoundingClientRect()
+    const tile = selected.getBoundingClientRect()
+    const group = selected.closest<HTMLElement>('.leaderboard-group')?.getBoundingClientRect()
+    if (tile.left < box.left + edge) {
+      const target = group && tile.right - group.left <= box.width - edge ? group.left : tile.left
+      element.scrollLeft += target - box.left - edge
+    } else if (tile.right > box.right - edge) {
+      element.scrollLeft += tile.right - box.right + edge
+    }
+  }, [category])
   useScrollFade(scroller)
   useEffect(() => {
     let active = true
@@ -106,7 +112,6 @@ export function CategoryStrip({
               </p>
               <div className="leaderboard-group-tiles">
                 {keys.map((key) => {
-                  // The tile prints the short label; its accessible name keeps the full one ("Countries on flights").
                   const model = tileModel(
                     payload,
                     key,
@@ -161,7 +166,6 @@ export function CategoryStrip({
   )
 }
 
-/** The error page's strip: the same tiles, links only, no values and no data read. */
 export function StaticStrip({ locale }: { locale: Locale }) {
   return (
     <nav

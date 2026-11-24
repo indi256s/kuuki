@@ -1,11 +1,3 @@
-// Builds the Kuuki ground-travel city catalog (ground_places + ground_place_names) as deterministic SQL
-// chunks from the public GeoNames dumps. See scripts/geonames/README.md and
-// .scratch/ground-travel/places-contract.md.
-//
-//   tsx scripts/generate-geonames-places.ts                 download (cached) + generate
-//   tsx scripts/generate-geonames-places.ts --load-local    ...and apply the chunks to the LOCAL D1 only
-//                                                           (--persist-to <dir> keeps that local D1 in a separate state dir)
-//   tsx scripts/generate-geonames-places.ts --ids 611717,616052 --no-manifest   subset (fixture)
 import { spawn } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import {
@@ -31,14 +23,12 @@ const BASE_URL = 'https://download.geonames.org/export/dump/'
 
 interface SourceSpec {
   file: string
-  /** Member of the ZIP that holds the data, or null for a plain text file. */
   member: string | null
 }
 const CITIES: SourceSpec = { file: 'cities500.zip', member: 'cities500.txt' }
 const ALTERNATE_NAMES: SourceSpec = { file: 'alternateNamesV2.zip', member: 'alternateNamesV2.txt' }
 const ADMIN1: SourceSpec = { file: 'admin1CodesASCII.txt', member: null }
 
-/** Filter rules, recorded verbatim in the manifest. */
 const RULES = [
   'cities500 rows with feature class P, ISO-2 country, valid WGS84 coordinates and a non-empty name',
   'display names nameRu/nameEn: alternateNamesV2 isolanguage ru/en, not isHistoric, not isColloquial; isPreferredName first, then non-short names, then lowest alternateNameId; absent stays NULL (asciiname is not a translation)',
@@ -107,10 +97,6 @@ function parseArgs(argv: string[]): Options {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Sources: download once, hash, pin
-// ---------------------------------------------------------------------------
-
 interface SourceRecord {
   url: string
   bytes: number
@@ -173,7 +159,6 @@ async function ensureSource(
   return { path, record: { url, bytes: statSync(path).size, sha256, lastModified: modified } }
 }
 
-/** Lines of a dump file: streamed from `unzip -p` for archives, so the 785 MB alias file is never in memory. */
 async function* dumpLines(path: string, member: string | null): AsyncGenerator<string> {
   if (!member) {
     const rl = createInterface({ input: createReadStream(path, 'utf8'), crlfDelay: Infinity })
@@ -187,10 +172,6 @@ async function* dumpLines(path: string, member: string | null): AsyncGenerator<s
   const code = await closed
   if (code !== 0) throw new Error(`unzip ${member} failed with exit code ${code}`)
 }
-
-// ---------------------------------------------------------------------------
-// Parsing
-// ---------------------------------------------------------------------------
 
 interface City {
   id: number
@@ -302,7 +283,6 @@ async function readAliases(
   let scanned = 0
   for await (const line of dumpLines(path, member)) {
     scanned++
-    // alternateNameId, geonameid, isolanguage, name, isPreferred, isShort, isColloquial, isHistoric, from, to
     const f = line.split('\t')
     const lang = f[2]
     if (lang !== 'ru' && lang !== 'en') continue
@@ -325,7 +305,6 @@ async function readAliases(
   return { aliases, scanned }
 }
 
-/** Display name: current (not historic/colloquial), preferred first, then non-short, then lowest id. */
 function pickDisplay(list: Alias[] | undefined, lang: 'ru' | 'en'): string | null {
   const candidates = (list ?? []).filter((a) => a.lang === lang && !a.historic && !a.colloquial)
   candidates.sort(
@@ -337,15 +316,10 @@ function pickDisplay(list: Alias[] | undefined, lang: 'ru' | 'en'): string | nul
   return candidates[0]?.name ?? null
 }
 
-// ---------------------------------------------------------------------------
-// SQL output
-// ---------------------------------------------------------------------------
-
 const sqlText = (value: string | null) =>
   value === null ? 'NULL' : `'${value.replaceAll("'", "''")}'`
 const sqlNumber = (value: number | null) => (value === null ? 'NULL' : String(value))
 
-/** Writes multi-row INSERT statements, rotating to a new file after `chunkBytes`. */
 class ChunkWriter {
   files: { name: string; bytes: number; sha256: string; statements: number }[] = []
   private index = 0
@@ -400,7 +374,6 @@ class ChunkWriter {
   }
 }
 
-/** Accumulates rows into multi-row INSERTs bounded by row count and statement size. */
 class RowBatcher {
   private rows: string[] = []
   private bytes = 0
@@ -450,7 +423,6 @@ async function writeCatalog(
   const writer = new ChunkWriter(options.outDir, options.chunkBytes)
   const totals: Totals = { places: 0, names: 0 }
 
-  // Places first, then names, so a partial load never has names without their place.
   const places = new RowBatcher(SQL_VALUES_PLACES, writer)
   for (const city of cities) {
     const region = admin1.get(`${city.country}.${city.admin1}`)
@@ -498,10 +470,6 @@ async function writeCatalog(
   return { writer, totals, resetFile }
 }
 
-// ---------------------------------------------------------------------------
-// Local load
-// ---------------------------------------------------------------------------
-
 function runWrangler(args: string[]): Promise<void> {
   return new Promise((done, fail) => {
     const child = spawn('pnpm', ['exec', 'wrangler', ...args], { cwd: ROOT, stdio: 'inherit' })
@@ -511,7 +479,6 @@ function runWrangler(args: string[]): Promise<void> {
   })
 }
 
-/** Reads the primary D1 database name from the root wrangler.toml (the first [[d1_databases]] entry). */
 function localDatabaseName(): string {
   const toml = readFileSync(join(ROOT, 'wrangler.toml'), 'utf8')
   const block = toml.split('[[d1_databases]]')[1]?.split(/\n\[/)[0] ?? ''
@@ -529,7 +496,6 @@ async function loadLocal(
   const db = localDatabaseName()
   const started = Date.now()
   const persist = persistTo ? ['--persist-to', persistTo] : []
-  // Local only: never pass --remote. Pending migrations are applied to the local database first.
   await runWrangler(['d1', 'migrations', 'apply', db, '--local', ...persist])
   for (const file of [resetFile, ...chunks]) {
     console.log(`loading ${file} (local)`)
@@ -537,10 +503,6 @@ async function loadLocal(
   }
   return Date.now() - started
 }
-
-// ---------------------------------------------------------------------------
-// Main
-// ---------------------------------------------------------------------------
 
 interface Manifest {
   generator: string

@@ -23,10 +23,8 @@ it('keeps a launched burn lit for its hold on a parked model', async () => {
   } as unknown as TurnController
   const flame = mountReheat(stage, controller, CONCORDE.reheat)!
   flame.launch()
-  // A parked model never reports `turning`; the turn's own burns would go out on the first step.
   for (let frame = 0; frame < 40; frame++) expect(flame.step(0.1, false)).toBe(true)
   let out = 0
   while (flame.step(0.1, false) && out < 100) out++
-  // After the 4.2 s hold it spools down and goes out.
   expect(out).toBeLessThan(60)
 })

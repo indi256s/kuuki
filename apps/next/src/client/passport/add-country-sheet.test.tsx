@@ -48,7 +48,6 @@ describe('AddCountrySheet', () => {
     const neighbors = within(dialog).getByRole('heading', {
       name: 'Neighbors of your countries',
     }).parentElement!
-    // Natural Earth 1:110m has no outline for microstates such as Liechtenstein, so they are reached through search.
     expect(
       within(neighbors)
         .getAllByRole('button')

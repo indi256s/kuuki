@@ -65,17 +65,13 @@ export function ResetPasswordForm({ locale: initialLocale }: { locale: Locale })
   const [error, setError] = useState<'rate' | 'failed' | ''>('')
   const [passwordError, setPasswordError] = useState(false)
   useEffect(() => {
-    // Only the early bootstrap reads/scrubs the fragment. Keep its one-time handoff in this mounted form's memory.
     if (captured.current === undefined) captured.current = window.__kuukiResetToken || ''
     delete window.__kuukiResetToken
-    // React may replay the effect; replaying must not discard a captured token.
     setToken(/^[A-Za-z0-9_-]{43}$/.test(captured.current) ? captured.current : '')
     try {
       const address = sessionStorage.getItem('kuuki_auth_email')?.trim() ?? ''
       if (address.length <= 320 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) setEmail(address)
-    } catch {
-      /* A token-only visit still works when no same-origin email hint is available. */
-    }
+    } catch {}
   }, [])
   useEffect(() => {
     if (token !== null) heading.current?.focus()

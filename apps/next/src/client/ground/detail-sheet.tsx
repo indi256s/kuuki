@@ -1,12 +1,4 @@
 'use client'
-/**
- * The ground-travel detail sheet (page-flow contract "Адреса и возврат"). Open while the view carries `?journey=<id>`;
- * the journey is read by id whatever the list filter shows, with the list's copy shown first. Right sheet on desktop,
- * bottom sheet on phones, mounted only after hydration so a deep link renders the same markup on server and client.
- *
- * Actions: Edit and Complete are links to the forms; Cancel plan / Restore / Back to plans / Delete send one command
- * each (`use-journey-actions.ts`). Focus returns to the journey's card on close, else to the page title.
- */
 import Link from 'next/link'
 import { Car, Train } from '@keyline-icons/react'
 import { useId, useState, useSyncExternalStore, type ReactNode } from 'react'
@@ -76,7 +68,6 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
 
 const shortDates: Partial<Record<Locale, Intl.DateTimeFormat>> = {}
 
-/** "Nov 13 08:00": day and month only, since the facts above carry the year. */
 function when(locale: Locale, date: string | null, time: string | null) {
   const format = (shortDates[locale] ??= new Intl.DateTimeFormat(locale, {
     day: 'numeric',
@@ -88,11 +79,9 @@ function when(locale: Locale, date: string | null, time: string | null) {
   return [day, time].filter(Boolean).join(' ')
 }
 
-/** One city in the route list, with the connection that arrives at it. */
 type Stop = {
   key: string
   place: GroundPlaceSnapshot
-  /** Starts a new run: the previous rail leg ended somewhere else, so no line joins them. */
   gap: boolean
   leg: { vehicle: string; facts: string[] } | null
   details: string[]
@@ -130,7 +119,6 @@ function stopsOf(locale: Locale, journey: GroundJourneyDto): Stop[] {
     const previous = journey.legs[index - 1]
     const departs = when(locale, leg.departureDate, leg.departureTime)
     if (previous && placeKey(previous.to) === placeKey(leg.from)) {
-      // A change of trains: the stop already listed gains this leg's departure.
       const stop = stops[stops.length - 1]
       if (leg.fromStation && !stop.details.includes(leg.fromStation))
         stop.details.push(leg.fromStation)
@@ -167,10 +155,6 @@ function stopsOf(locale: Locale, journey: GroundJourneyDto): Stop[] {
   return stops
 }
 
-/**
- * The route as a list: each city carries the mark its pin has on the map (start outline, numbered stops, filled end),
- * and the connection that reaches it sits on the line above it. Unknown facts are left out, never written as zero.
- */
 function Route({
   locale,
   journey,
@@ -294,11 +278,9 @@ function Body({ locale, journey }: { locale: Locale; journey: GroundJourneyDto }
 export type DetailProps = {
   locale: Locale
   view: GroundView
-  /** The list's copy of the open journey, shown until the read answers. */
   seed: GroundJourneyDto | null
   online: boolean
   onClose: () => void
-  /** A write landed: reload the list (totals, order). */
   onChanged: () => void
   onDeleted: () => void
 }
@@ -318,7 +300,6 @@ export function GroundDetail({
   const mobile = useMobile()
   const offlineNoteId = useId()
   const { read, reload, apply } = useJourneyRead(id, seed)
-  // The sheet keeps the last journey while it animates out.
   const [shown, setShown] = useState(read)
   if (id !== null && shown !== read) setShown(read)
   const display = id === null ? shown : read

@@ -1,5 +1,3 @@
-// Pure shaping of the Overview read (C6): comparison, favorites and new countries from rows the batch returned.
-// Kept free of D1 so the zero-baseline, tie-breaking and first-visit rules have direct unit tests.
 import type {
   OverviewDelta,
   OverviewMapCountry,
@@ -8,7 +6,6 @@ import type {
 
 export const NEW_COUNTRY_ITEMS = 12
 
-/** Whole-percent change with no percentage of a zero baseline; `delta` stays available as the absolute difference. */
 export function overviewDelta(current: number, previous: number): OverviewDelta {
   const delta = current - previous
   return {
@@ -26,7 +23,6 @@ export interface PeriodTotals {
   countries: number | null
 }
 
-/** The previous-year comparison, or null for all time. `countries` follows the readiness of the country evidence. */
 export function overviewComparison(
   period: string,
   current: PeriodTotals,
@@ -47,7 +43,6 @@ export function overviewComparison(
   }
 }
 
-/** The top airline already ordered by count then code; one flight is not a favorite. */
 export function favoriteAirline(
   airlines: Array<{ id: string; count: number }>,
 ): { id: string; count: number } | null {
@@ -61,11 +56,6 @@ export interface FirstVisitRow {
   status: 'pressed' | 'pending'
 }
 
-/**
- * Countries whose earliest non-transit evidence across all time falls in the period. `evidence` is every published
- * flight-or-legacy country with its all-time first visit; `periodCountries` is the period's own set, so a legacy
- * country with no flight in the period (legacy evidence has no per-year attribution) never counts as new here.
- */
 export function newCountriesIn(
   period: string,
   evidence: FirstVisitRow[],

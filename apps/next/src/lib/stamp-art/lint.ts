@@ -1,4 +1,3 @@
-// Pure geometric lint: no rasterising, safe for browser bundles.
 import { frames, shapeFor, subjectPoly } from './frame'
 import { pointInPoly } from './geom'
 import { type Pt, type SvgNode } from './grid'
@@ -11,10 +10,6 @@ export type LintIssue = { iso2: string; rule: 'schema' | 'tag' | 'frame'; messag
 
 const pointsOf = (node: SvgNode): Pt[] => (node.kind === 'occlude' ? [] : node.pts)
 
-/**
- * Every tag must exist, and every point the SUBJECT draws (layers and signature parts, before
- * occlusion) must sit inside the frame window inset 6. Backdrop layers may fill the whole window.
- */
 export function lintGeometry(recipe: Recipe, subject?: SvgNode[]): LintIssue[] {
   const issues: LintIssue[] = []
   const iso2 = recipe.iso2
@@ -54,7 +49,6 @@ export function lintGeometry(recipe: Recipe, subject?: SvgNode[]): LintIssue[] {
   return issues
 }
 
-/** Lint from a raw recipe: schema errors (including unknown tags) become issues instead of throws. */
 export function lintRaw(raw: unknown): LintIssue[] {
   const iso2 = String((raw as { iso2?: unknown } | null)?.iso2 ?? '??')
   let recipe: Recipe

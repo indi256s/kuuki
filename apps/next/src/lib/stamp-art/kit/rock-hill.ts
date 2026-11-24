@@ -1,8 +1,3 @@
-// Rock-hill module: a craggy limestone outcrop seen from the side (Acropolis, Monte Titano, the
-// Rock of Gibraltar, the rock of Monaco). The top edge is a `profile` of [x, y] fractions of the
-// box (left to right); the foot is the bottom of the box. The lit side is bare paper with strata
-// ticks, the shaded side (right of `shadeFrom`) is hair hatching along the fall line, and `walls`
-// lists [x0, x1] fractions where the face is a masonry retaining wall (lit, with courses).
 import { mulberry32 } from '../hash'
 import { clipStrokeOutside } from '../geom'
 import { type Pt, type StrokeNode, type SvgNode, occlude, stroke } from '../grid'
@@ -25,7 +20,6 @@ export const rockHill: KitModule = ([x, y, w, h], p) => {
     x + w * fx,
     y + h * fy,
   ])
-  // Craggy edge: subdivide every ~6 units with a small deterministic wobble.
   const top: Pt[] = [coarse[0]]
   for (let i = 1; i < coarse.length; i++) {
     const a = coarse[i - 1],
@@ -43,7 +37,6 @@ export const rockHill: KitModule = ([x, y, w, h], p) => {
   const poly: Pt[] = [...top, [top[top.length - 1][0], base], [top[0][0], base]]
   const out: SvgNode[] = [occlude(poly)]
   const edgeY = (px: number) => {
-    // Edge may fold back on steep sides: use the topmost crossing.
     let best = base
     for (let i = 0; i + 1 < top.length; i++) {
       const a = top[i],
@@ -62,7 +55,6 @@ export const rockHill: KitModule = ([x, y, w, h], p) => {
   const shadeTo = x + w * num(p, 'shadeTo', 1.01)
   const shadeGap = num(p, 'shadeGap', 2.6)
   const hatch: StrokeNode[] = []
-  // Shaded side: fall-line hairs, leaning outward a little toward the foot.
   const lean = num(p, 'lean', 0.12)
   for (let px = shadeFrom; px < Math.min(shadeTo, x + w - 0.5); px += shadeGap) {
     const ty = edgeY(px) + 2
@@ -75,7 +67,6 @@ export const rockHill: KitModule = ([x, y, w, h], p) => {
         ]),
       )
   }
-  // Lit side: strata ticks.
   const strata = num(p, 'strata', 5.5)
   for (let yy = y + 5; yy < base - 2; yy += strata + rand() * 2) {
     let px = x + 2 + rand() * 8
@@ -95,7 +86,6 @@ export const rockHill: KitModule = ([x, y, w, h], p) => {
       px += len + 6 + rand() * 12
     }
   }
-  // Retaining walls: lit bands below the edge with courses and staggered joints.
   const wallH = num(p, 'wallH', 12)
   const courses = Math.max(2, Math.round(num(p, 'courses', 4)))
   const wallList = nums(p, 'walls', [])

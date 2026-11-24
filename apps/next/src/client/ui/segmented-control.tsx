@@ -14,7 +14,6 @@ import './ui.css'
 export type SegmentOption<T extends string> = { value: T; label: ReactNode; icon?: ReactNode }
 
 type Box = { x: number; y: number; w: number; h: number }
-// `base` is the first cell's width: the dense thumb keeps that width and scales to `w`, so it only ever animates its transform.
 type Thumb = Box & { base: number }
 const sameThumb = (a: Thumb | null, b: Thumb) =>
   !!a && a.x === b.x && a.y === b.y && a.w === b.w && a.h === b.h && a.base === b.base
@@ -23,18 +22,11 @@ export type SegmentedControlProps<T extends string> = {
   value: T
   onChange: (value: T) => void
   options: readonly SegmentOption<T>[]
-  /** Accessible name of the group. */
   label: string
-  /** 32px outlined control with content-sized cells; the hit area extends to 44px on coarse pointers. */
   dense?: boolean
-  /** The standard track at 44px overall (38px segments), to share a toolbar row with 44px buttons. */
   toolbar?: boolean
 }
 
-// Radio-group semantics: one tab stop (the selected option), arrows move and select, Home/End jump.
-// Options share equal cells (auto-fit grid) so the thumb has one size and only translates; at 320px the
-// grid wraps into rows instead of clipping. Dense cells size to their content, so the thumb also scales
-// horizontally to the selected cell. The thumb transition is a plain CSS transition, so re-selecting mid-slide retargets it.
 export function SegmentedControl<T extends string>({
   value,
   onChange,
@@ -45,8 +37,6 @@ export function SegmentedControl<T extends string>({
 }: SegmentedControlProps<T>) {
   const root = useRef<HTMLDivElement>(null)
   const refs = useRef<(HTMLButtonElement | null)[]>([])
-  // Every option's box, read whenever the control changes size. With equal cells the boxes depend only on that size
-  // and the option count, so a new selection reuses them instead of forcing a layout while its commit is applied.
   const boxes = useRef<(Box | null)[]>([])
   const current = useRef(0)
   const [thumb, setThumb] = useState<Thumb | null>(null)
@@ -89,14 +79,11 @@ export function SegmentedControl<T extends string>({
       measure()
       return
     }
-    // The first report arrives after layout and before paint: the thumb lands in the opening frame, and reading the
-    // boxes there costs nothing because layout is already clean.
     const observer = new ResizeObserver(() => flushSync(measure))
     observer.observe(node)
     return () => observer.disconnect()
   }, [options.length])
 
-  // Enable the slide only after the first measurement so mounting never animates.
   useLayoutEffect(() => {
     const id = requestAnimationFrame(() => setReady(true))
     return () => cancelAnimationFrame(id)

@@ -1,11 +1,9 @@
-/* The first-flight step (boards 15.2–15.4, 15.8, 17.x). Tokens only. */
 .flights-step {
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
 
-/* ---------- Prompt tray (15.2) ---------- */
 .flights-tray {
   display: flex;
   flex-direction: column;
@@ -26,7 +24,7 @@
   border: 0;
   background: transparent;
   color: var(--text);
-  font: 400 12px/18px var(--font-mono);
+  font: 400 0.75rem/1.125rem var(--font-mono);
   resize: none;
 }
 .flights-prompt:focus-visible {
@@ -53,7 +51,6 @@
   gap: 8px;
 }
 
-/* ---------- Quiet links and rows ---------- */
 .flights-links {
   display: flex;
   flex-wrap: wrap;
@@ -71,7 +68,7 @@
   border-radius: var(--radius-xs);
   background: transparent;
   color: var(--accent-text);
-  font: 500 14px/20px var(--font-sans);
+  font: 500 0.875rem/1.25rem var(--font-sans);
   cursor: pointer;
 }
 .flights-link[data-tone='muted'] {
@@ -101,7 +98,7 @@
   gap: 8px;
   margin: 0;
   color: var(--text);
-  font: 400 14px/20px var(--font-sans);
+  font: 400 0.875rem/1.25rem var(--font-sans);
 }
 .flights-copied svg {
   color: var(--success-text);
@@ -109,7 +106,7 @@
 .flights-skip-error {
   margin: 0;
   color: var(--danger-text);
-  font: 400 13px/20px var(--font-sans);
+  font: 400 0.8125rem/1.25rem var(--font-sans);
 }
 .flights-outline,
 .flights-read {
@@ -126,7 +123,6 @@
   pointer-events: none;
 }
 
-/* ---------- Paste target (15.3, 17.x) ---------- */
 .flights-target {
   display: flex;
   flex-direction: column;
@@ -150,7 +146,7 @@
 .flights-hint {
   margin: 0;
   color: var(--text-muted);
-  font: 400 13px/20px var(--font-sans);
+  font: 400 0.8125rem/1.25rem var(--font-sans);
 }
 .flights-key {
   padding: 6px 14px;
@@ -158,7 +154,7 @@
   border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--text);
-  font: 500 18px/24px var(--font-mono);
+  font: 500 1.125rem/1.5rem var(--font-mono);
 }
 .flights-box {
   inline-size: 100%;
@@ -168,7 +164,7 @@
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--text);
-  font: 400 16px/24px var(--font-sans);
+  font: 400 1rem/1.5rem var(--font-sans);
   text-align: center;
   resize: none;
 }
@@ -180,7 +176,6 @@
   outline-offset: 2px;
 }
 
-/* ---------- Notices (17.x) ---------- */
 .flights-notice {
   display: flex;
   align-items: flex-start;
@@ -189,7 +184,7 @@
   border-radius: var(--radius-md);
   background: color-mix(in srgb, var(--warning-fill) 14%, var(--surface));
   color: var(--warning-text);
-  font: 400 14px/22px var(--font-sans);
+  font: 400 0.875rem/1.375rem var(--font-sans);
 }
 .flights-notice svg {
   flex: none;
@@ -205,7 +200,7 @@
   margin: 0;
 }
 .flights-notice-detail {
-  font: 400 12px/18px var(--font-mono);
+  font: 400 0.75rem/1.125rem var(--font-mono);
   overflow-wrap: anywhere;
 }
 .flights-notice-snippet {
@@ -213,11 +208,10 @@
   border-radius: var(--radius-xs);
   background: var(--surface);
   color: var(--text-muted);
-  font: 400 12px/18px var(--font-mono);
+  font: 400 0.75rem/1.125rem var(--font-mono);
   overflow-wrap: anywhere;
 }
 
-/* ---------- Reading (15.4, 17.5–17.7) ---------- */
 .flights-live {
   display: flex;
   flex-direction: column;
@@ -227,14 +221,13 @@
   margin: 0;
   min-block-size: 24px;
   color: var(--text-muted);
-  font: 400 15px/24px var(--font-sans);
+  font: 400 0.9375rem/1.5rem var(--font-sans);
 }
 .flights-count-n {
   color: var(--accent-text);
-  font: 500 15px/24px var(--font-mono);
+  font: 500 0.9375rem/1.5rem var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
-/* Four rows always take their room, so the card does not jump as rows arrive. */
 .flights-list {
   display: flex;
   flex-direction: column;
@@ -250,7 +243,7 @@
   gap: 14px;
   block-size: 32px;
   color: var(--text-muted);
-  font: 400 13px/20px var(--font-mono);
+  font: 400 0.8125rem/1.25rem var(--font-mono);
 }
 .flights-list li > :first-child {
   flex: none;
@@ -277,14 +270,13 @@
   border-radius: var(--radius-md);
   background: var(--surface-inset);
   color: var(--text);
-  font: 400 14px/22px var(--font-sans);
+  font: 400 0.875rem/1.375rem var(--font-sans);
 }
 .flights-safe svg {
   flex: none;
   margin-block-start: 2px;
 }
 
-/* ---------- Drop target: the whole card ---------- */
 .flights-drop {
   position: fixed;
   inset: 0;
@@ -295,7 +287,7 @@
   border-radius: var(--radius-lg);
   background: color-mix(in srgb, var(--accent-tint) 92%, transparent);
   color: var(--accent-text);
-  font: 600 20px/28px var(--font-sans);
+  font: 600 1.25rem/1.75rem var(--font-sans);
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--dur-fast) var(--ease-out);
@@ -305,14 +297,11 @@
 }
 .flights-step:not([data-dropping='true']) .flights-drop {
   visibility: hidden;
-  /* Hide only once the fade-out has run. */
   transition:
     opacity var(--dur-fast) var(--ease-out),
     visibility 0s linear var(--dur-fast);
 }
 
-/* The newest rows sit on top and the older ones fade down the list. A row that arrives presses in from just above
-   (@starting-style runs once, when it mounts); the rows it pushes down ease to their dimmer step. */
 .flights-list li:nth-child(3) {
   opacity: 0.6;
 }
@@ -359,7 +348,6 @@
     min-block-size: 48px;
   }
 }
-/* Reduced motion keeps the fades and drops the movement. */
 @media (prefers-reduced-motion: reduce) {
   .flights-list li:not(.flights-skeleton) {
     transition: opacity var(--dur-fast) linear;

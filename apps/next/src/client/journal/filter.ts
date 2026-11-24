@@ -1,5 +1,3 @@
-// Pure Journal selection over the in-memory payload: facets, sort, connection connectors and the live summary.
-// Connections and picker values depend on the payload alone, so they are computed once per payload object.
 import { allianceAt, type Alliance } from '@kuuki/data/alliance-membership'
 import {
   connectionChains,
@@ -24,12 +22,10 @@ export type LedgerItem =
   | { kind: 'connector'; key: string; airport: string; minutes: number | null; estimated: boolean }
 
 export type JournalSummary = {
-  /** Every total uses the matching flights that were logged as flown. */
   flights: number
   distanceKm: number
   durationMinutes: number
   durationEstimated: boolean
-  /** Missing values keep incomplete totals distinguishable from exact ones. */
   distanceMissing: number
   durationMissing: number
 }
@@ -47,9 +43,7 @@ export type JournalSelection = {
   items: LedgerItem[]
   matching: JournalFlight[]
   summary: JournalSummary
-  /** Flights per status under every other active facet (and search), ignoring the status facet itself. */
   statusCounts: Record<JournalStatus, number>
-  /** Values present anywhere in the payload, independent of filters. */
   facetValues: JournalFacetValues
 }
 
@@ -64,7 +58,6 @@ const DEFAULT_STATUS: ReadonlySet<JournalStatus> = new Set(['logged', 'awaiting'
 const DATE_LABEL = /^\d{4}-\d{2}-\d{2}$/
 const indexes = new WeakMap<JournalPayload, PayloadIndex>()
 
-// Compile-time guard: the data package's alliance keys are the Journal facet values.
 const toJournalAlliance = (alliance: Alliance | null): JournalAlliance | null => alliance
 
 const byText = (a: string, b: string) => a.localeCompare(b, 'en')
@@ -79,7 +72,7 @@ function indexPayload(payload: JournalPayload): PayloadIndex {
   for (const [id, decision] of connectionChains(payload.flights)) {
     if (decision.kind !== 'link') continue
     links.set(id, { toId: decision.toId, label: decision.label })
-    if (chains.has(id)) continue // every leg of a chain shares its ids; walk each chain once
+    if (chains.has(id)) continue
     const legs = decision.chainIds
     const meta = { id: `${legs[0]}-${legs.at(-1)}`, length: legs.length }
     legs.forEach((legId, index) => chains.set(legId, { ...meta, index }))
@@ -125,7 +118,6 @@ const missingChecks: Record<JournalMissing, (flight: JournalFlight) => boolean> 
 const setOf = <T>(values: readonly T[]): ReadonlySet<T> | null =>
   values.length ? new Set(values) : null
 
-/** Every facet except status, plus the injected search. Cheap checks run first; search runs last. */
 function otherFacets(
   payload: JournalPayload,
   filters: JournalFilters,
@@ -168,7 +160,6 @@ function otherFacets(
 }
 
 const finite = (value: number | null) => (value !== null && Number.isFinite(value) ? value : null)
-/** Nulls last in either direction. */
 const nullsLast = <T extends number | string>(a: T | null, b: T | null, direction: number) =>
   a === null ? (b === null ? 0 : 1) : b === null ? -1 : a < b ? -direction : a > b ? direction : 0
 
@@ -192,7 +183,6 @@ const instant = (value: string | null) => {
   return Number.isNaN(parsed) ? null : parsed
 }
 
-/** A connector when the two neighbours are consecutive legs of one chain, in either display order. */
 function connectorBetween(
   x: JournalFlight,
   y: JournalFlight,

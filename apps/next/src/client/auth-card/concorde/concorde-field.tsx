@@ -8,37 +8,12 @@ type Figure = (typeof import('./concorde.generated'))['CONCORDE']
 type Runtime = (typeof import('./turn.generated.js'))['TURN']
 type Mount = (typeof import('./reheat'))['mountReheat']
 
-/** Degrees per second at full speed: one turn every 30 s. */
 const SPEED = 12
-/** How quickly the turn speeds up after a pause and slows to a stop for one, in seconds (exponential follow). */
 const EASE = 0.7
-/**
- * Adaptive half rate (the anatomy kit's lever 5): when a drawn frame costs more than SLOW ms of main thread (the
- * runtime's writes plus the style, layout and paint they cause), draw every other frame; below FAST, every frame again.
- * The angle stays time-based, so the speed never changes; at 30 fps a step moves the wingtip about 1.3px.
- */
 const SLOW = 14
 const FAST = 9
-/**
- * A click with the tail out of sight spins the turntable up to SPIN degrees per second (80ms follow) until the tail comes
- * round, so reheat pops in view; then the spin coasts back to the turn's own pace (250ms follow).
- */
 const SPIN = 240
 
-/**
- * The brand panel's decoration: the くうき watermark with a 1:200 Concorde display model turning slowly on its stand
- * (an anatomy-kit iso figure in its 3D mode, built by `scripts/generate-concorde.mjs`).
- *
- * The figure and its runtime load after hydration so they never hold up the form, then fade in at their rest pose,
- * which is the frame the generator drew. The turn eases to a stop while the field is off screen, the page is hidden or
- * focus is inside the form (auth-card.tsx sets `data-form-focus` on the card), or the user pauses it. It eases back in
- * after the gates clear. Under reduced motion the model stands still at its rest pose.
- *
- * As the model first reaches speed, then once a lap, reheat lights for a few seconds (reheat.ts): a WebGL flame over
- * the live layer. It spools down with the turn and goes out at once off screen, under reduced motion or when the GPU
- * drops its context; without WebGL the nozzles keep their glow. A click on the model lights it too, turning or parked:
- * at once with the tail in view, otherwise after a quick spin brings the tail round. Pause stays as it was.
- */
 export function ConcordeField() {
   const stage = useRef<HTMLDivElement>(null)
   const [figure, setFigure] = useState<{ art: Figure; turn: Runtime; reheat: Mount } | null>(null)
@@ -71,9 +46,6 @@ export function ConcordeField() {
     let last = 0
     let frame = 0
     let onScreen = false
-    // A message posted from a tick runs once the browser has finished that frame. It times the frame's rendering and,
-    // at half rate, carries the next drawn frame's writes into the idle frame before it, so neither frame overruns: the
-    // writes are about half of a drawn frame's cost, and the style, layout and paint they cause are the other half.
     let cost = 0
     let scriptMs = 0
     let renderedAt = 0
@@ -111,7 +83,6 @@ export function ConcordeField() {
       speed += (target - speed) * (1 - Math.exp(-dt / (EASE / 3)))
       spin += ((launching ? SPIN : 0) - spin) * (1 - Math.exp(-dt / (launching ? 0.08 : 0.25)))
       angle = (angle + (speed + spin) * dt) % 360
-      // Reduced motion puts the flame out at once; otherwise it spools down with the turn.
       if (still.matches) {
         flame?.reset()
         launching = false
@@ -123,10 +94,8 @@ export function ConcordeField() {
       }
       const burning =
         flame && !still.matches ? flame.step(dt, target > 0 && speed > SPEED / 2) : false
-      // Off screen or hidden, stop at once; otherwise run until the ease-out, the spin and the reheat have settled.
       const settled = target === 0 && speed < 0.05 && !launching && spin < 0.05 && !burning
       if (half && !settled) {
-        // Alternate frames: write the next frame's pose (one frame ahead) after this one, then show it.
         drawNext = !drawNext
         if (drawNext) {
           next = (angle + (speed + spin) * dt) % 360
@@ -155,7 +124,6 @@ export function ConcordeField() {
       last = 0
       frame = requestAnimationFrame(tick)
     }
-    // Pointer only: the field is decorative and aria-hidden, so the toy adds no tab stop before the form.
     const launch = () => {
       if (!flame || still.matches) return
       if (flame.showing()) flame.launch()
@@ -170,7 +138,6 @@ export function ConcordeField() {
       sync()
     })
     observer.observe(element)
-    // Resume after temporary gates clear only if the user's persistent pause is off.
     const focus = new MutationObserver(sync)
     if (card)
       focus.observe(card, {
@@ -204,7 +171,6 @@ export function ConcordeField() {
           <div
             ref={stage}
             className="iso-stage iso-turn"
-            // The generator's own markup: the static stand, the live model layer at its rest pose, the front layer.
             dangerouslySetInnerHTML={{ __html: figure.art.html }}
           />
         ) : null}

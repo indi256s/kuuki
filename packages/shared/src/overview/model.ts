@@ -6,7 +6,6 @@ export const AGGREGATE_THRESHOLD = 5000
 
 export type Haul = 'short' | 'medium' | 'long'
 export type DepartureBand = 'night' | 'morning' | 'afternoon' | 'evening'
-/** Page-level choice of which travel the geography describes; absent means everything. */
 export type TravelScope = 'flights' | 'ground'
 export interface OverviewFilter {
   scope?: TravelScope
@@ -22,7 +21,6 @@ export interface OverviewFilter {
   makers?: MakerKey[]
   bodies?: Array<'narrow' | 'wide'>
   depHours?: number[]
-  /** Calendar month of the flight's local date, 1–12. */
   months?: number[]
   arrHours?: number[]
   haul?: Haul[]
@@ -39,7 +37,6 @@ export interface RecordRef {
   destination: string
   value: number
 }
-// Source identities stay numeric until the cabinet is projected, including legacy carried extrema.
 export interface SourceRecordRef {
   flightId: number
   origin: string
@@ -97,12 +94,10 @@ export interface OverviewRow {
   destTz: string | null
   departureUtc: string | null
   suppressed: 0 | 1 | 2 | 3
-  // Exact constituent durations retained before aggregate sums lose their distribution.
   preciseDurationSamples?: number[]
   recordExtrema?: RecordExtrema
   recordFlights?: RecordFlights
   clockShiftMinutes?: number | null
-  // Captured from actual instants before aggregate dates/absolute sums lose time evidence.
   crossingTime?: { forwardMinutes: number; backMinutes: number; offsets: number[] }
 }
 
@@ -112,9 +107,7 @@ export interface OverviewGroundJourney {
   status: 'completed' | 'planned'
   startDate: string | null
   endDate: string | null
-  /** Located places in order, split wherever a place has no coordinates. */
   runs: Array<Array<[lon: number, lat: number]>>
-  /** Owner-confirmed country codes; empty for planned journeys. */
   countries: string[]
   distanceKm: number | null
 }
@@ -124,7 +117,6 @@ export interface OverviewPayload {
   etag: string
   generatedAt: string
   mode: 'flights' | 'aggregate'
-  /** Absent on legacy aggregate payloads, whose rows group whole months. */
   aggregateResolution?: 'day' | 'month'
   derivedReady: boolean
   passport: { countries: number; regions: number; countryCodes: string[] }

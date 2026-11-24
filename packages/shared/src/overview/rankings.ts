@@ -28,7 +28,6 @@ export interface PatternRow {
 type Category = 'airlines' | 'airports' | 'routes'
 export interface Rankings {
   airlines: RankRow[]
-  /** Weight of the flights without an airline: with `airlines` it sums to every flight in scope. */
   unknownAirlines: number
   airports: RankRow[]
   routes: RankRow[]

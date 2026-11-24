@@ -1,7 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { Preferences, useLocale } from './preferences'
+import { HorizonToggle } from './auth-card/horizon-toggle'
+import { LanguageControl } from './auth-card/language-control'
+import { useLocale } from './preferences'
 import type { Locale } from '../lib/format'
 
 export function GuestActions({
@@ -21,7 +23,10 @@ export function GuestActions({
           <Link href="/signup">{ru ? 'Создать аккаунт' : 'Sign up'}</Link>
         </nav>
       )}
-      <Preferences initialLocale={locale} />
+      <div className="preferences">
+        <LanguageControl locale={locale} />
+        <HorizonToggle locale={locale} />
+      </div>
     </div>
   )
 }

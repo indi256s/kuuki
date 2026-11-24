@@ -23,7 +23,6 @@ export function shareFilter(raw: string): OverviewFilter {
   }
 }
 
-/** Missing means light, the card's original background; anything but a known mode is rejected. */
 function shareMode(raw: string | null): Mode {
   if (raw === null) return 'light'
   if (!(MODES as readonly string[]).includes(raw))
@@ -38,7 +37,6 @@ export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =
     const mode = shareMode(params.get('mode'))
     const raw = params.get('filter')
     const explicit = raw === null ? null : shareFilter(raw)
-    // The accent is the owner's own stored choice; no request parameter can supply a color.
     const profile = await context.env.DB.prepare(
       'SELECT overview_prefs, theme_color FROM profiles WHERE id = ?',
     )

@@ -66,7 +66,6 @@ describe('owner sync trigger', () => {
     h.advance(1)
     await syncOwner('u1', h.deps)
     expect(h.post).toHaveBeenCalledTimes(2)
-    // A different owner in the same session has its own clock.
     await syncOwner('u2', h.deps)
     expect(h.post).toHaveBeenCalledTimes(3)
   })
@@ -75,7 +74,7 @@ describe('owner sync trigger', () => {
     const h = harness([])
     await syncOwner('u1', h.deps)
     expect([...h.values.keys()]).toEqual(['kuuki:lifecycle-sync:u1'])
-    resetOwnerSyncMemory() // another tab has its own memory but reads the same storage
+    resetOwnerSyncMemory()
     h.advance(1000)
     expect(await syncOwner('u1', h.deps)).toBeNull()
     expect(h.post).toHaveBeenCalledTimes(1)
@@ -133,7 +132,7 @@ describe('owner sync trigger', () => {
         revision: 4,
       },
       { synced: 7, awaited: 0, autoConfirmed: 7, more: false, derived_state: 'ready', revision: 5 },
-      { synced: 1, more: true }, // never requested
+      { synced: 1, more: true },
     ])
     expect(await syncOwner('u1', h.deps)).toEqual({
       changed: true,
@@ -164,7 +163,7 @@ describe('owner sync trigger', () => {
       { synced: 9, more: true },
     ])
     const outcome = await syncOwner('u1', stuck.deps)
-    expect(stuck.post).toHaveBeenCalledTimes(2) // the second pass lost its race: do not spin
+    expect(stuck.post).toHaveBeenCalledTimes(2)
     expect(outcome).toEqual({ changed: true, synced: 3, derivedState: 'pending', revision: 2 })
   })
 

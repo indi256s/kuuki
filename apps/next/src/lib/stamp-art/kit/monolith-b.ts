@@ -1,6 +1,3 @@
-// A monolith: one steep-sided rock with a rounded shoulder and a near-flat crest (Zuma Rock).
-// `profile` is [x fraction, y fraction] left to right over the box; the box bottom is the foot.
-// The shaded right face takes long vertical streaks, the lit left face a few thin ones.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, occlude, stroke } from '../grid'
 import { type KitModule, num, pairs } from './util'
@@ -50,7 +47,6 @@ export const monolithB: KitModule = ([x, y, w, h], p) => {
   }
   const out: SvgNode[] = [occlude([...top, [x + w, base], [x, base]])]
   const split = x + w * num(p, 'shade', 0.58)
-  // Shaded face: dense streaks of staggered length from near the crest down to the foot.
   for (let px = split; px < x + w - 1.5; px += 2.1) {
     const t0 = topAt(px) + 3 + rand() * 6
     const end = base - rand() * 3
@@ -62,7 +58,6 @@ export const monolithB: KitModule = ([x, y, w, h], p) => {
         ]),
       )
   }
-  // Lit face: sparse thin streaks.
   for (let px = x + 6; px < split - 2; px += 7 + rand() * 4) {
     const t0 = topAt(px) + 5 + rand() * 12
     out.push(

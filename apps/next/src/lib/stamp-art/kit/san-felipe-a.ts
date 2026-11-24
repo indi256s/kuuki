@@ -1,7 +1,3 @@
-// Cartagena: Castillo San Felipe de Barajas. Three battered rampart tiers climb a hill, each with
-// its own salient (shifted tier to tier so the stack zig-zags), T4 shaded faces, lit parapet tops,
-// sentry boxes on the salient corners and a squat reducto tower at the summit. Low and wide.
-// The box is hill plus fort; its bottom is the foot of the hill.
 import {
   type Pt,
   type SvgNode,
@@ -20,7 +16,6 @@ export const sanFelipeA: KitModule = ([x, y, w, h]) => {
   const X = (u: number) => x + w * u
   const base = y + h
   const out: SvgNode[] = []
-  // Hill: climbs from the left foot to a summit on the right; the tiers step up it.
   const hill: Pt[] = [
     [x, base],
     [x, base - 4],
@@ -47,7 +42,6 @@ export const sanFelipeA: KitModule = ([x, y, w, h]) => {
     if (i < 2) out.push(...garitaA(s.x0 + 3.6, s.yb - s.h + 4.5, 0.8))
     tops.push(s.yb - s.h)
   })
-  // Reducto: the squat tower on the top tier, lit left, shaded right, with a dark slit.
   const tx0 = X(0.66),
     tx1 = X(0.82),
     tb = tops[2] - 1.5,

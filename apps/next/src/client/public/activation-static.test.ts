@@ -4,12 +4,12 @@ import { resolve } from 'node:path'
 import { fireEvent, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { compileActivationAsset } from '../../../../../scripts/activation-asset.mjs'
+import { CONCORDE } from '../auth-card/concorde/concorde.generated'
 
 const asset = resolve(process.cwd(), 'activation')
 const html = readFileSync(resolve(asset, 'activate.html'), 'utf8')
 const script = readFileSync(resolve(asset, 'activate.js'), 'utf8')
 const request = vi.fn()
-let intersect: IntersectionObserverCallback
 function boot(token = true, dark = false) {
   const parsed = new DOMParser().parseFromString(html, 'text/html')
   document.head.innerHTML = parsed.head.innerHTML
@@ -19,15 +19,6 @@ function boot(token = true, dark = false) {
   vi.stubGlobal(
     'matchMedia',
     vi.fn(() => ({ matches: dark, addEventListener: vi.fn() })),
-  )
-  vi.stubGlobal(
-    'IntersectionObserver',
-    class {
-      constructor(callback: IntersectionObserverCallback) {
-        intersect = callback
-      }
-      observe() {}
-    },
   )
   window.eval(script)
   document.dispatchEvent(new Event('DOMContentLoaded'))
@@ -207,56 +198,50 @@ it.each([
   expect(document.documentElement.dataset.accent).toBe(accent)
 })
 
-it('runs the plane field only while visible and keeps the explicit pause through focus and visibility changes', () => {
-  boot()
-  const plane = document.querySelector('.planes-desktop .plane')!
-  const visibility = vi.spyOn(document, 'hidden', 'get').mockReturnValue(false)
-  const onScreen = (isIntersecting: boolean) =>
-    intersect([{ isIntersecting } as IntersectionObserverEntry], {} as IntersectionObserver)
-  expect(getComputedStyle(plane).animationPlayState).toBe('paused')
-  onScreen(true)
-  expect(getComputedStyle(plane).animationPlayState).toBe('running')
-  visibility.mockReturnValue(true)
-  document.dispatchEvent(new Event('visibilitychange'))
-  expect(getComputedStyle(plane).animationPlayState).toBe('paused')
-  visibility.mockReturnValue(false)
-  document.dispatchEvent(new Event('visibilitychange'))
-  expect(getComputedStyle(plane).animationPlayState).toBe('running')
-  onScreen(false)
-  expect(getComputedStyle(plane).animationPlayState).toBe('paused')
-  onScreen(true)
-  const pause = screen.getByRole('button', { name: 'Pause animation' })
-  fireEvent.click(pause)
-  expect(pause).toHaveAttribute('aria-pressed', 'true')
-  password().focus()
-  password().blur()
-  visibility.mockReturnValue(true)
-  document.dispatchEvent(new Event('visibilitychange'))
-  visibility.mockReturnValue(false)
-  document.dispatchEvent(new Event('visibilitychange'))
-  expect(getComputedStyle(plane).animationPlayState).toBe('paused')
-  fireEvent.click(screen.getByRole('button', { name: 'Русский (RU)' }))
-  expect(screen.getByRole('button', { name: 'Приостановить анимацию' })).toHaveAttribute(
-    'aria-pressed',
-    'true',
+it("stands the sign-in card's Concorde in the brand panel, with the generated markup and styles", () => {
+  boot(false)
+  const clean = (node: Node): Node => {
+    ;[...node.childNodes].forEach((child) => {
+      if (child.nodeType === Node.TEXT_NODE) {
+        const words = child.textContent!.trim().replace(/\s+/g, ' ')
+        if (words) child.textContent = words
+        else child.remove()
+      } else if (child.nodeType === Node.COMMENT_NODE) child.remove()
+      else {
+        const style = (child as Element).getAttribute('style')
+        if (style) (child as Element).setAttribute('style', style.replace(/\s+/g, ''))
+        clean(child)
+      }
+    })
+    return node
+  }
+  const stage = document.querySelector('.brand-field .auth-concorde .iso-stage')!
+  const expected = document.createElement('div')
+  expected.className = stage.className
+  expected.innerHTML = CONCORDE.html
+  expect(clean(stage.cloneNode(true)).isEqualNode(clean(expected))).toBe(true)
+  const rules = (text: string) => {
+    const style = document.createElement('style')
+    style.textContent = text
+    document.head.appendChild(style)
+    const list = [...style.sheet!.cssRules].map((rule) =>
+      rule.cssText.replace(/\s+/g, '').replaceAll('"', "'"),
+    )
+    style.remove()
+    return list
+  }
+  const concorde = resolve(process.cwd(), 'src/client/auth-card/concorde')
+  expect(rules(document.getElementById('concorde-styles')!.textContent!)).toEqual(
+    rules(
+      readFileSync(resolve(concorde, 'concorde.generated.css'), 'utf8') +
+        readFileSync(resolve(concorde, 'concorde.css'), 'utf8'),
+    ),
   )
-  fireEvent.click(pause)
-  expect(getComputedStyle(plane).animationPlayState).toBe('running')
-  fireEvent.click(pause)
-  boot()
-  onScreen(true)
-  expect(screen.getByRole('button', { name: 'Приостановить анимацию' })).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  )
-  expect(
-    getComputedStyle(document.querySelector('.planes-desktop .plane')!).animationPlayState,
-  ).toBe('paused')
+  expect(screen.queryByRole('button', { name: 'Pause animation' })).toBeNull()
 })
 
 it('applies a picked accent at once and marks it for the profile after sign-in', () => {
   boot(false)
-  // jsdom has no popover API, so the closed tray's cells are reached directly.
   const matcha = () => screen.getByRole('radio', { name: 'Matcha', hidden: true })
   fireEvent.click(matcha())
   expect(document.documentElement.dataset.accent).toBe('matcha')

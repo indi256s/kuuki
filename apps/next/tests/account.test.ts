@@ -20,7 +20,6 @@ test('a document landing after a server-side sign-in refreshes another visible a
   await oldTab.evaluate(() => window.dispatchEvent(new Event('focus')))
   await (await bootstrap).finished()
   const newTab = await context.newPage()
-  // Like an OAuth callback, the server changes the shared cookie without the old window's client action.
   await signIn(newTab, baseURL!, 'b@example.test')
   const reload = oldTab.waitForEvent('domcontentloaded')
   await newTab.goto('/overview')
@@ -50,7 +49,6 @@ test('settings saves owned profile and privacy on a fresh account', async ({ pag
   }
   await page.goto('/settings')
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
-  // Role locators exclude the inert outgoing copy retained during the route transition.
   await page.getByRole('textbox', { name: 'Display name', exact: true }).fill('Account test name')
   await page.getByRole('textbox', { name: 'Bio' }).fill('A private test bio')
   await page.getByRole('switch', { name: 'Public profile and leaderboard' }).click()
@@ -172,7 +170,6 @@ test('an old tab preserves the new account draft and retry receipt on focus', as
   await newTab.getByRole('button', { name: 'Continue', exact: true }).click()
   await newTab.waitForURL('**/overview')
 
-  // Manual capture is the remaining writer of an owner-scoped create receipt; the import UI keeps its drafts in D1.
   await newTab.route('**/api/flights', (route) =>
     route.request().method() === 'POST'
       ? route.fulfill({
@@ -191,7 +188,6 @@ test('an old tab preserves the new account draft and retry receipt on focus', as
     (await (await context.request.get('/api/auth/me')).json()) as { user: { id: string } }
   ).user.id
   expect(owner).not.toBe(oldOwner)
-  // Legacy local import drafts are still listed per owner, so seed one for each account.
   const oldDraftKey = `kuuki-import-draft:v1:${oldOwner}:legacy`
   await newTab.evaluate(
     (keys) => {
@@ -226,7 +222,6 @@ test('an old tab preserves the new account draft and retry receipt on focus', as
     createdAt: expect.any(Number),
   })
 
-  // A new document, not a same-document history update: a focus refresh can commit before the identity reload.
   const oldTabReload = oldTab.waitForEvent('domcontentloaded')
   await oldTab.evaluate(() => {
     Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' })
@@ -241,6 +236,5 @@ test('an old tab preserves the new account draft and retry receipt on focus', as
     stored,
   )
   expect(remaining).toEqual({ draft: stored.draft, receipt: stored.receipt })
-  // The old tab clears only its own departing owner.
   expect(await newTab.evaluate((key) => localStorage.getItem(key), oldDraftKey)).toBeNull()
 })

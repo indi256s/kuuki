@@ -1,6 +1,3 @@
-// Lane C bridge family (lane A's bridge module is not merged yet). `adolphe`: a wide two-tier
-// stone arch over a valley with a row of small arches under the deck (Luxembourg). `stari`: one
-// steep humpbacked arch with a stone tower at each end (Mostar).
 import {
   type Pt,
   type SvgNode,
@@ -46,7 +43,6 @@ export const bridgeC: KitModule = ([x, y, w, h], p) => {
       [x, base],
     ]
     out.push(...body(solid, 'line'))
-    // wall above the arch: small arches under the deck
     const n = Math.max(5, Math.round(num(p, 'arches', 9)))
     const pitch = (w * 0.9) / n
     const sx = x + w * 0.05
@@ -68,7 +64,6 @@ export const bridgeC: KitModule = ([x, y, w, h], p) => {
         ...toneFill(archPts(ax, base - h * 0.44, 18, h * 0.44), 'T4', { gap: 4, weight: 'fine' }),
       )
     }
-    // the great arch: dark ring with a lit soffit gap beneath
     const ring: Pt[] = [...outer, ...inner.slice().reverse()]
     out.push(occlude(ring), stroke('line', outer), stroke('line', inner))
     const voussoirs = 16
@@ -91,7 +86,6 @@ export const bridgeC: KitModule = ([x, y, w, h], p) => {
     const top = arcPts(cx, archBase, rx + 3, ry + 3)
     const inner = arcPts(cx, archBase, rx - 1, ry - 1)
     const bank = base - h * 0.06
-    // abutments and towers
     for (const side of [-1, 1]) {
       const ax = side < 0 ? x : x + w - w * 0.2
       out.push(...body(rectPts(ax, bank - h * 0.18, w * 0.2, h * 0.24), 'line'))

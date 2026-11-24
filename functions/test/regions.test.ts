@@ -1,4 +1,3 @@
-// T08 / ADR 0001 §4: the six-region catalog policy is explicit, versioned and in parity with the catalog.
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -80,8 +79,6 @@ it('reports progress for all six regions with pressed and pending kept apart', (
   })
 })
 
-// Moving a country between regions changes what Overview and Passport report for existing accounts, so it is a
-// policy change: bump REGION_POLICY.version (and `id`) together with this pin, never the pin alone.
 const MAPPING_HASH_BY_VERSION: Record<number, string> = {
   1: '45318207958008cb5a864ce91833c54db446a5ded3d2c9aadf45ca4cb2707a66',
 }

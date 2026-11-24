@@ -44,25 +44,68 @@ function highlight(text: string, query: string) {
   )
 }
 
-/** Filters by code, name and aliases; an exact code ranks first, and an empty query lists recents first. */
+const significant = /\binternational\b|международн/i
+
+type PreparedChoice = {
+  code: string
+  squashed: string
+  names: string[]
+  words: string[]
+  significant: boolean
+}
+const preparedByChoices = new WeakMap<Choice[], PreparedChoice[]>()
+function preparedChoices(choices: Choice[]): PreparedChoice[] {
+  let prepared = preparedByChoices.get(choices)
+  if (!prepared) {
+    prepared = choices.map((choice) => ({
+      code: choice.code.toLocaleLowerCase(),
+      squashed: foldSearchText(
+        `${choice.code} ${choice.label} ${choice.detail ?? ''} ${choice.search ?? ''}`,
+      ).replace(/[^\p{L}\p{N}]/gu, ''),
+      names: [choice.detail ?? '', choice.label].map(foldSearchText),
+      words: foldSearchText(`${choice.label} ${choice.detail ?? ''} ${choice.search ?? ''}`).split(
+        /[^\p{L}\p{N}]+/u,
+      ),
+      significant: significant.test(choice.label),
+    }))
+    preparedByChoices.set(choices, prepared)
+  }
+  return prepared
+}
+
 export function searchChoices(choices: Choice[], query: string, recents: string[] = []) {
   const needle = query.trim().toLocaleLowerCase()
-  const words = foldSearchText(needle)
+  const folded = foldSearchText(needle)
+  const words = folded
     .split(/\s+/)
     .map((word) => word.replace(/[^\p{L}\p{N}]/gu, ''))
     .filter(Boolean)
-  const all = choices.filter((choice) => {
-    const text = foldSearchText(
-      `${choice.code} ${choice.label} ${choice.detail ?? ''} ${choice.search ?? ''}`,
-    ).replace(/[^\p{L}\p{N}]/gu, '')
-    return !needle || (words.length > 0 && words.every((word) => text.includes(word)))
-  })
-  const ordered = needle
-    ? [...all].sort(
-        (a, b) =>
-          Number(b.code.toLocaleLowerCase() === needle) -
-          Number(a.code.toLocaleLowerCase() === needle),
+  const prepared = preparedChoices(choices)
+  const matched = needle
+    ? choices.flatMap((choice, index) =>
+        words.length > 0 && words.every((word) => prepared[index].squashed.includes(word))
+          ? [{ choice, entry: prepared[index] }]
+          : [],
       )
+    : choices.map((choice, index) => ({ choice, entry: prepared[index] }))
+  const all = matched.map(({ choice }) => choice)
+  const tier = ({ entry }: (typeof matched)[number]) => {
+    if (entry.code === needle) return 0
+    if (entry.names.some((name) => name.startsWith(folded))) return 1
+    return entry.words.some((word) => word.startsWith(words[0] ?? '')) ? 2 : 3
+  }
+  const recent = (choice: Choice) => {
+    const index = recents.indexOf(choice.code)
+    return index < 0 ? recents.length : index
+  }
+  const ordered = needle
+    ? matched
+        .map((item) => ({
+          choice: item.choice,
+          rank: [tier(item), recent(item.choice), item.entry.significant ? 0 : 1],
+        }))
+        .sort((a, b) => a.rank[0] - b.rank[0] || a.rank[1] - b.rank[1] || a.rank[2] - b.rank[2])
+        .map(({ choice }) => choice)
     : [
         ...all
           .filter((choice) => recents.includes(choice.code))
@@ -72,7 +115,23 @@ export function searchChoices(choices: Choice[], query: string, recents: string[
   return { needle, all, matches: ordered.slice(0, 50) }
 }
 
-/** The shared result list: a count status and a listbox. A place (city in `detail`) leads with the city; the code sits at the end in muted mono. */
+export function useListClaimsEscape(open: boolean, close: () => void) {
+  const latest = useRef(close)
+  useEffect(() => {
+    latest.current = close
+  })
+  useEffect(() => {
+    if (!open) return
+    const claim = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      if (!event.isComposing && event.keyCode !== 229) latest.current()
+    }
+    window.addEventListener('keydown', claim, true)
+    return () => window.removeEventListener('keydown', claim, true)
+  }, [open])
+}
+
 export function ChoiceOptions({
   id,
   label,
@@ -168,7 +227,6 @@ export function Combobox({
   const originRef = useRef<HTMLInputElement>(null)
   const restoringFocus = useRef(false)
   const searchRef = useRef<HTMLInputElement>(null)
-  // A value changed from outside (swap, reset) while text was being typed: show the new value, not the stale text.
   if (editing !== null && value !== editing.value) setEditing(null)
   const query = editing?.text ?? null
   const selected = choices.find((choice) => choice.code === value)
@@ -183,7 +241,10 @@ export function Combobox({
     onChange(editing?.committed ?? value)
     setEditing(null)
   }
-  // Leaving the field without a choice: take the exact code or the single match, otherwise go back to the last chosen code.
+  useListClaimsEscape(open && !mobile, () => {
+    setOpen(false)
+    revert()
+  })
   const settle = () => {
     if (query === null) return
     const text = foldSearchText(query.trim())
@@ -191,7 +252,7 @@ export function Combobox({
       onChange('')
       setEditing(null)
       return
-    } // clearing the field is deliberate
+    }
     const exact = choices.find((choice) => choice.code.toLocaleLowerCase() === text)
     const found = exact ?? (all.length === 1 ? all[0] : undefined)
     if (found) {
@@ -388,12 +449,6 @@ const asyncCopy = {
   },
 }
 
-/**
- * A combobox whose options come from a search request. The typed text is only a query: a place is chosen by
- * Enter on a highlighted option or a click, never by leaving the field, so the only match is not taken for
- * the answer. Loading, no result and failure are separate states; a failure keeps the typed text and the
- * previous choice, and a response for an older query is dropped (see useAsyncSearch).
- */
 export function AsyncCombobox<T>({
   label,
   locale,
@@ -413,7 +468,6 @@ export function AsyncCombobox<T>({
 }: {
   label: string
   locale: Locale
-  /** The committed choice, shown when no query is being typed. */
   selected: { label: string; detail?: string } | null
   onSelect: (item: T) => void
   search: (query: string, signal: AbortSignal) => Promise<T[]>
@@ -423,13 +477,9 @@ export function AsyncCombobox<T>({
   hint?: string
   disabled?: boolean
   inputRef?: Ref<HTMLInputElement>
-  /** Replaces the "no match" line for a query that is too short for the whole catalog to answer. */
   shortQueryText?: (query: string) => string | null
-  /** Rendered under the options, e.g. "Add a place manually". `close` dismisses the list. */
   footer?: (close: () => void, query: string) => ReactNode
-  /** A new `nonce` puts `text` in the field as an unresolved query, opens the list and focuses the field. */
   prefill?: { text: string; nonce: number }
-  /** A new (non-zero) value focuses the field without opening the list, e.g. after a form that replaced it closes. */
   refocus?: number
 }) {
   const copy = asyncCopy[locale]
@@ -441,8 +491,6 @@ export function AsyncCombobox<T>({
   const originRef = useRef<HTMLInputElement>(null)
   const restoringFocus = useRef(false)
   const searchRef = useRef<HTMLInputElement>(null)
-  // The typed text is an unresolved query. It outlives closing the list, but not a choice made elsewhere
-  // (swap, reset, OCR hand-off): when the committed label moves on, the stale text goes.
   if (typed !== null && typed.base !== (selected?.label ?? '')) setTyped(null)
   const text = typed?.text ?? null
   const setText = (next: string | null) =>
@@ -456,7 +504,6 @@ export function AsyncCombobox<T>({
   }
   useEffect(() => {
     if (prefill) originRef.current?.focus()
-    // Only a new nonce is a request; re-rendering with the same one must not steal focus again.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prefill?.nonce])
   useEffect(() => {
@@ -464,17 +511,15 @@ export function AsyncCombobox<T>({
     restoringFocus.current = true
     originRef.current?.focus()
     restoringFocus.current = false
-    // Only a new value is a request, as with `prefill`.
   }, [refocus])
   const query = text ?? ''
   const { state, retry } = useAsyncSearch(query, search, { minChars })
   const loading = state.status === 'loading'
   const results = state.status === 'ready' ? state.results : []
-  // While a new query loads the previous answer stays on screen for height, but is not selectable.
   const options = (loading ? state.previous : results).map(toOption)
   const current = loading ? -1 : Math.min(active, Math.max(0, options.length - 1))
-  // Closing keeps the typed text as an unresolved query; only a choice replaces it.
   const close = () => setOpen(false)
+  useListClaimsEscape(open && !mobile, close)
   const choose = (item: T) => {
     onSelect(item)
     setTyped(null)
@@ -512,7 +557,6 @@ export function AsyncCombobox<T>({
       )
     }
     if (event.key === 'Enter' && open) {
-      // Enter inside an open search never submits the surrounding form; it picks the highlighted option only.
       event.preventDefault()
       if (results[current]) choose(results[current])
     }
@@ -554,7 +598,6 @@ export function AsyncCombobox<T>({
       }}
       onFocus={(event) => {
         if (!disabled && !restoringFocus.current) {
-          // A field that already holds a choice opens on a click or an arrow, not on every Tab through it.
           if (!selected || query !== '') setOpen(true)
           if (!inSheet) event.target.select()
         }
@@ -610,13 +653,11 @@ export function AsyncCombobox<T>({
       {footerOpen && footer?.(close, query.trim())}
     </>
   )
-  // Nothing to say yet (empty query, no footer): no empty bubble.
   const hasList = status !== '' || options.length > 0 || (footerOpen && !!footer)
   return (
     <div
       className="flight-combobox"
       onBlur={(event) => {
-        // Leaving the field closes the list and keeps the typed query as is. It never picks a result.
         if (!mobile && !event.currentTarget.contains(event.relatedTarget)) close()
       }}
     >

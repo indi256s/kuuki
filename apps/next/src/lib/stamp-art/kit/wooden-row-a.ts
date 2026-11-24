@@ -1,7 +1,3 @@
-// Row of tall white timber houses with steep front gables (Paramaribo). The box is the whole row,
-// bottom at the ground. `n` houses of varied height share the width. Each has a dark steep gable
-// roof with an attic louvre, two storeys of shuttered windows (dark shutters flanking lit panes)
-// and a veranda on slim posts across the foot.
 import { type Pt, type SvgNode, body, fill, hatch, hline, rectPts, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
 
@@ -12,7 +8,6 @@ export const woodenRowA: KitModule = ([x, y, w, h], p) => {
   const out: SvgNode[] = []
   const gap = 3
   const hw = (w - gap * (n - 1)) / n
-  // Draw the shorter houses first so the taller ones overlap their eaves.
   for (let i = 0; i < n; i++) {
     const hx = x + i * (hw + gap)
     const hh = h * heights[i % heights.length]
@@ -21,9 +16,7 @@ export const woodenRowA: KitModule = ([x, y, w, h], p) => {
     const eave = top + roofH
     const veH = hh * 0.2
     const wallB = base - 2
-    // Walls.
     out.push(...body(rectPts(hx + 1.5, eave, hw - 3, wallB - eave), 'line'))
-    // Steep gable roof, dark with vertical hair hatching, bold eave and a small attic louvre.
     const roof: Pt[] = [
       [hx - 1.5, eave + 0.5],
       [hx + hw / 2, top],
@@ -33,7 +26,6 @@ export const woodenRowA: KitModule = ([x, y, w, h], p) => {
     out.push(...toneFill(roof, 'T4', { gap: 4, inset: 0.6, weight: 'fine' }))
     out.push(hline('bold', hx - 1.5, hx + hw + 1.5, eave + 0.5))
     out.push(...body(rectPts(hx + hw / 2 - 2.4, eave - roofH * 0.4, 4.8, roofH * 0.3), 'hair'))
-    // Windows: two per storey, each a shutter pair.
     const storeys = [eave + (wallB - veH - eave) * 0.12, eave + (wallB - veH - eave) * 0.56]
     const sh = (wallB - veH - eave) * 0.34
     for (const sy of storeys)
@@ -56,7 +48,6 @@ export const woodenRowA: KitModule = ([x, y, w, h], p) => {
           }),
         )
       }
-    // Veranda: roofline, slim posts, dark floor strip.
     const vy = wallB - veH
     out.push(...body(rectPts(hx - 0.5, vy, hw + 1, 2.2), 'line'))
     const posts = 4

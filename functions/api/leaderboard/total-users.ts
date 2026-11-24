@@ -1,5 +1,3 @@
-// GET /api/leaderboard/total-users — count of distinct ranked users (any category; all share users).
-
 import { runHandler, json } from '../_lib/http'
 import type { RequestData } from '../_lib/auth'
 import { derivedStateJoin, PUBLISHED_DERIVED_STATE, SKY_MIN_FLIGHTS } from '../_lib/leaderboard'

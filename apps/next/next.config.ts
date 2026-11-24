@@ -2,7 +2,6 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   cacheComponents: false,
-  // Ring baking needs native Node font-file resolution and HarfBuzz's adjacent WASM file.
   serverExternalPackages: [
     'harfbuzzjs',
     '@expo-google-fonts/commissioner',
@@ -22,7 +21,6 @@ const nextConfig: NextConfig = {
     '@expo-google-fonts/noto-serif-tibetan',
   ],
   partialPrefetching: false,
-  // `pnpm typecheck` runs `next typegen` + tsc over the same files, so the build skips its own pass.
   typescript: { ignoreBuildErrors: true },
 }
 

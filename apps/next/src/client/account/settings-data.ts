@@ -10,9 +10,7 @@ export type SettingsCounts = {
   claims: number
   ground: number
   drafts: number
-  /** Live ground journeys (rail and road), plans and cancelled ones included. */
   journeys: number
-  /** Places the owner typed in by hand for ground journeys. */
   manualPlaces: number
 }
 export type ExportKind = 'flights' | 'claims' | 'ground' | 'journeys'
@@ -29,7 +27,6 @@ function readCount(key: string): number {
     return 0
   }
 }
-/** The existing browser-local five-per-UTC-day rule, scoped by owner. Preserve today's legacy usage. */
 export function useSettingsExportLimit(ownerId: string) {
   const key = `${LEGACY_KEY}:${ownerId}`
   const memory = useRef({ date: day(), count: 0 })
@@ -67,16 +64,13 @@ export function useSettingsExportLimit(ownerId: string) {
       memory.current = { date: day(), count: next }
       try {
         localStorage.setItem(key, JSON.stringify({ date: day(), count: next }))
-      } catch {
-        /* Retain usage for this mounted page when storage is unavailable. */
-      }
+      } catch {}
       setCount(next)
     },
     refresh,
   }
 }
 
-/** Return the real downloaded row count; an empty response never consumes the daily allowance. */
 export async function downloadSettingsData(
   ownerId: string,
   kind: ExportKind,

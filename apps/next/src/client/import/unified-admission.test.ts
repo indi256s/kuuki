@@ -4,7 +4,6 @@ import { importAccount, postJob } from '../../../../../functions/test/import-fix
 import type { BatchApi } from './batch-run'
 import type { Snapshot } from './import-types'
 
-// This cross-boundary check boots Miniflare D1; use the API suite's fixture budget.
 it(
   'admits the unified pasted-text request through the real jobs handler',
   { timeout: 30_000 },

@@ -85,9 +85,9 @@ describe.each([true, false])('Settings traversal with Navigation API %s', (nativ
     render(<Harness />)
     pop(0)
     expect(history.go).toHaveBeenLastCalledWith(1)
-    pop(-1) // Second Back, queued before the restore: not the entry the guard expects.
+    pop(-1)
     expect(history.go).toHaveBeenLastCalledWith(2)
-    pop(1) // The restore finally lands on the origin.
+    pop(1)
     fireEvent.click(screen.getByRole('button', { name: 'Leave without saving' }))
     expect(history.go).toHaveBeenLastCalledWith(-1)
   })
@@ -97,7 +97,7 @@ describe.each([true, false])('Settings traversal with Navigation API %s', (nativ
     expect(history.go).toHaveBeenLastCalledWith(1)
     pop(1)
     fireEvent.click(screen.getByRole('button', { name: 'Leave without saving' }))
-    pop(0) // The request fails: the Settings component remains mounted.
+    pop(0)
     pop(-1)
     expect(history.go).toHaveBeenLastCalledWith(1)
   })
@@ -152,8 +152,6 @@ describe.each([true, false])('early native traversal gate with Navigation API %s
       const bootstrap = installBootstrap()
       let view: ReturnType<typeof render>
       const next = vi.fn(() => view.unmount())
-      // Runtime evidence invokes bootstrap, then Next, and removes the late Settings listener.
-      // Dispatching a synthetic DOM pop instead would incorrectly prioritize capture in jsdom.
       window.addEventListener('popstate', next)
       try {
         view = render(<Harness />)

@@ -23,10 +23,6 @@ import {
 } from './model'
 import './ledger.css'
 
-// Presentation adapted from Arc "sortable-data-table" (uiarc.dev, MIT, see ui/ARC-LICENSE.txt): the sortable header buttons, the aria-sort cue and the selectable rows.
-// Dropped: the table's own sorting, selection state and count footer, the enclosing box and every hairline. Sorting, selection and the open row all come from props.
-// The markup is a real <table> with explicit ARIA roles; the CSS turns rows into grids (and cards on phones), which would otherwise strip the table semantics.
-
 const copy = {
   en: {
     caption: 'Flights',
@@ -74,9 +70,7 @@ export type JournalLedgerProps = {
   locale: Locale
   sort: JournalSort
   onSortChange: (sort: JournalSort) => void
-  /** The row whose sheet is open: highlighted and marked `aria-current`. */
   activeId: number | null
-  /** The split pane is open: Duration and Distance are hidden. */
   compact: boolean
   selected: ReadonlySet<number>
   selectable: boolean
@@ -86,7 +80,6 @@ export type JournalLedgerProps = {
   rowMenuReason?: string
   mobile?: boolean
   swipeActions?: (flight: JournalFlight) => { leading?: SwipeAction[]; trailing?: SwipeAction[] }
-  /** Rows pending deletion are not rendered (nor a connector that touched them). */
   hidden?: ReadonlySet<number>
 }
 
@@ -129,8 +122,6 @@ type RowProps = {
   mobile?: boolean
 }
 
-// Memo compares flight identity and the booleans (plus the stable props), so a selection or a sort cue elsewhere re-renders only the rows it touches. Callers pass stable callbacks.
-// "Any row is selected" reaches the checkboxes through `data-selecting` on the table, not through a prop.
 const FlightRow = memo(function FlightRow({
   flight,
   refs,
@@ -192,7 +183,6 @@ const FlightRow = memo(function FlightRow({
 
   const onRowClick = (event: MouseEvent<HTMLElement>) => {
     const target = event.target as Element
-    // Menu items render in a portal: React bubbles their clicks here, the DOM does not contain them.
     if (!event.currentTarget.contains(target) || target.closest('[data-no-open]')) return
     onOpen(flight.id)
   }
@@ -379,7 +369,6 @@ export function JournalLedger({
         : shown(items[index - 1]) && shown(items[index + 1]),
     )
   }, [items, hidden])
-  // D3: the server and the hydrating render show the first rows; the rest mount right after in interruptible chunks.
   const mounted = useProgressiveCount(visible.length)
   const rows = mounted < visible.length ? visible.slice(0, mounted) : visible
   const columns = 4 + (compact ? 0 : 2) + (selectable ? 1 : 0)
@@ -492,7 +481,6 @@ export function JournalLedger({
       <caption className="sr-only">{t.caption}</caption>
       <thead role="rowgroup" className="jr-head">
         <tr role="row" className="jr-headrow">
-          {/* Matches the rows' leading checkbox cell, so every cell keeps its column header. */}
           {selectable && (
             <th role="columnheader" scope="col" className="jr-select-head">
               <span className="sr-only">{t.select}</span>

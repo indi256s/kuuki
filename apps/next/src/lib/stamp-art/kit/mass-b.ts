@@ -1,16 +1,9 @@
-// Plume and canopy: soft masses drawn as hatching with no contour, so they never read as chains of
-// circles. A mass is a lumpy silhouette (an envelope over a few hidden blobs, flat at the base)
-// filled with fine diagonal hatching that keeps only where a shade field is high: the upper-left
-// is lit paper with an irregular eroded edge, the lower-right is dense. A second, interleaved
-// hatch set doubles the density in the darkest part. The silhouette is only used to erase the
-// backdrop (with a lit halo); it is never stroked.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, type Weight, hatchPoly, occlude, ptsBounds, stroke } from '../grid'
 import { type KitModule, num } from './util'
 
 export type Blob = [number, number, number, number]
 
-/** Top envelope of overlapping ellipses, flat at `base`. */
 export function crownPoly(blobs: Blob[], x0: number, x1: number, base: number, step = 1.4): Pt[] {
   const top: Pt[] = []
   for (let x = x0; x <= x1 + 1e-6; x += step) {
@@ -28,14 +21,11 @@ type MassOpts = {
   angle: number
   gap: number
   weight: Weight
-  /** Shade threshold: higher means more lit paper. */
   thr: number
-  /** Weights of the left-to-right and top-to-bottom shade ramps. */
   wx?: number
   wy?: number
 }
 
-/** Hatching kept only where the shade field is above the threshold. */
 export function hatchMass(poly: Pt[], rand: () => number, o: MassOpts): SvgNode[] {
   const [x0, y0, x1, y1] = ptsBounds(poly)
   const w = x1 - x0 || 1,
@@ -79,7 +69,6 @@ export function hatchMass(poly: Pt[], rand: () => number, o: MassOpts): SvgNode[
   return out
 }
 
-/** A spray plume rising from `base`: tall central lobes, tonal on the shaded lower right. */
 export function plumeNodes(
   x0: number,
   x1: number,
@@ -111,7 +100,6 @@ export function plumeNodes(
   ]
 }
 
-/** A foliage band: rounded crowns over a ragged underside, same hatching language. */
 export function canopyNodes(
   x0: number,
   x1: number,
@@ -130,7 +118,6 @@ export function canopyNodes(
     blobs.push([x0 + w * u + (rand() - 0.5) * 3, base - ry * 0.55, rx, ry])
   }
   const poly = crownPoly(blobs, x0, x1, base)
-  // Ragged underside.
   const ragged = poly.map(
     ([x, y], i) => (i === 0 || i === poly.length - 1 ? [x, y + 1 + rand() * 2] : [x, y]) as Pt,
   )

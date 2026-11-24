@@ -1,10 +1,8 @@
-// Thumbnail glyphs for the hero card's resting list: each object drawn at true size (about 28px tall), not shrunk from its big figure, so a few bold parts and 1px strokes survive.
 import { Scene, type IsoFigureData, type P3 } from './scene'
 import { NZ, X, cylX, cylZ, rrOn, shadowDisc, shadowRect, slabRot } from './solids'
 
 export type HeroGlyph = 'flights' | 'km' | 'air' | 'countries' | 'airports'
 
-/** A pin through three stubs, the top one widest, on a round base. */
 function spike(s: Scene) {
   shadowDisc(s, 0, 0, 7)
   cylZ(s, 0, 0, 0, 5, 2, { top: 'top', body: 'side' }, 20)
@@ -32,7 +30,6 @@ function spike(s: Scene) {
   )
 }
 
-/** A counter housing with four windows and a knob. */
 function odometer(s: Scene) {
   shadowRect(s, 0, 0, 24, 7, 1)
   s.box(0, 0, 0, 24, 7, 10)
@@ -41,7 +38,6 @@ function odometer(s: Scene) {
   cylX(s, 24, 3.5, 5, 2.5, 2, {}, 12)
 }
 
-/** A cabin window with its shade two thirds down. */
 function cabinWindow(s: Scene) {
   s.box(0, 0, 0, 14, 3, 19)
   const F: P3 = [0, 3, 19]
@@ -62,7 +58,6 @@ function cabinWindow(s: Scene) {
   )
 }
 
-/** A rounded case on two wheels with a telescopic handle: two posts and a grip bar. */
 function suitcase(s: Scene) {
   shadowRect(s, 0, 0, 18, 7, 1)
   for (const x of [3, 15]) s.poly(s.circle([x, 7, 1.5], X, NZ, 0, 0, 1.5, 8), 'side', 'line')
@@ -84,7 +79,6 @@ function suitcase(s: Scene) {
   s.box(5, 3, 16, 8, 1, 1.5)
 }
 
-/** A belt coming out of a flap portal with one bag on it. */
 function carousel(s: Scene) {
   shadowRect(s, 0, -2, 22, 11, 1)
   s.box(-3, -3, 0, 3, 12, 9)
@@ -131,7 +125,6 @@ const DRAW: Record<HeroGlyph, (s: Scene) => void> = {
   airports: carousel,
 }
 
-/** Default k = 1: units are px, so the glyph is built at the size it is shown. */
 export function heroGlyph(kind: HeroGlyph, k = 1): IsoFigureData {
   const s = new Scene(k)
   DRAW[kind](s)

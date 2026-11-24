@@ -1,10 +1,7 @@
-// A band of city roofs along the horizon: flat-topped blocks with sloped mansard caps, shaded with
-// vertical hair hatching (buildings, so vertical is right), no outlines except the roof line.
 import { mulberry32 } from '../hash'
 import { type Pt, occlude, rectPts, stroke, toneFill, type SvgNode } from '../grid'
 import { type KitModule, num } from './util'
 
-/** Rooftops from the box's left edge to its right edge, sitting on the horizon. */
 export const rooftops: KitModule = ([x, y, w, h], p) => {
   const horizon = num(p, 'horizonY', y + h * 0.7)
   const height = num(p, 'height', 12)

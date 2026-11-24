@@ -1,4 +1,3 @@
-/* Arc-derived checkbox over a native input. Tokens only; the focus ring is the 2px offset ring and never shows on pointer focus. */
 .ui-checkbox {
   display: inline-flex;
   align-items: flex-start;
@@ -82,15 +81,15 @@
   min-width: 0;
 }
 .ui-checkbox-label {
-  font-size: 15px;
-  line-height: 24px;
+  font-size: 0.9375rem;
+  line-height: 1.5rem;
   font-weight: 500;
   color: var(--text);
   cursor: pointer;
 }
 .ui-checkbox-description {
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   color: var(--text-muted);
 }
 .ui-checkbox:has(.ui-checkbox-input:disabled) .ui-checkbox-label {

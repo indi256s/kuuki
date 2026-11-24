@@ -1,10 +1,6 @@
-// Ship's anchor standing upright (lane A, `-a` until consolidated): a solid black anchor with a ring
-// at the head, a stock across the shank, and a crown of two curved arms ending in flukes. The box is
-// the anchor; its bottom is the ground. Drawn as solid fills with a halo against whatever is behind.
 import { type Pt, type SvgNode, fill, occlude, stroke } from '../grid'
 import { type KitModule, num } from './util'
 
-/** A ribbon along a centre line with half-widths w0 -> w1. */
 function ribbon(c: Pt[], w0: number, w1: number): Pt[] {
   const l: Pt[] = [],
     r: Pt[] = []
@@ -47,7 +43,6 @@ export const anchorA: KitModule = ([x, y, w, h], p) => {
       shank * 1.15,
     ),
   )
-  // Stock: a bar across the upper shank with knobs.
   const stockY = y + h * 0.22
   const sw = w * 0.4
   parts.push([
@@ -68,7 +63,6 @@ export const anchorA: KitModule = ([x, y, w, h], p) => {
       ),
     )
   }
-  // Arms: a bow from the crown up and out to the flukes.
   const armTop = y + h * 0.66
   for (const s of [-1, 1]) {
     const c: Pt[] = []
@@ -85,7 +79,6 @@ export const anchorA: KitModule = ([x, y, w, h], p) => {
     }
     parts.push(ribbon(c, shank * 1.05, shank * 0.8))
     const [tx, ty] = c[c.length - 1]
-    // Fluke: a leaf pointing up and outward at the arm tip.
     parts.push([
       [tx - s * 2.6, ty + 3.2],
       [tx + s * 5.2, ty - 2.2],
@@ -93,7 +86,6 @@ export const anchorA: KitModule = ([x, y, w, h], p) => {
       [tx - s * 4.5, ty - 2.5],
     ])
   }
-  // Crown block at the foot of the shank.
   parts.push([
     [cx - shank * 1.5, crownY - 4],
     [cx + shank * 1.5, crownY - 4],

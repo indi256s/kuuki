@@ -1,4 +1,3 @@
-// T08 / ADR 0001 §4: the one country-evidence calculation, with the effective arrival policy and its acceptance tests (A5).
 import { describe, expect, it } from 'vitest'
 import { readPublicProfile } from '../api/_services/publicProfiles'
 import {
@@ -55,8 +54,6 @@ describe('unusable input never breaks or over-suppresses the repair', () => {
         .first<{ revision: number; published_revision: number; evidence_revision: number }>()
       expect(state!.published_revision).toBe(state!.revision)
       expect(state!.evidence_revision).toBe(state!.revision)
-      // The malformed flight arrives at the hub airport, so it is the leg that used to make the repair throw. It keeps
-      // both endpoints as ordinary evidence (TR is pressed by it); the valid pair is still a transit link.
       expect(await evidenceCountries(db)).toEqual(['GE', 'TR', 'US'])
       expect(await suppressions(db)).toEqual(TRANSIT_ROWS)
       expect(await userStats(db)).toMatchObject({ countries_count: 3 })
@@ -97,7 +94,6 @@ describe('prospective default for an awaiting flight (rule 2)', () => {
     const { db, dispose } = await accountWith([{ ...F1, transit: 0 }, F2])
     try {
       expect(await suppressions(db)).toEqual([])
-      // The hub is pressed by F2's own departure from it; F1's arrival adds an awaiting visit on top.
       expect(await evidence(db)).toEqual([
         { country_code: 'GE', status: 'pending', logged: 0, awaiting: 1, claimed: 0, ground: 0 },
         { country_code: 'TR', status: 'pressed', logged: 1, awaiting: 1, claimed: 0, ground: 0 },
@@ -251,9 +247,7 @@ describe('A5: explicit transit is stable under later changes', () => {
         arr: at(T0, 9),
       }).run()
       await publish(db)
-      // Leg 3 is a competing onward leg, so the chain is ambiguous; the stored leg still carries the suppression.
       expect(await suppressions(db)).toEqual(TRANSIT_ROWS)
-      // Leg 3 itself departs from the hub (open item 7), so the hub counts once for that departure only.
       expect(await evidence(db)).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ country_code: 'TR', status: 'pressed', logged: 1 }),
@@ -282,7 +276,6 @@ describe('A5: explicit transit is stable under later changes', () => {
       await db.prepare('DELETE FROM flights WHERE id = 2').run()
       await publish(db)
       expect(await suppressions(db)).toEqual([TRANSIT_ROWS[0]])
-      // Leg 3 departs from the hub airport but is not the stored leg: its origin counts the hub (open item 7), the destination suppression stays.
       expect(await evidenceCountries(db)).toEqual(['GB', 'GE', 'TR'])
     } finally {
       await dispose()
@@ -305,7 +298,7 @@ describe('A5: explicit transit is stable under later changes', () => {
       expect(await suppressions(db)).toEqual(TRANSIT_ROWS)
       expect(await evidence(db)).toEqual(
         expect.arrayContaining([
-          expect.objectContaining({ country_code: 'TR', status: 'pressed', logged: 1 }), // D's origin only, not A's destination or leg 2's origin
+          expect.objectContaining({ country_code: 'TR', status: 'pressed', logged: 1 }),
         ]),
       )
       expect(await evidenceCountries(db)).toEqual(['AE', 'GE', 'TR', 'US'])
@@ -337,7 +330,7 @@ describe('A5: explicit transit is stable under later changes', () => {
   it('a route edit resets the decision, so the new destination is never suppressed by the old hub decision', async () => {
     const { db, dispose } = await accountWith(base)
     try {
-      await db.prepare("UPDATE flights SET destination = 'LHR' WHERE id = 1").run() // trigger 4 / lifecycle rules clear the decision
+      await db.prepare("UPDATE flights SET destination = 'LHR' WHERE id = 1").run()
       await publish(db)
       expect(await suppressions(db)).toEqual([])
       expect(await evidenceCountries(db)).toEqual(['GB', 'GE', 'TR', 'US'])
@@ -360,7 +353,6 @@ describe('derived consumers read the same calculation', () => {
         .bind(USER.id),
     ])
     try {
-      // GE (Asia) and US (North America): TR no longer counts for the continent figure.
       expect(await userStats(db)).toMatchObject({ continents_count: 2 })
       expect(
         await db
@@ -384,13 +376,11 @@ describe('public readers (ADR I3)', () => {
         .bind(USER.id),
     ])
     try {
-      // Profile stamps name only flight countries: not the TR connection, not the FR claim.
       expect(await readPublicProfile(db, 'trav')).toMatchObject({
         derivedState: 'ready',
         stats: { countries_count: 2, airports_count: 3 },
         countries: ['GE', 'US'],
       })
-      // A build below the floor publishes the revision without the stamp: the owner reads `updating`, public readers keep serving.
       await db
         .prepare('UPDATE user_derived_state SET revision = revision + 1 WHERE user_id = ?')
         .bind(USER.id)

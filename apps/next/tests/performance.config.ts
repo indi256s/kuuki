@@ -3,12 +3,9 @@ import { fileURLToPath } from 'node:url'
 import { freePort } from '../../../scripts/free-port'
 
 const root = fileURLToPath(new URL('../../../', import.meta.url))
-// Set once in the runner so workers, which re-read this config, inherit the same port.
 process.env.KUUKI_NEXT_PORT ??= String(freePort())
 const port = process.env.KUUKI_NEXT_PORT
 
-// Deliberately separate from the functional suite: this seeds 531 flights and
-// produces local measurements rather than a pass/fail performance budget.
 export default defineConfig({
   testDir: '.',
   testMatch: '**/*.bench.ts',

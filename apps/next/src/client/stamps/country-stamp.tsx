@@ -17,36 +17,21 @@ export type StampPreview = {
 }
 
 export type CountryStampProps = {
-  /** Server-rendered sources for the development contact sheet. */
   preview?: StampPreview
   iso2: string
-  /** Not used by the stamp: the ring text is baked in its own script and English at generation time. Kept so callers need no change. */
   locale?: Locale
-  /** `pending` is the dashed outline without ink. */
   status: 'inked' | 'pending'
-  /** Edge length in px. */
   size?: number
-  /**
-   * Immutable ID of the press event. The full impression (scale-in and ink drying into the worn
-   * layer) plays once per ID per browser session; remounts and refetches never replay it.
-   * The memory is shared with the legacy `Stamp`: the same ID never replays across both.
-   */
   impressionId?: string
-  /** No motion at all (grids, print). */
   static?: boolean
-  /** Wear texture (B1). `false` shows the clean, full-density stamp. Default true. */
   worn?: boolean
-  /** Hook for view transitions. */
   viewTransitionName?: string
-  /** Frame override for previews (worst-case names). Drops the engraving when it differs from the country's own shape. */
   shape?: ShapeName
-  /** Forces a pose for contact sheets: the state CSS normally reached through hover, focus or press. */
   pose?: 'hover' | 'focus' | 'press'
   className?: string
 }
 
 export const DEFAULT_STAMP_SIZE = 160
-/** Pending stamps draw the outer rule alone, thinner than the inked one. */
 const PENDING_STROKE = 1.6
 
 type FaceProps = {
@@ -54,17 +39,14 @@ type FaceProps = {
   shape: ShapeName
   iso3: string
   engraved: boolean
-  /** The baked ring text exists for the country's own shape only. */
   ringed: boolean
   pending: boolean
   preview?: StampPreview
 }
 
-/** One complete copy of the stamp: frame, baked ring text, engraving. */
 function Face({ iso2, shape, iso3, engraved, ringed, pending, preview }: FaceProps) {
   const f = frames[shape]
   const [wx, wy, ww, wh] = f.windowBox
-  // Fallback tier: the ISO3 code set large in the window.
   const big = Math.min(wh * 0.34, (Math.min(ww, wh * 1.5) * 0.62) / (emWidth(iso3) + 0.16))
   const file = iso2.toLowerCase()
   return (
@@ -113,19 +95,6 @@ function Face({ iso2, shape, iso3, engraved, ringed, pending, preview }: FacePro
   )
 }
 
-/**
- * Country stamp: ink frame with ring text, engraving as a CSS mask in the ink colour, a worn
- * impression layer over it, and the Q34 motion. Decorative: the card carries the name and status.
- *
- * Layers (back to front, all inside the tilting wrapper):
- *   `.cs-worn`  frame + engraving masked by the shared wear texture (per-shape, offset and turned per country)
- *   `.cs-full`  the same content without the texture, opacity 0 at rest; press fades it in, a new
- *               impression starts at 1 and dries into the worn layer
- * With `worn={false}` only a clean layer is rendered. Pending renders the dashed frame alone.
- *
- * Motion needs a host: put `data-stamp-host` on the card (or use an `a`/`button`) so its hover,
- * focus-visible and active states drive the stamp. The stamp itself is not focusable.
- */
 export function CountryStamp({
   iso2,
   status,
@@ -146,7 +115,6 @@ export function CountryStamp({
   const tilt = restTilt(meta.iso2, shape)
   const imp = impressionTransform(meta.iso2, tilt)
 
-  // Decided after hydration so server markup never depends on session memory; marked synchronously so remounts cannot replay.
   const [played, setPlayed] = useState<string | null>(null)
   useLayoutEffect(() => {
     if (isStatic || pending || !impressionId) return

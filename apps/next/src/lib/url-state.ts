@@ -1,17 +1,10 @@
 import { periodDays } from '../../../../packages/shared/src/overview/range'
 
-/**
- * Pure URL-state parsing for the route contract (C1). Each `normalize*` function validates the keys
- * its route owns, drops invalid values, omits defaults and keeps unrelated keys untouched. Output is a
- * fixed point: normalizing a normalized query returns the same query.
- */
 export type RawQuery = Record<string, string | string[] | undefined> | URLSearchParams
 
 export type Normalized<T> = {
   state: T
-  /** Canonical query string without a leading `?`; empty when there is nothing to carry. */
   query: string
-  /** True when the incoming query already equals the canonical one (order-insensitive). */
   canonical: boolean
 }
 
@@ -56,7 +49,6 @@ export function isValidYear(value: string | undefined, now = new Date()): value 
   return year >= 1900 && year <= now.getUTCFullYear() + 1
 }
 
-/** `year` is canonical; the legacy `period` key from earlier builds is accepted once and rewritten. */
 function readYear(entries: Entries, now: Date): string | undefined {
   const year = first(entries, 'year')
   if (isValidYear(year, now)) return year
@@ -84,7 +76,6 @@ export const PASSPORT_REGIONS = [
 ] as const
 export type PassportSource = (typeof PASSPORT_SOURCES)[number]
 export type PassportRegion = (typeof PASSPORT_REGIONS)[number]
-/** The collection filters: search is always visible, region and sources live behind the Filter button. */
 export type PassportFilters = {
   q: string
   region: PassportRegion | null
@@ -94,7 +85,6 @@ export type PassportState = {
   view: (typeof PASSPORT_VIEWS)[number]
   sort: (typeof PASSPORT_SORTS)[number]
   country: string | null
-  /** Owner preview of the visitor view; the page honours it only for the owner. */
   as: 'visitor' | null
 } & PassportFilters
 const pick = <T extends string>(
@@ -105,12 +95,6 @@ const pick = <T extends string>(
 
 const SEARCH_MAX = 64
 
-/**
- * `isCountry` is the catalog check (`isCatalogCountry` in client/passport/model): a country deep link opens a sheet with
- * write actions, so a well-formed code outside the catalog is dropped rather than shown. It is passed in to keep the
- * catalog out of every page that shares this module. Legacy `view=stamps`, `layer`, `year` and `period` are dropped
- * (the page redirects to the canonical URL); `sort=visits` became `records`.
- */
 export function normalizePassportQuery(
   raw: RawQuery,
   isCountry: (code: string) => boolean,
@@ -150,7 +134,6 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export type ImportState = {
   source: 'file' | 'text' | 'pass' | null
   batch: string | null
-  /** A Flighty CSV import run (ADR 0008), restored from the server. */
   history: string | null
 }
 export function normalizeImportQuery(raw: RawQuery): Normalized<ImportState> {
@@ -248,7 +231,6 @@ export function normalizeJournalQuery(
   if (params.get('queue') === 'awaiting') state.queue = 'awaiting'
   const batch = params.get('batch')
   if (batch && UUID.test(batch)) state.batch = batch.toLowerCase()
-  // `page` is owned so a legacy paging bookmark is dropped: the Journal list is in memory (spec D4).
   return finish(
     entries,
     [
@@ -289,7 +271,6 @@ export type JournalLink = {
   status?: 'completed'
   flight?: string | number
 }
-/** Canonical `/journal` href for Overview category/route links and Passport flight details. Invalid values are dropped. */
 export function journalHref(link: JournalLink, now = new Date()): string {
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(link))

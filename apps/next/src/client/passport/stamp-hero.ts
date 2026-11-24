@@ -1,6 +1,5 @@
 type StartViewTransition = (update: () => Promise<void>) => { finished: Promise<void> }
 
-/** How long the sheet's stamp may take to mount before the transition settles for a plain crossfade. */
 const SHEET_STAMP_WAIT_MS = 500
 
 let latest = 0
@@ -8,11 +7,6 @@ let latest = 0
 const sheetStamp = (code: string) =>
   document.querySelector<HTMLElement>(`[data-sheet-stamp="${code}"] .country-stamp`)
 
-/**
- * Resolves with the sheet's large stamp once it is in the document, or null after the wait. Watches mutations, not
- * frames: Chrome runs no requestAnimationFrame while a view transition's update callback is pending, so a rAF poll
- * would stall until the browser's ~4s transition timeout.
- */
 function waitForSheetStamp(code: string): Promise<HTMLElement | null> {
   return new Promise((resolve) => {
     const settle = (found: HTMLElement | null) => {
@@ -31,15 +25,6 @@ function waitForSheetStamp(code: string): Promise<HTMLElement | null> {
   })
 }
 
-/**
- * Opens a country's sheet as a same-document view transition in which the card's stamp grows into the sheet's large
- * stamp. Both stamps carry one per-country name only while it runs, and the card's name is dropped before the new
- * state is captured (the card stays in the page behind the sheet, and two elements may not share a name).
- * `html[data-stamp-hero]` scopes the transition's CSS (passport.css), so other view transitions never see it.
- *
- * Returns false, having done nothing, when the API is missing, the tab is hidden, a theme switch is running, the user
- * prefers reduced motion or the card has no stamp; the caller then opens the sheet at once.
- */
 export function openWithStampHero(card: HTMLElement, code: string, open: () => void): boolean {
   const root = document.documentElement
   const start = (document as Document & { startViewTransition?: StartViewTransition })
@@ -66,7 +51,6 @@ export function openWithStampHero(card: HTMLElement, code: string, open: () => v
     .finally(() => {
       from.style.viewTransitionName = ''
       if (hero.to) hero.to.style.viewTransitionName = ''
-      // A newer hero owns the attribute now.
       if (id === latest) delete root.dataset.stampHero
     })
   return true

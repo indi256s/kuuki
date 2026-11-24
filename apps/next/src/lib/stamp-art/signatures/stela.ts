@@ -1,5 +1,3 @@
-// HN: a row of carved stelae (Copan Great Plaza). Tall narrow slabs with a bevelled top, a carved
-// panel and a shaded right edge. The box is the whole row; its bottom is the ground.
 import { type Pt, type SvgNode, body, hline, rectPts, stroke, toneFill } from '../grid'
 import type { KitModule } from '../kit'
 import { num, nums } from '../kit/util'
@@ -29,7 +27,6 @@ export const stela: KitModule = ([x, y, w, h], p) => {
         inset: 0.4,
       }),
     )
-    // Carved panel: a framed field with two glyph blocks.
     out.push(
       stroke('hair', rectPts(sx + slabW * 0.18, top + sh * 0.18, slabW * 0.44, sh * 0.5), true),
     )

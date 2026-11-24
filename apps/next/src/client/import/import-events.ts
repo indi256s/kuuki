@@ -1,7 +1,3 @@
-// The only module that knows the wire format of `GET /api/import/batches/:id/events`. The server contract is
-// still moving (explicit `end` event, `reupload` only on snapshot instructions), so parsing is tolerant: unknown
-// event names are returned and ignored by `decideEvent`, malformed frames are dropped, and D1 (the snapshot) stays
-// the only source of row data.
 import type { ImportEvent } from './import-types'
 
 export interface RawFrame {
@@ -9,7 +5,6 @@ export interface RawFrame {
   data: string
 }
 
-/** Split an SSE text buffer into complete frames; `rest` is the incomplete tail to prepend to the next chunk. */
 export function parseFrames(buffer: string): { frames: RawFrame[]; rest: string } {
   const normalized = buffer.replace(/\r\n/g, '\n')
   const parts = normalized.split('\n\n')
@@ -53,11 +48,6 @@ export function toImportEvent(frame: RawFrame): ImportEvent | null {
   }
 }
 
-/**
- * What a notification means for a client that already holds the snapshot at `known`:
- * `end` closes this connection (re-read the snapshot; reconnect only when its status is `processing`), `reload` re-fetches the snapshot (a new sequence, a
- * gap, or an explicit snapshot instruction), `ignore` is a repeat or an unknown event.
- */
 export function decideEvent(known: number, event: ImportEvent): 'ignore' | 'reload' | 'end' {
   if (event.name === 'end') return 'end'
   if (event.snapshot) return 'reload'
@@ -65,10 +55,6 @@ export function decideEvent(known: number, event: ImportEvent): 'ignore' | 'relo
   return event.sequence > known ? 'reload' : 'ignore'
 }
 
-/**
- * One SSE connection: resolves when the server closes the stream or sends `end` (the client closes its side on `end`,
- * it does not wait for the server's EOF), rejects on a non-2xx answer or a network error.
- */
 export async function connectEvents(
   batchId: string,
   after: number,

@@ -1,6 +1,3 @@
-// What the component needs to know about a country without importing the engraver: frame shape, ink, tier,
-// ISO3 and ring names. Reads only the committed stamp-index.generated.json (pnpm generate:stamps), so the
-// recipes, the engraving kit and zod stay out of the client bundle and names are identical on server and client.
 import type { Locale } from '../../lib/format'
 import { type ShapeName, shapeFor } from '../../lib/stamp-art/frame'
 import type { InkName } from '../../lib/stamp-art/inks'
@@ -27,7 +24,6 @@ type Entry = {
 }
 const entries = index as Record<string, Entry>
 
-/** Every catalog code, sorted. */
 export const stampCodes = (): string[] => Object.keys(entries)
 
 export function stampMeta(iso2: string): StampMeta {
@@ -43,7 +39,6 @@ export function stampMeta(iso2: string): StampMeta {
   }
 }
 
-/** Ring names as generated: the full name and the short form, not yet uppercased. */
 export function stampNames(iso2: string, locale: Locale): { name: string; short: string } {
   const code = iso2.toUpperCase()
   const e = entries[code]

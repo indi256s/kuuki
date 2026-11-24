@@ -1,5 +1,3 @@
-// Every string of the first-flight step (spec O12–O20, boards 15.2–15.4, 17.x), written in English and Russian
-// together. Russian addresses the member as «вы». The server's messages are never shown.
 import type { CountForms } from '../../../lib/format'
 
 const p = (en: string, ru: string) => ({ en, ru })

@@ -1,6 +1,5 @@
 import type { SectionId } from '@kuuki/shared/overview/prefs'
 
-/** DESIGN.md Motion: siblings slide on-screen (--ease-in-out), the drop settles with --ease-out, an Escape return exits about 20% faster. */
 export const FLIP_MS = 280
 export const SETTLE_MS = 200
 export const RETURN_MS = 180
@@ -36,7 +35,6 @@ const translateOf = (el: HTMLElement) => {
   const values = match ? match[1].split(',').map(Number) : []
   return { x: values[4] || 0, y: values[5] || 0 }
 }
-/** The box the element's layout gives it: getBoundingClientRect minus any in-flight FLIP translate, so drop targets do not jitter while cards slide. */
 export function layoutRect(el: HTMLElement, flips: Flips): LiveRect {
   const r = el.getBoundingClientRect()
   const { x, y } = flips.has(el) ? translateOf(el) : { x: 0, y: 0 }
@@ -50,7 +48,6 @@ export function layoutRect(el: HTMLElement, flips: Flips): LiveRect {
   }
 }
 
-/** Gives every card its slot with CSS `order` (the DOM never moves, so pointer capture and focus survive) and slides the cards from where they are on screen right now. Running slides are read live, cancelled, and restarted from that offset, so a quick second change never snaps. */
 export function placeCards(entries: [HTMLElement, number][], flips: Flips, animate: boolean) {
   const first = animate ? new Map(entries.map(([el]) => [el, el.getBoundingClientRect()])) : null
   for (const animation of flips.values()) animation.cancel()
@@ -82,7 +79,6 @@ export function clearCards(ids: SectionId[], nodes: Map<SectionId, HTMLElement>,
   for (const id of ids) nodes.get(id)?.style.removeProperty('order')
 }
 
-/** A visual-only copy of the card in a fixed layer. The layer carries the 1:1 pointer translate (no transition); the copy carries the lift. The original stays in the grid as the placeholder slot, so lane spans, ResizeObserver and open tooltips keep working. */
 export function createGhost(
   node: HTMLElement,
   rect: LiveRect,
@@ -129,7 +125,6 @@ export function moveGhost(ghost: Ghost, pointerX: number, pointerY: number) {
   ghost.y = y
   ghost.layer.style.transform = `translate3d(${ghost.x}px, ${ghost.y}px, 0)`
 }
-/** Glides the ghost from its current spot into the slot, then calls done. Instant under reduced motion or without WAAPI. */
 export function settleGhost(
   ghost: Ghost,
   to: { left: number; top: number },

@@ -1,5 +1,3 @@
-// The passport bench's live layer: one rAF loop that writes attributes on refs inside the generated SVG, so React never
-// re-renders per frame. Ported from the approved prototype (.scratch/onboarding-passport-figure/live.js).
 import { initials } from '../../profile/data-page-art'
 import { mrzLines } from '../../profile/mrz'
 import { BENCH } from './bench.generated'
@@ -18,7 +16,6 @@ import { translateAlong } from './iso-kit.generated.js'
 import './bench.generated.css'
 import './bench.css'
 
-/** The words the drawing prints; the passport preview owns the copy. */
 export type BenchCopy = {
   cover: string
   foot: string
@@ -28,15 +25,11 @@ export type BenchCopy = {
   visa: string
 }
 
-/** Everything the drawing shows. Facts stay in the HTML captions; these only print onto the passport. */
 export type BenchInput = {
-  /** The cover is open from the flights step on. */
   open: boolean
-  /** The ready step: the WELCOME entry stamp, then one MRZ read. */
   ready: boolean
   name: string
   locale: 'en' | 'ru'
-  /** In arrival order: the order the bridge stamps them, newer ink on top. */
   countries: readonly string[]
   flights: number
   copy: BenchCopy
@@ -50,7 +43,6 @@ const MONTHS = {
   ru: ['ЯНВ', 'ФЕВ', 'МАР', 'АПР', 'МАЙ', 'ИЮН', 'ИЮЛ', 'АВГ', 'СЕН', 'ОКТ', 'НОЯ', 'ДЕК'],
 } as const
 
-// ---------- Timing (seconds) ----------
 const OPEN_S = 0.75
 const RIPPLE = 0.095
 const PRESS = { down: 0.11, hold: 0.07, up: 0.28 }
@@ -81,10 +73,6 @@ const pressDepth = (age: number) => {
   return 0
 }
 
-/**
- * Mounts the bench in `stage` showing `init` as it already is: countries on the page are simply there, an open cover is
- * open and a ready passport carries its entry stamp, with no presses, swing or scan. Later `update`s animate.
- */
 export function mountBench(stage: HTMLElement, init: BenchInput): BenchController {
   stage.innerHTML = BENCH.svg
   const svg = stage.querySelector('svg')!
@@ -105,7 +93,6 @@ export function mountBench(stage: HTMLElement, init: BenchInput): BenchControlle
     lastRoll: -1,
   }
 
-  // ---------- Refs ----------
   const bridge = [...svg.querySelectorAll<SVGGElement>('[data-bridge]')]
   const heads = PP.HEADS.map((y, i) => ({
     y,
@@ -141,7 +128,6 @@ export function mountBench(stage: HTMLElement, init: BenchInput): BenchControlle
     entryDate: q('[data-entry-date]'),
   }
 
-  // ---------- Text ----------
   const today = new Date()
   const pad2 = (n: number) => String(n).padStart(2, '0')
   const dateText = (locale: 'en' | 'ru') =>
@@ -157,7 +143,6 @@ export function mountBench(stage: HTMLElement, init: BenchInput): BenchControlle
       issued,
     })
 
-  /** Measures printed text even while its page is hidden (a closed leaf is display:none, and hidden text measures 0). */
   function shown<T>(read: () => T): T {
     const hidden = [leaf.page, leaf.cover].filter((g) => g.style.display === 'none')
     hidden.forEach((g) => (g.style.display = ''))
@@ -168,12 +153,6 @@ export function mountBench(stage: HTMLElement, init: BenchInput): BenchControlle
   const measure = (node: SVGTextContentElement) =>
     typeof node.getComputedTextLength === 'function' ? shown(() => node.getComputedTextLength()) : 0
 
-  /**
-   * Sets printed text and shrinks it to `max` page units. A name that would print below `wrapAt` breaks onto two lines
-   * at the word boundary nearest its middle, the first line on the original baseline and the second below it (the field
-   * label sits right above, so the block only grows down), shrinking again if a line is still too wide, never below
-   * `least`.
-   */
   function fit(
     node: SVGTextElement,
     value: string,
@@ -231,7 +210,6 @@ export function mountBench(stage: HTMLElement, init: BenchInput): BenchControlle
     if (!A.scan) lines().forEach((line, i) => (mrz[i].textContent = line))
   }
 
-  /** Inserts stamp i's impression (still unseen); later stamps are appended, so newer ink lies on top. */
   function inkSlot(i: number) {
     if (slots[i]) return
     impLayer.insertAdjacentHTML('beforeend', impressionSvg(i, S.countries[i] ?? '', shortDate))
@@ -242,7 +220,6 @@ export function mountBench(stage: HTMLElement, init: BenchInput): BenchControlle
     if (slotRings[i]) slotRings[i].style.display = 'none'
   }
 
-  // ---------- Model → drawing ----------
   function drawLeaf(theta: number) {
     const a = theta - Math.PI
     const cover = leafSlab(BOARD_L, 0, PP.TC, a, P)
@@ -268,7 +245,6 @@ export function mountBench(stage: HTMLElement, init: BenchInput): BenchControlle
     leaf.haloLeft.style.opacity = String(h * h * (3 - 2 * h))
   }
 
-  /** The bridge's stop [x along the rails, cross-slide] at time t. */
   function bridgeAt(t: number): Stop {
     let at: Stop = PARKED
     for (const m of A.moves) {
@@ -296,7 +272,6 @@ export function mountBench(stage: HTMLElement, init: BenchInput): BenchControlle
     const key = `${bx} ${by}`
     if (key !== lastBridge) {
       const rails = translateAlong(P, [bx, 0, 0])
-      // Trucks and posts ride the rails; the beam and its heads also ride the cross-slide.
       bridge.forEach((node) =>
         node.setAttribute(
           'transform',
@@ -362,7 +337,6 @@ export function mountBench(stage: HTMLElement, init: BenchInput): BenchControlle
     }
   }
 
-  // ---------- Scheduling ----------
   const coverReady = () => (A.theta.t0 >= 0 ? A.theta.t0 + OPEN_S : 0)
   function unpark() {
     if (A.park && A.park.t0 > A.clock) {
@@ -373,7 +347,6 @@ export function mountBench(stage: HTMLElement, init: BenchInput): BenchControlle
     A.park = null
   }
   const isParked = () => A.bridgeAt[0] === PP.PARK && A.bridgeAt[1] === 0
-  /** Queues a bridge move to `to` = [x, slide]; rails and cross-slide move together. */
   function travel(to: Stop, wait = 0): Move | null {
     const t0 = Math.max(A.clock, A.bridgeFree, coverReady()) + wait
     const from = A.bridgeAt
@@ -389,7 +362,6 @@ export function mountBench(stage: HTMLElement, init: BenchInput): BenchControlle
     return m
   }
 
-  /** Presses one stamp per newly found country, a short ripple between countries that arrive together. */
   function add(next: readonly string[]) {
     const first = S.countries.length
     S.countries.push(...next)
@@ -416,7 +388,6 @@ export function mountBench(stage: HTMLElement, init: BenchInput): BenchControlle
     A.park = travel(PARKED, PARK_WAIT)
   }
 
-  /** The list changed other than by arrivals (a country dropped): the page is redrawn as it now is, without presses. */
   function restamp(list: readonly string[]) {
     A.presses = A.presses.filter((p) => p.slot === 'entry')
     impLayer.replaceChildren()
@@ -440,8 +411,6 @@ export function mountBench(stage: HTMLElement, init: BenchInput): BenchControlle
     travel([PP.ENTRY.x, 0])
     const t0 = Math.max(A.bridgeFree, A.clock)
     A.bridgeFree = t0 + PRESS_S
-    // The bridge leaves right after the release and the scan waits for it to sit on the pad,
-    // so nothing hangs over the name, the date or the MRZ while the line runs.
     const park = travel(PARKED)
     A.park = null
     const scanAt = (park ? park.t1 : A.bridgeFree) + 0.15
@@ -450,7 +419,6 @@ export function mountBench(stage: HTMLElement, init: BenchInput): BenchControlle
 
   function clearEntry() {
     A.entryOn = false
-    // Finished entry presses go too: snap() replays every kept press and would ink the cleared stamp again.
     A.presses = A.presses.filter((p) => p.slot !== 'entry')
     entry.setAttribute('opacity', '0')
     A.scan = null
@@ -465,12 +433,10 @@ export function mountBench(stage: HTMLElement, init: BenchInput): BenchControlle
       A.theta = { x: to, from: to, to, t0: -1 }
       return
     }
-    // Closing waits for the bridge to clear the page.
     const t0 = open ? A.clock : Math.max(A.clock, A.bridgeFree)
     A.theta = { x: A.theta.x, from: A.theta.x, to, t0 }
   }
 
-  // ---------- Loop ----------
   let frame = 0,
     last = 0,
     visible = false
@@ -506,7 +472,6 @@ export function mountBench(stage: HTMLElement, init: BenchInput): BenchControlle
       : null
   observer?.observe(stage)
 
-  /** Reduced motion switched on mid-animation: every running motion jumps to where it was going. */
   function snap() {
     A.theta = { x: A.theta.to, from: A.theta.to, to: A.theta.to, t0: -1 }
     for (const p of A.presses) {
@@ -544,7 +509,6 @@ export function mountBench(stage: HTMLElement, init: BenchInput): BenchControlle
     if (input.open !== S.open || A.theta.to !== (input.open ? Math.PI : 0)) {
       S.open = input.open
       if (!input.open) {
-        // Queued countries remain part of the preview when Back interrupts their press.
         A.presses = A.presses.filter((p) => {
           if (A.clock - p.t0 >= 0) return true
           if (p.slot !== 'entry') showSlot(p.slot)
@@ -556,8 +520,6 @@ export function mountBench(stage: HTMLElement, init: BenchInput): BenchControlle
       setCover(input.open)
     }
     const list = input.countries
-    // Review can insert an earlier draft's countries before existing ones. Keep the drawing in arrival order,
-    // and press membership additions even when the incoming list is reordered.
     const kept = S.countries.filter((code) => list.includes(code))
     if (kept.length !== S.countries.length) {
       restamp(kept)
@@ -570,7 +532,6 @@ export function mountBench(stage: HTMLElement, init: BenchInput): BenchControlle
     kick()
   }
 
-  // First render: whatever the state already holds is simply there, with no presses and no scan.
   S.countries.forEach((_, i) => {
     inkSlot(i)
     showSlot(i)

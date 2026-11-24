@@ -1,5 +1,3 @@
-// GET /api/flights/check-duplicate?date=&origin=&destination=&excludeId= — same date+route flight, or null.
-
 import { runHandler, json, HttpError } from '../_lib/http'
 import { requireUser, type RequestData } from '../_lib/auth'
 import { toOwnFlight, type FlightRow } from '../_lib/flights'

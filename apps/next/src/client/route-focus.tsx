@@ -3,16 +3,8 @@
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect, useRef } from 'react'
 
-/**
- * Query keys whose change is a real mode/step change that deserves a new heading focus, by pathname. Passport: the
- * Cards/Map view and the visitor preview (`as`). Search, filters, sort and the country sheet are not modes.
- */
 const MODE_KEYS: Record<string, readonly string[]> = { '/passport': ['view', 'as'] }
 
-/**
- * Moves focus to the page heading after navigation. Fires for a pathname change or a change of the
- * route's mode key; never for filters, search text or detail-sheet params.
- */
 export function RouteFocus() {
   const pathname = usePathname()
   const search = useSearchParams()
@@ -23,7 +15,6 @@ export function RouteFocus() {
     if (previous.current === key) return
     previous.current = key
     const focusHeading = () => {
-      // An approved route transition keeps the outgoing page in the DOM, inert, until it settles.
       const heading = [...document.querySelectorAll<HTMLElement>('main h1')].find(
         (node) => !node.closest('[hidden], [inert], [aria-hidden="true"]'),
       )
@@ -36,11 +27,10 @@ export function RouteFocus() {
           main.tabIndex = -1
           main.focus({ preventScroll: true })
         }
-      } // loading state without a heading
+      }
       return heading
     }
     let heading = focusHeading()
-    // A route loading state may swap its heading for the real one; follow it only while focus is lost.
     const main = document.getElementById('main')
     if (!main) return
     const observer = new MutationObserver(() => {

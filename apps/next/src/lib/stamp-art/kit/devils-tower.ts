@@ -1,6 +1,3 @@
-// Devils Tower: a flat-topped igneous column fluted by vertical joints, rising from a skirt of
-// fallen boulders. The box bottom is the foot of the talus. Columns are hair verticals of uneven
-// length (the polygonal joints), the right third is shaded, the talus fans along its fall line.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, hline, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'

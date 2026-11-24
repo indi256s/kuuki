@@ -1,5 +1,3 @@
-// Copy of the Flighty CSV import, EN and RU together (Russian addresses the member as «вы»). Calm and direct:
-// this is capture and privacy copy. Server messages are never shown; causes come from HistoryFailure kinds.
 import { formatCount, type CountForms, type Locale } from '../../lib/format'
 import type { FlightyIssueCode } from '@kuuki/shared/flighty'
 import type { HistoryFindingKind, HistoryRowState } from '@kuuki/shared/flightyHistory'
@@ -159,8 +157,6 @@ const QUESTION: Record<string, (token: string) => Pair> = {
     ),
 }
 
-/** One question per group, named by its source token. */
-/** The kind of a group key (`airline:<token>`, `airport:<token>`, `canceled:<token>`, `match:<finding>`). */
 export const groupKind = (group: string) =>
   group.slice(0, group.indexOf(':')) as 'airline' | 'airport' | 'canceled' | 'match'
 
@@ -177,7 +173,6 @@ const COUNT_FORMS = {
       other: '{count} записи',
     },
   },
-  /** The noun alone, beside a number the caller renders itself (the rolling ready count). */
   recordNoun: {
     en: { one: 'record', other: 'records' },
     ru: { one: 'запись', few: 'записи', many: 'записей', other: 'записи' },

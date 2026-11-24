@@ -37,7 +37,6 @@ describe('answerDate', () => {
 describe('isUpcoming', () => {
   afterEach(() => vi.useRealTimers())
 
-  // 00:30 on 17 November in the member's own zone: east of UTC this is still 16 November in UTC.
   const atLocal = () => vi.useFakeTimers({ now: new Date(2026, 10, 17, 0, 30) })
 
   it('a flight dated today in the member’s zone is not upcoming', () => {

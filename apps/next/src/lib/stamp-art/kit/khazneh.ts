@@ -1,7 +1,3 @@
-// Al-Khazneh, Petra: a two-storey rock-hewn facade cut into a sandstone gorge wall. Lower order of
-// six columns under a central pediment and a dark doorway; upper storey with a round tholos (cone
-// roof and urn) between two half-pediments. The box is the whole scene (cliff included), the
-// bottom is the gorge floor; the facade takes the central `facade` share of the width.
 import { mulberry32 } from '../hash'
 import {
   type Pt,
@@ -29,7 +25,6 @@ export const khazneh: KitModule = ([x, y, w, h], p) => {
   const part = str(p, 'part', ['both', 'cliff', 'facade'] as const, 'both')
   const out: SvgNode[] = []
 
-  // Gorge walls: a jagged crown that dips to both ends, hatched along the fall line.
   const crown: [number, number][] = [
     [0, 0.66],
     [0.1, 0.34],
@@ -59,7 +54,6 @@ export const khazneh: KitModule = ([x, y, w, h], p) => {
   const cliffNodes: SvgNode[] = [occlude(cliff)]
   cliffNodes.push(...toneFill(cliff, 'T4', { angle: 87, gap: 2.8, weight: 'hair', inset: 0.5 }))
   cliffNodes.push(stroke('line', top))
-  // Bedding ticks, lit and sparse.
   for (let k = 0; k < 7; k++) {
     const yy = y + h * (0.28 + 0.1 * k)
     for (let sx = x + 3 + rand() * 8; sx < x + w - 6; sx += 15 + rand() * 12) {
@@ -71,7 +65,6 @@ export const khazneh: KitModule = ([x, y, w, h], p) => {
 
   if (part === 'cliff') return out
 
-  // The recess the facade is cut into.
   const plate: Pt[] = [
     [u(0.02), base],
     [u(0.02), v(0.19)],
@@ -84,7 +77,6 @@ export const khazneh: KitModule = ([x, y, w, h], p) => {
   ]
   out.push(...body(plate, 'line'))
 
-  // Upper wings: half-pediments sloping down toward the outside, hatched, with lit columns.
   for (const s of [-1, 1]) {
     const m = (t: number) => (s < 0 ? t : 1 - t)
     const wing: Pt[] = [
@@ -106,7 +98,6 @@ export const khazneh: KitModule = ([x, y, w, h], p) => {
       out.push(...body(rectPts(cx, v(0.35), 3.2, fh * 0.12), 'hair'))
     }
   }
-  // Tholos: drum, cone roof, urn.
   const dl = u(0.36),
     dr = u(0.64)
   const drum: Pt[] = rectPts(dl, v(0.27), dr - dl, fh * 0.2)
@@ -134,7 +125,6 @@ export const khazneh: KitModule = ([x, y, w, h], p) => {
       [dr + 1.4, v(0.27)],
     ]),
   )
-  // Urn.
   out.push(
     ...body(
       [
@@ -148,11 +138,9 @@ export const khazneh: KitModule = ([x, y, w, h], p) => {
       'line',
     ),
   )
-  // Tholos columns and the dark doorway.
   for (const c of [0.4, 0.6]) out.push(...body(rectPts(u(c) - 1.5, v(0.3), 3, fh * 0.17), 'hair'))
   out.push(fill(rectPts(u(0.5) - 3.4, v(0.31), 6.8, fh * 0.16)))
 
-  // Lower storey: entablature, central pediment, six columns, dark doors.
   out.push(...body(rectPts(u(0.04), v(0.53), fw * 0.92, fh * 0.07), 'line'))
   out.push(
     stroke('bold', [
@@ -192,7 +180,6 @@ export const khazneh: KitModule = ([x, y, w, h], p) => {
   }
   out.push(fill(rectPts(u(0.5) - 3.6, v(0.72), 7.2, fh * 0.19)))
   for (const c of [0.214, 0.786]) out.push(fill(rectPts(u(c) - 2, v(0.78), 4, fh * 0.13)))
-  // Steps and the gorge floor.
   out.push(hline('line', u(0.02), u(0.98), v(0.915)), hline('hair', u(0.0), u(1.0), v(0.955)))
   return out
 }

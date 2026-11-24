@@ -26,7 +26,6 @@ import { makerRows, planSheds, shareText } from './model'
 import './aircraft.css'
 
 type View = 'makers' | 'fleet'
-/** One stage reading: a maker (Makers) or an ICAO type (Fleet). */
 type Row = {
   key: string
   name: string
@@ -72,7 +71,6 @@ export function Section({ span }: { span: Span }) {
           value: row.flights,
         }))
   const keys = rows.map((row) => row.key)
-  // The headline is the most flown maker (Unknown is never it) or the most flown type.
   const r = useReading(keys, keys[0] ?? null)
   const reading = rows.find((row) => row.key === r.reading) ?? rows[0] ?? null
 
@@ -169,7 +167,6 @@ export function Section({ span }: { span: Span }) {
     }
   }
 
-  // The journal rows behind the reading: a maker's flights or a type's.
   const behind =
     reading && payload
       ? payload.rows.filter(
@@ -181,7 +178,6 @@ export function Section({ span }: { span: Span }) {
             matches(row, filter, payload.refs),
         )
       : []
-  // Flights, distance and time of the reading: a maker's from the makers figure, a type's from its rows.
   const sum = (() => {
     if (!reading) return null
     if (view === 'makers') {

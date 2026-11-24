@@ -1,5 +1,3 @@
-// Netherlands: a narrow canal house in elevation with a stepped, bell or neck gable, a hoist beam
-// and tall windows. Brick faces are lit (T0) or dark (T4) so a row alternates in tone.
 import {
   type Pt,
   type SvgNode,
@@ -57,7 +55,6 @@ export const steppedGable: KitModule = ([x, y, w, h], p) => {
       .reverse()
     outline = [...left, ...right, [x + w, y + h], [x, y + h]]
   } else if (style === 'pointed') {
-    // Bryggen: a plain steep triangle over a plank wall.
     outline = [
       [x, wallY],
       [cx, y],

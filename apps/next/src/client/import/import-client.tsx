@@ -90,10 +90,6 @@ function Stepper({ locale, step }: { locale: Locale; step: Step }) {
   )
 }
 
-const themeNow = (): 'light' | 'dark' =>
-  typeof document !== 'undefined' && document.documentElement.dataset.theme === 'dark'
-    ? 'dark'
-    : 'light'
 const writeUrl = (batchId: string | null) =>
   window.history.replaceState(
     window.history.state,
@@ -101,10 +97,6 @@ const writeUrl = (batchId: string | null) =>
     batchId ? `/import?batch=${batchId}` : '/import',
   )
 
-/**
- * What is in flight and keeps the member on this screen. `epoch` names the reset generation that started it, so a late
- * answer after a reset neither writes state nor frees a newer operation.
- */
 type Busy =
   | { k: 'idle' }
   | { k: 'confirming' | 'checking' | 'uploading'; epoch: number }
@@ -148,7 +140,6 @@ export function ImportClient({
   const { setDraft } = batch
 
   const [saveStates, setSaveStates] = useState<Record<string, SaveState>>({})
-  // Typed but unsaved corrections reported by the rows' forms. Together with the saver's states they gate the import.
   const [dirty, setDirty] = useState<ReadonlySet<string>>(new Set())
   const onDirty = useCallback(
     (id: string, flag: boolean) =>
@@ -174,7 +165,6 @@ export function ImportClient({
         }),
     })
   const [saver, setSaver] = useState(createSaver)
-  /** Edits belong to one batch: a reset fences the old saver (in-flight answers are dropped) and starts clean. */
   const resetEdits = () => {
     saver.dispose()
     setSaver(createSaver())
@@ -185,9 +175,7 @@ export function ImportClient({
   const [manualOnly, setManualOnly] = useState(false)
   const [busy, setBusy] = useState<Busy>(IDLE_BUSY)
   const epoch = useRef(0)
-  // A save (confirming, then checking) freezes the review; any busy state blocks every path that leaves it.
   const saving = busy.k === 'confirming' || busy.k === 'checking'
-  // Saving or retrying a recovery holds the review and Done controls; a pass upload only blocks other writes.
   const holding = saving || busy.k === 'retrying'
   const release = (own: number) =>
     setBusy((current) => (current.k !== 'idle' && current.epoch === own ? IDLE_BUSY : current))
@@ -209,11 +197,8 @@ export function ImportClient({
   const cancelOperation = useRef<symbol | null>(null)
   const [sourceName, setSourceName] = useState<string | null>(null)
   const [sourceMode, setSourceMode] = useState<'file' | 'text' | 'pass' | null>(initialSource)
-  // Quick Add keeps the chosen pass in memory only (never stored) while its reading is partial, so the member can still
-  // send it for online recognition. Any other submission, and leaving the flow, drops it.
   const [passFile, setPassFile] = useState<File | null>(null)
   const passUploadOperation = useRef<string | null>(null)
-  // Names the one pending pass read; leaving the flow clears it, so a read that lands afterwards is dropped.
   const passUploadFence = useRef<symbol | null>(null)
   useEffect(
     () => () => {
@@ -223,11 +208,8 @@ export function ImportClient({
   )
   const [sourceKey, setSourceKey] = useState(0)
   const [aircraftSaved, setAircraftSaved] = useState<Set<number>>(new Set())
-  // A manual row is labelled with the batch on screen, or `solo` once the member has left it.
   const makeManualRow = () =>
     newManualRow(emptyValues(), !manualOnly && batch.batch ? batch.batch.id : 'solo')
-  // Every unresolved create of this member in this browser, whatever batch, screen or version wrote it. It is listed on
-  // every step until it is settled; a row of this page that owns one shows its own recovery instead.
   const [receipts, setReceipts] = useState<UnconfirmedSave[]>([])
   const [recoveryFailures, setRecoveryFailures] = useState<Record<string, ManualFailure>>({})
   const [recoveryResult, setRecoveryNotice] = useState<{
@@ -247,18 +229,14 @@ export function ImportClient({
   useEffect(() => {
     refreshReceipts()
   }, [refreshReceipts])
-  // An explicit "Back to review" wins over showing a completed batch's summary.
   const [reviewing, setReviewing] = useState(false)
   const lastSource = useRef<{ source: ImportSource; operationId: string } | null>(null)
   const settledOperations = useRef(new Set<string>())
   const baseline = useRef<Set<string> | null | undefined>(undefined)
   const stampsFor = useRef(-1)
 
-  // Unsent edits live only in memory; warn before the page goes away with some still unsent.
   const unsent = Object.keys(saveStates).length > 0 || dirty.size > 0
-  // The save below awaits several answers; what is unsent when it ends decides whether the review may close.
   const unsentNow = useRef(unsent)
-  // Synced at commit, before any awaited save step resumes; render itself stays pure.
   useLayoutEffect(() => {
     unsentNow.current = unsent
   }, [unsent])
@@ -278,7 +256,6 @@ export function ImportClient({
     return () => window.removeEventListener('beforeunload', warn)
   }, [unsent])
 
-  // A confirm answer is authoritative even if the read after it failed, so its saves are laid over the snapshot.
   const drafts = useMemo(() => withSaved(batch.drafts, rows), [batch.drafts, rows])
   const groups = useMemo(() => partition(drafts), [drafts])
   const savedDrafts = useMemo(
@@ -308,9 +285,6 @@ export function ImportClient({
       ? failureOf(batch)
       : null
 
-  // Once a submission produced a stored batch with a known outcome, replaying its operation id only replays that outcome
-  // (ADR 0001 section 6), so the next attempt with the same source gets a new id. While the outcome is unknown (the
-  // request was lost, or the batch is still running) the id is reused, so no second recognition is started.
   const batchStatus = batch.batch?.status
   useEffect(() => {
     if (batchStatus && batchStatus !== 'processing' && lastSource.current)
@@ -390,7 +364,6 @@ export function ImportClient({
         start(last.source, last.operationId)
         return
       }
-      // After a reload the document is gone (it is never stored): ask for it again instead of replaying the stored failure.
       const type = batch.batch?.sourceType
       const quick = sourceMode === 'pass'
       reset()
@@ -425,7 +398,6 @@ export function ImportClient({
   )
   const onSelectAll = useCallback(
     async (drafts: Draft[], selected: boolean) => {
-      // One draft at a time: each edit is version-checked, and the requests are never fanned out together.
       for (const draft of drafts)
         if (draft.selected !== selected) await saver.save(draft, { selected })
     },
@@ -446,7 +418,6 @@ export function ImportClient({
     try {
       await cancelBatch(id)
       if (!isCurrent()) return
-      // Cancelling keeps the rows already extracted: read them back and show them, and leave only when none remain.
       try {
         const snapshot = await batch.reload()
         if (isCurrent() && snapshot && snapshot.drafts.length === 0) reset()
@@ -465,7 +436,6 @@ export function ImportClient({
     reset()
   }
 
-  /** The pass was read only in part: send the same file for online recognition, replacing this partial review. */
   const uploadPartialPass = async () => {
     if (!passFile || busy.k !== 'idle' || unsent) return
     const fence = Symbol('pass upload')
@@ -490,7 +460,6 @@ export function ImportClient({
     acks: Array<{ derived_state?: 'ready' | 'pending'; revision?: number }>,
   ) => {
     const last = acks.at(-1) ?? {}
-    // Bulk manual acknowledgements already carry canonical flights; expose them to a hosted result.
     const flights = acks.flatMap((ack) =>
       ((ack as typeof ack & { results?: BulkItemResult[] }).results ?? []).flatMap((item) =>
         (item.status === 'created' || item.status === 'replayed') &&
@@ -506,19 +475,14 @@ export function ImportClient({
         ...new Map([...previous, ...flights].map((flight) => [flight.id, flight])).values(),
       ])
     feedback.acknowledge(last)
-    // A ready answer refreshes through the feedback. Any other answer refreshes now: that drops a prefetched Passport
-    // from before this write, so Open Passport shows the new revision and waits for its publication itself.
     if (last.derived_state !== 'ready') router.refresh()
   }
 
-  /** Save the given drafts and manual rows. Runs the server confirm sequentially, then re-reads the stored snapshot. */
   const save = async (
     draftIds: string[],
     manualKeys: string[],
     originalKeys: ReadonlySet<string> = new Set(),
   ) => {
-    // Every path that can leave the review (Import, Retry original save, Done retry) is held back while a correction
-    // is typed or unsent: leaving would unmount the form and lose it. The review shows the reason beside the control.
     if (busy.k !== 'idle' || unsent) return
     const own = epoch.current
     setBusy({ k: 'confirming', epoch: own })
@@ -526,7 +490,6 @@ export function ImportClient({
     try {
       await saveReview(draftIds, manualKeys, originalKeys, own)
     } catch {
-      // Whatever was sent is settled by the stored snapshot; the review stays usable and the member can import again.
     } finally {
       release(own)
     }
@@ -557,7 +520,6 @@ export function ImportClient({
       wrote ||= [...outcome.rows.values()].some(
         (row) => row.status === 'saved' || row.status === 'uncertain',
       )
-      // The writes happened and the feedback must hear of them; the review they belonged to is gone.
       if (stale()) return abandon()
       setRows((previous) => {
         const next = new Map(previous)
@@ -586,7 +548,6 @@ export function ImportClient({
         ),
       )
     }
-    // The denominator counts each row once, however often it is retried.
     setRequestedKeys(
       (previous) =>
         new Set([
@@ -596,7 +557,6 @@ export function ImportClient({
         ]),
     )
     if (wrote) acknowledgeWrites(acks)
-    // The stored snapshot is the truth: it settles rows whose answer was lost.
     setBusy((current) =>
       current.k === 'confirming' && current.epoch === own ? { k: 'checking', epoch: own } : current,
     )
@@ -609,7 +569,6 @@ export function ImportClient({
     }
     if (stale()) return
     refreshReceipts()
-    // A correction that appeared while saving would be lost with the form: stay on review until it is saved or discarded.
     if (unsentNow.current) {
       setHoldDone(true)
       setNotice('heldDone')
@@ -628,7 +587,6 @@ export function ImportClient({
     void save(chosen, manual)
   }
 
-  // What is still not saved after the stored snapshot has been read.
   const failures = useMemo<FailedRow[]>(() => {
     const list: FailedRow[] = []
     for (const [id, row] of rows) {
@@ -756,7 +714,6 @@ export function ImportClient({
     void save(draftIds, manualKeys)
   }
 
-  // New stamps press only after the saves are published; the passport is re-read once and compared with the baseline.
   const savedCount = savedDrafts.length + manualSaved.length
   const touched = useMemo(
     () =>
@@ -776,7 +733,6 @@ export function ImportClient({
       return
     const before = baseline.current
     let live = true
-    // A re-render can cancel this read before it lands; only a landed read counts, so the next run reads again.
     void fetchPressedCountries().then((after) => {
       if (live && after) {
         stampsFor.current = savedCount
@@ -819,7 +775,6 @@ export function ImportClient({
   }, [result, onResult])
 
   const countryName = useMemo(() => countryNamer(locale), [locale])
-  // The year each country was first reached among the flights saved here.
   const firstYears = useMemo(() => {
     const years = new Map<string, number>()
     for (const fields of [
@@ -990,7 +945,6 @@ export function ImportClient({
           expiresAt={batch.batch?.expiresAt ?? null}
           aircraftTargets={aircraftTargets}
           aircraftApi={aircraftApi}
-          theme={themeNow()}
           onRetry={onRetry}
           onReview={() => {
             setShowDone(false)

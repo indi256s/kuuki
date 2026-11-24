@@ -1,31 +1,4 @@
 'use client'
-/**
- * The Journal's one deferred delete (spec D1, "Selection and bulk actions"). Bulk Delete, bulk Did not fly, review-mode
- * Did not fly and mobile swipe Delete all schedule through this owner, so there is one pending operation and one Undo notice.
- *
- * `<JournalDeleteProvider locale hide unhide refresh>` mounts once per Journal page, inside the member shell's `ToastProvider`
- * (the notice renders in its toast region through `ToastSlot`). `hide`/`unhide`/`refresh` are the Journal store's.
- *
- * `useJournalDelete()` returns:
- * - `scheduleDelete(ids, { label?, onUndo?, focusUndo? })`: hides the rows at once and starts a 6 s countdown (paused while the
- *   tab is hidden) with Undo in the toast region. `label` replaces the default "N flights are being deleted." text.
- *   Focus moves to Undo unless `focusUndo` is false (a caller inside a modal sheet renders its own Undo with `pending`/`undo`).
- *   When the countdown ends: one `DELETE /api/flights/:id`, or `POST /api/flights/bulk-delete` for several.
- * - `pending`: the scheduled operation (`ids`, `seconds` left, `label`), or null. Null once its request is sent.
- * - `undo()`: cancels the pending operation, brings its rows back and then calls its `onUndo` (which then owns focus and any
- *   navigation); without `onUndo`, focus goes to the first restored ledger row, else the page heading.
- *
- * A second `scheduleDelete` while one is pending commits the pending one at once (its request is sent, it can no longer be
- * undone) and then schedules the new one. Only the newest operation is ever undoable, so the one Undo is never ambiguous.
- * Ids already in the committed operation are left out of the new one.
- *
- * Committed: `refresh()` and `LIFECYCLE_CHANGED_EVENT` (badges, queue and the store's own refetch). Failed: the rows come back
- * on a definite rejection and an error toast offers Try again. An uncertain response reconciles the list before unhiding;
- * a failed reconciliation keeps the rows hidden and offers a read-only refresh. Unmounted while pending (leaving the Journal):
- * nothing is sent and a notice says so, except after a sign-out or owner switch. Document reloads preserve the countdown
- * in owner-scoped session storage. Interrupted requests reconcile through a read after reload; they are never replayed.
- * Requests in flight are aborted on unmount.
- */
 import {
   createContext,
   forwardRef,
@@ -96,11 +69,8 @@ const copy = {
 } as const
 
 export type ScheduleDeleteOptions = {
-  /** The notice text while the delete is pending. Default: "N flights are being deleted." */
   label?: string
-  /** Runs after Undo brought the rows back; it then owns focus. Default: focus the first restored row, else the page heading. */
   onUndo?: () => void
-  /** Move focus to the notice's Undo. Default true. */
   focusUndo?: boolean
 }
 export type PendingDelete = { ids: number[]; seconds: number; label: string | null }
@@ -118,7 +88,6 @@ type Operation = {
   controller: AbortController
   options: ScheduleDeleteOptions
 }
-/** What the notice shows: the newest operation, while it counts down or while its request runs. */
 type Notice = {
   key: number
   ids: number[]
@@ -131,7 +100,6 @@ const Context = createContext<JournalDelete | null>(null)
 
 const focusLost = () => document.activeElement === null || document.activeElement === document.body
 
-/** Focus the first of `ids` still in the ledger, else the page heading. */
 export function focusRowOrHeading(ids: readonly number[]) {
   for (const id of ids) {
     const row = document.querySelector<HTMLElement>(`[data-flight-row="${id}"]`)
@@ -185,7 +153,6 @@ export function JournalDeleteProvider({
   useEffect(() => {
     latest.current = { locale, hide, unhide, refresh, toast }
   })
-  // Sign-out and owner switches reset identity before the Journal unmounts; their dropped delete is not announced.
   const identityReset = useRef(false)
   const mounted = useRef(true)
 
@@ -252,7 +219,6 @@ export function JournalDeleteProvider({
             if (controller.signal.aborted || identityReset.current) return
             setNotice((current) => (current?.key === op.key ? null : current))
             const { unhide: show, toast: toasts } = latest.current
-            // A transport failure, timeout, 5xx or missing flight cannot prove this DELETE did not commit.
             const rejected =
               cause instanceof ApiError &&
               cause.status >= 400 &&
@@ -285,7 +251,6 @@ export function JournalDeleteProvider({
   )
 
   const focusOnShow = useRef(true)
-  /** Runs once the notice has left after an Undo (the restored rows are rendered by then). */
   const afterClear = useRef<(() => void) | null>(null)
 
   const scheduleDelete = useCallback(
@@ -293,7 +258,6 @@ export function JournalDeleteProvider({
       const previous = pendingOp.current
       const list = [...new Set(ids)].filter((id) => !previous?.ids.includes(id))
       if (!list.length) return
-      // One undoable operation at a time: the pending one is committed now, then the new one starts its own countdown.
       if (previous) send(previous)
       latest.current.hide(list)
       const op: Operation = {
@@ -331,12 +295,10 @@ export function JournalDeleteProvider({
     settle(op.key)
     latest.current.unhide(op.ids)
     setNotice(null)
-    // Called in the same event as the unhide, so a caller that navigates (review mode) renders once, already restored.
     if (op.options.onUndo) op.options.onUndo()
     else afterClear.current = () => focusRowOrHeading(op.ids)
   }, [settle])
 
-  // The countdown runs only while an operation is pending.
   const counting = notice !== null && !notice.sending
   useEffect(() => {
     if (!counting) return
@@ -368,8 +330,6 @@ export function JournalDeleteProvider({
     }
   }, [counting, send])
 
-  // Focus moves when the member acts, never on the network answer: to Undo when it appears, back to the restored row after
-  // Undo, and to the heading when Undo leaves (the request started) with focus resting on it.
   const undoButton = useRef<HTMLButtonElement>(null)
   const shownKey = counting ? notice.key : null
   const previousKey = useRef<number | null>(null)
@@ -416,7 +376,6 @@ export function JournalDeleteProvider({
       event.preventDefault()
       event.returnValue = ''
     }
-    // Read before deferring: a new user action must not restore its own freshly written receipt.
     let stored: DeleteReceipt[] = []
     try {
       stored = readDeleteReceipts(ownerId)
@@ -424,14 +383,12 @@ export function JournalDeleteProvider({
       storageAvailable.current = false
       stored = []
     }
-    // Defer restoration so Strict Mode's setup/cleanup rehearsal cannot cancel a restored operation.
     void Promise.resolve().then(() => {
       if (disposed || identityReset.current || pendingOp.current || receipts.current.size) return
       keys.current = Math.max(keys.current, ...stored.map((receipt) => receipt.key))
       for (const receipt of stored) {
         if (receipt.remaining !== null) {
           scheduleRef.current(receipt.ids, { focusUndo: false })
-          // Scheduling fills the ref synchronously; discard the earlier null narrowing.
           const op = pendingOp.current as Operation | null
           if (op) op.remaining = receipt.remaining
         } else {
@@ -472,7 +429,6 @@ export function JournalDeleteProvider({
     }
   }, [persist, settle, reconcileOperation, ownerId])
 
-  // `notice` keeps its identity until a field changes, so `pending` does too.
   const pending = useMemo<PendingDelete | null>(
     () =>
       notice && !notice.sending
@@ -500,7 +456,6 @@ export function useJournalDelete(): JournalDelete {
   return value
 }
 
-/** The pending-delete line and its Undo. A caller inside a modal sheet renders the same line there (focus cannot leave the sheet). */
 export const DeleteUndoLine = forwardRef<
   HTMLButtonElement,
   { locale: Locale; pending: PendingDelete; onUndo: () => void; className?: string }
@@ -520,10 +475,6 @@ export const DeleteUndoLine = forwardRef<
   )
 })
 
-/**
- * Always mounted, so its polite live region is registered before the first message. The text is announced once: the seconds
- * are decoration and the sentence does not change while the countdown runs. While the request runs the text stays without Undo.
- */
 const DeleteNotice = forwardRef<
   HTMLButtonElement,
   { locale: Locale; notice: Notice | null; onUndo: () => void }

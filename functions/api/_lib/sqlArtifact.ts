@@ -1,4 +1,3 @@
-/** Literals and derived markers shared by private, reviewed migration artifacts. */
 export function sqlLiteral(value: string | number | null): string {
   if (value === null) return 'NULL'
   if (typeof value === 'number') {

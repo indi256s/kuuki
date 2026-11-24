@@ -1,6 +1,3 @@
-// T09 / ADR 0001 §8: maintenance ordering (transitions, dirty repair, leaderboards, cleanup, status), fairness caps,
-// retryable incomplete cycles and the cleanup contracts. Every cycle runs with MAINTENANCE_MODE unset; the held
-// state is covered in due-transitions.test.ts (A9).
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { accountWith, flightStatement, USER, type FixtureFlight } from './country-fixture'
 import { hasSql, instrumentDb } from './db-hooks'
@@ -90,7 +87,6 @@ describe('order', () => {
       ])
       expect((await status(raw))!.last_error).toBeNull()
       expect((await status(raw))!.last_success_at).not.toBeNull()
-      // The transitions were published by the same cycle: no stale user is left behind.
       expect(
         await raw
           .prepare(
@@ -120,7 +116,6 @@ describe('fairness', () => {
     const { db, dispose } = await accountWith([])
     try {
       clock()
-      // u1 is the newest deadline; 50 other users have older ones, so u1 waits for the second cycle.
       await db.batch([
         flightStatement(db, upcoming(1, { awaitingAfter: '2026-10-04T12:00:00.000Z' })),
         ...Array.from({ length: 50 }, (_, i) => `v${i}`).flatMap((id, i) => [
@@ -146,7 +141,7 @@ describe('fairness', () => {
         last_error: 'MAINTENANCE_CYCLE_FAILED',
         last_success_at: null,
       })
-      expect((await lifecycleOf(db, 1))!.lifecycle_state).toBe('upcoming') // newest deadline waits, its eligibility untouched
+      expect((await lifecycleOf(db, 1))!.lifecycle_state).toBe('upcoming')
       expect(
         await db
           .prepare("SELECT COUNT(*) AS n FROM flights WHERE lifecycle_state = 'awaiting'")
@@ -209,7 +204,6 @@ describe('retryable incomplete cycles and recovery', () => {
           .bind(ago(1))
           .run()
         const { db, hooks } = instrumentDb(raw)
-        // The oldest deadline explicitly selects u1 first; the one-shot hook affects only its transition batch.
         const transition = hasSql("SET lifecycle_state = 'awaiting'")
         if (boundary === 'before commit') hooks.failBatch(transition)
         else
@@ -265,7 +259,7 @@ describe('retryable incomplete cycles and recovery', () => {
       expect(await lifecycleOf(raw, 1)).toMatchObject({
         lifecycle_state: 'logged',
         confirmation_source: 'automatic',
-      }) // the transition is canonical
+      })
       expect(await status(raw)).toMatchObject({
         last_error: 'MAINTENANCE_CYCLE_FAILED',
         last_success_at: null,
@@ -279,7 +273,7 @@ describe('retryable incomplete cycles and recovery', () => {
         (row: { revision: number; published_revision: number }) =>
           row.revision > row.published_revision,
       )
-      await cycle(raw) // the outage is over: nothing is due, the dirty user is repaired
+      await cycle(raw)
       expect(await status(raw)).toMatchObject({ last_error: null })
       expect((await status(raw))!.last_success_at).not.toBeNull()
       expect(
@@ -405,7 +399,6 @@ describe('cleanup contracts', () => {
       expect(await ids('SELECT operation_key AS id FROM import_conversion_receipts')).toEqual([
         'conv-new-001',
       ])
-      // Drafts of expired batches go at expires_at; the batch row itself at expires_at + 7 days.
       expect(await ids('SELECT id FROM import_drafts')).toEqual(['d-alive', 'd-stuck'])
       expect(await ids('SELECT id FROM import_batches')).toEqual([
         'alive',

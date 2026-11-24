@@ -6,7 +6,6 @@ import { AddMenu } from './add-menu'
 import { PrimaryNav } from './nav'
 
 const route = vi.hoisted(() => ({ pathname: '/journal' }))
-// The accepted capture paths in their fixed order, spelled out so a dropped or rerouted action fails here.
 const ADD_PATHS = [
   '/import',
   '/add',
@@ -21,7 +20,6 @@ vi.mock('next/link', async () => ({
 beforeEach(() => {
   route.pathname = '/journal'
   window.history.replaceState(null, '', '/')
-  // jsdom has no layout: without a real box the trigger counts as scrolled out of view and `hideWhenDetached` hides the menu.
   vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue(
     new DOMRect(100, 100, 40, 40),
   )
@@ -43,7 +41,6 @@ it('opens one Add menu with the flight pair, then the ground pair, in order', as
   expect(trigger).toHaveAttribute('aria-expanded', 'false')
   await user.click(trigger)
   expect(trigger).toHaveAttribute('aria-expanded', 'true')
-  // Named after its trigger: Radix's default label must survive `Menu`'s optional override.
   const menu = await screen.findByRole('menu', { name: 'Add' })
   const items = within(menu).getAllByRole('menuitem')
   expect(items.map((item) => item.getAttribute('href'))).toEqual(ADD_PATHS)
@@ -53,7 +50,6 @@ it('opens one Add menu with the flight pair, then the ground pair, in order', as
     'Train journey',
     'Road trip',
   ])
-  // Two groups apart by space: no divider and no group label inside the list.
   expect(within(menu).getAllByRole('group')).toHaveLength(2)
   expect(within(menu).queryByRole('separator')).not.toBeInTheDocument()
 })

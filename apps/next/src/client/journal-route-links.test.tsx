@@ -47,7 +47,6 @@ const journalLinks = () =>
     (link) => new URL(link.getAttribute('href')!, window.location.href).pathname === '/journal',
   )
 
-/** Every link to /journal the shell can show while the Journal is mounted must announce its destination; otherwise a pending filter navigation it supersedes leaves stale drafts. */
 describe('shell links to /journal announce their destination on the route link event', () => {
   const cases: Array<[string, () => ReactNode, number]> = [
     ['desktop navigation', () => <PrimaryNav />, 1],

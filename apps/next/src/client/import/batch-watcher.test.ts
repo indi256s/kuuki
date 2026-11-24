@@ -233,7 +233,7 @@ describe('terminal end and the final snapshot (ADR 0001 section 9)', () => {
         signal: new AbortController().signal,
       })
       expect(connect).toHaveBeenCalledTimes(1)
-      expect(loads).toBe(3) // initial, the failed final read, then the independent retry
+      expect(loads).toBe(3)
       expect(seen.at(-1)).toBe(status)
     },
   )

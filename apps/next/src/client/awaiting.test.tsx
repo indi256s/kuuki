@@ -28,7 +28,6 @@ it('shares distinct C4 counts with navigation/capture, retains cached counts on 
       </Menu>
     </AwaitingProvider>,
   )
-  // The account-menu row and the Add chooser's last row read the same count.
   await waitFor(() => expect(queueRows()).toHaveLength(2))
   for (const row of queueRows()) expect(row).toHaveTextContent('5')
   act(() => window.dispatchEvent(new Event('kuuki:lifecycle-changed')))

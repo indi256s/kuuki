@@ -23,15 +23,8 @@ import {
 } from './parts'
 import type { LadderFigureDef } from './types'
 
-// Airports: a radar scope unit. A heavy console on rubber feet with a sloped deck; a square bezel plate holds a round CRT
-// recessed under a visor, with range rings, an azimuth tick ring, a sweep and its afterglow. Knurled knobs, a pilot lamp
-// and toggles sit on the strip in front; a cable leaves a gland on the side. Rung = blips on the glass; from rung 3 one
-// flies a holding pattern. The newest blip is lit (rung 3: the holding blip and the head of its trail; rung 5: a sticky
-// note on the bezel, the glass too crowded to read).
-
 const Z: P3 = [0, 0, 1]
 
-/** Housing: x 0..W, y 0..D on feet Z0 tall; the deck slopes down towards +y from ZB; BEV is the chamfer on its visible top edges. */
 const W = 96,
   D = 100,
   ZB = 40,
@@ -39,13 +32,10 @@ const W = 96,
   Z0 = 4,
   BEV = 1.8
 const top = (y: number) => ZB - SLOPE * y
-/** Deck axes: V runs down the slope, N is its normal. */
 const V: P3 = unit([0, 1, -SLOPE]),
   N: P3 = unit([0, SLOPE, 1])
-/** A point on the deck above (x, y), lifted l along its normal. */
 const dk = (x: number, y: number, l = 0): P3 => [x, y + l * N[1], top(y) + l * N[2]]
 
-/** The scope: centre on the deck, bezel plate (half side, thickness), turned ring, opening and glass. */
 const CX = (W - BEV) / 2,
   CY = 40,
   HS = 37.5,
@@ -58,13 +48,10 @@ const CX = (W - BEV) / 2,
   R_OPEN = 30,
   R_GLASS = 28.4,
   DEPTH = 3
-/** A point in the scope's frame: (u, v) on the deck round the scope centre, l along the normal. */
 const sp = (u: number, v: number, l = 0): P3 => comb(dk(CX, CY), [u, X], [v, V], [l, N])
-/** The control strip: its seam, and the row the knobs and toggles stand on. */
 const YS = 80,
   KY = 89
 
-/** The holding pattern: a racetrack on the far side of the glass (straights 2a long, ends of radius b). */
 const OVAL = { cx: -7, cy: -6, a: 8, b: 6.5, turn: 28 * D2R }
 const oval = (t: number): Pt => {
   const half = 2 * OVAL.a,
@@ -87,7 +74,6 @@ const oval = (t: number): Pt => {
   return [OVAL.cx + x * c - y * sn, OVAL.cy + x * sn + y * c]
 }
 
-/** Blips off the holding pattern, seeded so a longer prefix only adds blips; each has a heading its echoes trail behind. */
 type Blip = { x: number; y: number; dx: number; dy: number }
 const BLIPS: Blip[] = []
 {
@@ -99,7 +85,6 @@ const BLIPS: Blip[] = []
       rad = 4.5 + 18.5 * Math.sqrt(rnd())
     const x = rad * Math.cos(ang),
       y = rad * Math.sin(ang)
-    // Keep the near-left of the glass clear for the first rungs: that is where the top rung's note lands.
     if (BLIPS.length < 10 && Math.hypot(x + 15, y - 17) < 10) continue
     if (track.some(([a, b]) => Math.hypot(x - a, y - b) < 5.5)) continue
     if (BLIPS.some((o) => Math.hypot(x - o.x, y - o.y) < 5.8)) continue
@@ -107,20 +92,16 @@ const BLIPS: Blip[] = []
     BLIPS.push({ x, y, dx: Math.cos(h), dy: Math.sin(h) })
   }
 }
-/** Blips on the glass per rung, not counting the one in the holding pattern. */
 const COUNT = [1, 4, 6, 10, 26]
-/** The sweep's bearing on the glass, and how far its afterglow trails. */
 const SWEEP = -38 * D2R,
   FAN = 62 * D2R
 
-/** A flat plane in the world: O + u·U + v·V + w·N (N = U × V points out of the face). */
 type Plane = { O: P3; U: P3; V: P3; N: P3 }
 const onPlane =
   (F: Plane) =>
   (u: number, v: number, w = 0): P3 =>
     comb(F.O, [u, F.U], [v, F.V], [w, F.N])
 
-/** Runs of consecutive facets that share a tone, as index lists (each run ends one past its last facet). */
 function toneRuns(tone: readonly (Paint | null)[]): [Paint, number[]][] {
   const m = tone.length,
     out: [Paint, number[]][] = []
@@ -135,10 +116,6 @@ function toneRuns(tone: readonly (Paint | null)[]): [Paint, number[]][] {
   return out
 }
 
-/**
- * A rounded-rectangle plate standing `t` proud of plane F, with a 45° bevel `bev` round its top: walls, bevel and top each shaded by facing.
- * Returns a mapper onto its top face.
- */
 function plate(
   s: Scene,
   F: Plane,
@@ -202,11 +179,9 @@ export const airports: LadderFigureDef = {
         return comb(c, [r * Math.cos(a), U], [r * Math.sin(a), Vv])
       })
 
-    // ---------------------------------------------------------------- housing (hero)
     if (hero) {
       shadowRect(s, 0, 0, W, D, 5)
 
-      // Rubber feet under the three corners that show, far to near.
       for (const [x, y] of [
         [W - 5, 5],
         [5, D - 5],
@@ -226,7 +201,6 @@ export const airports: LadderFigureDef = {
         })
       }
 
-      // The shell: side (+x) and front (+y) walls, the chamfered vertical corner, chamfers along both top edges, the deck.
       const yb = D - BEV,
         xb = W - BEV
       const face = (pts: P3[], paint?: Paint) => {
@@ -317,7 +291,6 @@ export const airports: LadderFigureDef = {
         'line',
       )
 
-      // Kick-plate seam round both walls, and one panel joint on each.
       const zk = Z0 + 3.2
       s.line(
         [
@@ -346,7 +319,6 @@ export const airports: LadderFigureDef = {
         0.6,
       )
 
-      // Front wall: a vent grille and a label plate with rule lines for print and four screws.
       for (let i = 0; i < 4; i++)
         s.poly(
           rrOn(s, [0, D + 0.02, 0], X, Z, 8, 8.4 + i * 2.3, 26, 1.1, 0.55),
@@ -367,7 +339,6 @@ export const airports: LadderFigureDef = {
       ])
         screw(s, lp(u, v), Y, 0.4)
 
-      // Side wall: a data plate and a cable gland on the rear panel, a vent grille on the front one.
       const side: Plane = { O: [W, 0, 0], U: Y, V: Z, N: X }
       const dp = plate(s, side, 18, 16, 22, 9, 1, 0.6, 0.25, hero)
       for (const [i, len] of [16, 11, 14].entries())
@@ -388,7 +359,6 @@ export const airports: LadderFigureDef = {
           0.4,
         )
 
-      // Cable gland: a hex nut and a domed cap; the cable loops down to the floor and back under the console.
       const yg = 11,
         zg = 12
       lathe(s, frameAlong([W, yg, zg], X), () => ({ r: 2.4 }), 0, 1.1, {
@@ -419,7 +389,6 @@ export const airports: LadderFigureDef = {
         [8, W - 10, yg + 15, 1],
       ])
       const cable = Array.from({ length: 65 }, (_, i) => route((i / 64) * 8) as unknown as P3)
-      // A contact shadow under the run that lies on the floor.
       const lying = cable.filter((p) => p[2] < 1.6)
       const off = (sg: number) =>
         lying.map((p, i): P3 => {
@@ -428,7 +397,6 @@ export const airports: LadderFigureDef = {
           const t = unit([q[0] - o[0], q[1] - o[1], 0])
           return [p[0] - sg * 1.7 * t[1], p[1] + sg * 1.7 * t[0], 0]
         })
-      // Where the cable passes under the console it goes out of sight: everything left of that point on screen is clipped.
       const [xc, yc] = [W - 4, yg + 13.8]
       s.group(
         'cable',
@@ -446,7 +414,6 @@ export const airports: LadderFigureDef = {
         },
       )
 
-      // Deck: the seam that frames the control strip, and screws at the panel corners.
       s.line([dk(0, YS, 0.02), dk(xb, YS, 0.02)], 'crease', 0.7)
       s.line([dk(0, YS + 1, 0.02), dk(xb, YS + 1, 0.02)], 'detail', 0.6)
       for (const [x, y] of [
@@ -459,7 +426,6 @@ export const airports: LadderFigureDef = {
       ])
         screw(s, dk(x, y, 0.02), N, 0.45, { ring: 1 })
 
-      // Bezel plate with a corner screw at each corner.
       const deck: Plane = { O: dk(CX, CY), U: X, V, N }
       const bz = plate(s, deck, -HS, -HS, 2 * HS, 2 * HS, 5, PT, 1, hero)
       for (const [u, v] of [
@@ -470,7 +436,6 @@ export const airports: LadderFigureDef = {
       ])
         screw(s, bz(u * (HS - 4.4), v * (HS - 4.4), 0.02), N, 0.55, { ring: 1.3 })
 
-      // The visor: a curved shade over the far half of the scope, tapering into the plate at both ends.
       const RV = 34.4,
         TV = 1.5,
         HV = 8,
@@ -485,7 +450,6 @@ export const airports: LadderFigureDef = {
         lipIn = ids.map((a) => vat(RV, a, hv(a))),
         lipOut = ids.map((a) => vat(RV + TV * Math.sqrt(hv(a) / HV), a, hv(a)))
       s.poly([...foot, ...[...lipIn].reverse()], 'side', 'none')
-      // Inside the shade it darkens towards the plate.
       for (const f of [0.6, 0.3])
         s.poly(
           [...foot, ...[...ids].reverse().map((a) => vat(RV, a, hv(a) * f))],
@@ -501,7 +465,6 @@ export const airports: LadderFigureDef = {
       s.line(lipOut, 'line', 1)
     }
 
-    // ---------------------------------------------------------------- the scope
     const ringN = hero ? 72 : 40
     const prof = spline([
       [0, R_RING],
@@ -515,7 +478,6 @@ export const airports: LadderFigureDef = {
       shade: hero,
     })
     if (hero) {
-      // Azimuth ring: a printed circle with ticks every 5°, longer every 30°, hanging inward towards the opening.
       const c = sp(0, 0, RT + 0.01)
       s.poly(circ(c, X, V, R_SCALE, ringN), 'none', 'crease', undefined, 0.5)
       const t = radialTicks(c, X, V, R_SCALE, 72, 6, [0.8, 1.7])
@@ -523,7 +485,6 @@ export const airports: LadderFigureDef = {
       s.segs(t.major, 'line', 0.7)
     }
 
-    // The recess: the opening in the ring, its inner wall shaded by facing, and the glass at the bottom.
     const openPts = circ(sp(0, 0, RT), X, V, R_OPEN, ringN)
     const lowPts = circ(sp(0, 0, RT - DEPTH), X, V, R_GLASS, ringN)
     {
@@ -550,7 +511,6 @@ export const airports: LadderFigureDef = {
       if (floor.length > 2) s.poly2(floor, 'glass', hero ? 'crease' : 'none', 0.5)
     }
 
-    // On the glass, clipped to the opening so nothing shows past the rim.
     const GL = RT - DEPTH + 0.02
     const g = (x: number, y: number): P3 => sp(x, y, GL)
     const gc = sp(0, 0, GL)
@@ -560,8 +520,6 @@ export const airports: LadderFigureDef = {
     const holding = rung >= 3
     const N_TRAIL = hero ? 40 : 22,
       headRuns = rung === 3 ? (hero ? 12 : 8) : 0
-    // The holding pattern's trail: solid, each short run fainter and thinner than the one before it.
-    // A ribbon painted on the glass, cut into short runs that share their ends exactly, so it never beads or reads as dashed.
     const edge = (i: number, side: number): P3 => {
       const f = i / N_TRAIL,
         [x, y] = oval(-f * 0.96),
@@ -583,7 +541,6 @@ export const airports: LadderFigureDef = {
         Math.round(op * 1000) / 1000,
       )
     }
-    // A blip and, on the hero, two echoes behind it along its track, each smaller and fainter.
     const blip = (b: Blip, paint: 'ink' | 'accent', grow = 0) => {
       if (hero)
         for (const [j, op] of [
@@ -610,7 +567,6 @@ export const airports: LadderFigureDef = {
             'detail',
             0.5,
           )
-          // Phosphor afterglow: overlapping fans behind the sweep, so it fades the further it trails.
           for (let i = 1; i <= 12; i++) {
             const span = (FAN * i) / 12
             s.poly(
@@ -647,7 +603,6 @@ export const airports: LadderFigureDef = {
             }
           })
 
-        // The sweep, rooted on the hub.
         const tip = g((R_GLASS + 1) * Math.cos(SWEEP), (R_GLASS + 1) * Math.sin(SWEEP))
         s.line([gc, tip], hero ? 'ink' : 'crease', hero ? 0.9 : 1.2)
         if (hero) {
@@ -659,9 +614,7 @@ export const airports: LadderFigureDef = {
     )
     s.poly(openPts, 'none', 'crease', undefined, hero ? 0.8 : 1)
 
-    // ---------------------------------------------------------------- controls (hero)
     if (hero) {
-      // Knurled knobs over printed 270° scales, pointers rooted on a hub dot.
       for (const [kx, ang] of [
         [13, 200],
         [28, 300],
@@ -700,7 +653,6 @@ export const airports: LadderFigureDef = {
         s.poly(circ(capC, X, V, 0.55, 8), 'line', 'none')
       }
 
-      // Pilot lamp: a turned bezel and a domed lens, unlit.
       lathe(s, frameAlong(dk(56, KY), N), () => ({ r: 2.5 }), 0, 1, {
         steps: 1,
         ring: 24,
@@ -719,7 +671,6 @@ export const airports: LadderFigureDef = {
         shade: true,
       })
 
-      // Toggles: an escutcheon with two screws, hex nut, threaded bushing, a lever with a ball tip; two up, one down.
       for (const [tx, tilt] of [
         [68, -24],
         [76, -24],
@@ -763,7 +714,6 @@ export const airports: LadderFigureDef = {
       }
     }
 
-    // ---------------------------------------------------------------- top rung: a sticky note on the bezel
     if (rung === 5) {
       const NL = RT + 0.3
       const ca = 0.2,
@@ -786,7 +736,6 @@ export const airports: LadderFigureDef = {
           'shadow',
           'none',
         )
-        // An outline with a faint tint, not a slab: the bezel stays visible through it.
         const note = [np(-h, -h), np(h, -h), np(h, c), np(c, h), np(-h, h)]
         s.poly(note, 'accent', 'none', undefined, undefined, 0.22)
         s.poly(note, 'none', 'accent', undefined, hero ? 1 : undefined)

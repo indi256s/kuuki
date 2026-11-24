@@ -226,7 +226,6 @@ import { castleCornet, kingsGate, kiek, mirCastle, soroca, whiteTower } from './
 import { blackheads } from './blackheads'
 import { dubrovnik, gediminas, guaita, ohridBoat, samuelsFortress, valletta } from './hills-c2'
 
-/** Kit modules by recipe tag. */
 export const kit = {
   'avenue-a': avenueA,
   'clock-cupola-a': clockCupolaA,

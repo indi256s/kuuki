@@ -278,7 +278,6 @@ it('uses the configured dedicated activation origin and keeps request responses 
     expect(statuses).toEqual([200, 200, 200])
     expect(background).toHaveLength(3)
     await vi.waitFor(() => expect(send).toHaveBeenCalledOnce())
-    // The account-dependent send remains pending after the generic 200 response.
     expect(
       (
         await db
@@ -506,7 +505,6 @@ it('serves only the token page and completion API on the activation alias before
     next,
   } as never)
   expect(signIn.status).toBe(302)
-  // The redirect keeps mode=signin for a legacy rollback; the Next card reads only the password-saved notice.
   expect(signIn.headers.get('Location')).toBe(`${ORIGIN}/?mode=signin&notice=password-saved#`)
   expect(signIn.headers.get('Cache-Control')).toBe('no-store')
   expect(signIn.headers.get('Referrer-Policy')).toBe('no-referrer')

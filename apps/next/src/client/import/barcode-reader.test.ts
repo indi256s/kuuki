@@ -17,7 +17,6 @@ const pdfjs = vi.hoisted(() => ({
 }))
 vi.mock('pdfjs-dist', () => pdfjs)
 
-// Node has no browser Worker. Keep the real WASM decode and projection behind a cloned message boundary.
 class DecoderWorker {
   static instances: DecoderWorker[] = []
   onmessage: ((event: { data: ReadOutcome }) => void) | null = null
@@ -96,7 +95,6 @@ const blank = (side = 200) =>
     height: side,
   }) as ImageData
 
-// Stands in for canvas and pdf.js, which jsdom and node do not have: the file itself is what the decoder reads.
 const asIs: Rasterize = async (file) => [file]
 const read = (file: File, rasterize: Rasterize = asIs, signal?: AbortSignal) =>
   readBoardingPass(file, { rasterize, signal, moduleOverrides: readerWasm })

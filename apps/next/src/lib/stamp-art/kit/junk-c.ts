@@ -1,6 +1,3 @@
-// Hong Kong: a junk under full sail. Three battened sails on raked masts (the main sail a fan with
-// a convex leech, heavy batten lines so it reads as a ribbed mid-grey at 96px), a dark hull with a
-// raised stern. The box bottom is the waterline; the tallest mast is the box top.
 import { type Pt, type SvgNode, fill, occlude, quad, stroke } from '../grid'
 import { type KitModule } from './util'
 
@@ -11,8 +8,6 @@ export const junkC: KitModule = ([x, y, w, h]) => {
   const deck = base - hullH
   const bot = deck - 1.5
 
-  // [mast foot x fraction, sail width fraction, head as a fraction of the box height]. Masts rake
-  // aft; every sail has a rising head, a convex leech and battens that splay toward the leech.
   const sails: [number, number, number][] = [
     [0.46, 0.5, 0],
     [0.1, 0.3, 0.3],
@@ -47,7 +42,6 @@ export const junkC: KitModule = ([x, y, w, h]) => {
     )
   }
 
-  // Hull: low bow, high stern, solid.
   const hull: Pt[] = [
     [x - 1, deck - 3],
     [x + w * 0.04, base - 2],

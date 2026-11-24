@@ -1,15 +1,14 @@
 import { AIRCRAFT_BATCH_SIZE } from '../../../packages/shared/src/constants'
-// Shared types and utilities for server-selected aircraft suggestion providers.
 
 export interface FlightToEnrich {
   id: string
   flight_number: string | null
   airline_iata: string | null
-  airline_name?: string | null // Optional airline name for better search context
+  airline_name?: string | null
   date: string
   origin: string
   destination: string
-  source_hints?: string[] // Optional known archive URLs; hints never count as evidence.
+  source_hints?: string[]
 }
 
 export interface EnrichmentRequest {
@@ -37,7 +36,6 @@ export interface EnrichmentResponse {
   error?: string
 }
 
-/** Provider and client URLs become links only as credential-free http(s) URLs. */
 export function safeUrl(value: unknown): string | null {
   if (typeof value !== 'string') return null
   try {
@@ -50,13 +48,8 @@ export function safeUrl(value: unknown): string | null {
   }
 }
 
-// Maximum number of flights per batch request
 export const MAX_BATCH_SIZE = AIRCRAFT_BATCH_SIZE
 
-/**
- * Build flight line with optional airline name for better search context.
- * Format: "EK1 (Emirates) DXB-LHR 2024-03-15"
- */
 function buildFlightLine(f: FlightToEnrich, index: number): string {
   const flightId = f.flight_number
     ? f.airline_iata && f.flight_number.toUpperCase().startsWith(f.airline_iata.toUpperCase())
@@ -67,10 +60,6 @@ function buildFlightLine(f: FlightToEnrich, index: number): string {
   return `${index + 1}. ${flightId}${airlinePart} ${f.origin}-${f.destination} ${f.date}`
 }
 
-/**
- * Build the batch prompt for Gemini to identify aircraft types.
- * Searches for evidence about the dated flight, not current route equipment.
- */
 export function buildBatchPrompt(flights: FlightToEnrich[]): string {
   const flightLines = flights.map((f, i) => buildFlightLine(f, i)).join('\n')
 

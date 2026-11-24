@@ -1,8 +1,3 @@
-// Gutenberg Castle (Balzers, LI), lane C: a small castle on a steep isolated knoll. The knoll is
-// the lower 57% of the box (flat crown, steep flanks, fine diagonal hatch on the lit left, vertical hatch
-// on the shaded right); the castle is the upper 43%: a square keep with a crenellated parapet, a
-// hall with a steep slate gable, a round turret with a conical slate roof, and a low curtain wall
-// with merlons and a dark gate in front. The box bottom is the foot of the knoll.
 import { type Pt, type SvgNode, body, fill, hatchPoly, rectPts, stroke } from '../grid'
 import { mulberry32 } from '../hash'
 import { type KitModule, num } from './util'
@@ -34,7 +29,6 @@ export const gutenbergC: KitModule = ([x, y, w, h], p) => {
   const crown = Y(0.43)
   const out: SvgNode[] = []
 
-  // Knoll: a ragged outline, shaded right flank, fine diagonal hatch on the lit left.
   const rock: Pt[] = PROFILE.map(([fx, fy], i) =>
     i === 0 || i === PROFILE.length - 1 || fy === 0.43
       ? [X(fx), Y(fy)]
@@ -55,7 +49,6 @@ export const gutenbergC: KitModule = ([x, y, w, h], p) => {
   ]
   out.push(...hatchPoly(lit, { angle: -58, gap: 4.2, weight: 'fine' }))
 
-  // Keep: square tower, parapet with three merlons, two slits, shaded right third.
   const kx = X(0.29),
     kw = 15,
     kTop = crown - h * 0.42
@@ -76,7 +69,6 @@ export const gutenbergC: KitModule = ([x, y, w, h], p) => {
   )
   for (const sy of [kTop + 8, kTop + 20]) out.push(fill(rectPts(kx + 3.6, sy, 1.8, 5.5)))
 
-  // Hall: gabled slate roof, two dark windows, shaded right.
   const hx = kx + kw,
     hw = 22,
     hTop = crown - h * 0.24,
@@ -97,7 +89,6 @@ export const gutenbergC: KitModule = ([x, y, w, h], p) => {
   out.push(...body(roof, 'line'), fill(roof))
   out.push(fill(rectPts(hx + 4, hTop + 4.5, 2.4, 4)), fill(rectPts(hx + 10, hTop + 4.5, 2.4, 4)))
 
-  // Round turret with a conical roof at the right end.
   const tx = hx + hw + 1,
     tw = 10,
     tTop = crown - h * 0.26
@@ -116,7 +107,6 @@ export const gutenbergC: KitModule = ([x, y, w, h], p) => {
   ]
   out.push(...body(cone, 'line'), fill(cone))
 
-  // Curtain wall in front: merlons, a dark gate.
   const wx = X(0.28),
     ww = X(0.72) - X(0.28),
     wTop = crown - h * 0.1

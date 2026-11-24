@@ -1,13 +1,3 @@
-// Draft conversion (ADR 0001 §6 "Draft conversion", C5): `POST /api/import/batches/:id/confirm`.
-//
-// Receipt-first, then the shared `bulkCreate` with one conversion chain per item:
-//   1. a conversion receipt by key and by draft answers a replay before any batch check, so it survives batch expiry
-//      and deletion (receipts are tombstones kept 37 days);
-//   2. a ledger row without a conversion receipt for the key means the key was used by something else;
-//   3. otherwise the batch must exist and be unexpired;
-//   4. ledger insert (guarded on the draft), flight insert, ledger link, draft flip and receipt run in one D1 batch,
-//      each statement gated on this batch's own previous write, so an item is all-or-nothing;
-//   5. every attempted item is classified from what the database now holds, never from the batch's own results.
 import { HttpError } from '../_lib/http'
 import { toOwnFlight, FLIGHT_COLUMNS, type FlightRow } from '../_lib/flights'
 import { localToday } from '../../../packages/shared/src/calendar'
@@ -52,7 +42,6 @@ export type ConfirmResult =
       key: string
       status: 'created' | 'replayed'
       flight: ReturnType<typeof toOwnFlight>
-      /** ADR 0001 §5, as on bulk create: null on `replayed`, pending publication or an unknown before-set. */
       newly_stamped_countries: string[] | null
     }
   | {
@@ -176,12 +165,6 @@ async function flightsById(db: D1Database, userId: string, ids: number[]) {
   return new Map(rows.results.map((row) => [row.id, row]))
 }
 
-/**
- * Advances the batch sequence and completes it once no `review` row is left, but only when one of `keys` now has a
- * receipt in this batch. Step 1 answered every key that already had one, so that receipt was written by this
- * transaction (or by a concurrent request with the same key, which at worst advances the sequence once more).
- * Runs after the item chains, in the same D1 batch.
- */
 function completionStatement(
   db: D1Database,
   userId: string,
@@ -199,7 +182,6 @@ function completionStatement(
     .bind(instant, batchId, userId, userId, batchId, JSON.stringify(keys))
 }
 
-/** A Quick Add row dated today or earlier needs the member's own "I flew it"; a future date converts as upcoming. */
 function flownUnconfirmed(draft: DraftRow, today: string) {
   const fields = JSON.parse(draft.fields_json) as DraftFields
   return (
@@ -225,11 +207,10 @@ export async function confirmBatch(
   )
   const results: Array<ConfirmResult | undefined> = items.map(() => undefined)
 
-  // 1. Receipt first: a replay never depends on the batch, the draft or a fresh version.
   const receipts = await receiptsFor(db, userId, items)
   const byKey = new Map(receipts.map((receipt) => [receipt.operation_key, receipt]))
   const byDraft = new Map(receipts.map((receipt) => [receipt.draft_id, receipt]))
-  const replayed = new Map<number, number>() // item index -> flight id
+  const replayed = new Map<number, number>()
   items.forEach((item, index) => {
     const known = byKey.get(item.key)
     if (known) {
@@ -259,7 +240,6 @@ export async function confirmBatch(
         )
   }
 
-  // 2. Ledger pre-check: a key in the ledger with no conversion receipt belongs to something else.
   let pending = items.flatMap((item, index) => (results[index] ? [] : [index]))
   if (pending.length > 0) {
     const used = await ledgerKeys(
@@ -275,7 +255,6 @@ export async function confirmBatch(
   let derived: DerivedRepairResult | null = null
   const attempted = new Set<number>()
   if (pending.length > 0) {
-    // 3. The batch must exist and be unexpired. With replays in the same request the failure is per item so they are still delivered.
     const batch = await ownedBatch(db, userId, batchId)
     const refusal = !batch
       ? batchNotFound()
@@ -314,7 +293,6 @@ export async function confirmBatch(
           results[index] = failure(item, 404, 'DRAFT_NOT_FOUND', 'Draft not found')
           continue
         }
-        // A moved version or a row past review writes nothing; step 5 tells "just converted elsewhere" from "stale".
         if (draft.status !== 'review' || draft.version !== item.version) attempted.add(index)
         else if (draft.year_explicit !== 1 && draft.year_confirmed !== 1) {
           results[index] = failure(
@@ -344,9 +322,6 @@ export async function confirmBatch(
         }
       }
 
-      // 4. The shared create path: one validation (`parseFlightBodies`), one ledger scheme, one D1 batch. The batch
-      // completion rides in the same transaction, so a conversion never commits without it (a receipt-only replay
-      // would never get another chance to complete the batch).
       const outcome =
         ready.length === 0
           ? null
@@ -379,17 +354,15 @@ export async function confirmBatch(
               },
             )
       derived = outcome?.derived ?? null
-      const created = new Map<number, string[] | null>() // item index -> its newly stamped countries
+      const created = new Map<number, string[] | null>()
       ready.forEach((index, position) => {
         const result: BulkItemResult = outcome!.results[position]
-        // A validation refusal never reached the chain: the draft stays in review, correctable.
         if (result.status === 'error' && result.http_status === 400) {
           results[index] = failure(items[index], 400, result.code, result.error)
           attempted.delete(index)
         } else if (result.status === 'created') created.set(index, result.newly_stamped_countries)
       })
 
-      // 5. Classify every attempted item from what the database holds now.
       const settled = [...attempted]
       const after =
         settled.length === 0
@@ -414,7 +387,6 @@ export async function confirmBatch(
         userId,
         after.map((receipt) => receipt.flight_id),
       )
-      // The transaction also checks duplicates: an earlier item or another confirmation may have just saved one.
       const blocked = settled.filter(
         (index) =>
           !afterKey.has(items[index].key) &&

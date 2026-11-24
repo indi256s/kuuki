@@ -1,6 +1,3 @@
-// Abandoned whaling station on a shore: a tall tapering square brick chimney with a bold lip and
-// two bands, low gabled sheds with corrugated roofs and a row of round oil tanks. The box is the
-// whole station; the bottom is the shore line. The chimney stands at `at` (fraction of the width).
 import { type Pt, type SvgNode, body, fill, hatch, hline, occlude, rectPts, stroke } from '../grid'
 import { type KitModule, num } from './util'
 
@@ -8,7 +5,6 @@ export const whalingChimneyA: KitModule = ([x, y, w, h], p) => {
   const base = y + h
   const out: SvgNode[] = []
   const cx = x + w * num(p, 'at', 0.3)
-  // Sheds behind and beside the chimney.
   const shed = (sx: number, sw: number, sh: number): SvgNode[] => {
     const ridge = sh * 0.38
     const wall: Pt[] = [
@@ -30,7 +26,6 @@ export const whalingChimneyA: KitModule = ([x, y, w, h], p) => {
   }
   out.push(...shed(cx + 14, 30, 24))
   out.push(...shed(cx - 38, 22, 18))
-  // Tanks on the right.
   const tankX = cx + 50
   for (let i = 0; i < 3; i++) {
     const tw = 12
@@ -42,7 +37,6 @@ export const whalingChimneyA: KitModule = ([x, y, w, h], p) => {
     out.push(hline('hair', tx, tx + tw, base - th * 0.5))
     out.push(hline('bold', tx - 0.8, tx + tw + 0.8, base - th))
   }
-  // Chimney.
   const bw = num(p, 'width', 14)
   const topW = bw * 0.62
   const top = y + 3
@@ -88,7 +82,6 @@ export const whalingChimneyA: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // Base plinth.
   out.push(...body(rectPts(cx - bw / 2 - 2, base - 3, bw + 4, 3), 'line'))
   out.push(hline('bold', x, x + w, base))
   return out

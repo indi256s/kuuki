@@ -1,4 +1,3 @@
-// Inline, offline preview of the exact production yacht builder: lane size, a 64 px phone size and a 4x close-up, in both themes.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { buildYacht, YACHT_CSS } from './yacht'
 import { AIRCRAFT_CSS } from '../airliner/svg'

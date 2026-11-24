@@ -1,5 +1,3 @@
-// GET /api/flights/ids — all flight ids matching the same filters as the list (for bulk selection).
-
 import { runHandler, json } from '../_lib/http'
 import { requireUser, type RequestData } from '../_lib/auth'
 import { parseFlightFilters, buildFlightWhere } from '../_lib/flightQuery'

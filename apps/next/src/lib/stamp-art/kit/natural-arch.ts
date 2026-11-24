@@ -1,6 +1,3 @@
-// Ennedi sandstone arch: a massive eroded pier-and-span with a flat-ish top, bedding lines
-// across the face, a shaded right pier and a skirt of sand. The opening shows the backdrop.
-// The box bottom is the sand line.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, hline, occlude, quad, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
@@ -50,7 +47,6 @@ export const naturalArch: KitModule = ([x, y, w, h], p) => {
   const out: SvgNode[] = [occlude(poly)]
   out.push(stroke('line', outer.slice(0, outer.length - 2)))
   out.push(stroke('line', inner))
-  // Bedding lines across both piers and the span.
   for (let k = 1; k < 8; k++) {
     const yy = y + h * (0.22 + 0.09 * k)
     const segs: [number, number][] =
@@ -64,7 +60,6 @@ export const naturalArch: KitModule = ([x, y, w, h], p) => {
       for (let sx = a + rand() * 6; sx < b - 4; sx += 14 + rand() * 12)
         out.push(hline('hair', sx, Math.min(b, sx + 8 + rand() * 12), yy + (rand() - 0.5) * 1.2))
   }
-  // Shaded right pier and the underside of the span.
   const shade: Pt[] = [
     [holeR + 3, holeTop + h * 0.12],
     [x + w * 0.95, y + h * 0.4],
@@ -95,7 +90,6 @@ export const naturalArch: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // Sand skirt with wind ripples.
   for (let k = 0; k < 4; k++)
     for (let sx = x + rand() * 6; sx < x + w - 6; sx += 10 + rand() * 10)
       out.push(hline('hair', sx, sx + 5 + rand() * 8, base - 1 - k * 2.2))

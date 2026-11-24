@@ -9,7 +9,6 @@ const Notice = dynamic(() => import('./kuukies-notice').then((module) => module.
   ssr: false,
 })
 
-/** Opens the cookie details from Settings. */
 export function openKuukies() {
   window.dispatchEvent(new Event(OPEN_EVENT))
 }
@@ -17,7 +16,6 @@ export function openKuukies() {
 export function Kuukies() {
   const [notice, setNotice] = useState<{ request: number; opener: HTMLElement | null } | null>(null)
   useEffect(() => {
-    // Acknowledged notices download nothing. First visits leave the initial page resources ahead of the notice.
     const timer = readSeen()
       ? undefined
       : window.setTimeout(

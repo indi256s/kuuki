@@ -1,5 +1,3 @@
-/* Airline mix: the ring beside its legend. The desktop card may wrap the legend under the ring; the sheet keeps both on one row so seven
-   24px rows (168px) stay inside its 176px plot. Rows are a pointer shortcut only: touch and keyboard pick on the wedges. */
 .ov3-airline-ring {
   display: flex;
   flex-wrap: wrap;
@@ -26,8 +24,8 @@
   gap: 8px;
   align-items: center;
   min-height: 32px;
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
 }
 .ov3-airline-legend li[data-pick] {
   cursor: pointer;

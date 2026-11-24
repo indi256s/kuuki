@@ -8,7 +8,6 @@ import { Button } from '../../ui/button'
 import { Menu, MenuItem } from '../../ui/menu'
 import { Disclosure } from '../../ui/disclosure'
 
-/** Index a dragged row would take when released at pointer height `y`: the first row whose middle is below it. */
 export function dropIndexAt(
   rows: ReadonlyArray<{ top: number; bottom: number }>,
   y: number,
@@ -28,7 +27,6 @@ export function moved<T>(items: readonly T[], from: number, to: number): T[] {
 
 type Dir = 'up' | 'down'
 
-/** The list with `item` back at `index` (clamped); unchanged if a row with its id is already there. */
 export function restored<T extends { id: string }>(
   items: readonly T[],
   item: T,
@@ -40,7 +38,6 @@ export function restored<T extends { id: string }>(
   return next
 }
 
-/** Blank and invalid rows show their inputs; completed rows can be explicitly edited. */
 export function RowFields({
   locale,
   summary,
@@ -62,7 +59,6 @@ export function RowFields({
 }) {
   const [opened, setOpened] = useState(!complete || fresh)
   const id = useId()
-  // Revealing a problem must not hide the focused input as soon as it is corrected.
   if ((hasError || !complete) && !opened) setOpened(true)
   const visible = opened || hasError || !complete
   return (
@@ -97,7 +93,6 @@ export function RowFields({
   )
 }
 
-/** Optional fields stay compact, while validation always exposes the affected input. */
 export function RowDetails({
   locale,
   hasError,
@@ -121,12 +116,6 @@ export function RowDetails({
   )
 }
 
-/**
- * An ordered list whose rows can be moved from their actions menu or by dragging the grip
- * (pointer only, Escape cancels). Reordering and removing keep focus where the member is working and announce
- * the result; a removed row can be brought back from the notice for a few seconds. Rows stay in the page flow;
- * nothing here clips a popover.
- */
 export function OrderedRows<T extends { id: string }>({
   items,
   ownerId,
@@ -144,19 +133,14 @@ export function OrderedRows<T extends { id: string }>({
   items: readonly T[]
   ownerId: string
   locale: Locale
-  /** Visible legend of a row, e.g. "Leg 2: Tbilisi → Kars". */
   title: (item: T, index: number) => string
-  /** Short spoken name of a row for the move and remove buttons. */
   name: (item: T, index: number) => string
   onMove: (from: number, to: number) => void
   onRemove: (id: string) => void
-  /** Puts back what Undo restores: the whole list with the removed row at its old index. */
   onRestore: (items: T[]) => void
-  /** Why Remove is unavailable (e.g. the minimum is reached); shown as the button's accessible description. */
   removeDisabledReason?: string
   disabled?: boolean
   children: (item: T, index: number) => ReactNode
-  /** Accessible name of the list. */
   label: string
 }) {
   const ru = locale === 'ru'
@@ -165,7 +149,6 @@ export function OrderedRows<T extends { id: string }>({
   const [status, setStatus] = useState('')
   const [drag, setDrag] = useState<{ id: string; over: number } | null>(null)
   const dragRef = useRef<{ id: string; from: number; over: number } | null>(null)
-  // The notice outlives this render: Undo must read the list as it is then, not as it was when the row went.
   const latest = useRef({ items, onRestore, alive: true })
   useEffect(() => {
     latest.current = { items, onRestore, alive: true }
@@ -234,7 +217,6 @@ export function OrderedRows<T extends { id: string }>({
   const dragging = drag !== null
   useEffect(() => {
     if (!dragging) return
-    // Escape cancels a drag in progress without leaving the page or closing a surface around the form.
     const onEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return
       event.preventDefault()

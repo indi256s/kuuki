@@ -18,7 +18,6 @@ it('clears only the departing owner when an owner is given', () => {
   sessionStorage.setItem('unrelated', '1')
   clearCapturePreferences('owner-a')
   expect(readCapturePreference('owner-a', 'recent', null)).toBeNull()
-  // A prefix-sharing owner id is a different owner.
   expect(readCapturePreference('owner-ab', 'recent', null)).toEqual(['IST'])
   expect(sessionStorage.getItem('unrelated')).toBe('1')
 })
@@ -34,11 +33,11 @@ it('clears every owner without an owner', () => {
 it('keeps recents and disclosure across new tab sessions without leaking to another owner', () => {
   writeCapturePreference('owner-a', 'airports', ['TBS', 'IST'])
   writeCapturePreference('owner-a', 'details', true)
-  sessionStorage.clear() // a fresh tab has no departing tab's session state
+  sessionStorage.clear()
   expect(readCapturePreference('owner-a', 'airports', [])).toEqual(['TBS', 'IST'])
   expect(readCapturePreference('owner-a', 'details', false)).toBe(true)
   expect(readCapturePreference('owner-b', 'airports', [])).toEqual([])
-  clearCapturePreferences('owner-a') // existing identity-reset caller
+  clearCapturePreferences('owner-a')
   expect(readCapturePreference('owner-a', 'airports', [])).toEqual([])
   expect(readCapturePreference('owner-a', 'details', false)).toBe(false)
 })

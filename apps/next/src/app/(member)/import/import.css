@@ -1,4 +1,3 @@
-/* Import flow. Tokens only: no literal colours, no blur, no ambient motion, no `transition: all`. */
 .import-page {
   max-width: 860px;
   margin: 0 auto;
@@ -19,13 +18,13 @@
   margin: 0;
 }
 .import-page h2 {
-  font-size: 22px;
-  line-height: 28px;
+  font-size: 1.375rem;
+  line-height: 1.75rem;
   text-wrap: balance;
 }
 .import-page h3 {
-  font-size: 17px;
-  line-height: 24px;
+  font-size: 1.0625rem;
+  line-height: 1.5rem;
 }
 .import-page h2:focus-visible,
 .import-page h3:focus-visible {
@@ -40,16 +39,16 @@
 .import-privacy,
 .import-empty {
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
 }
 .import-note:empty {
   display: none;
 }
 .import-problem {
   color: var(--danger-text);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   min-height: 20px;
 }
 .import-problem,
@@ -87,7 +86,6 @@
   align-items: flex-start;
 }
 
-/* Quick Add: two equal source actions that stack when two columns would not fit (320px). */
 .quick-add-actions {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
@@ -96,7 +94,6 @@
 .quick-add-actions .ui-button {
   width: 100%;
 }
-/* On a phone the two actions are the pickers; an empty dropzone only returns once a file is chosen. */
 @media (pointer: coarse) {
   .quick-add-drop[data-empty='true'] {
     display: none;
@@ -111,7 +108,6 @@
   background: var(--surface);
 }
 
-/* Stepper: named steps, never bare dots. */
 .import-steps {
   list-style: none;
   margin: 0;
@@ -125,8 +121,8 @@
   align-items: center;
   gap: var(--space-2);
   color: var(--text-muted);
-  font-size: 15px;
-  line-height: 24px;
+  font-size: 0.9375rem;
+  line-height: 1.5rem;
 }
 .import-steps li:not(:last-child)::after {
   content: '';
@@ -153,7 +149,7 @@
   height: 24px;
   border: 1px solid var(--control-border);
   border-radius: var(--radius-full);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
 }
 .import-steps li[aria-current='step'] .import-step-number,
@@ -163,19 +159,18 @@
   color: var(--accent-foreground);
 }
 
-/* Source */
 .import-textarea {
   display: block;
   min-height: 120px;
   padding: var(--space-3);
   font: inherit;
-  line-height: 24px;
+  line-height: 1.5rem;
   resize: vertical;
 }
 .import-prompt {
   font-family: var(--font-mono);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
 }
 .import-email-help {
   display: grid;
@@ -183,7 +178,6 @@
   padding-top: var(--space-2);
 }
 
-/* Failure */
 .import-failure {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -215,7 +209,6 @@
   justify-items: start;
 }
 
-/* Progress */
 .import-source-chip {
   display: inline-flex;
   flex-wrap: wrap;
@@ -296,7 +289,7 @@
   flex: 1 1 auto;
 }
 .import-stage-state {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-muted);
   font-weight: 400;
 }
@@ -319,11 +312,10 @@
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-4);
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
 }
 
-/* Review */
 .import-select-head {
   display: flex;
   flex-wrap: wrap;
@@ -436,8 +428,8 @@
   min-width: 0;
 }
 .import-row-route {
-  font-size: 17px;
-  line-height: 24px;
+  font-size: 1.0625rem;
+  line-height: 1.5rem;
   font-weight: 600;
 }
 .import-row-meta {
@@ -445,8 +437,8 @@
   flex-wrap: wrap;
   gap: var(--space-1) var(--space-3);
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
 }
 .import-flags {
   display: flex;
@@ -461,8 +453,8 @@
   padding: 2px var(--space-3);
   border: 1px solid var(--hairline);
   border-radius: var(--radius-full);
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 0.75rem;
+  line-height: 1rem;
   font-weight: 500;
   color: var(--text-muted);
   background: var(--surface-inset);
@@ -506,8 +498,8 @@
   gap: var(--space-2);
 }
 .import-manual-head h3 {
-  font-size: 15px;
-  line-height: 24px;
+  font-size: 0.9375rem;
+  line-height: 1.5rem;
 }
 .import-empty {
   padding: var(--space-4);
@@ -516,7 +508,6 @@
   background: var(--surface);
 }
 
-/* Form */
 .import-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -542,24 +533,22 @@
   background: var(--surface-inset);
   border-radius: var(--radius-sm);
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
 }
 .import-snippet span {
   font-family: var(--font-mono);
   overflow-wrap: anywhere;
 }
 
-/* Review header and action bar */
 .import-review-discard {
   display: flex;
   justify-content: flex-end;
 }
-/* Text-like buttons keep their text-sized look; min-height keeps a 44px target. */
 .import-text-action {
   padding-inline: var(--space-3);
   margin-inline: calc(-1 * var(--space-3));
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .import-text-action[aria-disabled='true'] {
   background: transparent;
@@ -567,8 +556,8 @@
 }
 .import-lead {
   color: var(--text-muted);
-  font-size: 15px;
-  line-height: 24px;
+  font-size: 0.9375rem;
+  line-height: 1.5rem;
 }
 .import-bar-text {
   display: grid;
@@ -588,7 +577,6 @@
   animation: import-spin 1s linear infinite;
 }
 
-/* Questions: one answer for every row with the same cause */
 .import-questions {
   display: grid;
   gap: var(--space-3);
@@ -626,22 +614,22 @@
 }
 .import-question [data-question-heading] {
   margin: 0;
-  font-size: 17px;
-  line-height: 24px;
+  font-size: 1.0625rem;
+  line-height: 1.5rem;
   font-weight: 600;
   text-wrap: balance;
 }
 .import-question-count {
   flex: none;
   color: var(--warning-text);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   font-weight: 600;
 }
 .import-question-dates,
 .import-question-flights {
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
 }
 .import-question-dates {
   color: var(--text-muted);
@@ -673,22 +661,21 @@
 }
 .import-question-route {
   flex-basis: 100%;
-  font-size: 15px;
-  line-height: 22px;
+  font-size: 0.9375rem;
+  line-height: 1.375rem;
 }
 .import-question-meta {
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
 }
 .import-question-meta[data-tone='warning'] {
   color: var(--warning-text);
 }
 .import-question-city {
-  font-size: 15px;
-  line-height: 22px;
+  font-size: 0.9375rem;
+  line-height: 1.375rem;
 }
-/* Answers are equal outlined secondary buttons, at least 8px apart. */
 .import-question-answers {
   display: grid;
   gap: var(--space-2);
@@ -722,8 +709,8 @@
 }
 .import-airport-name {
   color: var(--text-muted);
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 0.75rem;
+  line-height: 1rem;
   font-weight: 400;
 }
 .import-question .ui-button[aria-disabled='true'] {
@@ -741,16 +728,15 @@
   width: 8rem;
 }
 .import-question-year .ui-field-label {
-  line-height: 24px;
+  line-height: 1.5rem;
 }
 .import-question-year > .ui-button {
   margin-top: calc(24px + var(--space-1));
 }
-/* "I'll set each one": always on its own line under the answers. */
 .import-each {
   justify-self: start;
   color: var(--text);
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .import-each[aria-disabled='true'] {
   color: var(--text-muted);
@@ -758,12 +744,11 @@
 .import-question .ui-disclosure-trigger {
   padding-inline: 0;
   color: var(--accent-text);
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .import-question .ui-disclosure-trigger .ui-disclosure-chevron {
   color: inherit;
 }
-/* Room for focus rings inside the clipped panel. */
 .import-question .ui-disclosure-inner {
   padding: 3px;
   margin: -3px;
@@ -774,8 +759,8 @@
   padding: 0;
   display: grid;
   gap: var(--space-2);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   font-variant-numeric: tabular-nums;
 }
 .import-question-done > li {
@@ -806,7 +791,6 @@
 .import-question-failed {
   color: var(--danger-text);
 }
-/* A settled answer rises in once, when it was added while this view was open. */
 .import-question-done > li[data-settled-new] {
   animation: history-settled-in var(--dur-base) var(--ease-out) backwards;
 }
@@ -816,7 +800,6 @@
     transform: translateY(0.3em);
   }
 }
-/* An answered or skipped card or row fades out before it leaves the list (pointer only; JS releases it). */
 :is(.import-question, .import-row)[data-leaving] {
   animation: history-leave 120ms var(--ease-out) forwards;
 }
@@ -825,7 +808,6 @@
     opacity: 0;
   }
 }
-/* Sending: the departure board of years beside its plain "n of m". */
 .history-board {
   display: flex;
   flex-wrap: wrap;
@@ -857,7 +839,6 @@
   }
 }
 
-/* Done: a reading column, so the stamps and actions do not stretch across the review's width. */
 .import-done {
   max-width: 640px;
 }
@@ -869,35 +850,34 @@
   font-variant-numeric: tabular-nums;
 }
 .import-hero-count {
-  font-size: 80px;
-  line-height: 80px;
+  font-size: 5rem;
+  line-height: 5rem;
   font-weight: 600;
   letter-spacing: -0.04em;
 }
 .import-hero-label {
-  font-size: 22px;
-  line-height: 28px;
+  font-size: 1.375rem;
+  line-height: 1.75rem;
   font-weight: 600;
 }
 .import-summary {
-  font-size: 22px;
-  line-height: 28px;
+  font-size: 1.375rem;
+  line-height: 1.75rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 .import-done-summary {
-  font-size: 17px;
-  line-height: 26px;
+  font-size: 1.0625rem;
+  line-height: 1.625rem;
 }
 .import-done-note {
-  font-size: 15px;
-  line-height: 24px;
+  font-size: 0.9375rem;
+  line-height: 1.5rem;
 }
 .import-stamps {
   display: grid;
   gap: var(--space-3);
 }
-/* Up to MAX_STAMPS stamps in a wrapping grid, Passport-sized; no scroll rail. */
 .import-stamps-count {
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
@@ -915,6 +895,21 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
     column-gap: var(--space-4);
   }
+}
+.import-stamp {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+}
+.import-stamp-name {
+  max-width: 100%;
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.import-stamps-more {
+  justify-self: start;
 }
 .import-final-actions {
   display: grid;
@@ -970,12 +965,11 @@
     grid-template-columns: minmax(0, 1fr);
   }
   .import-summary {
-    font-size: 17px;
-    line-height: 24px;
+    font-size: 1.0625rem;
+    line-height: 1.5rem;
   }
 }
 
-/* Several single-source jobs share one focused review and one final save. */
 .unified-import-heading {
   display: flex;
   align-items: center;
@@ -988,7 +982,6 @@
 .unified-import-heading > .ui-button {
   flex: none;
 }
-/* Under the lane figure the source buttons keep their natural width, centred. */
 .unified-import-sources {
   display: grid;
   justify-items: start;
@@ -1004,7 +997,6 @@
 .unified-import-notes[data-empty] {
   text-align: center;
 }
-/* Dropping and pasting files needs a pointer and a keyboard. */
 @media not ((hover: hover) and (pointer: fine)) {
   .unified-import-drop {
     display: none;
@@ -1059,7 +1051,6 @@
 .unified-import .import-row-body {
   flex: 1 1 12rem;
 }
-/* Inside a row card the year answers size to their labels and wrap whole, never mid-word. */
 .unified-import .import-question-answers[data-columns='3'] {
   display: flex;
   flex-wrap: wrap;
@@ -1078,7 +1069,6 @@
   display: grid;
   gap: var(--space-3);
 }
-/* Desktop browsers ignore `capture`; there the camera would only repeat Choose files. */
 @media (hover: hover) and (pointer: fine) {
   .unified-import-camera,
   .ui-menu-item:has(.unified-import-camera) {
@@ -1096,7 +1086,6 @@
   }
 }
 @media (max-width: 700px) {
-  /* The focused route has no tab rail, so the final action rests at the bottom even under a short review. */
   .unified-import {
     display: flex;
     flex-direction: column;
@@ -1111,7 +1100,6 @@
     bottom: calc(env(safe-area-inset-bottom) + var(--import-keyboard-inset, 0px));
     flex-wrap: wrap;
   }
-  /* A disabled Save sits in a wrapper with its reason; both span the bar. */
   .unified-import .ui-action-bar-actions,
   .unified-import .ui-action-bar-actions > *,
   .unified-import .ui-action-bar-actions .ui-button {
@@ -1128,7 +1116,6 @@
   overflow-wrap: break-word;
 }
 
-/* Flighty CSV import: the chosen clock offset of a record. */
 .import-question-answers .ui-button[aria-pressed='true'] {
   box-shadow: inset 0 0 0 2px var(--selection-contour);
 }

@@ -42,7 +42,6 @@ export function overviewSeries(payload: OverviewPayload, filter: OverviewFilter)
   }> = []
   let flights = 0,
     km = 0
-  // Legacy month summaries cannot locate their weighted members on individual days.
   if (dailyAvailable) {
     const byDay = new Map<string, OverviewRow[]>()
     for (const row of rows) {

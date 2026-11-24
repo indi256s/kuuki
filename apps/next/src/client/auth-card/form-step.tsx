@@ -47,7 +47,6 @@ export const formWords = {
   },
 }
 
-/** Every message the form and create steps can show, by the state's `error` / `notice` value. */
 export const formMessages = {
   en: {
     email: 'Enter a valid email.',
@@ -79,7 +78,6 @@ export const formMessages = {
 
 export type FormError = keyof typeof formMessages.en
 
-/** The card heading: H1 plus the muted subtitle. `tabIndex=-1` lets a state change move focus to it. */
 export function CardHeading({
   title,
   subtitle,
@@ -99,7 +97,6 @@ export function CardHeading({
   )
 }
 
-/** A message that belongs to the whole form, not one field: an icon plus text, never colour alone. */
 export function FormMessage({ tone, children }: { tone: 'error' | 'notice'; children: ReactNode }) {
   const Icon = tone === 'error' ? CircleAlert : CircleCheck
   return (
@@ -116,13 +113,11 @@ export function Spinner() {
 
 export type FormStepProps = {
   locale: Locale
-  /** `form` and `checking` draw board 1.1 / 1.3 / 1.4; `create` and `creating` draw board 1.2 in place. */
   step: 'form' | 'checking' | 'create' | 'creating' | 'google'
   email: string
   password: string
   error?: FormError
   notice?: 'created' | 'password-saved'
-  /** Where the card sends focus after a state change. */
   headingRef: Ref<HTMLHeadingElement>
   emailRef: Ref<HTMLInputElement>
   passwordRef: Ref<HTMLInputElement>
@@ -130,9 +125,7 @@ export type FormStepProps = {
   onEmailChange: (value: string) => void
   onPasswordChange: (value: string) => void
   onSubmit: () => void
-  /** Create step: back to the form to fix the email. */
   onChangeEmail: () => void
-  /** Wrong password: the secondary action that emails a link to get back in. */
   onGetBackIn: () => void
   onGoogle?: () => void
 }
@@ -144,10 +137,6 @@ const FIELD_ERRORS: Partial<Record<FormError, 'email' | 'password'>> = {
   short: 'password',
 }
 
-/**
- * The one form (boards 1.1 to 1.4): Email, Password and Continue. The create step reuses the same inputs, so the
- * typed email and password stay put and editing keeps focus. Enter in either field submits.
- */
 export function FormStep({
   locale,
   step,
@@ -171,7 +160,6 @@ export function FormStep({
   const creating = step === 'create' || step === 'creating'
   const busy = step === 'checking' || step === 'creating' || step === 'google'
   const field = error ? FIELD_ERRORS[error] : undefined
-  // Keep the last checked email mounted while the status is collapsed.
   const [checked, setChecked] = useState('')
   if (creating && checked !== email.trim()) setChecked(email.trim())
   const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -193,12 +181,10 @@ export function FormStep({
           {t.google}
         </Button>
       ) : null}
-      {/* Always rendered: create reveals it and Change collapses it. Inert and hidden while closed. */}
       <div className="auth-status" inert={!creating} aria-hidden={!creating || undefined}>
         <div className="auth-status-clip">
           {checked ? (
             <div className="auth-status-line">
-              {/* Remounted on open so the live region is announced as it is today. */}
               <p key={creating ? 'live' : 'idle'} role={creating ? 'status' : undefined}>
                 {t.noJournal[0]} <strong>{checked}</strong> {t.noJournal[1]}
               </p>
@@ -216,7 +202,6 @@ export function FormStep({
       </div>
       <form className="auth-form" onSubmit={submit} noValidate aria-busy={busy || undefined}>
         <div className="auth-fields">
-          {/* `text` with an email keyboard rather than `email`: only text inputs expose the selection Change sets. */}
           <CardField
             ref={emailRef}
             label={t.email}

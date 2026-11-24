@@ -12,7 +12,6 @@ import { Sheet } from '../ui/sheet'
 import { useMobile } from '../ui/use-mobile'
 import { FlightForm } from './flight-form'
 
-/** Shared Journal detail: omit `initialEditing` to open the Ticket with named edit/delete actions. */
 export function FlightDetailSheet({
   ownerId,
   locale: initialLocale,
@@ -31,9 +30,7 @@ export function FlightDetailSheet({
   onOpenChange?: (open: boolean) => void
   initialEditing?: boolean
   onDelete?: (id: number) => void
-  /** Opens the editor on Optional details and focuses this field ("Add aircraft"). */
   focusField?: 'aircraft'
-  /** Focus is about to leave the closing sheet; `preventDefault()` lets the caller place it (the row that opened the sheet). */
   onCloseAutoFocus?: (event: Event) => void
 }) {
   const locale = useLocale(initialLocale)
@@ -77,7 +74,6 @@ export function FlightDetailSheet({
     />
   )
 }
-/** Add a flight. A confirmed save closes it, returns to the screen it was opened from and reports the save in a toast. */
 export function FlightCaptureDialog({
   ownerId,
   locale: initialLocale,
@@ -91,7 +87,6 @@ export function FlightCaptureDialog({
   const router = useRouter()
   const mobile = useMobile()
   const ru = locale === 'ru'
-  // Read once: the tracker would otherwise record /add's own successor while it closes.
   const origin = useRef<string | null>(null)
   useEffect(() => {
     origin.current = addOrigin()

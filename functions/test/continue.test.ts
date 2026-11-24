@@ -248,7 +248,6 @@ it('returns 429 after 10 create answers, while known-account calls do not spend 
     const limited = await cont(db, { email: 'new10@example.test', password: 'password-123' })
     expect(limited.status).toBe(429)
     expect(await limited.json()).toMatchObject({ code: 'RATE_LIMITED' })
-    // The signup bucket is shared with sign-up, so the same IP cannot create either.
     expect(
       (
         await post(db, '/api/auth/signup', {
@@ -281,7 +280,6 @@ it('answers an identical 429 for unknown and known emails once the signup bucket
     expect(unknown).toEqual([429, expect.objectContaining({ code: 'RATE_LIMITED' })])
     expect(await seen('known@example.test')).toEqual(unknown)
     expect(await seen('pending@example.test')).toEqual(unknown)
-    // The refusals are peeks: they do not spend the signup bucket further.
     expect(
       (
         await db
@@ -337,7 +335,6 @@ it('neither renews nor rewrites an existing session on a failed or create-answer
       .getSetCookie()
       .map((value) => value.split(';')[0])
       .join('; ')
-    // Make the session renewal-eligible: last touched two days ago, expiring in 20 days.
     const stale = new Date(Date.now() - 2 * 86_400_000).toISOString()
     const expiry = new Date(Date.now() + 20 * 86_400_000).toISOString()
     await db

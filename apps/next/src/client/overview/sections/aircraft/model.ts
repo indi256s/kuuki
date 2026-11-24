@@ -10,14 +10,9 @@ export type MakerRow = {
   share: number
 }
 
-/** Share of flights as the chapter prints it; a share that rounds to nothing is still not zero. */
 export const shareText = (share: number) =>
   share > 0 && share < 0.005 ? '<1%' : `${Math.round(share * 100)}%`
 
-/**
- * The makers with flights, the most flown first and Unknown last. Every share uses all selected flights,
- * including those whose maker is unknown.
- */
 export function makerRows(data: Makers) {
   const live = data.rows.filter((row) => row.flights > 0)
   const known = live.filter((row) => row.key !== 'unknown')
@@ -31,11 +26,8 @@ export function makerRows(data: Makers) {
 }
 
 export type ShedPlan = {
-  /** At most three, the largest first. */
   sheds: Shed[]
-  /** The shed that carries a maker's flights; null for Unknown, which has no hangar. */
   shedOf(maker: MakerKey): string | null
-  /** Nothing to draw yet: placeholder sheds with no shares. */
   blank: boolean
 }
 
@@ -45,10 +37,6 @@ const PLACEHOLDER: Shed[] = [
   { key: 'other', name: 'OTHER', share: 0.1 },
 ]
 
-/**
- * The hangars: the makers themselves while they fit in three sheds, otherwise the two most flown named makers and one
- * "Other" shed for every other maker (Other included). A maker with no shed of its own lights the Other shed.
- */
 export function planSheds(
   rows: readonly MakerRow[],
   name: (key: MakerKey) => string,

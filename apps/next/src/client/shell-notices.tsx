@@ -2,14 +2,14 @@
 
 import { useLocale } from './preferences'
 
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
+import { useOnline } from './awaiting'
 import { ToastProvider, useToast, type ToastInput } from './ui/toast'
 import type { Locale } from '../server/locale'
 
 type Host = { ownerId: string; show: (toast: ToastInput) => number }
 type Notice = { ownerId: string; at: number; toast: ToastInput }
 
-/** Long enough to cross one navigation commit; a notice no shell picked up by then is stale and dropped. */
 const CARRY_MS = 5000
 const hosts = new Set<Host>()
 let queued: Notice[] = []
@@ -25,18 +25,28 @@ function deliver() {
   })
 }
 
-/**
- * Shows a notice in the owner's member shell, including from an unmount cleanup. Delivery waits for the current commit to
- * finish, so a notice sent while one shell layout replaces another (/journal to /leaderboard) reaches the shell that stays.
- * Only a shell of the same owner shows it.
- */
 export function announceShellNotice(ownerId: string, toast: ToastInput) {
   queued.push({ ownerId, at: Date.now(), toast })
   queueMicrotask(deliver)
 }
 
 function Host({ ownerId }: { ownerId: string }) {
-  const { show } = useToast()
+  const { show, dismiss } = useToast()
+  const offline = useRef<number | null>(null)
+  const online = useOnline()
+  useEffect(() => {
+    if (online) {
+      if (offline.current !== null) dismiss(offline.current)
+    } else if (offline.current === null) {
+      offline.current = show({
+        message: { en: 'You are offline.', ru: 'Нет сети.' },
+        duration: 0,
+        onClose: () => {
+          offline.current = null
+        },
+      })
+    }
+  }, [online, show, dismiss])
   useEffect(() => {
     const host = { ownerId, show }
     hosts.add(host)
@@ -48,7 +58,6 @@ function Host({ ownerId }: { ownerId: string }) {
   return null
 }
 
-/** The member shell's toast host, mounted once per owner shell so notices survive client navigation between member routes. */
 export function ShellNotices({
   ownerId,
   locale: initialLocale,

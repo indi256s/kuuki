@@ -4,13 +4,9 @@ import { apportion, sum } from './apportion'
 import { markerPath, type SlotMarker } from './comparison-slots'
 import './arc-dot-ring.css'
 
-// Original chart in the Arc donut's vocabulary: clockwise wedges from 12:00, host-owned interaction, no grouping.
-// A wedge spans its share of the circle and holds its dots on concentric rings; the host (KuukiChart) owns tooltip, keyboard and table.
 export type DotRingSegment<T> = {
   point: ChartPoint<T>
-  /** Flights in the segment. Zero-count segments are not drawn. */
   count: number
-  /** `marked` draws the slot marker in `color`, `rest` a filled neutral circle, `unknown` a 1px outline circle (never a fill). */
   kind: 'marked' | 'rest' | 'unknown'
   color: string
   marker: SlotMarker
@@ -21,33 +17,21 @@ const GEOMETRY = {
   sheet: { size: 168, pitch: 9, dot: 3.2, rings: 4 },
 }
 export type DotRingSpan = keyof typeof GEOMETRY
-/** Side of the square chart. */
 export const dotRingSize = (span: DotRingSpan) => GEOMETRY[span].size
-/** Smallest distance between two dot centres on a ring, and the looser one used to pick how many rings a small ring needs. */
 const MIN_PITCH = 9,
   COMFORT_PITCH = 14
-/** Angle between two wedges. */
 const GAP = 0.07
-/** Room kept between the outermost dots and the edge of the chart for the wedge contour. */
 const EDGE = 5
 const TAU = Math.PI * 2
 
 export type DotRingPlan = {
   span: DotRingSpan
-  /** Flights per dot. */
   k: number
-  /** Dots per segment, in the order of the counts given. */
   dots: number[]
-  /** Ring radii, outermost first. */
   radii: number[]
-  /** Angular start and end of each segment, in radians clockwise from 12:00. */
   angles: { start: number; end: number }[]
 }
 
-/**
- * Where everything goes. One dot is one flight while the flights fit the rings at the minimum dot pitch; past that one dot is
- * the smallest whole number of flights that fits, with every non-empty segment keeping a dot.
- */
 export function planDotRing(counts: readonly number[], span: DotRingSpan): DotRingPlan {
   const { size, pitch, rings: most, dot } = GEOMETRY[span]
   const outer = size / 2 - dot - EDGE,
@@ -81,7 +65,6 @@ export function planDotRing(counts: readonly number[], span: DotRingSpan): DotRi
 const point = (radius: number, angle: number) =>
   `${radius * Math.cos(angle - Math.PI / 2)} ${radius * Math.sin(angle - Math.PI / 2)}`
 
-/** An annular sector between two angles, or the whole annulus. */
 function sector(outer: number, inner: number, start: number, end: number) {
   if (end - start >= TAU - 1e-6)
     return `M${point(outer, 0)}A${outer} ${outer} 0 1 1 ${point(outer, Math.PI)}A${outer} ${outer} 0 1 1 ${point(outer, 0)}ZM${point(inner, 0)}A${inner} ${inner} 0 1 0 ${point(inner, Math.PI)}A${inner} ${inner} 0 1 0 ${point(inner, 0)}Z`
@@ -89,7 +72,6 @@ function sector(outer: number, inner: number, start: number, end: number) {
   return `M${point(outer, start)}A${outer} ${outer} 0 ${large} 1 ${point(outer, end)}L${point(inner, end)}A${inner} ${inner} 0 ${large} 0 ${point(inner, start)}Z`
 }
 
-/** One dot at the origin: the slot marker in its colour, a neutral fill for the rest, a 1px outline (never a fill) for unknown. */
 export function DotMark({
   kind,
   marker,
@@ -111,19 +93,15 @@ export type ArcDotRingProps<T> = {
   segments: readonly DotRingSegment<T>[]
   plan: DotRingPlan
   mark: (point: ChartPoint<T>) => SVGProps<SVGGElement>
-  /** Wedge outlined from outside the chart, such as the legend row under the pointer. */
   highlightKey?: string | null
-  /** The picked reading, drawn in the hole. */
   centre?: { value: string; label: string } | null
 }
 
-/** Inputs are confirmed counts; unavailable data is handled by the caller before mounting. */
 export function ArcDotRing<T>({ segments, plan, mark, highlightKey, centre }: ArcDotRingProps<T>) {
   const { size, dot } = GEOMETRY[plan.span]
   const innermost = plan.radii[plan.radii.length - 1],
     hole = innermost - dot - 6,
     reach = dot + 3
-  // 13px sans averages about 6.9px a character; the name stays inside the hole.
   const whole = plan.dots.filter((dots) => dots > 0).length === 1
   const room = Math.max(4, Math.floor((hole * 2 * 0.92) / 6.9))
   const label =

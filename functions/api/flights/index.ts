@@ -1,7 +1,4 @@
 import { JOURNAL_PAGE_SIZE } from '../../../packages/shared/src/constants'
-// GET /api/flights — list (filters + sort + paging). POST /api/flights — create.
-// Both own-scoped; the create also requires CSRF. Mirrors the live trigger chain (LOGIC_SPEC):
-// duration → distance → insert → visits → recompute → unlocks → badges → advanced stats.
 
 import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireUser, requireCsrf, type RequestData } from '../_lib/auth'
@@ -19,7 +16,6 @@ export { FLIGHT_COLUMNS }
 export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =>
   listFlights(context.request, context.env, context.data)
 
-/** Actual Request/Response domain entry, shared by the Pages compatibility transport. */
 export function listFlights(request: Request, env: Env, data: RequestData): Promise<Response> {
   return runHandler(async () => {
     const user = requireUser(data)
@@ -34,7 +30,6 @@ export function listFlights(request: Request, env: Env, data: RequestData): Prom
 export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) =>
   createFlightRequest(context.request, context.env, context.data)
 
-/** Actual Request/Response domain entry, shared by the Pages compatibility transport. */
 export function createFlightRequest(
   request: Request,
   env: Env,

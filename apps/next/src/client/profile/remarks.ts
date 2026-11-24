@@ -1,6 +1,3 @@
-// The holder page's owner-only "Remarks" line (spec: narrator, profile bank). One deterministic line per owner and
-// trigger, picked from three EN/RU variants (glados-copy: triples, numbers only from params, RU «вы» and plural-safe
-// label forms). Visitors never see it, so it may tease the owner about their own journal.
 import { formatNumber, type Locale } from '../../lib/format'
 import { fill, t } from '../overview/copy'
 import type { Line } from '../overview/narrator/corpus'
@@ -15,7 +12,6 @@ export type RemarksTrigger =
   | 'redEye'
   | 'steady'
 
-/** Fits two lines on the 400px holder page (328px measure, 15px Commissioner). */
 export const REMARKS_MAX = 88
 
 export const REMARKS_CORPUS: Record<RemarksTrigger, [Line, Line, Line]> = {
@@ -127,7 +123,6 @@ export type RemarksStats = {
   has_night_departure: boolean
 }
 
-/** First matching trigger, in priority order, with its params (unformatted). */
 export function remarksTrigger(stats: RemarksStats): {
   id: RemarksTrigger
   params: Record<string, number>

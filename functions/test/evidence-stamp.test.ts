@@ -1,5 +1,3 @@
-// ADR 0001 §10 / A2 F2 and I1 (T07): a publication below the rollback floor leaves the evidence stamp
-// stale; the first lifecycle-aware sync and the maintenance repair both run the full publish and reconcile.
 import { afterEach, expect, it, vi } from 'vitest'
 import { apiContext, createApiDatabase, csrfRequest } from './harness'
 import { oldEdit } from './lifecycle-fixture'
@@ -44,7 +42,6 @@ const countries = (db: D1Database) =>
     .all<{ country_code: string }>()
     .then((r) => r.results.map((row) => row.country_code))
 
-/** A: TBS->IST (transit), B: IST->JFK; a published account whose transit decision hides Turkey. */
 async function transitAccount() {
   const { db, dispose } = await createApiDatabase()
   await db.batch([
@@ -90,7 +87,6 @@ async function transitAccount() {
   return { db, dispose }
 }
 
-/** What a pre-lifecycle build does after a route edit: its dirty mark, then its repair publishing the revision without the stamp. */
 async function oldRouteEditAndRepair(db: D1Database) {
   await oldEdit(db, 1, { destination: 'LHR' }, '2026-10-05')
   expect(
@@ -115,11 +111,10 @@ it('F2: an old route edit and old repair leave the stamp stale, and readers repo
     const state = await stamp(db)
     expect(state!.revision).toBe(state!.published_revision)
     expect(state!.evidence_revision).toBeLessThan(state!.published_revision)
-    expect(await suppressions(db)).toHaveLength(2) // the stale suppression of the old hub is still published
+    expect(await suppressions(db)).toHaveLength(2)
     expect(
       await (await derivedStateRoute(ctx(db, '/api/me/derived-state', 'GET'))).json(),
     ).toMatchObject({ derived_state: 'pending' })
-    // The repair's own early return honours the stamp: a ready predicate on revision alone would be a no-op here.
     expect(await repairUserDerivedState(db, user.id)).toMatchObject({ derived_state: 'ready' })
     expect((await stamp(db))!.evidence_revision).toBe(state!.revision)
   } finally {
@@ -143,7 +138,7 @@ it('F2/I1: the first lifecycle-aware sync repairs inline, drops the stale suppre
       published_revision: before.revision,
       evidence_revision: before.revision,
     })
-    expect(await suppressions(db)).toEqual([]) // no decision remains, so nothing suppresses Turkey or the new destination
+    expect(await suppressions(db)).toEqual([])
     expect(await countries(db)).toEqual(['GB', 'GE', 'TR', 'US'])
     expect(
       await (await derivedStateRoute(ctx(db, '/api/me/derived-state', 'GET'))).json(),
@@ -157,7 +152,6 @@ it('I1: the maintenance repair runs the full publish for a stale stamp, and a se
   const { db, dispose } = await transitAccount()
   try {
     await oldRouteEditAndRepair(db)
-    // The stale published row also hides the new destination, as an old edit that kept the decision would.
     await db
       .prepare(
         "UPDATE country_evidence_suppressions SET country_code = 'GB' WHERE user_id = ? AND flight_id = 1",
@@ -172,8 +166,8 @@ it('I1: the maintenance repair runs the full publish for a stale stamp, and a se
       published_revision: before.revision,
       evidence_revision: before.revision,
     })
-    expect(published.published_at).not.toBe(before.published_at) // a full publish, not an early ready
-    expect(await suppressions(db)).toEqual([]) // rewritten as the full computed set
+    expect(published.published_at).not.toBe(before.published_at)
+    expect(await suppressions(db)).toEqual([])
     expect(await countries(db)).toEqual(['GB', 'GE', 'TR', 'US'])
     expect(
       await db.prepare('SELECT last_error FROM maintenance_status WHERE id = 1').first(),
@@ -184,7 +178,7 @@ it('I1: the maintenance repair runs the full publish for a stale stamp, and a se
     expect(success).toBeTruthy()
 
     await maintenance.scheduled({} as ScheduledEvent, { DB: db })
-    expect((await stamp(db))!.published_at).toBe(published.published_at) // not selected, not republished
+    expect((await stamp(db))!.published_at).toBe(published.published_at)
     expect(
       await db.prepare('SELECT last_error FROM maintenance_status WHERE id = 1').first(),
     ).toEqual({ last_error: null })

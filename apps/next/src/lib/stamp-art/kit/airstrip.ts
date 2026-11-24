@@ -1,8 +1,3 @@
-// Funafuti airstrip seen from the lagoon end, eye level (lane A rebuild). Part `sea` is a backdrop:
-// the lagoon on the left in sparse T1 lines, the ocean on the right in denser T3 lines with a surf
-// dash, both closing on the horizon. Part `land` is the subject: the strip as a receding paper
-// trapezoid with a centreline that vanishes at the horizon, grassy shoulders with palms shrinking
-// into the distance, and a small twin-prop on short final seen from behind.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, hatchPoly, hline, rectPts, stroke } from '../grid'
 import { type KitModule, num, str } from './util'
@@ -13,7 +8,6 @@ export const airstrip: KitModule = ([x, y, w, h], p) => {
   const vy = num(p, 'horizonY', y + h * 0.6)
   const cx = x + w / 2
   const bottom = y + h
-  // Receding edges: [x at the horizon, x at the near end y=bottom-6] for pavement and shoulder.
   const nearY = bottom - 8
   const edge = (x0: number, x1: number, yy: number) => x0 + ((x1 - x0) * (yy - vy)) / (nearY - vy)
   const padL = (yy: number) => edge(cx - 3.5, cx - 38, yy)
@@ -38,7 +32,6 @@ export const airstrip: KitModule = ([x, y, w, h], p) => {
     out.push(...hatchPoly(left, { angle: 0, gap: [3.4, 4.6], weight: 'fine', ramp: [vy, bottom] }))
     out.push(...hatchPoly(right, { angle: 0, gap: [3.4, 2.4], weight: 'hair', ramp: [vy, bottom] }))
     const rand = mulberry32(5)
-    // Surf: short bright dashes breaking the ocean lines just off the shoulder.
     for (let yy = vy + 8; yy < bottom - 3; yy += 4.4) {
       const sx = shR(yy) + 5 + rand() * 3
       out.push(hline('fine', sx, sx + 8 + (yy - vy) * 0.12, yy))
@@ -54,7 +47,6 @@ export const airstrip: KitModule = ([x, y, w, h], p) => {
     [shR(nearY), nearY],
     [shL(nearY), nearY],
   ]
-  // Trees behind the strip: a tiny crown line at the far end.
   for (const [fx, fh] of [
     [-17, 8],
     [-9, 11],
@@ -70,7 +62,6 @@ export const airstrip: KitModule = ([x, y, w, h], p) => {
       }),
     )
   out.push(...body(land, 'hair'))
-  // Grass ticks on the shoulders.
   for (const side of [-1, 1] as const) {
     const pEdge = side < 0 ? padL : padR
     const sEdge = side < 0 ? shL : shR
@@ -89,7 +80,6 @@ export const airstrip: KitModule = ([x, y, w, h], p) => {
       }
     }
   }
-  // Pavement: paper trapezoid with a bold edge, threshold bars and a vanishing centreline.
   const pad: Pt[] = [
     [padL(vy), vy],
     [padR(vy), vy],
@@ -133,7 +123,6 @@ export const airstrip: KitModule = ([x, y, w, h], p) => {
         out.push(fill(rectPts(bx - 1.2, yy - hs * 0.4, 2.4, hs * 0.4)))
       }
   }
-  // Palms along both shoulders, big near, small far.
   for (const [yy, ph, side] of [
     [nearY - 2, 44, -1],
     [nearY - 2, 38, 1],
@@ -152,7 +141,6 @@ export const airstrip: KitModule = ([x, y, w, h], p) => {
       }),
     )
   }
-  // Twin-prop on short final, from behind: high wing, two nacelles, fin and tail plane.
   const px = cx + 1
   const py = y + h * 0.3
   out.push(

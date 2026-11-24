@@ -18,9 +18,6 @@ import {
 import { routeCountries } from './flight-input'
 import { HistorySession, type HistoryRetained, type HistoryTransport } from './history-session'
 
-// The controller against the real history route handlers on Miniflare D1: transport, recovery and paging are
-// checked where they meet the server, not against a mock of it.
-
 const unwrap = <T>(reply: Reply): T => {
   if (reply.status >= 400)
     throw new ApiError(reply.status, String(reply.body.error ?? ''), reply.body.code, reply.body)
@@ -57,7 +54,6 @@ function transportFor(db: D1Database, calls: string[] = []): HistoryTransport {
   } as HistoryTransport
 }
 
-/** sessionStorage stand-in shared by the sessions of one test, as a tab keeps it across a reload. */
 function storage() {
   let value: HistoryRetained | null = null
   const writes: string[] = []
@@ -71,7 +67,6 @@ function storage() {
   }
 }
 
-/** `n` clean, distinct BAW records (one per day), so nothing needs an answer. */
 const cleanCsv = (n: number, from = Date.UTC(2024, 0, 1)) =>
   csvOf(
     Array.from({ length: n }, (_, index) => {
@@ -101,10 +96,8 @@ it(
       expect(state.failure).toBeNull()
       expect(state.run?.status).toBe('review')
       expect(state.run?.totals.received).toBe(11)
-      // Browser storage only ever holds ids and the manifest digest.
       for (const write of kept.writes) expect(write).not.toMatch(/PNR|SYN|Notes|BAW|JFK/)
 
-      // The DST fold is a question about this record only: answer it first.
       const fold = state.exceptions.find((row) =>
         row.issues.some((issue) => issue.code === 'AMBIGUOUS_TIME'),
       )!
@@ -130,7 +123,6 @@ it(
       state = session.getState()
       expect(state.run!.groups).toEqual([])
       expect(state.run!.totals.states.needs_review + state.run!.totals.states.error).toBe(0)
-      // The group answers did not reset the individual time answer.
       const settled = await getPage(db, state.run!.id, { state: 'ready', limit: 50 })
       expect(settled.body.rows.find((row) => row.id === fold.id)?.answers.times).toEqual({
         offsets: { [issue.header!]: issue.offsets![0] },
@@ -172,7 +164,6 @@ it(
       const runId = first.getState().run!.id
       expect(first.getState().run!.status).toBe('receiving')
 
-      // Reload: a new controller with only the retained ids.
       const calls: string[] = []
       const second = new HistorySession(kept.retain, kept.read, transportFor(db, calls))
       await second.resume(runId)
@@ -184,7 +175,6 @@ it(
 
       await second.choose(fileOf(cleanCsv(150, Date.UTC(2022, 0, 1))))
       expect(second.getState().failure).toEqual({ kind: 'different_file' })
-      // A refused file is not held: the "Choose the file" prompt must stay.
       expect(second.holdsFile()).toBe(false)
       expect(calls).toEqual([])
 
@@ -229,7 +219,6 @@ it(
       expect(state.failure).toBeNull()
       expect(state.run).toMatchObject({ status: 'completed' })
       expect(state.run!.totals.states.created).toBe(120)
-      // The lost page was committed; the retry reads the ready rows again and never re-sends it.
       expect(calls.filter((call) => call.startsWith('confirm'))).toEqual([
         'confirm:50',
         'confirm:50',
@@ -443,7 +432,6 @@ it('does not start a save while a Skip is still on its way', async () => {
   await skip
 })
 
-/** The server acknowledges a confirm as already published; stamps wait only on a pending acknowledgement. */
 function pendingConfirms(transport: HistoryTransport) {
   const confirm = transport.confirm
   transport.confirm = async (runId, items) => ({
@@ -469,7 +457,6 @@ it(
         const upload = session.getState().upload
         if (upload) seen.push({ sent: upload.sent, years: upload.years })
       })
-      // 150 records span two chunks, all in 2020.
       await session.choose(fileOf(cleanCsv(150, Date.UTC(2020, 6, 1))))
       expect(seen[0]).toEqual({ sent: 0, years: null })
       expect(seen.at(-1)).toEqual({ sent: 2, years: { from: 2020, to: 2020 } })
@@ -532,7 +519,6 @@ it(
       const transport = transportFor(db)
       pendingConfirms(transport)
       const reads: number[] = []
-      // The passport already holds GB; after the save it also holds the route countries and one the save never touched.
       let routeCodes: string[] = []
       transport.pressedCountries = async () => {
         reads.push(reads.length)
@@ -558,7 +544,6 @@ it(
       routeCodes = [...touched]
       expect(touched.has('US')).toBe(true)
       await session.save()
-      // Derived state of the confirm was not ready: the stamps wait for the publication, then read once more.
       expect(session.getState().stamps).toEqual({ status: 'pending', codes: [] })
       expect(reads).toEqual([0])
       release()
@@ -587,7 +572,6 @@ it(
         if (confirms === 2) throw new TypeError('Failed to fetch')
         return confirm(runId, items)
       }
-      // The passport holds GB before the run; every later read also holds what the saves created.
       let reads = 0
       let routeCodes: string[] = []
       transport.pressedCountries = async () =>

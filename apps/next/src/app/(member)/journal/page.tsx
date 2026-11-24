@@ -13,7 +13,6 @@ import '../../reads.css'
 
 type SearchParams = Record<string, string | string[] | undefined>
 
-/** The raw query as the browser sent it. The client codec (`client/journal/url.ts`) owns parsing; the URL is a mirror (spec D4). */
 function rawQuery(params: SearchParams) {
   const query = new URLSearchParams()
   for (const [key, value] of Object.entries(params))

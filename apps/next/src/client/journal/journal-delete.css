@@ -1,4 +1,3 @@
-/* The Journal's pending-delete notice (toast region) and the same line inside a modal sheet. Tokens only, weights 400/500. */
 .journal-delete-notice {
   box-sizing: border-box;
   width: min(420px, 100%);

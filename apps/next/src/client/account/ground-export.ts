@@ -7,7 +7,6 @@ type GroundVisit = {
   createdAt: string
 }
 
-/** Keep untrusted notes inert when opened in spreadsheet software. */
 function cell(value: string | number | null): string {
   if (value == null) return ''
   const raw = String(value)
@@ -30,7 +29,6 @@ export async function exportGroundVisits(visits: GroundVisit[]): Promise<void> {
   downloadCsv(generateGroundVisitsCsv(visits), getTimestampedFilename('ground-visits'))
 }
 
-/** The versioned JSON the API serves, saved as-is (pretty-printed) so the file matches what the server exports. */
 export type GroundJourneysExport = { journeys: unknown[]; manualPlaces: unknown[] }
 
 export function exportGroundJourneys(body: GroundJourneysExport): void {

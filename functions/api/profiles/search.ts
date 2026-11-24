@@ -1,7 +1,3 @@
-// GET /api/profiles/search?q= — case-insensitive public-profile username search. Only public
-// profiles are returned, and only via the public DTO allowlist. q must be at least 2 chars.
-// LIKE metacharacters in q are escaped so a literal substring is matched (no wildcard surprises).
-
 import { runHandler, json } from '../_lib/http'
 import { requireUser } from '../_lib/auth'
 import type { RequestData } from '../_lib/auth'

@@ -5,7 +5,6 @@ import { useLocale } from './preferences'
 
 import type { Locale } from '../lib/format'
 
-/** Route loading state: the windsock filling as the wind builds (空気, air), and a localized status line. */
 export function LoadingScreen({ locale: initialLocale }: { locale: Locale }) {
   const locale = useLocale(initialLocale)
   return (

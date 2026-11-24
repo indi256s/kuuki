@@ -38,7 +38,6 @@ test('request validation, sending focus and distinct server failures preserve th
   expect(attempt).toBe(0)
   await c.email.fill('valid@example.test')
   await expect(c.email).toBeFocused()
-  // Resolve the accent independently of the button's hover transition.
   const accentFill = await c.send.evaluate((element) => {
     const swatch = document.createElement('span')
     swatch.style.backgroundColor = 'var(--accent)'

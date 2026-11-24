@@ -1,5 +1,3 @@
-// GET /api/me/stats — the requester's pre-computed user_stats row, or null if none yet.
-
 import { runHandler, json } from '../_lib/http'
 import { requireUser, type RequestData } from '../_lib/auth'
 import { toUserStats, type UserStatsRow } from '../_lib/stats'

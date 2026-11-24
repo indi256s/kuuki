@@ -1,4 +1,3 @@
-/* Arc Bottom sheet, adapted to Kuuki tokens (MIT, see ARC-LICENSE.txt). */
 .overlay:global(.ui-overlay) {
   animation: none;
 }
@@ -7,7 +6,6 @@
   pointer-events: none !important;
 }
 .sheet:global(.ui-sheet.ui-bottom-sheet[data-side='bottom']) {
-  /* Inline inset of the panel parts; content that manages its own padding reads it to stay aligned with the header. */
   --sheet-inline: var(--space-6);
   bottom: calc(var(--sheet-kb, 0px) - var(--sheet-extension));
   width: min(100%, 36rem);
@@ -24,7 +22,6 @@
   transition: none;
   will-change: transform;
 }
-/* Keep actions above the viewport edge without resizing the scrolling body per frame. */
 .footer {
   position: relative;
   background: var(--surface-floating);
@@ -61,11 +58,9 @@
 }
 .body {
   touch-action: auto;
-  /* Reserve scroll space at the resting detent, including for browser focus/click scrolling. */
   padding-bottom: calc(var(--space-2) + var(--sheet-peek) * var(--sheet-viewport, 100dvh));
   scroll-padding-bottom: calc(var(--sheet-peek) * var(--sheet-viewport, 100dvh));
 }
-/* Without a footer the body is the bottom edge: clear the home indicator and match the header's top padding. */
 .sheet:not(:has(> .footer)) .body {
   padding-bottom: calc(
     var(--space-5) + env(safe-area-inset-bottom) + var(--sheet-peek) * var(--sheet-viewport, 100dvh)

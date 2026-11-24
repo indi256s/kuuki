@@ -1,12 +1,3 @@
-// Read-only reconciliation of a Flighty CSV against independently written labels (ADR 0008).
-//
-//   pnpm exec tsx scripts/evaluate-flighty.ts --input <csv> --expected <labels.json> --output <report.json>
-//   pnpm exec tsx scripts/evaluate-flighty.ts --synthetic 10000 --output <report.json>
-//
-// Local files only: no model, no network, no D1. The report and the console carry counts, categories, ordinals and
-// header names, never cell values, so it is safe to run on a private export. The labels are the ground truth; the
-// mapper under test never writes them. `--synthetic N` generates N records together with the labels implied by how
-// they were generated, to check scale and how many owner decisions a large clean history needs.
 import { readFileSync, writeFileSync } from 'node:fs'
 import { performance } from 'node:perf_hooks'
 import { parseArgs } from 'node:util'
@@ -28,7 +19,6 @@ interface Label {
   ordinal: number
   line?: number
   outcome: Outcome
-  /** `CODE` or `CODE@group`, in mapper order. */
   issues: string[]
   projection: Record<string, unknown>
 }
@@ -57,7 +47,6 @@ function synthetic(count: number): { csv: string; labels: Labels } {
     const [from, to, icao, iata] = routes[i % routes.length]
     const day = new Date(Date.UTC(2005, 0, 1) + i * 86_400_000).toISOString().slice(0, 10)
     const canceled = i % 50 === 7
-    // One recurring code the catalog does not know: a single shared question however many rows carry it.
     const unknownAirline = i % 20 === 3 && !canceled
     const cells = Object.fromEntries(FLIGHTY_OBSERVED_HEADERS.map((name) => [name, ''])) as Record<
       FlightyObservedHeader,
@@ -166,7 +155,6 @@ function main() {
         mismatches.push({ ordinal: candidate.ordinal, category: 'projection', field })
   }
 
-  // Every cell of an accepted record is kept; this says what else happens to each column.
   const coverage = doc.headers.map((header) => ({
     header,
     role: FLIGHTY_COLUMN_ROLES[header as FlightyObservedHeader] ?? 'unknown_preserved',
@@ -217,7 +205,6 @@ function main() {
       })),
       rowQuestions,
       unreadableRecords: errors,
-      /** One confirmation of the summary, one answer per group, one per row-level question, one dismissal of unreadable records. */
       ownerDecisions: 1 + groups.length + rowQuestions + (errors ? 1 : 0),
     },
     size: {

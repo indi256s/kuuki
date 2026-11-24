@@ -1,6 +1,5 @@
 import type { FontFacesSpecification } from 'maplibre-gl'
 
-/** The map label face: the two Commissioner SemiBold subsets from styles.css, with the same unicode-range lists (Cyrillic is in remaining). */
 export const LABEL_FONT = 'Commissioner SemiBold'
 
 const LATIN = [

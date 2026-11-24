@@ -1,15 +1,6 @@
 export type Alliance = 'star' | 'oneworld' | 'skyteam'
 export const ALLIANCES: readonly Alliance[] = ['star', 'oneworld', 'skyteam']
 
-// Source admission reviewed 2026-10-07; inclusive from / exclusive to.
-// Official regional, associate, Connect and affiliate participation qualifies;
-// parent ownership or lounge access alone does not. EN has no admitted span:
-// https://www.sec.gov/Archives/edgar/data/100517/000010051720000010/ual201910k.htm
-// Null ends mean no established termination in consulted evidence, not a future guarantee.
-// This is a bounded history, not a worldwide former-member catalog. Exact starts remain
-// unknown for AZ, MX's earlier Star span, US's earlier Star span, CO's later Star span,
-// JP/JK/BD/RG/AN/KF/O6 and AZA; excluded rather than padding years/months into days.
-// No successor-code aliases; missing spans return null, not static current labels.
 export const MEMBERSHIP: readonly {
   iata: string
   alliance: Alliance
@@ -17,7 +8,6 @@ export const MEMBERSHIP: readonly {
   to: string | null
   source: string
 }[] = [
-  // Recognized affiliate; group exclusive exit: https://www.oneworld.com/news/2020-01-31-LATAM-to-leave-oneworld-effective-1-May-2020
   {
     iata: '4M',
     alliance: 'oneworld',
@@ -41,7 +31,6 @@ export const MEMBERSHIP: readonly {
     source:
       'https://www.oneworld.com/news/Digital-apps-and-new-alliance-lounges-to-drive-major-new-oneworld-customer-benefits',
   },
-  // Final active day October 27; exclusive exit: https://www.oneworld.com/news/airberlin-to-cease-operating-as-part-of-oneworld-from-28-octob-1
   {
     iata: 'AB',
     alliance: 'oneworld',
@@ -146,7 +135,6 @@ export const MEMBERSHIP: readonly {
     to: null,
     source: 'https://calec.china-airlines.com/csr/en/management_interested.html',
   },
-  // Associate admission; prospective concurrent departure: https://copa.gcs-web.com/static-files/983fc708-84dd-43bb-8659-c9dedd9ae4de
   {
     iata: 'CM',
     alliance: 'skyteam',
@@ -163,7 +151,6 @@ export const MEMBERSHIP: readonly {
     source:
       'https://www.sasgroup.net/newsroom/press-releases/2012/sas-welcomes-avianca-taca-airlines-and-copa-airlines-into-star-alliance/',
   },
-  // Prospective carrier departure notice; later Star start unresolved: https://copa.gcs-web.com/static-files/983fc708-84dd-43bb-8659-c9dedd9ae4de
   {
     iata: 'CO',
     alliance: 'skyteam',
@@ -179,9 +166,6 @@ export const MEMBERSHIP: readonly {
     source:
       'https://www.oneworld.com/news/Digital-apps-and-new-alliance-lounges-to-drive-major-new-oneworld-customer-benefits',
   },
-  // Controller selects formal agreement nonrenewal January 1, 2019, not benefits transition end.
-  // Carrier formal notice: https://www.sec.gov/Archives/edgar/data/1041668/000119312518328308/d656127dex991.htm
-  // Conflicting official-departure wording (2020), retained as qualification: https://www.csair.com/sg/en/about/news/news/2019/1dsrfdovckaid.shtml
   {
     iata: 'CZ',
     alliance: 'skyteam',
@@ -196,7 +180,6 @@ export const MEMBERSHIP: readonly {
     to: null,
     source: 'https://www.skyteam.com/en/about/history/',
   },
-  // Exclusive withdrawal: https://www.oneworld.com/news/aer-lingus-withdrawal-date-set-as-1-april-2007
   {
     iata: 'EI',
     alliance: 'oneworld',
@@ -213,7 +196,6 @@ export const MEMBERSHIP: readonly {
     source:
       'https://corporate.ethiopianairlines.com/Press-release-open-page/ethiopian-airlines-joins-star-alliance---13-december-2011',
   },
-  // Exclusive November 1 cessation, leaving a gap before SkyTeam: https://www.thaiairways.com/frequent-flyer/download/News-Sep-Nov10-En.pdf
   {
     iata: 'FM',
     alliance: 'star',
@@ -229,8 +211,6 @@ export const MEMBERSHIP: readonly {
     to: null,
     source: 'https://news.klm.com/china-eastern-treedt-toe-tot-skyteam-en/',
   },
-  // Recognized Connect participation from December 5, 2018, continuous through full admission March 31, 2025.
-  // Full benefits begin April 1: https://www.oneworld.com/news/2025-03-31-paradise-found-oneworld-welcomes-fiji-airways-to-global-alliance
   {
     iata: 'FJ',
     alliance: 'oneworld',
@@ -246,8 +226,6 @@ export const MEMBERSHIP: readonly {
     source:
       'https://www.garuda-indonesia.com/static/content/dam/garuda/files/pdf/investor-relations/corporate-action/MegaHawk%20-%20Offering%20Circular%20dated%2027%20May%202015-1.pdf',
   },
-  // NIKI affiliate shares entry and exit with airberlin. Exclusive exit:
-  // https://www.oneworld.com/news/airberlin-to-cease-operating-as-part-of-oneworld-from-28-octob-1
   {
     iata: 'HG',
     alliance: 'oneworld',
@@ -263,7 +241,6 @@ export const MEMBERSHIP: readonly {
     source:
       'https://www.oneworld.com/news/Digital-apps-and-new-alliance-lounges-to-drive-major-new-oneworld-customer-benefits',
   },
-  // Final Star day March 30; oneworld joins March 31: https://www.oneworld.com/news/tam-airlines-to-join-oneworld-on-31-march-2014
   {
     iata: 'JJ',
     alliance: 'star',
@@ -272,7 +249,6 @@ export const MEMBERSHIP: readonly {
     source:
       'https://www.sasgroup.net/newsroom/press-releases/2010/sas-welcomes-tam-into-star-alliance/',
   },
-  // Group and affiliate exclusive exit: https://www.oneworld.com/news/2020-01-31-LATAM-to-leave-oneworld-effective-1-May-2020
   {
     iata: 'JJ',
     alliance: 'oneworld',
@@ -302,8 +278,6 @@ export const MEMBERSHIP: readonly {
     to: null,
     source: 'https://www.sec.gov/Archives/edgar/data/1058033/000110465905009167/a05-3135_110k.htm',
   },
-  // Official associate admission September 4, not benefits start September 1; full status June 22, 2010.
-  // Full transition: https://news.klm.com/skyteam-celebrates-tenth-anniversary-en/
   {
     iata: 'KQ',
     alliance: 'skyteam',
@@ -312,7 +286,6 @@ export const MEMBERSHIP: readonly {
     source:
       'https://web.archive.org/web/20110519080207/http://www.skyteam.com/news/headlines/20070903.html',
   },
-  // Group and affiliates exclusive exit: https://www.oneworld.com/news/2020-01-31-LATAM-to-leave-oneworld-effective-1-May-2020
   {
     iata: 'LA',
     alliance: 'oneworld',
@@ -328,7 +301,6 @@ export const MEMBERSHIP: readonly {
     to: null,
     source: 'https://portal.staralliance.com/imagelibrary/about/top-left/history-of-star-alliance',
   },
-  // Lufthansa-authored annual report on a mirror; carrier year corroboration: https://www.lot.com/us/en/explore/about-lot/star-alliance/lot-star-alliance-livery
   {
     iata: 'LO',
     alliance: 'star',
@@ -337,9 +309,6 @@ export const MEMBERSHIP: readonly {
     source:
       'https://www.aerohabitat.eu/uploads/media/03-07-2007_-_Lufthansa_annual_report_2003_03.pdf',
   },
-  // Composite primary inference: LP filing links affiliate start to LAN incorporation in June 2000.
-  // Alliance dates that event June 1: https://www.oneworld.com/news/lanchile-and-aer-lingus-board-the-alliance-that-revolves-around-you-
-  // Group and affiliate exit: https://www.oneworld.com/news/2020-01-31-LATAM-to-leave-oneworld-effective-1-May-2020
   {
     iata: 'LP',
     alliance: 'oneworld',
@@ -355,8 +324,6 @@ export const MEMBERSHIP: readonly {
     source:
       'https://www.swiss.com/corporate/en/media/press-releases-archive/press-release-20060407',
   },
-  // Operational cutoff preserves final partial day February 3 (05:00 GMT suspension).
-  // Not a verified formal alliance exit: https://ja.oneworld.com/news/malev-flight-suspension-advice-for-customers
   {
     iata: 'MA',
     alliance: 'oneworld',
@@ -403,8 +370,6 @@ export const MEMBERSHIP: readonly {
     to: null,
     source: 'https://news.klm.com/china-eastern-treedt-toe-tot-skyteam-en/',
   },
-  // Old Mexicana only: operational cutoff preserves final partial day August 28.
-  // No successor inherits this history; not a verified formal alliance exit: https://www.oneworld.com/news/mexicana-group-suspends-operations
   {
     iata: 'MX',
     alliance: 'oneworld',
@@ -419,8 +384,6 @@ export const MEMBERSHIP: readonly {
     to: null,
     source: 'https://www.ana.co.jp/eng/aboutana/press/1999/991029-1.html',
   },
-  // Operational-code cutoff after final regularly scheduled January 30 departure.
-  // Not a verified formal alliance exit: https://ir.delta.com/news/news-details/2010/Delta-Completes-Integration-of-Northwest-Airport-and-Reservations-Systems-Northwest-Flight-Numbers-and-nwacom-Retired/default.aspx
   {
     iata: 'NW',
     alliance: 'skyteam',
@@ -428,7 +391,6 @@ export const MEMBERSHIP: readonly {
     to: '2010-01-31',
     source: 'https://www.sec.gov/Archives/edgar/data/1058033/000110465905009167/a05-3135_110k.htm',
   },
-  // Day-level regulator evidence; alliance corroborates month: https://portal.staralliance.com/imagelibrary/about/top-left/history-of-star-alliance
   {
     iata: 'NZ',
     alliance: 'star',
@@ -437,9 +399,6 @@ export const MEMBERSHIP: readonly {
     source:
       'https://www.comcom.govt.nz/__data/assets/pdf_file/0031/66865/comcom-glossary-airnzqantas.pdf',
   },
-  // Carrier annual-report mirror, dedicated section gives March 25 (chronology says March 22).
-  // Carrier-profile corroboration: https://www.aerohabitat.eu/uploads/media/AEA_-_Yearbook__2001.pdf
-  // Official exclusive exit: https://www.linkedin.com/posts/skyteam_czech-airlines-will-no-longer-be-a-member-activity-7255504187281559552-9hzq
   {
     iata: 'OK',
     alliance: 'skyteam',
@@ -454,8 +413,6 @@ export const MEMBERSHIP: readonly {
     to: null,
     source: 'https://www.sec.gov/Archives/edgar/vprr/0202/02028949.pdf',
   },
-  // Carrier-issued release on wire host: regional entry December 15, not November signing.
-  // Regional/full participation qualifies without a gap.
   {
     iata: 'OU',
     alliance: 'star',
@@ -464,8 +421,6 @@ export const MEMBERSHIP: readonly {
     source:
       'https://www.prnewswire.com/news-releases/us-airways-customers-gain-access-to-central-europe-through-codeshare-agreement-with-croatia-airlines-160504715.html',
   },
-  // Affiliate; operational cutoff preserves final partial day August 28 (noon suspension).
-  // Not a verified formal alliance exit: https://www.oneworld.com/news/mexicana-group-suspends-operations
   {
     iata: 'QA',
     alliance: 'oneworld',
@@ -503,7 +458,6 @@ export const MEMBERSHIP: readonly {
     to: null,
     source: 'https://www.tarom.ro/en/despre-noi/tarom-company/company-profile/',
   },
-  // Suspended, not permanently expelled; no verified resumption. Effective suspension: https://www.oneworld.com/members
   {
     iata: 'S7',
     alliance: 'oneworld',
@@ -518,7 +472,6 @@ export const MEMBERSHIP: readonly {
     to: null,
     source: 'https://voyager.flysaa.com/en/web/voyager/voyager-star-alliance',
   },
-  // Final Star day August 31; exclusive exit: https://www.sasgroup.net/newsroom/press-releases/2024/sas-announces-next-step-in-its-alliance-transition-journey/
   {
     iata: 'SK',
     alliance: 'star',
@@ -549,10 +502,6 @@ export const MEMBERSHIP: readonly {
     source:
       'https://www.singaporeair.com/saar5/pdf/Investor-Relations/Annual-Report/annualreport0001.pdf',
   },
-  // Controller-admitted inferred observation boundary April 27: earliest documented archive as-of.
-  // Not a verified issuer-effective suspension day; statement body is undated.
-  // Archived official suspension: https://web.archive.org/web/20220619024843/https://www.skyteam.com/en/about/press-releases/press-releases-20221/skyteam-and-aeroflot/
-  // Month-level official history: https://www.skyteam.com/en/about/history/
   {
     iata: 'SU',
     alliance: 'skyteam',
@@ -569,9 +518,6 @@ export const MEMBERSHIP: readonly {
     source:
       'https://www.vietnamairlines.com/kh/en/vietnam-airlines/press-room/press-release/2012/news-22',
   },
-  // Proven entry; no established termination. Carrier identifies TA in February 2026:
-  // https://static.avianca.com/media/xoafycup/pol%C3%ADtica-de-distribucao.pdf
-  // Code continuity is not separately confirmed current full membership.
   {
     iata: 'TA',
     alliance: 'star',
@@ -616,9 +562,6 @@ export const MEMBERSHIP: readonly {
     source:
       'https://www.oneworld.com/news/Digital-apps-and-new-alliance-lounges-to-drive-major-new-oneworld-customer-benefits',
   },
-  // Operational brand/reservation cutoff October 17; formal alliance exit unresolved.
-  // Carrier evidence: https://americanairlines.gcs-web.com/news-releases/news-release-details/american-airlines-group-reports-highest-quarterly-profit-1
-  // Carrier-party Express contract corroborates brand cutoff: https://www.sec.gov/Archives/edgar/data/810332/000119312518230309/d573709dex101118.htm
   {
     iata: 'US',
     alliance: 'oneworld',
@@ -626,9 +569,6 @@ export const MEMBERSHIP: readonly {
     to: '2015-10-17',
     source: 'https://www.oneworld.com/news/us-airways-to-join-oneworld-on-31-march-2014',
   },
-  // Carrier dates associate entry September 1; alliance welcome September 4 differs:
-  // https://web.archive.org/web/20110519080207/http://www.skyteam.com/news/headlines/20070903.html
-  // Continuous through full status June 22, 2010: https://news.klm.com/skyteam-celebrates-tenth-anniversary-en/
   {
     iata: 'UX',
     alliance: 'skyteam',
@@ -652,7 +592,6 @@ export const MEMBERSHIP: readonly {
     to: null,
     source: 'https://www.skyteam.com/en/about/press-releases/press-releases-2023/',
   },
-  // Formal welcome June 30, not benefits beginning July 1.
   {
     iata: 'WY',
     alliance: 'oneworld',
@@ -660,7 +599,6 @@ export const MEMBERSHIP: readonly {
     to: null,
     source: 'https://www.oneworld.com/news/2025-06-30-oneworld-welcomes-oman-air',
   },
-  // Recognized affiliate; group exclusive exit: https://www.oneworld.com/news/2020-01-31-LATAM-to-leave-oneworld-effective-1-May-2020
   {
     iata: 'XL',
     alliance: 'oneworld',
@@ -695,17 +633,12 @@ export function allianceAt(iata: string | null, date: string): Alliance | null {
   )
 }
 
-// leftYear is the end of active participation, including suspension/operational cutoffs.
 export function formerAlliance(
   iata: string,
   date: string,
 ): { alliance: Alliance; leftYear: number } | null {
   if (!iata || !validDate(date) || allianceAt(iata, date)) return null
   const code = iata.toUpperCase()
-  // MX now identifies Breeze, a different operator from old Mexicana:
-  // https://pro-docs.flybreeze.com/api/ndc-xml/sample-flows/make-a-test-booking
-  // No exact reassignment day is admitted; omit former notes on every date for
-  // this ambiguous reused code. allianceAt retains Mexicana's admitted active span.
   if (code === 'MX') return null
   let latestEnd = ''
   let former: { alliance: Alliance; leftYear: number } | null = null

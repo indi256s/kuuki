@@ -3,10 +3,8 @@ import { HttpError } from '../_lib/http'
 import { normalizeAircraftEvidence, parseAircraftResults } from './_evidence'
 import { buildBatchPrompt, safeUrl, type FlightToEnrich, type EnrichmentResult } from './_shared'
 
-// Below the 40s web client deadline, including response validation.
 export const ENRICHMENT_DEADLINE_MS = 20_000
 
-/** A retrieved URL is provenance, not independent verification of its page's claims. */
 export function normalizeEnrichment(
   response: GenerateContentResponse,
   flights: FlightToEnrich[],
@@ -19,8 +17,6 @@ export function normalizeEnrichment(
   return flights.map((flight, index) => {
     const row = rows.find((item) => item.index === index + 1)!
     const citedIndices = new Set<number>()
-    // Search supports may be cumulative prefixes. Attribute a citation ending in this row's evidence,
-    // rather than attaching every citation to every earlier record in that prefix.
     if (row.evidence && rows.filter((item) => item.evidence === row.evidence).length === 1) {
       for (const support of supports) {
         const segment = support.segment
@@ -59,7 +55,6 @@ export function normalizeEnrichment(
         !(citedIndices.has(chunkIndex) || (supports.length === 0 && row.source_urls?.includes(uri)))
       )
         continue
-      // Invalid provider URLs never become links.
       if (!safeUrl(uri)) continue
       sources.set(uri, { url: uri, title: chunk.web?.title?.trim() || new URL(uri).hostname })
     }
@@ -67,7 +62,6 @@ export function normalizeEnrichment(
   })
 }
 
-/** Shared by the authenticated handler and the opt-in, read-only source evaluator. */
 export async function lookupAircraft(apiKey: string, model: string, flights: FlightToEnrich[]) {
   const controller = new AbortController()
   let expired = false
@@ -80,7 +74,6 @@ export async function lookupAircraft(apiKey: string, model: string, flights: Fli
       model,
       contents: buildBatchPrompt(flights),
       config: {
-        // JSON mode omitted here: live checks returned no grounding citations with it.
         tools: [{ googleSearch: {} }],
         httpOptions: { timeout: ENRICHMENT_DEADLINE_MS },
         abortSignal: controller.signal,

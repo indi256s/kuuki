@@ -1,6 +1,3 @@
-// A long low lattice-steel river bridge on masonry piers (Pont Faidherbe): a shallow-arched
-// Warren truss, a taller swing span at the middle on a wider pier with a small cabin, and a bold
-// deck line. The box bottom is the waterline.
 import { type Pt, type SvgNode, body, fill, hline, occlude, rectPts, stroke } from '../grid'
 import { type KitModule, num } from './util'
 
@@ -12,7 +9,6 @@ export const trussBridgeB: KitModule = ([x, y, w, h], p) => {
   const trussH = h * 0.34
   const pw = w / spans
   const out: SvgNode[] = []
-  // Piers.
   for (let i = 0; i <= spans; i++) {
     const px = x + pw * i
     const pierW = i === mid || i === mid + 1 ? 7 : 4.4
@@ -29,7 +25,6 @@ export const trussBridgeB: KitModule = ([x, y, w, h], p) => {
       ),
     )
   }
-  // Trusses, one per span; the swing span stands taller.
   for (let s = 0; s < spans; s++) {
     const sx = x + pw * s
     const swing = p.boxTruss === true ? false : s === mid
@@ -41,7 +36,6 @@ export const trussBridgeB: KitModule = ([x, y, w, h], p) => {
     const poly: Pt[] = [...topPts, [sx + pw, deck], [sx, deck]]
     out.push(occlude(poly, { halo: 1.6 }))
     out.push(stroke('line', topPts))
-    // Warren zigzag between the chords, plus uprights at the panel points.
     const panels = swing ? 4 : 2
     for (let k = 0; k < panels; k++) {
       const t0 = k / panels,

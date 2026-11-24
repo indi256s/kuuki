@@ -5,6 +5,7 @@ set -e
 if [ -n "$(git diff --cached --name-only --diff-filter=ACMR)" ]; then
   git diff --cached --name-only --diff-filter=ACMR -z | xargs -0 pnpm exec oxfmt --check --no-error-on-unmatched-pattern --
 fi
+node scripts/comments.mjs check
 # Lint and typecheck only the packages affected by current changes.
 pnpm turbo run lint typecheck --affected --output-logs=errors-only
 # Server code (functions, packages, workers) has its own Oxlint config at the repo root.

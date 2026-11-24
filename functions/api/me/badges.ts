@@ -1,4 +1,3 @@
-// The requester is gated before their earned badge read.
 import { runHandler, json } from '../_lib/http'
 import { requireUser, type RequestData } from '../_lib/auth'
 import { readOwnBadges } from '../_services/ownBadges'

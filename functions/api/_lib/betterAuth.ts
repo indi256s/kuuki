@@ -18,7 +18,6 @@ import { HttpError, jsonError } from './http'
 
 export const BETTER_AUTH_COOKIE = 'kuuki_auth_session'
 
-/** Request-scoped configuration uses this environment's D1 binding and canonical origin. */
 export function createAuth(env: Env) {
   if (!env.BETTER_AUTH_SECRET || env.BETTER_AUTH_SECRET.length < 32)
     throw new Error('BETTER_AUTH_SECRET must contain at least 32 characters')
@@ -41,14 +40,11 @@ export function createAuth(env: Env) {
               clientSecret: env.GOOGLE_CLIENT_SECRET,
               prompt: 'select_account',
               mapProfileToUser: async (profile) => {
-                // Google only owns Gmail and Workspace email addresses, not third-party mailboxes.
                 const emailVerified =
                   profile.email_verified === true &&
                   (/@(?:gmail|googlemail)\.com$/i.test(profile.email) ||
                     (typeof profile.hd === 'string' && profile.hd.length > 0))
                 if (emailVerified) {
-                  // Google proves ownership of an unclaimed migrated journal. Keep the local
-                  // verification gate for accounts with an existing password or provider identity.
                   await env.DB.prepare(
                     `UPDATE users SET email_verified = 1, updated_at = ?
                      WHERE email = ? AND email_verified = 0 AND ${unclaimedSql()}
@@ -65,7 +61,6 @@ export function createAuth(env: Env) {
     onAPIError: { errorURL: `${origin}/signin` },
     emailAndPassword: {
       enabled: true,
-      // Kuuki provisions the user, profile and credential together in one D1 batch.
       disableSignUp: true,
       minPasswordLength: 8,
       maxPasswordLength: 1024,
@@ -91,7 +86,6 @@ export function createAuth(env: Env) {
     databaseHooks: {
       account: {
         create: {
-          // Sign-in needs the stable provider identity, not reusable Google API credentials.
           before: async (account) => ({
             data: { ...account, accessToken: null, refreshToken: null, idToken: null },
           }),
@@ -114,12 +108,10 @@ export function createAuth(env: Env) {
       cookieCache: { enabled: false },
     },
     verification: { modelName: 'auth_verifications' },
-    // The mounted routes use Kuuki's atomic, D1-backed per-IP counters.
     rateLimit: { enabled: false },
     advanced: {
       useSecureCookies: origin.startsWith('https:'),
       cookies: { session_token: { name: BETTER_AUTH_COOKIE } },
-      // Every authenticated request reads the session with its user. One joined query, not two round trips to D1.
       database: { generateId: () => crypto.randomUUID(), joins: true },
       ipAddress: { ipAddressHeaders: ['cf-connecting-ip'] },
     },
@@ -159,7 +151,6 @@ export function clearBetterAuthCookie(headers: Headers, request: Request): void 
   )
 }
 
-/** Preserve Better Auth's signed cookie headers and pair them with Kuuki's CSRF token. */
 export async function signInWithBetterAuth(
   env: Env,
   request: Request,

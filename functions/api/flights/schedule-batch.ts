@@ -140,7 +140,6 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
       }
     }
     if (!accepted.length) return json({ results })
-    // Each guarded update and its conditional dirty marker commit in the same atomic batch.
     const updates = await db.batch(statements)
     const updatedRows = await db
       .prepare(

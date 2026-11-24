@@ -1,6 +1,3 @@
-// Pure review rules shared by the row editor, the manual row and the sticky confirm bar: field validation, what blocks a
-// row, which rows are confirmable and how confidence reads. The server stays authoritative; this only keeps the form
-// from sending what it will refuse and explains why a row cannot be saved yet.
 import { findAircraft } from '@kuuki/data/aircraft-lookup'
 import { findAirportLabel } from '@kuuki/data/airport-labels'
 import type { RowOutcome } from './confirm-runner'
@@ -20,7 +17,6 @@ export const FIELDS = [
 export type FieldName = (typeof FIELDS)[number]
 export type FieldValues = Record<FieldName, string>
 
-/** Below this a row or field is shown as "check this". Same cut as the aircraft suggestions. */
 export const LOW_CONFIDENCE = 0.7
 
 export const emptyValues = (): FieldValues => ({
@@ -65,7 +61,6 @@ const realDate = (value: string) => {
   )
 }
 
-/** One validation path for draft edits and inline manual rows. Mirrors the flight validator the server applies. */
 export function validateValues(input: FieldValues): Partial<Record<FieldName, FieldError>> {
   const value = {
     ...input,
@@ -101,7 +96,6 @@ export function validateValues(input: FieldValues): Partial<Record<FieldName, Fi
   return errors
 }
 
-/** Normalised copy of the values (codes upper-cased, text trimmed), the form the server stores. */
 export const normaliseValues = (input: FieldValues): FieldValues => ({
   ...input,
   date: input.date.trim(),
@@ -114,7 +108,6 @@ export const normaliseValues = (input: FieldValues): FieldValues => ({
   arrival_time: input.arrival_time.trim(),
 })
 
-/** Only the fields that differ from the stored ones; a cleared optional field is `null`. */
 export function changedFields(
   current: Partial<DraftFields>,
   next: FieldValues,
@@ -127,7 +120,6 @@ export function changedFields(
   return changed
 }
 
-/** The draft as the member sees it: the stored row with their unsent change laid over it. */
 export function withUnsent(draft: Draft, change: DraftChange | null | undefined): Draft {
   if (!change) return draft
   const fields = { ...draft.fields } as unknown as Record<string, unknown>
@@ -135,7 +127,6 @@ export function withUnsent(draft: Draft, change: DraftChange | null | undefined)
     if (value === null) delete fields[key]
     else fields[key] = value
   }
-  // Mirrors the server: a changed date voids the flown confirmation unless the same patch states it afresh.
   if (change.flownConfirmed === undefined && fields.date !== draft.fields.date)
     delete fields.flown_confirmed
   else if (change.flownConfirmed === true) fields.flown_confirmed = true
@@ -150,10 +141,6 @@ export function withUnsent(draft: Draft, change: DraftChange | null | undefined)
   }
 }
 
-/**
- * The snapshot with the server's confirmed saves laid over it. A confirm answer is authoritative even when the read that
- * should follow it fails, so a row the answer saved is shown as saved until a newer snapshot says the same thing.
- */
 export function withSaved(drafts: Draft[], outcomes: ReadonlyMap<string, RowOutcome>): Draft[] {
   if (outcomes.size === 0) return drafts
   return drafts.map((draft) => {
@@ -164,13 +151,11 @@ export function withSaved(drafts: Draft[], outcomes: ReadonlyMap<string, RowOutc
   })
 }
 
-/** The member's calendar day (YYYY-MM-DD), the anchor for year suggestions and for what counts as already flown. */
 export const localToday = () => {
   const now = new Date()
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 }
 
-/** A Quick Add row dated today or earlier that the member has not yet said they flew. Future dates convert as upcoming. */
 export const needsFlown = (draft: Draft, today: string) =>
   draft.fields.flown_required === true &&
   draft.fields.flown_confirmed !== true &&
@@ -179,7 +164,6 @@ export const needsFlown = (draft: Draft, today: string) =>
 
 export type Readiness = 'date' | 'year' | 'flown' | 'issue'
 
-/** Why a review row cannot be saved as it stands. Empty means it can. `today` is the member's local YYYY-MM-DD. */
 export function readiness(draft: Draft, today: string = localToday()): Readiness[] {
   const blocked: Readiness[] = []
   if (!draft.fields.date) blocked.push('date')
@@ -191,13 +175,11 @@ export function readiness(draft: Draft, today: string = localToday()): Readiness
 
 export const isDuplicate = (draft: Draft) => draft.duplicateFlightId !== null
 
-/** Selected as far as saving goes: a duplicate counts only once the member acknowledged it. */
 export const isChosenOn = (draft: Draft, today: string) =>
   draft.status === 'review' &&
   draft.selected &&
   readiness(draft, today).length === 0 &&
   (!isDuplicate(draft) || draft.duplicateAcknowledged)
-/** `isChosenOn` for today's local date; takes only the draft so it can be passed straight to `filter`. */
 export const isChosen = (draft: Draft) => isChosenOn(draft, localToday())
 
 export interface Partitioned {
@@ -207,7 +189,6 @@ export interface Partitioned {
   skipped: Draft[]
 }
 
-/** Review rows first (in source order), duplicates collapsed at the end, then what is already saved or skipped. */
 export function partition(drafts: Draft[]): Partitioned {
   const sorted = [...drafts].sort((a, b) => a.ordinal - b.ordinal)
   return {
@@ -222,7 +203,6 @@ export type RowConfidence = 'high' | 'check' | 'unknown'
 export const rowConfidence = (draft: Draft): RowConfidence =>
   draft.confidence === null ? 'unknown' : draft.confidence < LOW_CONFIDENCE ? 'check' : 'high'
 
-/** Fields the source was unsure about (only those that hold a value). */
 export function lowFields(draft: Draft): FieldName[] {
   const scores = draft.fieldConfidence
   if (!scores) return []

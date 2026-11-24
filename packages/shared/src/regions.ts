@@ -1,4 +1,3 @@
-// The catalog's six collection regions (ADR 0001 §4). Policy and progress stay in functions/api/_lib/regions.ts.
 import { COUNTRY_REGION, type RegionId } from './countryRegions.generated'
 
 export type { RegionId }

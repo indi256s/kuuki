@@ -76,12 +76,12 @@ describe('Toast', () => {
     act(() => {
       vi.advanceTimersByTime(6000)
     })
-    expect(screen.getByText('Link copied')).toBeInTheDocument() // held while hovered
+    expect(screen.getByText('Link copied')).toBeInTheDocument()
     fireEvent.pointerLeave(toast)
     act(() => {
       vi.advanceTimersByTime(5000)
     })
-    expect(toast).toHaveAttribute('data-state', 'closed') // exit animation running
+    expect(toast).toHaveAttribute('data-state', 'closed')
     act(() => {
       vi.advanceTimersByTime(250)
     })
@@ -144,7 +144,6 @@ describe('Toast', () => {
       expect(offset('Y')).toBeLessThan(16)
     })
     pointer(toast, 'pointerDown', 0, 0)
-    // Let a scheduled render finish; the held pose must then remain fixed beyond entry's duration.
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 30))
     })

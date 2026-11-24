@@ -1,6 +1,3 @@
-// A row of low colonial town houses (Granada type): arcaded ground floors, shuttered upper windows,
-// flat parapets, a few raised gables. The box is the whole row; its bottom is the street line.
-// Alternate houses carry a mid-tone T4 wash so the row reads as separate colours.
 import { mulberry32 } from '../hash'
 import {
   type Pt,
@@ -69,7 +66,6 @@ export const colonialRow: KitModule = ([x, y, w, h], p) => {
         }),
       )
     out.push(hline('bold', px, px + hw, top + 1.4))
-    // Arcade: arches across the ground floor.
     const n = Math.max(2, Math.round(hw / 11))
     const slot = hw / n
     const rise = Math.min(8, hh * 0.3)
@@ -77,7 +73,6 @@ export const colonialRow: KitModule = ([x, y, w, h], p) => {
       const a = arch(px + slot * (k + 0.5), base, Math.min(4.4, slot * 0.32), rise)
       out.push(occlude(a), fill(a))
     }
-    // Upper windows: one row of shuttered rectangles.
     const wy = top + 5
     for (let k = 0; k < n; k++) {
       const wx = px + slot * (k + 0.5) - 1

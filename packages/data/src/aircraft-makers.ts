@@ -48,7 +48,6 @@ const byManufacturer = new Map<string, MakerSlot>(
   Object.entries(MAKER_NAMES).map(([key, name]) => [name, key as MakerSlot]),
 )
 
-// Current type designation: A220 supersedes the reference's Bombardier label.
 export const AIRCRAFT_MAKERS: Readonly<Record<string, MakerSlot>> = Object.fromEntries(
   aircraft.map(({ icao, manufacturer }) => [
     icao,

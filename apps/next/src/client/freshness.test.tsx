@@ -22,7 +22,7 @@ describe('ReadFreshness', () => {
     [5, 5, undefined, false],
     [5, 5, 'ready', false],
     [6, 5, 'ready', true],
-    [5, 5, 'pending', true], // stale evidence stamp: equal revisions, still not published
+    [5, 5, 'pending', true],
     [5, 5, 'error', true],
   ] as const)(
     'revision %i published %i derivedState %s -> pending %s',

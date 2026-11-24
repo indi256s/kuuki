@@ -27,7 +27,6 @@ export interface DerivedStateRow {
   last_error: string | null
 }
 
-/** Readiness needs the evidence stamp too: an older build can publish a revision without the projection (ADR 0001 §4). */
 export const isDerivedReady = (
   state: Pick<DerivedStateRow, 'revision' | 'published_revision' | 'evidence_revision'>,
 ) =>
@@ -36,11 +35,9 @@ export const isDerivedReady = (
 
 export type DerivedStateLabel = 'ready' | 'pending' | 'error'
 
-/** The published label every read reports: a missing row is ready, an unpublished one with a recorded failure is an error. */
 export const derivedLabelOf = (state: DerivedStateRow | null | undefined): DerivedStateLabel =>
   !state || isDerivedReady(state) ? 'ready' : state.last_error ? 'error' : 'pending'
 
-/** SQL form of "not ready", for maintenance selection and its remaining-work check. */
 export const STALE_DERIVED_PREDICATE =
   '(revision != published_revision OR evidence_revision != published_revision)'
 
@@ -62,10 +59,6 @@ export interface LegacyVisitSource {
   visit_count: number
 }
 
-/**
- * Include this statement in the same D1 batch as every canonical user mutation.
- * The original published revision remains visible until a complete repair publishes.
- */
 export function dirtyUserStatement(
   db: D1Database,
   userId: string,
@@ -84,7 +77,6 @@ export function dirtyUserStatement(
     .bind(userId, nowIso())
 }
 
-/** Upsert-then-guard: an account with no derived-state row must still reach every revision-guarded write. */
 export function ensureDerivedStateRow(db: D1Database, userId: string): D1PreparedStatement {
   return db
     .prepare(
@@ -117,7 +109,6 @@ function proposedVisits(db: D1Database, userId: string): BatchedRead<DerivedVisi
           skipped += 1
         },
       )
-      // No user identifier in the log; OPERATIONS.md has the query that finds the rows.
       if (skipped > 0)
         console.warn(JSON.stringify({ event: 'legacy_evidence_skipped', count: skipped }))
       return visits
@@ -125,7 +116,6 @@ function proposedVisits(db: D1Database, userId: string): BatchedRead<DerivedVisi
   }
 }
 
-// mergeVisits keeps the first contributing legacy country for each airport; keep that order explicit.
 export function legacyEvidenceStatement(db: D1Database, userId: string): D1PreparedStatement {
   return db
     .prepare(
@@ -164,13 +154,11 @@ export function mergeVisits(
   }
   for (const source of evidence) {
     if (!source.airport_iata) {
-      onSkip?.('airport') // CODING_STANDARDS rule 5: skip and report malformed legacy rows, never throw.
+      onSkip?.('airport')
       continue
     }
     const prior = merged.get(source.airport_iata)
     if (prior) {
-      // Archived counters may overlap flight history. Keep the larger observed count,
-      // never add both or infer a number of extra trips from their difference.
       prior.visit_count = Math.max(prior.visit_count, source.visit_count)
       prior.first_visit =
         prior.first_visit < source.first_visit ? prior.first_visit : source.first_visit
@@ -206,7 +194,6 @@ export async function stateOf(db: D1Database, userId: string): Promise<DerivedSt
   return stateStatement(db, userId).first<DerivedStateRow>()
 }
 
-/** Write proposed visits without touching unchanged rows: drop stale airports, upsert the rest. */
 function visitStatements(
   db: D1Database,
   userId: string,
@@ -240,15 +227,10 @@ function visitStatements(
   ]
 }
 
-/**
- * Calculate only from canonical rows, then publish every derived table in one D1 batch.
- * A newer canonical mutation makes the first guard violate CHECK, rolling back the batch.
- */
 export async function repairUserDerivedState(
   db: D1Database,
   userId: string,
 ): Promise<DerivedRepairResult> {
-  // A new account with no mutation can be asked to repair; seed it dirty once.
   let state: DerivedStateRow | null
   try {
     const [, current] = await db.batch([
@@ -269,7 +251,6 @@ export async function repairUserDerivedState(
   }
   const revision = state.revision
   try {
-    // Every canonical read shares one round trip; the guard below rejects a stale snapshot.
     const read = combineReads(
       proposedVisits(db, userId),
       computeStatsForVisits(db, userId),
@@ -277,12 +258,10 @@ export async function repairUserDerivedState(
       countryEvidenceRead(db, userId, legacyEvidenceStatement(db, userId), mergeVisits),
     )
     const [visits, statsFor, badgesFor, evidence] = read.derive(await db.batch(read.statements))
-    // Stats and the published projection share one country calculation.
     const countries = flightCountriesOf(evidence.rows)
     const stats = statsFor(visits, countries)
     const now = nowIso()
     const statements: D1PreparedStatement[] = [
-      // The -1 branch violates CHECK; no later result can publish after a newer revision.
       db
         .prepare(
           `UPDATE user_derived_state
@@ -292,7 +271,6 @@ export async function repairUserDerivedState(
          WHERE user_id = ?`,
         )
         .bind(revision, revision, revision, now, userId),
-      // UPDATE matching zero rows must not let the remaining derived writes through.
       db
         .prepare(
           `INSERT INTO user_derived_state (user_id, revision, published_revision)
@@ -308,7 +286,6 @@ export async function repairUserDerivedState(
     await db.batch(statements)
     return { derived_state: 'ready', revision }
   } catch {
-    // A newer mutation owns the marker; never attach this attempt's error to it.
     await db
       .prepare(
         `UPDATE user_derived_state SET last_error = 'DERIVED_REPAIR_FAILED'

@@ -1,7 +1,3 @@
-// Low whitewashed colonial house with a long arcade of round arches on slim piers under a wide
-// hipped tile roof (Casa de la Independencia). The box is the whole house; bottom is the ground.
-// Arches are dark openings (T4 hatching), piers and the wall above are lit paper, the roof is
-// tile courses in horizontal hair lines with a solid ridge.
 import { type Pt, type SvgNode, body, fill, hatch, hline, rectPts, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
 
@@ -12,7 +8,6 @@ export const arcadeHouseA: KitModule = ([x, y, w, h], p) => {
   const eaveY = y + roofH
   const plinth = 3
   const out: SvgNode[] = []
-  // Hipped roof: trapezoid with a short ridge, hatched in tile courses, shaded on the right hip.
   const inset = w * 0.2
   const roof: Pt[] = [
     [x - 2.5, eaveY],
@@ -60,12 +55,10 @@ export const arcadeHouseA: KitModule = ([x, y, w, h], p) => {
     ),
   )
   out.push(hline('bold', x - 2.5, x + w + 2.5, eaveY))
-  // Wall with a shaded cornice strip under the eave.
   const wallTop = eaveY
   const wallBot = base - plinth
   out.push(...body(rectPts(x, wallTop, w, wallBot - wallTop), 'line'))
   out.push(...hatch(rectPts(x, wallTop + 0.6, w, 3), 'h', 1.5, 'hair', 0.2))
-  // Arcade: arches between piers.
   const pier = num(p, 'pier', 4.4)
   const bw = (w - pier) / bays
   const archTop = wallTop + 9
@@ -84,7 +77,6 @@ export const arcadeHouseA: KitModule = ([x, y, w, h], p) => {
     arch.push([ax + aw, spring], [ax + aw, wallBot])
     out.push(...toneFill(arch, 'T4', { gap: num(p, 'archGap', 2.4), inset: 0.1, weight: 'fine' }))
     out.push(stroke('line', arch))
-    // A doorway or shuttered window in the shade behind: central bay gets a solid door.
     if (p.door !== false && i === Math.floor(bays / 2))
       out.push(
         fill(
@@ -97,7 +89,6 @@ export const arcadeHouseA: KitModule = ([x, y, w, h], p) => {
         ),
       )
   }
-  // Plinth and ground line.
   out.push(...body(rectPts(x - 2, wallBot, w + 4, plinth), 'line'))
   out.push(hline('bold', x - 4, x + w + 4, base))
   return out

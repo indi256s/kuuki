@@ -1,6 +1,3 @@
-// A gorge: two tall eroded walls facing each other across a V-notch, tops cut into pinnacles,
-// faces fluted by vertical gullies (lit left walls plain, right walls hatched), a forest and river
-// gleam at the floor. Symmetric about `axis`. The box bottom is the floor.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, hline, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
@@ -78,7 +75,6 @@ export const gorgeB: KitModule = ([x, y, w, h], p) => {
   }
   wall(-1)
   wall(1)
-  // Floor: forest band and river gleam.
   const fl: Pt[] = [
     [x, floor],
     [x + w, floor],

@@ -1,4 +1,3 @@
-/* The auth page's ring backdrop (ring-backdrop.tsx). Hairlines that fade toward the screen's edges. */
 .auth-rings {
   position: fixed;
   inset: 0;

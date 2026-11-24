@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MorphController } from 'torph'
 
-/** Only the scoped short feedback labels in DESIGN.md. Semantics belong to the caller. */
 export function FeedbackText({
   children,
   fast = false,
@@ -21,7 +20,6 @@ export function FeedbackText({
   const attached = useRef(false)
   const lastUpdate = useRef<number | null>(null)
   const [controller] = useState(() => new MorphController())
-  // React keeps the SSR text stable; Torph owns this node's contents after hydration.
   const [initial] = useState(() =>
     typeof children === 'number' ? children.toLocaleString(locale) : children,
   )
@@ -31,7 +29,6 @@ export function FeedbackText({
     const time = tokens.getPropertyValue(fast ? '--dur-fast' : '--dur-base').trim()
     const duration = parseFloat(time) * (time.endsWith('ms') ? 1 : 1000) || (fast ? 150 : 200)
     const now = performance.now()
-    // ponytail: one quiet interval ends burst mode; use stream-level backpressure if updates become expensive.
     const rapid = numbers && lastUpdate.current !== null && now - lastUpdate.current < duration
     const options = {
       duration,

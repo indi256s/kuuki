@@ -35,8 +35,6 @@ export function SectionTile({
 }: Props) {
   const { locale } = useOverview()
   const title = t(SECTIONS[id].title, locale)
-  // The title is a span: a button's content is phrasing, and a heading inside it is not exposed as one. The page's h1 and the sheet's heading carry the structure.
-  // The name stays the short title; the preview the tile shows ("14,535 km · Longest · DOH → AKL") is its description.
   const preview = useId()
   return (
     <button

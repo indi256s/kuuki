@@ -1,5 +1,3 @@
-// Which of the five profile pages a request gets (spec "States"). Visibility is decided by the public read; the
-// viewer only decides whether a private profile is its owner's page or a closed cover.
 export type ProfileViewState =
   | { kind: 'not-found' }
   | { kind: 'closed'; viewer: 'guest' | 'member' }

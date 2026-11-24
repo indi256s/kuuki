@@ -3,7 +3,6 @@ import { periodDays } from '@kuuki/shared/overview/range'
 import { formatDateOnly, type Locale } from '../../../lib/format'
 import { S, t } from '../copy'
 
-/** `12.03` / `03/12`, with a two-digit year when asked. */
 function compactDay(locale: Locale, day: string, year: boolean): string {
   const [y, m, d] = day.split('-')
   const short = y.slice(2)
@@ -12,7 +11,6 @@ function compactDay(locale: Locale, day: string, year: boolean): string {
     : `${m}/${d}${year ? `/${short}` : ''}`
 }
 
-/** The period as its button names it: All time, 2024, 2022–2024, 2019, 2022, or a compact day range that fits half a phone row. */
 export function periodLabel(period: OverviewFilter['period'], locale: Locale): string {
   const all = t(S.all, locale)
   if (!period) return all
@@ -31,7 +29,6 @@ export function periodLabel(period: OverviewFilter['period'], locale: Locale): s
   return `${compactDay(locale, days.from, !sameYear)}–${compactDay(locale, days.to, true)}`
 }
 
-/** The period in full for the button's accessible name, with the dates spelled out. */
 export function periodName(period: OverviewFilter['period'], locale: Locale): string {
   const prefix = t(S.period, locale)
   const days = period && 'from' in period ? periodDays(period) : null

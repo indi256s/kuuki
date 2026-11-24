@@ -1,7 +1,3 @@
-// Belfry of Bruges (Markt, BE), lane C: a square lower tower rising out of the low gabled hall, an
-// octagonal lantern on top (tall openings, corner turrets), the clock face on the tower below the
-// lantern, and low stepped Markt gables flanking both sides. Lit left, T4 on the right fifth of the
-// tower and the gables. The box bottom is the street; the box top is above the lantern's crown.
 import {
   type Pt,
   type SvgNode,
@@ -24,7 +20,6 @@ const circle = (cx: number, cy: number, r: number, n = 20): Pt[] =>
 const shade = (x: number, y: number, w: number, h: number): SvgNode[] =>
   hatchPoly(rectPts(x, y, w, h), { angle: 90, gap: 2.4, weight: 'hair' })
 
-/** A Markt house: a wall with a stepped gable of `steps` ledges, windows in two rows. */
 function house(x0: number, x1: number, base: number, wallH: number, steps: number): SvgNode[] {
   const out: SvgNode[] = []
   const cx = (x0 + x1) / 2
@@ -66,11 +61,9 @@ export const belfry: KitModule = ([x, y, w, h], p) => {
   const out: SvgNode[] = []
   const tw = num(p, 'tower', 28)
 
-  // Flanking Markt gables, behind the hall.
   out.push(...house(x, x + w * 0.27, base, 29, 3))
   out.push(...house(x + w * 0.73, x + w, base, 26, 3))
 
-  // The low hall: a long wall with a row of arched ground-floor openings and a gabled roof line.
   const hx0 = x + w * 0.2
   const hx1 = x + w * 0.8
   const hallH = 23
@@ -99,8 +92,6 @@ export const belfry: KitModule = ([x, y, w, h], p) => {
   }
   out.push(hline('bold', hx0, hx1, base - hallH))
 
-  // Square tower: two plain stages with lancet slits, a bold string course, the clock on the
-  // upper stage, and a parapet with a turret on each corner.
   const tx0 = cx - tw / 2
   const tx1 = cx + tw / 2
   const towerH = h * 0.78
@@ -122,7 +113,6 @@ export const belfry: KitModule = ([x, y, w, h], p) => {
     )
   }
   out.push(fill(rectPts(cx + 5, base - 51, 2.4, 7)))
-  // Clock: a ring with hands, on the middle of the upper stage, under the lantern.
   const cy = towerTop + 8
   out.push(
     occlude(circle(cx - 0.5, cy, 6.2), { halo: 0 }),
@@ -138,7 +128,6 @@ export const belfry: KitModule = ([x, y, w, h], p) => {
       [cx + 2.2, cy + 1.2],
     ]),
   )
-  // Corner turrets: a slim shaft with a pointed cap.
   for (const tcx of [tx0 + 1.6, tx1 - 1.6]) {
     const cap: Pt[] = [
       [tcx - 2.2, towerTop - 1],
@@ -150,7 +139,6 @@ export const belfry: KitModule = ([x, y, w, h], p) => {
     out.push(...body(cap, 'hair'), fill(cap.slice(1, 4)))
   }
 
-  // Octagonal lantern: narrower than the tower, three tall openings, a spire.
   const lw = tw * 0.72
   const lx0 = cx - lw / 2
   const lTop = towerTop - 14
@@ -176,7 +164,6 @@ export const belfry: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // The wooden spire is gone; the present lantern ends in an open stone crown.
   for (let i = 0; i < 4; i++) {
     const px = lx0 + (i * lw) / 3
     out.push(...body(rectPts(px - 1.3, lTop - 3, 2.6, 3), 'hair'))

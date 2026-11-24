@@ -6,10 +6,6 @@ import { isConstrainedConnection } from './network'
 
 export const ROUTE_LINK_EVENT = 'kuuki:route-link'
 
-/**
- * Owned shell links announce intent before a cold App Router navigation commits. Link calls `onNavigate` only for a plain, local click that nobody
- * cancelled, just before navigating; a mounted Journal treats a link to /journal like Reset or Back (see `JournalView`).
- */
 export function NavigationLink({
   prefetch,
   onPointerEnter,
@@ -25,7 +21,6 @@ export function NavigationLink({
   return (
     <Link
       {...props}
-      // Full-route viewport prefetches compete with the page being read. Warm only an intended destination.
       prefetch={warmHref === props.href ? (prefetch ?? null) : false}
       onPointerEnter={(event) => {
         onPointerEnter?.(event)

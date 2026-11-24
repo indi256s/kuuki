@@ -1,4 +1,3 @@
-// Gate of the Sun: one broad stone, a carved lintel and one recessed doorway.
 import { type Pt, type SvgNode, body, fill, hline, rectPts, stroke, toneFill } from '../grid'
 import type { KitModule } from './util'
 

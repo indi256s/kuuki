@@ -1,8 +1,7 @@
 const stage = document.querySelector('.cn-stage')
 const readout = document.querySelector('[data-readout]')
 const still = matchMedia('(prefers-reduced-motion: reduce)')
-const SPEED = 12 // degrees per second: one turn every 30 s, as on the sign-in page
-// `#120` or a preloaded `window.__start = 120` starts the turn at 120° (for captures of the reheat burst).
+const SPEED = 12
 const REST = window.__start ?? (Number(location.hash.slice(1)) || 0)
 let angle = REST
 let last = 0

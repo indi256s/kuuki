@@ -1,7 +1,3 @@
-// Airliner on final approach, side view, nose to the left and slightly raised, gear down (Maho
-// Beach, Sint Maarten). The box is where the aircraft sits: its width is the aircraft length, and
-// it is centred on the box. A long lit fuselage with a shaded belly and a window band, a swept fin
-// and tailplane, a swept wing with an engine pod, and nose and main gear on struts.
 import {
   type Pt,
   type SvgNode,
@@ -20,7 +16,6 @@ export const jetA: KitModule = ([x, y, w, h], p) => {
   const pitch = (num(p, 'pitch', 4) * Math.PI) / 180
   const cx = x + w / 2
   const cy = y + h / 2
-  // Local coordinates: nose at (0, 0) on the centreline, tail at (145, 0); y is down.
   const T = ([lx, ly]: Pt): Pt => {
     const dx = (lx - 72.5) * s
     const dy = ly * s * 1.2
@@ -32,7 +27,6 @@ export const jetA: KitModule = ([x, y, w, h], p) => {
   const P = (pts: Pt[]): Pt[] => pts.map(T)
   const out: SvgNode[] = []
 
-  // Far wing is hidden; draw the near wing first so the fuselage overlaps its root.
   const wing: Pt[] = [
     [50, 3],
     [86, 3],
@@ -52,7 +46,6 @@ export const jetA: KitModule = ([x, y, w, h], p) => {
       { inset: 0.2 },
     ),
   )
-  // Engine pod under the wing.
   const pod: Pt[] = [
     [60, 11],
     [80, 11],
@@ -62,7 +55,6 @@ export const jetA: KitModule = ([x, y, w, h], p) => {
     [58, 15],
   ]
   out.push(occlude(P(pod), { halo: 1.2 }), fill(P(pod)))
-  // Landing gear: nose strut and a main strut with a bogie.
   for (const [gx, top, bot] of [
     [16, 7, 24],
     [70, 19, 30],
@@ -80,7 +72,6 @@ export const jetA: KitModule = ([x, y, w, h], p) => {
     out.push(fill(P(wheel(gx, bot, 3.4))))
   }
 
-  // Fuselage: raised cockpit, long barrel, tapering tail cone.
   const upper: Pt[] = [
     [0, 3],
     ...quad([0, 3], [3, -8], [20, -8]).slice(1),
@@ -94,7 +85,6 @@ export const jetA: KitModule = ([x, y, w, h], p) => {
     ...quad([26, 8], [4, 8], [0, 3]).slice(1),
   ]
   const fuselage = P([...upper, ...lower])
-  // Tail fin and tailplane go behind the fuselage outline.
   const fin: Pt[] = [
     [108, -7.5],
     [128, -36],
@@ -122,7 +112,6 @@ export const jetA: KitModule = ([x, y, w, h], p) => {
   ]
   out.push(occlude(P(plane), { halo: 1.2 }), ...body(P(plane), 'hair'))
   out.push(occlude(fuselage, { halo: 1.2 }), ...body(fuselage, 'line'))
-  // Shaded belly and the window band.
   out.push(
     ...toneFill(
       P([

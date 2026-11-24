@@ -13,10 +13,6 @@ export type ImportTextareaProps = Omit<
   error?: ReactNode
 }
 
-/**
- * Multi-line twin of Field, adapted from Arc's Textarea: label, hint and error are wired to the control by id.
- * Arc's word-swap and height springs are left out; Field's classes keep it identical to the other inputs.
- */
 export const ImportTextarea = forwardRef<HTMLTextAreaElement, ImportTextareaProps>(
   function ImportTextarea(
     { label, hint, error, id, className, 'aria-describedby': describedBy, ...textarea },

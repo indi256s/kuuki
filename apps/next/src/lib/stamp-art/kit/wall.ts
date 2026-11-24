@@ -1,4 +1,3 @@
-// Wall modules: fortress-wall, tower, colonnade, pediment, triumphal-arch.
 import {
   type Pt,
   type SvgNode,
@@ -15,7 +14,6 @@ import {
 import { hip } from './roof'
 import { type KitModule, num, str, weight } from './util'
 
-/** Stone courses with staggered joints inside a rectangle (hair weight). */
 export function masonry(
   x: number,
   y: number,
@@ -38,7 +36,6 @@ export function masonry(
   return out
 }
 
-/** Crenellated wall: merlons on top, stone courses, optional slit windows. */
 export const fortressWall: KitModule = ([x, y, w, h], p) => {
   const merlons = Math.max(2, Math.round(num(p, 'merlons', 7)))
   const mh = h * num(p, 'merlonH', 0.2)
@@ -66,13 +63,6 @@ export const fortressWall: KitModule = ([x, y, w, h], p) => {
   return out
 }
 
-/**
- * Square tower in elevation. The box is the shaft base width by the whole height. The shaft
- * tapers to `taper` (0.9) of its base width; the crown storey (`crown`, a fraction of the height)
- * projects 1.2 units per side over a bold course and carries two dark arched openings. Caps:
- * `gable-low` (solid slate gable, height 0.25 of the crown width), `hip`, `battle`, `none`. The
- * right `shade` (0.4) of the shaft is T4; one slit window per storey on the lit side.
- */
 export const tower: KitModule = ([x, y, w, h], p) => {
   const cap = str(p, 'cap', ['none', 'hip', 'battle', 'gable-low'] as const, 'gable-low')
   const taper = num(p, 'taper', 0.9)
@@ -99,7 +89,6 @@ export const tower: KitModule = ([x, y, w, h], p) => {
   ]
   out.push(...body(shaft, weight(p, 'weight', 'line')))
   const half = (yy: number) => (topW + ((w - topW) * (yy - shaftTop)) / (bottom - shaftTop)) / 2
-  // Shaded right side of the shaft.
   const shade = num(p, 'shade', 0.4)
   if (shade > 0) {
     const xl = (yy: number) => cx + half(yy) - w * shade * (half(yy) / (w / 2))
@@ -116,7 +105,6 @@ export const tower: KitModule = ([x, y, w, h], p) => {
       ),
     )
   }
-  // One slit window per storey, on the lit side.
   const storeys = Math.max(0, Math.round(num(p, 'storeys', 3)))
   const shaftH = bottom - shaftTop
   for (let i = 0; i < storeys; i++) {
@@ -125,7 +113,6 @@ export const tower: KitModule = ([x, y, w, h], p) => {
     out.push(fill(rectPts(sx - 1, yy, 2, Math.min(5, shaftH / storeys / 2.4))))
   }
   if (crownH > 0) {
-    // Crown storey over a bold course.
     const crown = rectPts(cx - crownW / 2, y + capH, crownW, crownH)
     out.push(...body(crown, 'line'))
     out.push(
@@ -180,19 +167,17 @@ export const tower: KitModule = ([x, y, w, h], p) => {
   return out
 }
 
-/** Row of columns on a stylobate, with optional capitals, bases and an entablature. */
 export const colonnade: KitModule = ([x, y, w, h], p) => {
   const count = Math.max(2, Math.round(num(p, 'count', 6)))
   const order = str(p, 'order', ['doric', 'ionic', 'plain'] as const, 'doric')
   const center = num(p, 'centerBay', 1)
-  const colW = num(p, 'colW', 0.42) // shaft width as a fraction of column pitch
+  const colW = num(p, 'colW', 0.42)
   const entH = h * num(p, 'entablature', 0)
   const stylo = Math.round(num(p, 'stylobate', 0))
   const styloH = stylo * 3
   const taper = num(p, 'taper', 0.1)
   const flutes = Math.round(num(p, 'flutes', 1))
   const out: SvgNode[] = []
-  // Bay weights between columns: the middle bay may be wider.
   const bays = count - 1
   const weights = Array.from({ length: bays }, (_, i) =>
     bays % 2 === 1 && i === (bays - 1) / 2 ? center : 1,
@@ -207,7 +192,6 @@ export const colonnade: KitModule = ([x, y, w, h], p) => {
   const capH = order === 'plain' ? 0 : Math.max(3, cw * 0.38)
   const top = y + entH
   const bottom = y + h - styloH
-  // Entablature.
   if (entH > 0) {
     const ex = xs[0] - cw * 0.9,
       ew = xs[xs.length - 1] - xs[0] + cw * 1.8
@@ -227,14 +211,12 @@ export const colonnade: KitModule = ([x, y, w, h], p) => {
       }
     }
   }
-  // Stylobate steps.
   for (let i = 0; i < stylo; i++) {
     const inset = (stylo - 1 - i) * 3
     const sx = xs[0] - cw * 0.9 - inset,
       sw = xs[xs.length - 1] - xs[0] + cw * 1.8 + inset * 2
     out.push(...body(rectPts(sx, bottom + i * 3, sw, 3), 'line'))
   }
-  // Columns.
   for (const cx of xs) {
     const t = cw * taper
     const poly: Pt[] = [
@@ -261,7 +243,6 @@ export const colonnade: KitModule = ([x, y, w, h], p) => {
   return out
 }
 
-/** Triangular pediment, or a flat attic block with panels when `pitch` is 0. */
 export const pediment: KitModule = ([x, y, w, h], p) => {
   const pitch = num(p, 'pitch', 0.16)
   const out: SvgNode[] = []
@@ -283,7 +264,6 @@ export const pediment: KitModule = ([x, y, w, h], p) => {
     out.push(hline('line', x - 1.5, x + w + 1.5, y + h))
     return out
   }
-  // Attic: cornice on top, plinth line, recessed panels.
   const cornH = Math.min(5, h * 0.22)
   out.push(...body(rectPts(x, y + cornH, w, h - cornH), 'line'))
   out.push(...body(rectPts(x - 1.5, y, w + 3, cornH), 'line'))
@@ -299,7 +279,6 @@ export const pediment: KitModule = ([x, y, w, h], p) => {
   return out
 }
 
-/** Gate / arch mass with openings, entablature and attic. */
 export const triumphalArch: KitModule = ([x, y, w, h], p) => {
   const bays = Math.max(1, Math.round(num(p, 'bays', 1)))
   const kind = str(p, 'opening', ['square', 'arch'] as const, 'square')
@@ -315,7 +294,6 @@ export const triumphalArch: KitModule = ([x, y, w, h], p) => {
       [x + w + 2, y + h],
     ]),
   )
-  // Entablature band and cornice, then attic.
   out.push(...body(rectPts(x - 1.5, y + atticH, w + 3, entH), 'line'))
   out.push(hline('hair', x, x + w, y + atticH + entH * 0.45))
   out.push(

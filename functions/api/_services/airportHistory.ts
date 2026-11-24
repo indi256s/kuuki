@@ -57,7 +57,6 @@ function decodeCursor(value: string): Cursor {
   }
 }
 
-/** Exact completed flights, before Overview aggregation; every private read shares one snapshot. */
 export async function readAirportHistory(
   db: D1Database,
   ownerId: string,
@@ -179,7 +178,6 @@ export async function readAirportHistory(
       scopeResults[2].results as AircraftRow[],
     )
     const matching = rows.filter((row) => matches(row, filter, refs))
-    // Resolve the anchor in this snapshot's database order, including legacy date labels.
     const anchor = cursor ? matching.findIndex((row) => row.id === cursor.id) : -1
     if (cursor && anchor < 0)
       throw new HttpError(400, 'Cursor anchor is not in this airport history', 'INVALID_CURSOR')

@@ -1,5 +1,3 @@
-// Isolated compiled API proof on real local workerd. Build Pages Functions first.
-// No .dev.vars, frontend assets, snapshot, or cloud bindings.
 import { resolve } from 'node:path'
 import {
   Miniflare,
@@ -84,7 +82,6 @@ const mf = new Miniflare({
         { headers: { 'Content-Type': 'application/json' } },
       )
     }
-    // Deny other external destinations except this deterministic provider response.
     if (url.hostname !== 'generativelanguage.googleapis.com')
       return new WorkerResponse('External calls disabled', { status: 502 })
     const body = await request.text()
@@ -156,7 +153,6 @@ async function main() {
       db.prepare("INSERT INTO _code_adjectives(word) VALUES('calm'),('bright'),('swift')"),
       db.prepare("INSERT INTO _code_nouns(word) VALUES('cloud'),('wing'),('sky')"),
     ])
-    // Hashing and signup happen inside the compiled workerd API, rather than in Node.
     for (const [email, username] of [
       ['a@example.test', 'fixture-a'],
       ['b@example.test', 'fixture-b'],
@@ -186,8 +182,6 @@ async function main() {
       body: JSON.stringify({ email: 'legacy@example.test' }),
     })
     if (!activation.ok) throw new Error('Compiled activation request failed')
-    // waitUntil continues after dispatchFetch returns. Observe its D1 write and
-    // fake provider acknowledgement before asserting the compiled tail completed.
     const deliveryDeadline = Date.now() + 5_000
     let issued = 0
     while (Date.now() < deliveryDeadline) {
@@ -254,7 +248,6 @@ async function main() {
           submissionOperationId: `smoke-${expectedCode}`,
         }),
       })
-      // A provider failure is recorded on the batch, not answered as an HTTP error.
       const result = (await response.json()) as { batch?: { errorCode?: string } }
       if (!response.ok || result.batch?.errorCode !== expectedCode)
         throw new Error(`Compiled provider error contract failed: ${response.status}`)

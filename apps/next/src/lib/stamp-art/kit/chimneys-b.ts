@@ -1,6 +1,3 @@
-// Lake Abbe travertine chimneys: slender rounded columns of uneven height on a flat plain, each
-// with a lit left side, a fluted shaded right side, a few banding lines and a rubble foot; thin
-// steam wisps curl from the tallest tops. The box bottom is the plain.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, hline, occlude, quad, stroke, toneFill } from '../grid'
 import { type KitModule, num, nums } from './util'
@@ -8,7 +5,6 @@ import { type KitModule, num, nums } from './util'
 export const chimneysB: KitModule = ([x, y, w, h], p) => {
   const rand = mulberry32(Math.round(num(p, 'seed', 5)))
   const base = y + h
-  // [centre, width, height] fractions, drawn back to front by listed order.
   const spec = nums(
     p,
     'chimneys',
@@ -56,7 +52,6 @@ export const chimneysB: KitModule = ([x, y, w, h], p) => {
           [cx - cw * 0.05, by + 1.2],
         ]),
       )
-    // Rubble foot.
     out.push(hline('hair', cx - cw * 0.95, cx + cw * 0.95, base - 1))
     if (spec[i + 2] > 0.7 && cw > 8) {
       const wisp: Pt[] = Array.from({ length: 7 }, (_, k) => [

@@ -1,7 +1,3 @@
-// Shared flight list filtering / sorting / pagination, used by GET /api/flights (list) and
-// GET /api/flights/ids so the two stay in lockstep. SECURITY: sort field + direction are
-// allowlisted because the column name is interpolated into SQL; every value is bound.
-
 import { periodDays } from '../../../packages/shared/src/overview/range'
 import { HttpError } from './http'
 import { resolveAirportCodes } from '../../../packages/shared/src/airportSearch'
@@ -34,8 +30,6 @@ const SORT_FIELDS = new Set([
   'duration_minutes',
 ])
 
-// Cap multi-value filters so a caller can't blow past D1's ~100 bound-variable limit
-// (security hardening: uncapped IN-clause arrays → self-DoS at runtime).
 const MAX_FILTER_VALUES = 25
 
 function csv(value: string | null): string[] | undefined {
@@ -55,7 +49,6 @@ function flightRange(from: string | null | undefined, to: string | null | undefi
   return range
 }
 
-/** Parse FlightFilters from the request query string (?year=&airlineIata=&originCodes=a,b ...). */
 export function parseFlightFilters(params: URLSearchParams): FlightFilters {
   const filters: FlightFilters = {}
   const q = params.get('q')?.trim().slice(0, 100)
@@ -94,7 +87,6 @@ export function parseFlightFilters(params: URLSearchParams): FlightFilters {
   return filters
 }
 
-/** Build the WHERE clause (always scoped to user_id) + bound params for a flight list / ids query. */
 export function buildFlightWhere(
   userId: string,
   filters: FlightFilters,
@@ -102,9 +94,6 @@ export function buildFlightWhere(
   const clauses: string[] = ['user_id = ?']
   const binds: (string | number)[] = [userId]
   if (filters.q) {
-    // Bind every word, with the airport codes it resolves to, as one JSON array. SQLite lower() folds only
-    // ASCII, so city and alias words (Russian, native script, diacritics) are resolved to IATA codes in JS
-    // with Unicode folding and then matched against origin/destination.
     const words = filters.q
       .trim()
       .slice(0, 100)
@@ -152,7 +141,6 @@ export function buildFlightWhere(
     binds.push(filters.aircraftIcao)
   }
   if (!filters.status && filters.isUpcoming !== undefined) {
-    // `isUpcoming=false` keeps its meaning: completed, i.e. awaiting or logged (ADR 0001 §1).
     clauses.push(
       filters.isUpcoming
         ? "lifecycle_state = 'upcoming'"
@@ -181,19 +169,12 @@ export interface SortConfig {
   order: 'asc' | 'desc'
 }
 
-/** Allowlisted sort (?sortField=&sortOrder=). Unknown fields fall back to date; default desc. */
 export function parseSort(params: URLSearchParams): SortConfig {
   const field = params.get('sort') ?? params.get('sortField') ?? 'date'
   const order = (params.get('order') ?? params.get('sortOrder')) === 'asc' ? 'asc' : 'desc'
   return { field: SORT_FIELDS.has(field) ? field : 'date', order }
 }
 
-/**
- * ORDER BY built from an already-validated SortConfig, with a stable id tiebreak. The default sort
- * (date, descending) leads with lifecycle_state = 'upcoming' rows, nearest first, so the Journal's
- * Upcoming group is globally nearest-first across pages; every non-default sort is a plain column order.
- * An explicit date-desc is indistinguishable from the default, so it gets the same upcoming-first order.
- */
 export function orderByClause(sort: SortConfig): string {
   const dir = sort.order === 'asc' ? 'ASC' : 'DESC'
   if (sort.field === 'date' && sort.order === 'desc') {
@@ -210,7 +191,6 @@ export function parsePagination(
 ): { limit: number; offset: number } {
   const rawLimit = Number(params.get('limit'))
   const rawOffset = Number(params.get('offset'))
-  // SQLite LIMIT/OFFSET take integers only; anything else falls back like a missing value.
   const limit =
     Number.isSafeInteger(rawLimit) && rawLimit > 0 ? Math.min(rawLimit, 200) : defaultLimit
   const offset = Number.isSafeInteger(rawOffset) && rawOffset >= 0 ? rawOffset : 0

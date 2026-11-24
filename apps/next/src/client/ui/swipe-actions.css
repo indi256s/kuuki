@@ -1,4 +1,3 @@
-/* Arc-derived swipe actions. Tokens only. The content follows the pointer by transform; vertical pans stay with the page. */
 .ui-swipe-row {
   position: relative;
   isolation: isolate;
@@ -15,7 +14,6 @@
   user-select: none;
   -webkit-user-select: none;
 }
-/* Both sides span the row so an armed side can fill the space the content leaves; only the buttons take pointer input. */
 .ui-swipe-side {
   position: absolute;
   inset: 0;
@@ -65,9 +63,9 @@
   background: var(--swipe-bg);
   color: var(--swipe-fg);
   font: inherit;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 500;
-  line-height: 18px;
+  line-height: 1.125rem;
   cursor: pointer;
   transition: opacity var(--dur-fast) var(--ease-out);
 }

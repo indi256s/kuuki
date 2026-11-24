@@ -10,14 +10,13 @@ import {
   type KeyboardEvent,
   type Ref,
 } from 'react'
-import { ChoiceOptions, searchChoices, type Choice } from '../ui/combobox'
+import { ChoiceOptions, searchChoices, useListClaimsEscape, type Choice } from '../ui/combobox'
 import { Sheet } from '../ui/sheet'
 import { useMobile } from '../ui/use-mobile'
 import type { Locale } from '../../lib/format'
 
 const ENDS = ['origin', 'destination'] as const
 export type RouteEnd = (typeof ENDS)[number]
-/** Opens the search on one end, e.g. To after the Onward shortcut fills From. */
 export type RouteControl = { open: (end: RouteEnd) => void }
 
 const words = {
@@ -45,10 +44,6 @@ const words = {
   },
 }
 
-/**
- * The route as one card: two airport rows that open a single From→To search. Choosing From moves on to To while To is
- * empty; choosing To returns to the form. Only an explicit choice sets an airport: typing or leaving the search never does.
- */
 export function RouteCard({
   origin,
   destination,
@@ -82,7 +77,6 @@ export function RouteCard({
   const [active, setActive] = useState(0)
   const searchRef = useRef<HTMLInputElement>(null)
   const buttons = useRef<Partial<Record<RouteEnd, HTMLButtonElement | null>>>({})
-  // The row focus returns to when the search closes.
   const last = useRef<RouteEnd>('origin')
   const values = { origin, destination }
   const place = (code: string) => {
@@ -107,9 +101,12 @@ export function RouteCard({
   const open = (end: RouteEnd) => {
     if (!disabled) pickEnd(end)
   }
-  // Desktop focuses the search once it renders; the mobile sheet focuses it through initialFocusRef.
+  const popover = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    if (picking && !mobile) searchRef.current?.focus()
+    if (picking && !mobile) {
+      searchRef.current?.focus()
+      popover.current?.scrollIntoView?.({ block: 'nearest' })
+    }
   }, [picking, mobile])
   useImperativeHandle(controlRef, () => ({ open }))
   const close = (focusEnd: RouteEnd | null) => {
@@ -117,6 +114,7 @@ export function RouteCard({
     setQuery('')
     if (focusEnd) requestAnimationFrame(() => buttons.current[focusEnd]?.focus())
   }
+  useListClaimsEscape(!!picking && !mobile, () => close(picking))
   const choose = (choice: Choice) => {
     if (!picking) return
     onPick(picking, choice.code)
@@ -134,7 +132,6 @@ export function RouteCard({
         Math.max(0, Math.min(matches.length - 1, index + (event.key === 'ArrowDown' ? 1 : -1))),
       )
     } else if (event.key === 'Enter') {
-      // Never submits the form; Enter takes the highlighted result only.
       event.preventDefault()
       if (matches[active]) choose(matches[active])
     } else if (event.key === 'Escape') {
@@ -271,7 +268,9 @@ export function RouteCard({
           ),
       )}
       {!mobile && picking && (
-        <div className="flight-search-popover flight-search-sheet route-picker">{picker}</div>
+        <div ref={popover} className="flight-search-popover flight-search-sheet route-picker">
+          {picker}
+        </div>
       )}
       {mobile && (
         <Sheet

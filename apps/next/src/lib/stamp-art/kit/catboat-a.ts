@@ -1,7 +1,3 @@
-// Gaff-rigged island cutter (lane A, `-a` until consolidated): a double-ended hull, a four-sided
-// gaff mainsail with seam lines on a boom that overhangs the stern, a T4 jib to a short bowsprit
-// and a pennant. Unlike the sloop it carries a quadrilateral sail. The box is the boat; its bottom
-// is the waterline.
 import { type Pt, type SvgNode, body, fill, hline, occlude, quad, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
 
@@ -16,7 +12,6 @@ export const catboatA: KitModule = ([x, y, w, h], p) => {
   const hull: Pt[] = [...sheer, ...keel]
   const topMast = y + h * 0.04
   const boomY = base - 12
-  // Mainsail: luff on the mast, foot on the boom, a gaff across the head.
   const peak: Pt = [x + w * 0.16, y + h * 0.2]
   const leech = quad(peak, [x0 + w * 0.0, boomY - h * 0.3], [x0 - 2, boomY], 10)
   const main: Pt[] = [[mx, boomY], [mx, topMast + 3], peak, ...leech.slice(1)]
@@ -34,7 +29,6 @@ export const catboatA: KitModule = ([x, y, w, h], p) => {
     )
   }
   out.push(stroke('hair', [[mx, topMast + 3], peak]))
-  // Jib.
   const jib: Pt[] = [
     [mx + 1.5, topMast + 5],
     [x1 + 3, base - 12],
@@ -42,7 +36,6 @@ export const catboatA: KitModule = ([x, y, w, h], p) => {
   ]
   out.push(...body(jib, 'line'))
   out.push(...toneFill(jib, 'T4', { inset: 0.5, gap: 3 }))
-  // Mast, boom, pennant.
   out.push(
     stroke('line', [
       [mx, topMast - 2],
@@ -62,7 +55,6 @@ export const catboatA: KitModule = ([x, y, w, h], p) => {
       [mx, topMast + 2.4],
     ]),
   )
-  // Hull.
   out.push(occlude(hull, { halo: 1.2 }))
   out.push(...toneFill(hull, 'T4', { gap: 2.8, inset: 0.3 }))
   out.push(stroke('line', hull, true), stroke('bold', sheer))

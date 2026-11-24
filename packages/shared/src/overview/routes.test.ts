@@ -48,7 +48,6 @@ it('classifies the profile at the 0.8 and 0.5 distinct-per-flight thresholds', (
   const dates = ['2024-01-01', '2024-01-02', '2024-01-03', '2024-01-04', '2024-01-05']
   const flown = (pairs: string[][]) =>
     ready(run(pairs.map(([a, b], i) => row(a, b, dates[i % dates.length])))).profile
-  // 5 flights, 4 routes = 0.8
   expect(
     flown([
       ['A', 'B'],
@@ -58,7 +57,6 @@ it('classifies the profile at the 0.8 and 0.5 distinct-per-flight thresholds', (
       ['B', 'A'],
     ]),
   ).toBe('explorer')
-  // 5 flights, 3 routes = 0.6
   expect(
     flown([
       ['A', 'B'],
@@ -68,7 +66,6 @@ it('classifies the profile at the 0.8 and 0.5 distinct-per-flight thresholds', (
       ['A', 'D'],
     ]),
   ).toBe('mixed')
-  // 6 flights, 3 routes = 0.5
   expect(
     flown([
       ['A', 'B'],
@@ -143,7 +140,6 @@ it('newRoutes counts first flights across counted rows, contiguously by year, wi
     { key: '2023', year: 2023, flights: 1, newRoutes: 1 },
     { key: '2024', year: 2024, flights: 5, newRoutes: 3 },
   ])
-  // Filtered to 2024 the span still comes from counted; LHR was first flown in 2021 so it is not new.
   const scoped = ready(
     run(
       counted.filter((r) => r.date.startsWith('2024')),

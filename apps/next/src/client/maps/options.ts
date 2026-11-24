@@ -13,11 +13,6 @@ const GESTURE_HELP = {
   },
 } as const
 
-/**
- * Interaction contract (no scroll hijack): a plain wheel or one-finger swipe scrolls the page. Zoom needs the
- * +/− controls, Ctrl/⌘ + wheel (cooperative gestures; trackpad pinch arrives as Ctrl + wheel) or two fingers.
- * Rotation and pitch are off: this is a flat reference map.
- */
 export function mapOptions(locale: 'en' | 'ru'): Omit<MapOptions, 'container' | 'style'> {
   return {
     center: [0, 20],

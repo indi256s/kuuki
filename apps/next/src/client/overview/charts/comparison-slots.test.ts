@@ -56,7 +56,6 @@ it('keeps rendered keys on their slot and cue through reorder, filters, new enti
     F: 1,
     G: 0,
   })
-  // Color alone must never be the only distinction between comparison series.
   expect(new Set(SLOT_CUES.map((cue) => `${cue.dash}|${cue.marker}`)).size).toBe(5)
   for (const cue of SLOT_CUES) expect(cue.color).toMatch(/^var\(--cmp-[1-5]\)$/)
 })

@@ -1,11 +1,3 @@
-// Generates the route loading figure: an airfield windsock on a hinged mast. Kuuki is 空気, air; while a route loads the
-// wind builds and the sock fills band by band (windsock-geom.ts has the model). Drawn with the anatomy skill's iso kit,
-// pinned with the Concorde's (scripts/concorde/anatomy.lock.json; setup in scripts/concorde/README.md).
-//
-//   pnpm generate:windsock            writes apps/next/src/client/loading/windsock.generated.{ts,css}
-//   pnpm generate:windsock --preview  also writes .scratch/windsock/preview{,-light}.html, with the sock full
-//
-// The static SVG is the mast and its fittings with the sock drawn limp; windsock.tsx redraws the sock in place.
 import { createHash } from 'node:crypto'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
@@ -33,7 +25,6 @@ const k = await import(pathToFileURL(join(KIT, 'iso-kit.mjs')))
 const OUT = resolve('apps/next/src/client/loading')
 const { SOCK, FULL_KNOTS, poseOf } = await import(pathToFileURL(join(OUT, 'windsock-geom.ts')))
 
-// ---------- World ----------
 const WIDTH = 360
 const HEIGHT = 300
 const AZIMUTH = 58
@@ -69,7 +60,6 @@ const D = (points, style) => k.dotsSvg(points, style)
 const byDepth = (points) =>
   [...points].sort((a, b) => k.depthOf([a[0], a[1], 0], P) - k.depthOf([b[0], b[1], 0], P))
 
-// ---------- Footing ----------
 function footing() {
   const out = [`<path class="iso-halo" d="${k.haloOf(PAD, 0, PAD_H, P)}"/>`]
   out.push(
@@ -79,7 +69,6 @@ function footing() {
     }),
   )
   out.push(L(k.planOutline(k.insetPlan(PAD, 3.5), PAD_H, P, 3), { tone: 'faint' }))
-  // A cast-in maker's plate in the pad's near corner: three engraved rules stand for its text.
   const plate = { x: 6, y: 13, w: 14, d: 8, r: 0.8 }
   out.push(S(k.slabOf(plate, PAD_H, 0.5, P, 2, 0.3), { tone: 'lo', crease: 'none' }))
   out.push(
@@ -94,7 +83,6 @@ function footing() {
       { tone: 'faint', free: true },
     ),
   )
-  // Base plate and four anchor nuts with washers.
   out.push(S(k.slabOf(PLATE, PAD_H, 2, P, 3, 0.5), { tone: 'mid' }))
   for (const [x, y] of byDepth(k.corners(PLATE, 3))) {
     out.push(L(k.ring(x, y, 2.1, PLATE_TOP, P, 16), { tone: 'lo' }))
@@ -104,7 +92,6 @@ function footing() {
   return out.join('')
 }
 
-// ---------- Hinged mast: the lugs and pin let it tip over for servicing the sock ----------
 const lug = (y) => ({ x: -4, y, w: 8, d: 1.6, r: 0.4 })
 function lugSvg(y, front) {
   const out = [
@@ -131,7 +118,6 @@ function mast() {
     S(k.cylinder(0, 0, MAST_R + 0.6, PLATE_TOP, HINGE_Z + 6 - PLATE_TOP, P, 24), { tone: 'mid' }),
   )
   out.push(lugSvg(MAST_R + 0.6, true))
-  // Lower and upper tube, joined by a sleeve; faint bands mark the tube's rolled seams.
   const seams = (z0, z1) =>
     L([z0, z1].map((z) => k.sideArc(0, 0, MAST_R, z, P, 16)).join(''), {
       tone: 'faint',
@@ -162,8 +148,6 @@ function mast() {
     }),
   )
 
-  // The obstruction lamp's feed: a junction box on the mast's lee side, its conduit dropping clear of the hinge lugs
-  // into a gland on the base plate.
   const box = { x: MAST_R - 0.2, y: -3, w: 4, d: 6, r: 0.6 }
   const cx = MAST_R + 2.6
   out.push(S(k.cylinder(cx, 0, 1.5, PLATE_TOP, 1.2, P, 12), { tone: 'mid' }))
@@ -185,7 +169,6 @@ function mast() {
     }),
   )
 
-  // Swivel: two bearing collars hold the frame; the mast between them carries nothing else.
   const collar = ([z0, z1]) => {
     const o = [
       S(k.cylinder(0, 0, COLLAR_R, z0, z1 - z0, P, 28, 0.4), {
@@ -210,7 +193,6 @@ function mast() {
     }),
   )
   out.push(collar(HIGH))
-  // Mast cap and the obstruction lamp on top.
   out.push(S(k.cylinder(0, 0, MAST_R + 0.4, HIGH[1], 1.4, P, 24), { tone: 'mid' }))
   out.push(
     S(k.cylinder(0, 0, 2.4, HIGH[1] + 1.4, 3, P, 24, 0.3), {
@@ -227,7 +209,6 @@ function mast() {
   return out.join('')
 }
 
-// ---------- The sock's slot: the client rewrites these paths; the generator fills them with one pose ----------
 function sockSvg(knots) {
   const pose = poseOf({ knots, heading: 0, time: 0 }, P)
   const grads = []
@@ -257,7 +238,6 @@ function sockSvg(knots) {
   }
 }
 
-// Decorative: the status line under it carries the words, so the drawing is hidden from assistive tech.
 const svgOf = (knots) => {
   const sock = sockSvg(knots)
   let svg = k
@@ -268,7 +248,6 @@ const svgOf = (knots) => {
       body: [sock.defs, footing(), mast(), sock.body],
     })
     .replace(/ role="img" aria-label="[^"]*"/, ' aria-hidden="true" focusable="false"')
-  // Gradient endpoints start on the first pose; the client moves them each frame.
   for (const b of sock.pose.bands) {
     const [x1, y1, x2, y2] = b.light.map((n) => Math.round(n * 10) / 10)
     svg = svg.replace(
@@ -280,7 +259,6 @@ const svgOf = (knots) => {
 }
 const svg = svgOf(0)
 
-// ---------- CSS: the kit's rules scoped under .windsock, keeping only those the figure can match ----------
 const SCOPE = '.windsock'
 function rulesOf(css) {
   const rules = []
@@ -308,7 +286,6 @@ function scope(css) {
         const kept = scope(inner)
         return kept ? [`${head}{${kept}}`] : []
       }
-      // The kit's palettes: windsock.css maps every --anatomy-* role onto Kuuki's tokens.
       if (/^\.iso(\[data-theme="(dark|light)"\])?$/.test(head)) return []
       return [
         `${head

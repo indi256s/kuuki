@@ -1,7 +1,6 @@
 import type { ProjectedRoute } from '@kuuki/shared'
 export type { ProjectedRoute, RouteProjection } from '@kuuki/shared'
 
-/** Cheap list cue; geometry generator still validates the actual sampled line. */
 export function hasDrawableEndpoints(route: ProjectedRoute): boolean {
   const { from, to } = route
   if (

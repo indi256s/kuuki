@@ -1,7 +1,3 @@
-// Fiat Tagliero-type cantilever (Asmara): a tall central cabin on a slim base with two thin
-// concrete wings thrust out from its roof like an aircraft's, tips lifting. Dark tall windows
-// on the cabin, a shaded wing soffit, and a pump island under each wing. The box bottom is the
-// forecourt.
 import {
   type Pt,
   type SvgNode,
@@ -23,7 +19,6 @@ export const wingStationB: KitModule = ([x, y, w, h], p) => {
   const roofY = y + h * 0.42
   const cabTop = y + h * 0.26
   const out: SvgNode[] = []
-  // Wings (both sides).
   for (const s of [-1, 1]) {
     const root = cx + s * (cabW / 2 - 1)
     const tip = cx + s * w * 0.5
@@ -48,14 +43,12 @@ export const wingStationB: KitModule = ([x, y, w, h], p) => {
         [cx + s * w * 0.4, roofY - 8],
       ]),
     )
-    // Pump island under the wing.
     const px = cx + s * w * 0.34
     out.push(
       ...body(rectPts(px - 3, base - 9, 6, 9), 'hair'),
       fill(rectPts(px - 2, base - 7, 4, 2.4)),
     )
   }
-  // Cabin and tower base.
   const cab: Pt[] = rectPts(cx - cabW / 2, cabTop, cabW, roofY - cabTop + 4)
   out.push(occlude(cab), ...body(cab, 'line'))
   out.push(fill(rectPts(cx - cabW / 2 + 2, cabTop + 3, cabW - 4, 4)))
@@ -76,7 +69,6 @@ export const wingStationB: KitModule = ([x, y, w, h], p) => {
       { angle: 90, gap: 1.8, weight: 'fine', inset: 0.4 },
     ),
   )
-  // Forecourt slab.
   out.push(hline('bold', x, x + w, base - 0.5))
   return out
 }

@@ -1,7 +1,4 @@
 'use client'
-// Geographic city connections, not a rail/road track. Reuses the pinned atlas from the other Kuuki maps. The detail
-// sheet draws the full map with numbered stop marks and labels; a list card draws a small unlabelled one. Both use one
-// projection and one stop-mark rule, so the sheet's route list, its map and the card agree on start, stops and end.
 
 import {
   placeKey,
@@ -14,8 +11,6 @@ import type { Locale } from '../../lib/format'
 import { copy } from './copy'
 import { wrappedBounds } from '../maps/geometry'
 
-/** The box a sketch is fitted into. `fill` is the share of the padded box the route may span; `minSpanDeg` keeps a
- * short trip in its region instead of magnifying one city. */
 export type SketchFrame = {
   width: number
   height: number
@@ -38,19 +33,12 @@ const CARD_FRAME: SketchFrame = { width: 260, height: 130, pad: 14, fill: 0.75, 
 export type Sketch = {
   width: number
   height: number
-  /** Distinct plotted places, in first-visit order. */
   dots: { key: string; x: number; y: number; place: GroundPlaceSnapshot }[]
   atlas?: { x: number; y: number; scaleX: number; scaleY: number; worldWidth: number }
-  /**
-   * Visit order as runs of indexes into `dots`; a repeated city returns to its dot. A place without coordinates ends a
-   * run, so known points are never joined across it.
-   */
   segments: number[][]
-  /** Visited places with no coordinates. */
   missing: GroundPlaceSnapshot[]
 }
 
-/** Equirectangular projection scaled by cos(mean latitude), centred in the frame. */
 export function sketchOf(
   places: readonly (GroundPlaceSnapshot | null)[],
   frame: SketchFrame = SHEET_FRAME,
@@ -120,7 +108,6 @@ const round = (value: number) => Math.round(value * 10) / 10
 
 export type StopMark = { number: number; role: 'start' | 'via' | 'end' }
 
-/** Number (first-visit order) and role of every plotted place, keyed by `placeKey`. The last visited place is the end. */
 export function stopMarks(sketch: Sketch): Map<string, StopMark> {
   const end = sketch.segments.at(-1)?.at(-1)
   return new Map(
@@ -131,10 +118,6 @@ export function stopMarks(sketch: Sketch): Map<string, StopMark> {
   )
 }
 
-/**
- * The pinned world outlines, drawn only for the copies that reach the frame (a date-line route needs two). Borders
- * scale with the drawing, so a zoomed-in map takes the fine-stroke variant instead of a thick band.
- */
 function Atlas({ sketch }: { sketch: Sketch }) {
   const atlas = sketch.atlas!
   const variant = atlas.scaleY > 3 ? 'r2-fine' : 'r2'
@@ -170,7 +153,6 @@ function routeLines(sketch: Sketch) {
     .map((run) => run.map((at) => sketch.dots[at]))
 }
 
-/** One chevron at the middle of each connection long enough to carry it, pointing the way of travel. */
 function arrows(sketch: Sketch, minLength: number) {
   const marks: { key: string; x: number; y: number; angle: number }[] = []
   for (const line of routeLines(sketch))
@@ -193,7 +175,6 @@ const LABEL_HEIGHT = 16
 
 type CityLabel = { key: string; name: string; fullName: string; x: number; y: number }
 
-/** Places each name beside its pin where it fits inside the frame and clear of other names and pins. */
 function cityLabels(sketch: Sketch, order: Sketch['dots'], locale: Locale): CityLabel[] {
   const placed: (CityLabel & { width: number })[] = []
   const gap = PIN + 4
@@ -242,12 +223,10 @@ function cityLabels(sketch: Sketch, order: Sketch['dots'], locale: Locale): City
   return placed
 }
 
-/** The detail sheet's map. Pins carry the same numbers as the route list beneath it. */
 export function RouteSketch({ sketch, locale }: { sketch: Sketch; locale: Locale }) {
   const t = copy[locale]
   const marks = stopMarks(sketch)
   const end = sketch.segments.at(-1)?.at(-1)
-  // Endpoints get first claim on the limited label space in dense routes.
   const labelOrder = [
     sketch.dots[0],
     end === undefined ? undefined : sketch.dots[end],
@@ -256,7 +235,6 @@ export function RouteSketch({ sketch, locale }: { sketch: Sketch; locale: Locale
   const labels = cityLabels(sketch, labelOrder, locale)
   const labelled = new Set(labels.map((label) => label.key))
   const extraCities = sketch.dots.filter((dot) => !labelled.has(dot.key))
-  // A pin that would cover an earlier one shrinks to a dot; its number stays in the route list.
   const compact = new Set(
     sketch.dots
       .filter((dot, at) =>
@@ -335,10 +313,6 @@ export function RouteSketch({ sketch, locale }: { sketch: Sketch; locale: Locale
   )
 }
 
-/**
- * A list card's map: the same projection in a small frame, no labels or numbers. Decorative, since the card's link
- * already names the route; nothing renders when no stop has coordinates.
- */
 export function RouteMiniMap({ places }: { places: readonly (GroundPlaceSnapshot | null)[] }) {
   const sketch = sketchOf(places, CARD_FRAME)
   if (!sketch.atlas) return null
@@ -372,7 +346,6 @@ export function RouteMiniMap({ places }: { places: readonly (GroundPlaceSnapshot
   )
 }
 
-/** The places a journey visits in order; disjoint rail runs are separated by null so the map leaves a gap. */
 export function journeyPlaces(journey: GroundJourneyDto): (GroundPlaceSnapshot | null)[] {
   return journey.mode === 'rail'
     ? railRouteRuns(journey.legs).flatMap((run, index) => (index === 0 ? run : [null, ...run]))

@@ -83,7 +83,6 @@ describe('row states', () => {
     const reading = startRow([row!], row!.id)!
     const stopped = stopRows(reading)
     expect(stopped[0]!.status).toBe('stopped')
-    // The answer to the stopped attempt arrives late.
     const late = settleRow(stopped, row!.id, 1, { candidates: [candidate()] })
     expect(late[0]!.status).toBe('stopped')
     expect(late[0]!.previews).toEqual([])

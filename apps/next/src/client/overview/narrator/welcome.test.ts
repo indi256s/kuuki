@@ -151,7 +151,6 @@ describe('Russian plurals', () => {
     [11, '11 перелётов'],
     [21, '21 перелёт'],
   ])('%i flights in the line and left out', (n, expected) => {
-    // 3 variants, so look at all of them through the seeds; each carries the count phrase.
     for (const line of seeds(many(n, [['FRA', 'LHR']]), 'ru')) {
       expect(line).toContain(expected)
     }

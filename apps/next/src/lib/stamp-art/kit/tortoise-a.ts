@@ -1,6 +1,3 @@
-// Galapagos giant tortoise in side elevation facing right: thick pillar legs, a long raised neck
-// and small head, and a domed shell ribbed with scutes. The box is the whole animal; its bottom
-// is the ground. The shell is lit paper on top with a dark skirt, the legs carry wrinkle lines.
 import { type Pt, type SvgNode, body, fill, hatch, quad, stroke } from '../grid'
 import { type KitModule, num } from './util'
 
@@ -12,7 +9,6 @@ export const tortoiseA: KitModule = ([x, y, w, h], p) => {
   const cx = x + w * 0.4
   const rx = w * 0.37
   const ry = h * num(p, 'dome', 0.4)
-  // Legs: two pillars behind the rim.
   const legs: Pt[][] = (
     [
       [
@@ -59,7 +55,6 @@ export const tortoiseA: KitModule = ([x, y, w, h], p) => {
       ),
     )
   }
-  // Neck and head: a thick neck lifted forward from the shell, blunt head, lower jaw line.
   const neck: Pt[] = (
     [
       [0.66, 0.56],
@@ -90,7 +85,6 @@ export const tortoiseA: KitModule = ([x, y, w, h], p) => {
       [eye[0] - 1, eye[1] + 1],
     ]),
   )
-  // Shell dome with a slight flared rim.
   const dome: Pt[] = []
   for (let i = 0; i <= 24; i++) {
     const t = Math.PI - (Math.PI * i) / 24
@@ -104,7 +98,6 @@ export const tortoiseA: KitModule = ([x, y, w, h], p) => {
     [cx + rx * 0.2, rimY - 8],
   ]
   out.push(...hatch(shade, 'v', 2.4, 'hair', 0.3))
-  // Dark skirt along the rim.
   const skirt: Pt[] = [
     [cx - rx - 2, rimY + 3],
     [cx - rx, rimY - 8],
@@ -124,8 +117,6 @@ export const tortoiseA: KitModule = ([x, y, w, h], p) => {
       [cx + rx, rimY - 8],
     ]),
   )
-  // Scutes: three rows of plates in brick pattern. Each row is bounded by a dome-shaped ring;
-  // ribs between rings are offset row to row.
   const sk = rimY - 8
   const pt = (k: number, t: number): Pt => [
     cx + rx * k * Math.cos(t),

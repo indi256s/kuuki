@@ -9,14 +9,12 @@ export interface CountryClaim {
   claimed_at: string | null
 }
 
-/** A claim row as returned by GET /api/passport/claims (user_id stripped server-side). */
 interface ApiClaimListRow {
   id: string
   country_code: string
   claimed_at: string | null
 }
 
-/** A ground visit DTO as returned by the API (camelCase, no userId). */
 interface ApiGroundVisit extends DerivedAck {
   id: string
   countryCode: string
@@ -28,10 +26,6 @@ interface ApiGroundVisit extends DerivedAck {
   createdAt: string
 }
 
-/**
- * Map an API GroundVisit DTO into the frontend GroundVisit shape.
- * The API strips userId, so it is refilled from the authenticated caller's id.
- */
 function toGroundVisit(v: ApiGroundVisit, userId: string): GroundVisit {
   return {
     id: v.id,
@@ -46,15 +40,11 @@ function toGroundVisit(v: ApiGroundVisit, userId: string): GroundVisit {
   }
 }
 
-/**
- * Claim a country (upsert stamp only — no visit details)
- */
 export async function claimCountry(
   userId: string,
   countryCode: string,
 ): Promise<CountryClaim & DerivedAck> {
   const claim = await api.put<ApiClaimListRow & DerivedAck>(`/api/passport/claims/${countryCode}`)
-  // The API strips user_id; refill it for the caller's row shape.
   return {
     id: claim.id,
     user_id: userId,
@@ -65,9 +55,6 @@ export async function claimCountry(
   }
 }
 
-/**
- * Add a ground visit record for a country
- */
 export async function addGroundVisit(
   userId: string,
   countryCode: string,
@@ -95,9 +82,6 @@ export async function addGroundVisit(
   }
 }
 
-/**
- * Edit a ground visit's year, note or way. Omitted fields keep their stored value; a way is sent with its entry method.
- */
 export async function updateGroundVisit(
   userId: string,
   visitId: string,
@@ -116,16 +100,10 @@ export async function updateGroundVisit(
   }
 }
 
-/**
- * Delete a single ground visit
- */
 export async function deleteGroundVisit(_userId: string, visitId: string): Promise<DerivedAck> {
   return api.delete<DerivedAck>(`/api/passport/ground-visits/${visitId}`)
 }
 
-/**
- * Remove a claimed country (stamp + all ground visits)
- */
 export async function unclaimCountry(_userId: string, countryCode: string): Promise<DerivedAck> {
   return api.delete<DerivedAck>(`/api/passport/claims/${countryCode}`)
 }

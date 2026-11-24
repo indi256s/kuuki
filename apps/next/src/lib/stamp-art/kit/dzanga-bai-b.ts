@@ -1,12 +1,8 @@
-// Dzanga Bai: forest elephants in a jungle clearing. A dark rainforest wall (hatched masses over
-// a solid root shadow) closes the back, two T1 pools lie in the clearing, and three elephants with
-// T4 bodies and paper tusks stand in front. The box bottom is the clearing floor.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, fill, hatch, occlude, quad, stroke, toneFill } from '../grid'
 import { canopyNodes } from './mass-b'
 import { type KitModule, num } from './util'
 
-/** One elephant in side view facing right; (x, base) is the rear foot, w the body length. */
 export function elephant(x: number, base: number, w: number, flip: boolean): SvgNode[] {
   const k = w / 1
   const hgt = 0.7 * k
@@ -36,7 +32,6 @@ export function elephant(x: number, base: number, w: number, flip: boolean): Svg
     P(0.07, 0.6),
   ]
   const out: SvgNode[] = [occlude(outline, { halo: 1.4 })]
-  // T4 body: vertical hatching, kept lighter on the back so the form reads.
   out.push(
     ...toneFill(outline, 'T4', {
       angle: 90,
@@ -46,7 +41,6 @@ export function elephant(x: number, base: number, w: number, flip: boolean): Svg
     }),
   )
   out.push(stroke(w > 40 ? 'line' : 'hair', outline, true))
-  // Ear flap: a paper wedge behind the eye, outlined.
   const ear: Pt[] = [
     P(0.52, 0.2),
     P(0.64, 0.12),
@@ -56,7 +50,6 @@ export function elephant(x: number, base: number, w: number, flip: boolean): Svg
     P(0.52, 0.42),
   ]
   out.push(occlude(ear, { halo: 0 }), stroke('hair', ear, true))
-  // Paper tusk curving forward from the mouth.
   const t0 = P(0.77, 0.46)
   const tusk: Pt[] = [
     t0,
@@ -71,7 +64,6 @@ export const dzangaBaiB: KitModule = ([x, y, w, h], p) => {
   const rand = mulberry32(Math.round(num(p, 'seed', 9)))
   const base = y + h
   const out: SvgNode[] = []
-  // Rainforest wall: hatched masses over a solid root shadow at the clearing edge.
   const wallBase = y + h * 0.5
   const wallTop = y
   out.push(
@@ -97,7 +89,6 @@ export const dzangaBaiB: KitModule = ([x, y, w, h], p) => {
     [x, wallBase + 2],
   ]
   out.push(fill(shadow))
-  // Two T1 pools in the clearing.
   const pool = (cx: number, cy: number, pw: number): SvgNode[] => {
     const lens: Pt[] = [
       ...quad([cx - pw / 2, cy], [cx, cy - 3.2], [cx + pw / 2, cy], 8),
@@ -106,7 +97,6 @@ export const dzangaBaiB: KitModule = ([x, y, w, h], p) => {
     return [occlude(lens, { halo: 0.4 }), ...hatch(lens, 'h', 1.8, 'fine', 0.4)]
   }
   out.push(...pool(x + w * 0.2, y + h * 0.6, 20), ...pool(x + w * 0.86, y + h * 0.6, 20))
-  // Elephants, far to near: cow, then the bull.
   out.push(...elephant(x + w * 0.0, base - h * 0.06, w * 0.38, true))
   out.push(...elephant(x + w * 0.34, base, w * 0.62, false))
   return out

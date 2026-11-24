@@ -34,25 +34,18 @@ export interface ReviewStepProps {
   drafts: Draft[]
   saveStates: Record<string, SaveState>
   partial: boolean
-  /** The partial result is a cancelled recognition, not a failure. */
   cancelled?: boolean
   failure: Failure | null
-  /** When the stored batch is removed (creation plus 30 days); null for a review made only of manual rows. */
   expiresAt?: string | null
-  /** The member's calendar day (YYYY-MM-DD) for year suggestions; tests pin it. */
   today?: string
-  /** Draft ids whose form holds a typed correction that has not been saved yet. */
   dirty: ReadonlySet<string>
   onDirty: (id: string, dirty: boolean) => void
   manualRows: ManualRowState[]
   onManualRows: (rows: ManualRowState[]) => void
-  /** A new empty manual row labelled with the batch on screen, or `solo` without one. */
   makeManualRow?: () => ManualRowState
   onManualRetryOriginal: (key: string) => void
   onManualNewOperation: (key: string) => void
-  /** Whether the unresolved save holding a row back is on the page (listed, or owned by a manual row). */
   canShowSave?: (operationId: string) => boolean
-  /** Move to that unresolved save. */
   onShowSave?: (operationId: string) => void
   confirming: boolean
   notice?: string | null
@@ -106,14 +99,12 @@ export function ReviewStep(props: ReviewStepProps) {
   const selectable = groups.active.filter((draft) => readiness(draft, day).length === 0)
   const chosenActive = groups.active.filter(isChosen)
   const chosenDuplicates = groups.duplicates.filter(isChosen)
-  // An untouched manual row is ignored; a row with any value must pass the same validation as a draft edit.
   const touched = manualRows.filter((row) => hasValues(row.values))
   const validManual = touched.filter((row) => Object.keys(validateValues(row.values)).length === 0)
   const invalidManual = touched.length - validManual.length
   const total = chosenActive.length + chosenDuplicates.length + validManual.length
   const unsaved = Object.keys(saveStates).length > 0 || dirty.size > 0
   const everySelected = selectable.length > 0 && selectable.every(isChosen)
-  // Flights still waiting on a question: skipped and answered ones have no open cause left.
   const need = useMemo(() => needCount(shown, day), [shown, day])
   const inReview = groups.active.length + groups.duplicates.length
   const asking = !partial && need > 0
@@ -121,7 +112,6 @@ export function ReviewStep(props: ReviewStepProps) {
     if (all.current) all.current.indeterminate = chosenActive.length > 0 && !everySelected
   }, [chosenActive.length, everySelected])
 
-  // The count the save started with: rows leave the chosen set as they are saved, and the bar should not count down.
   const [savingCount, setSavingCount] = useState(total)
   if (!confirming && savingCount !== total) setSavingCount(total)
 
@@ -134,7 +124,6 @@ export function ReviewStep(props: ReviewStepProps) {
         : total === 0
           ? S.nothingChosen[locale]
           : undefined
-  // Finish later promises only what the server holds: nothing typed, pending or unsaved may be waiting behind it.
   const retained = Boolean(expiresAt) && !Number.isNaN(Date.parse(expiresAt!))
   const finishLaterBlock = confirming
     ? S.pausedWhileSaving[locale]
@@ -267,7 +256,6 @@ export function ReviewStep(props: ReviewStepProps) {
                   ? () => onShowSave(manual.failure!.heldBy!)
                   : undefined
               }
-              // Optional edits keep a date/route hold tied to its original receipt until recovery settles it.
               onChange={(values) =>
                 onManualRows(
                   manualRows.map((item) =>
@@ -355,7 +343,6 @@ export function ReviewStep(props: ReviewStepProps) {
           )
         }
       >
-        {/* Stays mounted while saving so focus does not drop to the page. */}
         <Button variant="primary" loading={confirming} disabledReason={reason} onClick={onConfirm}>
           {count(locale, 'importN', confirming ? savingCount : total)}
         </Button>

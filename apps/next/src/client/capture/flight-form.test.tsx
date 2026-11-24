@@ -104,10 +104,8 @@ const words = {
     aircraft: 'Самолёт',
   },
 }
-/** The route row for one end, e.g. "From: Tbilisi, TBS" or "From: city or airport". */
 const routeRow = (locale: Locale, end: 'from' | 'to') =>
   screen.getByRole('button', { name: new RegExp(`^${words[locale][end]}: `) })
-/** Searches the open route picker and explicitly chooses the exact-code result. */
 async function choose(label: string, code: string) {
   fireEvent.change(screen.getByRole('combobox', { name: label }), {
     target: { value: code },
@@ -117,7 +115,6 @@ async function choose(label: string, code: string) {
 async function fillRoute(locale: Locale, from = 'TBS', to = 'IST') {
   await userEvent.click(routeRow(locale, 'from'))
   await choose(words[locale].pickFrom, from)
-  // Choosing From moves straight on to To.
   await choose(words[locale].pickTo, to)
 }
 async function typeDate(locale: Locale, value: string) {
@@ -213,7 +210,6 @@ describe('manual flight', () => {
       id: 8,
       derived_state: 'ready',
     })
-    // onSaved runs from an effect after the saved render commits.
     await waitFor(() =>
       expect(onSaved).toHaveBeenCalledWith({ id: 8, derived_state: 'ready' }, 'ready'),
     )
@@ -247,11 +243,9 @@ describe('manual flight', () => {
     mocks.duplicate.mockResolvedValue(flight)
     render(<FlightForm ownerId="a" locale={locale} />)
     await fill(locale)
-    // The background lookup may already show this duplicate before the member saves.
     const override = await screen.findByRole('button', {
       name: words[locale].anyway,
     })
-    // The duplicate choice replaces Save, so a repeated tap there cannot save; the shortcut still checks.
     expect(screen.queryByRole('button', { name: words[locale].save })).not.toBeInTheDocument()
     fireEvent.keyDown(window, { key: 'Enter', ctrlKey: true })
     expect(mocks.create).not.toHaveBeenCalled()
@@ -261,7 +255,6 @@ describe('manual flight', () => {
         name: locale === 'ru' ? 'Открыть существующий' : 'Open existing',
       }),
     ).toHaveAttribute('href', '/journal/7/edit')
-    // An invalid optional value must never escape through the duplicate action.
     await userEvent.click(screen.getByRole('button', { name: words[locale].details }))
     fireEvent.change(screen.getByRole('combobox', { name: words[locale].airline }), {
       target: { value: 'X' },
@@ -327,7 +320,6 @@ it('starts every fresh entry collapsed and clears per-account airport recents on
   view.unmount()
   localStorage.removeItem('kuuki:capture:a:unfinished')
   const second = render(<FlightForm ownerId="a" locale="en" />)
-  // The previous entry's disclosure choice never decides a fresh entry's layout.
   expect(screen.getByRole('button', { name: words.en.details })).toHaveAttribute(
     'aria-expanded',
     'false',
@@ -512,7 +504,6 @@ describe.each(['ru'] as const)('offline, errors and focus (%s)', (locale) => {
   })
   it('says what is wrong in each field instead of a generic message', async () => {
     render(<FlightForm ownerId="a" locale={locale} />)
-    // Searching never sets an airport: only an explicit choice does.
     await userEvent.click(routeRow(locale, 'from'))
     fireEvent.change(screen.getByRole('combobox', { name: words[locale].pickFrom }), {
       target: { value: 'ZZZ' },
@@ -530,11 +521,22 @@ describe.each(['ru'] as const)('offline, errors and focus (%s)', (locale) => {
         ),
       ),
     ).toBeInTheDocument()
-    expect(
-      screen.getAllByText(say('Choose an airport from the list.', 'Выберите аэропорт из списка.')),
-    ).toHaveLength(2)
+    expect(routeRow(locale, 'from')).toHaveAccessibleDescription(
+      say('Choose a departure airport.', 'Выберите аэропорт вылета.'),
+    )
+    expect(routeRow(locale, 'to')).toHaveAccessibleDescription(
+      say('Choose an arrival airport.', 'Выберите аэропорт прилёта.'),
+    )
     expect(screen.queryByText(/Check this field|Проверьте значение поля/)).not.toBeInTheDocument()
     expect(mocks.create).not.toHaveBeenCalled()
+  })
+  it('closes the airport search on Escape from a route button beside it', async () => {
+    render(<FlightForm ownerId="a" locale={locale} />)
+    await userEvent.click(routeRow(locale, 'from'))
+    expect(screen.getByRole('combobox', { name: words[locale].pickFrom })).toBeInTheDocument()
+    routeRow(locale, 'to').focus()
+    fireEvent.keyDown(routeRow(locale, 'to'), { key: 'Escape' })
+    expect(screen.queryByRole('combobox', { name: words[locale].pickFrom })).not.toBeInTheDocument()
   })
   it('accepts a leap day and rejects the same day in a common year', async () => {
     render(<FlightForm ownerId="a" locale={locale} />)
@@ -738,7 +740,6 @@ describe('manual entry redesign', () => {
       target: { value: '14:00' },
     })
     expect(screen.queryByText('+1')).not.toBeInTheDocument()
-    // TBS (UTC+4) 23:40 → IST (UTC+3) 03:10 lands the next day after 4 h 30 min.
     fireEvent.change(screen.getByLabelText('Departs'), {
       target: { value: '23:40' },
     })
@@ -809,7 +810,6 @@ describe('manual entry redesign', () => {
     expect(back).toHaveAttribute('aria-pressed', 'true')
     expect(routeRow('en', 'from')).toHaveAccessibleName('From: Istanbul, IST')
     expect(routeRow('en', 'to')).toHaveAccessibleName('To: Tbilisi, TBS')
-    // A manual endpoint edit releases the shortcut; the block stays in place.
     await userEvent.click(routeRow('en', 'from'))
     await choose(words.en.pickFrom, 'CDG')
     expect(back).toHaveAttribute('aria-pressed', 'false')

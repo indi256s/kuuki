@@ -69,7 +69,6 @@ describe('consequence preview', () => {
     expect(previewConsequence(flight(), 'origin', 'MUC', 'ru')).toBe(
       `После сохранения: расстояние ${formatDistanceKm('ru', km)}, страна Германия, длительность пересчитается.`,
     )
-    // Same country: only distance and duration.
     expect(previewConsequence(flight(), 'destination', 'AYT', 'en')).toBe(
       `Distance becomes ${formatDistanceKm('en', distanceBetween('TBS', 'AYT'))}, duration will be recalculated.`,
     )
@@ -116,7 +115,6 @@ describe('draft validation', () => {
     expect(validateDrafts(flight(), drafts({ destination: 'TBS' }), 'en')).toEqual({
       destination: 'Choose a different airport.',
     })
-    // A changed origin that now equals the kept destination owns the same-airport message.
     expect(validateDrafts(flight(), drafts({ origin: 'IST' }), 'en')).toEqual({
       origin: 'Choose a different airport.',
     })

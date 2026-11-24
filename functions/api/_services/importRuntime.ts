@@ -1,11 +1,9 @@
 import type { BatchFence } from './importDrafts'
 import type { ParseRequest } from '../import/_shared'
 
-/** Only the authenticated API can address this binding. Source content travels in memory. */
 export interface StartImportJob {
   fence: BatchFence
   source: ParseRequest
-  /** Quick Add online fallback: persist `flown_required` on every draft this job writes. */
   requireFlownConfirmation?: boolean
 }
 export interface ImportEvent {
@@ -26,7 +24,6 @@ export function jobStub(
 
 export async function abortImportJob(env: Env, userId: string, batchId: string) {
   if (!env.IMPORT_JOBS) return
-  // The D1 fence has already committed. A service outage cannot undo cancellation or discard.
   await jobStub(env.IMPORT_JOBS, { userId, batchId })
     .fetch('https://import.internal/abort', { method: 'POST' })
     .catch(() => undefined)

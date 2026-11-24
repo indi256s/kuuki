@@ -84,7 +84,6 @@ describe('save flow', () => {
     let state: SaveState = saveReducer({ phase: 'idle' }, { type: 'outcome', outcome, command })
     expect(state).toMatchObject({ phase: 'unknown', command })
 
-    // Check result: no receipt means the original is safe to retry.
     state = saveReducer(state, { type: 'check-start' })
     const checked = await checkSave(command, deps, signal)
     expect(checked.kind).toBe('not-found')
@@ -93,7 +92,6 @@ describe('save flow', () => {
 
     const retried = await attemptSave((state as { command: GroundCommand }).command, deps, signal)
     expect(retried.kind).toBe('saved')
-    // Both attempts carried the very same create id and operation key.
     const sent = send.mock.calls.map(([c]) => [c.operationKey, c.journeyId])
     expect(sent).toEqual([
       ['key-lost-1', journeyId],
@@ -153,7 +151,6 @@ describe('save flow', () => {
       current,
       reread: 'idle',
     })
-    // Without the body, the saved version is read separately.
     const bare = depsWith({ send: vi.fn().mockRejectedValue(new ApiError(409, 'changed')) })
     expect(await attemptSave(command, bare, signal)).toMatchObject({
       kind: 'conflict',
@@ -172,11 +169,9 @@ describe('save flow', () => {
     expect(state).toMatchObject({ phase: 'conflict', reread: 'reading' })
     state = saveReducer(state, { type: 'reread-done', failed: true })
     expect(state).toMatchObject({ phase: 'conflict', reread: 'failed' })
-    // Apply on top, save again, the server answers with another conflict.
     state = saveReducer(state, { type: 'start', command })
     state = saveReducer(state, { type: 'outcome', outcome: conflict, command })
     expect(state).toMatchObject({ phase: 'conflict', reread: 'idle' })
-    // A successful read settles the status too.
     state = saveReducer(state, { type: 'reread-start' })
     const current = { id: journeyId, version: 6 } as GroundJourneyDto
     expect(saveReducer(state, { type: 'conflict-read', current })).toMatchObject({

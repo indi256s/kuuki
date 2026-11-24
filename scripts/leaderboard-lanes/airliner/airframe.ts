@@ -1,5 +1,3 @@
-// The aircraft record turned into derived geometry: the wing planform, the stance, the fuselage sections and the tail
-// flags, in the frame of airliner.ts. No camera or kit: these values and surfaces stay in world coordinates.
 import type { AircraftGeometry } from './model'
 import type { Surface, V3 } from './surface'
 
@@ -11,7 +9,6 @@ export const smooth = (t: number) => {
   return x * x * (3 - 2 * x)
 }
 
-/** Linear interpolation over a sorted polyline [[at, value]]. */
 function piecewise(points: [number, number][]) {
   return (at: number) => {
     if (at <= points[0][0]) return points[0][1]
@@ -24,7 +21,6 @@ function piecewise(points: [number, number][]) {
   }
 }
 
-/** Grid stations over [0, 1] with exact rows at `at` and about `n` rows in all, denser near the ends when `ends`. */
 export function stations(n: number, at: number[] = [], ends = 0): number[] {
   const base = Array.from({ length: n + 1 }, (_, i) => {
     const t = i / n
@@ -37,14 +33,12 @@ export function stations(n: number, at: number[] = [], ends = 0): number[] {
   ].sort((a, b) => a - b)
 }
 
-/** A fuselage section at a station: the heights of its crown and keel and its half-width. */
 type Sec = { top: number; bottom: number; w: number }
 
 export const midHalf = (s: Sec) => [(s.top + s.bottom) / 2, (s.top - s.bottom) / 2] as const
 export const nacelleFlat = (e: AircraftGeometry['engines'][number]) =>
   e.section === 'flat-bottom' ? 0.82 : 1
 
-/** Wheel track (m) by ICAO type, then by family; published values, rounded. */
 const tracks: Record<string, number> = {
   A320: 7.59,
   '737': 5.72,
@@ -62,53 +56,38 @@ const tracks: Record<string, number> = {
 
 export type Airframe = {
   g: AircraftGeometry
-  /** The fuselage's length to the end of its tail cone: the record's `end`, else the overall length. */
   Lb: number
-  /** The barrel's half width and half height. */
   R: number
   H: number
-  /** The nose and tail cone lengths. */
   nl: number
   tc: number
   high: boolean
   prop: boolean
   wide: boolean
   half: number
-  /** Where the wing root meets the barrel: low wings below its widest line, the high wing on the crown (y = 0). */
   y0: number
-  /** Where the straight wing ends (a device or the raked tip continues from here). */
   tipY: number
-  /** Where the wing's own foil ends: the true tip at half span for a raked tip, else `tipY`. */
   wingEnd: number
   kink: number | null
   rake: { x: number; y: number }[] | null
   rootTE: number
-  /** Leading and trailing edge stations (xg) of the wing at y, the raked tip included. */
   leAt: (y: number) => number
   teAt: (y: number) => number
   chordAt: (y: number) => number
-  /** Thickness ratio: a supercritical root about 14%, thinning to 10% at the tip (turboprop 16 to 12%). */
   tau: (y: number) => number
   tanD: number
-  /** Height of the wing's chord plane at y. */
   wingZ: (y: number) => number
-  /** Height of the wing's lower skin at y. */
   lowerAt: (y: number) => number
   wheelD: number
   tyreW: number
-  /** Half the wheel track. */
   trackHalf: number
-  /** Height of the barrel's centre line. */
   zc: number
   sec: (xg: number) => Sec
-  /** The belly fairing under the wing box, from fairing0 to fairing1 (xg). */
   fairing0: number
   fairing1: number
   body: Surface
-  /** The skin's half-width at height z, and the crown's height at y (for parts that stand on it). */
   skinY: (xg: number, z: number) => number
   crownZ: (xg: number, y: number) => number
-  /** Angle on the section (degrees from the crown) of a height above the fuselage bottom at a station. */
   thetaAt: (xg: number, zAbove: number) => number
   tTail: boolean
   finTopZ: number
@@ -126,7 +105,6 @@ export function airframeOf(g: AircraftGeometry): Airframe {
   const half = g.dims.span / 2
   const fam = g.family
 
-  // ------------------------------------------------------------ wing planform (stations xg, aft from the nose)
   const wg = g.wing,
     tip = g.wingtip
   const rake = tip.type === 'raked' && tip.rakeLE?.length ? tip.rakeLE : null
@@ -135,8 +113,7 @@ export function airframeOf(g: AircraftGeometry): Airframe {
       ? 0
       : Math.max(tip.height, tip.type === 'at-winglet' ? tip.below : 0) * tan(tip.cant)
   const tipY = rake ? rake[0].y : (tip.rootY ?? half - lean)
-  // The root: low wings meet the barrel below its widest line, the high wing sits on the crown.
-  const rootZ = high ? 0.97 : -0.55 // chord plane at the root, in half-heights from the barrel centre
+  const rootZ = high ? 0.97 : -0.55
   const y0 = high ? 0 : R * Math.sqrt(1 - rootZ * rootZ)
   const leX = (y: number) => {
     const b = wg.leBreakY
@@ -155,7 +132,6 @@ export function airframeOf(g: AircraftGeometry): Airframe {
     const yEnd = rake ? tip.rakeTE![0].y : tipY
     return rootTE + ((tipTE0 - rootTE) * (y - from)) / (yEnd - from)
   }
-  // Raked tips continue along their measured vertices to the true tip at half span.
   const leAt = rake
     ? (y: number) =>
         y <= rake[0].y ? leX(y) : piecewise(rake.map((p) => [p.y, p.x] as [number, number]))(y)
@@ -173,11 +149,9 @@ export function airframeOf(g: AircraftGeometry): Airframe {
   }
   const tanD = tan(wg.dihedral)
 
-  // ------------------------------------------------------------ fuselage sections
   const upsweep = g.fuselage.tailUpsweep
   const blade = g.fuselage.tailEnd === 'blade'
   const pw = g.fuselage.noseExponent ?? 2.2
-  // Stance: the belly is high enough for a proportional gear and for the lowest nacelle to clear the ground.
   const wheelD = prop ? 0.78 : fam === 'A380' ? 1.42 : wide ? 1.3 : R < 1.75 ? 1.0 : 1.15
   const rootUpOf = (belly: number) => belly + H + rootZ * H
   const chordAt = (y: number) => teAt(y) - leAt(y)
@@ -219,7 +193,6 @@ export function airframeOf(g: AircraftGeometry): Airframe {
     }
     return { top: zc + H, bottom: zc - H, w: R }
   }
-  // The belly fairing: a shallow keel under the wing box, fullest at the bottom, gone by 40° up either side.
   const fairing0 = wg.rootLEx - 0.12 * wg.rootChord,
     fairing1 = rootTE + 0.35 * wg.rootChord
   const fairingAt = (xg: number) =>
@@ -261,7 +234,6 @@ export function airframeOf(g: AircraftGeometry): Airframe {
     return Math.acos(clamp((z - m) / h, -1, 1)) / D2R
   }
 
-  // ------------------------------------------------------------ tail flags and landing gear sizes
   const tTail = g.htail.position === 't-tail'
   const finTopZ = crownZ(g.vtail.rootLEx, 0) + g.vtail.height
   const trackHalf = (tracks[g.icao] ?? tracks[fam] ?? Math.max(2.4 * R, 0.2 * g.dims.span)) / 2

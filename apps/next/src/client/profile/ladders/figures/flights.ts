@@ -21,20 +21,12 @@ import {
 import { slabRot } from '../../../overview/iso/solids'
 import type { LadderFigureDef } from './types'
 
-// Flights: the aircraft that grows. Paper plane on a model stand, light single, turboprop, narrowbody, widebody.
-// Frame: the nose points +x (right-down on screen), the viewer sees the +y flank and the top; the apron's top is z = GROUND.
-// Every aircraft is built the same way: a lathe fuselage with smooth tone, lifting surfaces with a rounded leading edge,
-// turned nacelles, spinners and tyres, and gear legs that land on axles. Painter's order runs far side, fuselage, near side.
-
 const X: P3 = [1, 0, 0],
   Y: P3 = [0, 1, 0],
   Z: P3 = [0, 0, 1]
 const GROUND = 3
 const AXIS = frameAlong([0, 0, 0], X)
 
-// ---------------------------------------------------------------- ground
-
-/** Apron slab with expansion joints edge to edge and a dashed taxi centreline. */
 function apron(s: Scene, x0: number, x1: number, y0: number, y1: number, hero: boolean) {
   s.rbox(x0, y0, 0, x1 - x0, y1 - y0, GROUND, 3)
   if (!hero) return
@@ -72,7 +64,6 @@ function apron(s: Scene, x0: number, x1: number, y0: number, y1: number, hero: b
     )
 }
 
-/** The aircraft's own shadow: its near-side plan outline mirrored, laid on the apron and slid away from the light. */
 function planShadow(s: Scene, near: readonly (readonly [number, number])[], h: number) {
   const dx = -0.09 * h,
     dy = -0.26 * h
@@ -83,7 +74,6 @@ function planShadow(s: Scene, near: readonly (readonly [number, number])[], h: n
   s.poly(pts, 'shadow', 'none')
 }
 
-/** A wheel chock: a wedge across the tyre's path, in front of it. */
 function chock(s: Scene, x: number, y: number, w: number, r: number) {
   const h = r * 0.55,
     l = r * 0.9
@@ -99,8 +89,6 @@ function chock(s: Scene, x: number, y: number, w: number, r: number) {
   )
 }
 
-// ---------------------------------------------------------------- fuselage
-
 type HullSpec = {
   tail: number
   tailStart: number
@@ -110,15 +98,11 @@ type HullSpec = {
   aspect: number
   Zc: number
   tailR: number
-  /** How far the nose centre sinks as it narrows (0–1 of the lost radius), so the belly runs flat to the nose. */
   droop: number
-  /** How far the tail centre rises as it narrows, so the crown runs flat to the tail. */
   upsweep: number
-  /** Nose exponent: 2 is an ellipse, higher is blunter. */
   bluntness?: number
 }
 
-/** An airliner hull: an elliptic nose, a constant barrel and a tapering, upswept tail cone. */
 function hullSection(h: HullSpec): (x: number) => Section {
   const p = h.bluntness ?? 2
   return (x) => {
@@ -137,25 +121,21 @@ function hullSection(h: HullSpec): (x: number) => Section {
   }
 }
 
-/** Half-width of a section at height z (0 above or below it). */
 function skinY(sec: (x: number) => Section, x: number, z: number) {
   const { r, rz = r, lift = 0 } = sec(x)
   const q = (z - lift) / rz
   return Math.abs(q) >= 1 ? 0 : r * Math.sqrt(1 - q * q)
 }
-/** Crown height at x, at half-width y. */
 function crownZ(sec: (x: number) => Section, x: number, y = 0) {
   const { r, rz = r, lift = 0 } = sec(x)
   const q = Math.min(1, Math.abs(y) / r)
   return lift + rz * Math.sqrt(1 - q * q)
 }
-/** Belly height at x. */
 function bellyZ(sec: (x: number) => Section, x: number) {
   const { r, rz = r, lift = 0 } = sec(x)
   return lift - rz
 }
 
-/** A row of cabin windows on the near flank at angle `deg`. */
 function windows(
   b: Body,
   sec: (x: number) => Section,
@@ -178,7 +158,6 @@ function windows(
     )
   }
 }
-/** A door outline on the near flank. */
 function door(b: Body, x0: number, x1: number, d0: number, d1: number) {
   b.patch(
     [
@@ -192,9 +171,6 @@ function door(b: Body, x0: number, x1: number, d0: number, d1: number) {
   )
 }
 
-// ---------------------------------------------------------------- propellers
-
-/** Blades of a propeller in the plane facing +x: tapered paddles with rounded tips, `n` of them. */
 function blades(s: Scene, c: P3, R: number, n: number, phase: number, chord: number) {
   const at = s.on(c, Y, [0, 0, -1])
   for (let i = 0; i < n; i++) {
@@ -221,7 +197,6 @@ function blades(s: Scene, c: P3, R: number, n: number, phase: number, chord: num
     )
   }
 }
-/** A propeller turning: a faint disc with a fine rim, and the blades. Lives in the lit group. */
 function propeller(s: Scene, c: P3, R: number, n: number, hero: boolean, chord: number) {
   const rim = s.circle(c, Y, [0, 0, -1], 0, 0, R, 40)
   s.poly(rim, 'accent', 'none', undefined, undefined, 0.14)
@@ -229,7 +204,6 @@ function propeller(s: Scene, c: P3, R: number, n: number, hero: boolean, chord: 
   s.glow(3, () => blades(s, c, R, n, 0.42, chord))
   blades(s, c, R, n, 0.42, chord)
 }
-/** A spinner dome in front of the propeller plane. */
 function spinner(s: Scene, x: number, y: number, z: number, r: number, l: number, hero: boolean) {
   const prof = spline([
     [0, r],
@@ -244,9 +218,6 @@ function spinner(s: Scene, x: number, y: number, z: number, r: number, l: number
   })
 }
 
-// ---------------------------------------------------------------- landing gear
-
-/** A gear leg: oleo cylinder from the airframe, a chrome piston to the axle, twin (or single) wheels on a cross axle. */
 function gearLeg(
   s: Scene,
   top: P3,
@@ -256,7 +227,6 @@ function gearLeg(
   const { r, w, twin, leg, hero } = o
   const gap = twin ? w / 2 + leg * 1.6 : 0
   const wheelAt = (dy: number) => wheel(s, add(axle, [0, dy, 0]), Y, r, w, hero)
-  // A single wheel whose leg comes from nearer the viewer sits behind it.
   const first = twin || top[1] > axle[1]
   if (first) wheelAt(twin ? -gap : 0)
   if (twin) tube(s, add(axle, [0, -gap, 0]), add(axle, [0, gap, 0]), leg * 0.55, { shade: hero })
@@ -264,7 +234,6 @@ function gearLeg(
   tube(s, mid, top, leg, { shade: hero })
   tube(s, axle, mid, leg * 0.62, { shade: hero })
   if (hero) {
-    // torque link on the front of the leg
     const a = add(mid, [leg * 1.3, 0, -leg * 0.4]),
       b = add(axle, [leg * 1.3, 0, leg * 1.8])
     s.line([add(mid, [leg * 0.6, 0, 0]), a, b, add(axle, [leg * 0.5, 0, leg * 1.2])], 'line', 0.9)
@@ -274,7 +243,6 @@ function gearLeg(
   else if (!first) wheelAt(0)
 }
 
-/** A four-wheel bogie under a leg: beam along x, two axles, wheels fore and aft. */
 function bogie(
   s: Scene,
   top: P3,
@@ -295,16 +263,12 @@ function bogie(
   for (const a of [aft, fore]) wheel(s, add(a, [0, gap, 0]), Y, r, w, hero)
 }
 
-// ---------------------------------------------------------------- rung 1: paper plane on a model stand
-
 function paper(s: Scene, hero: boolean) {
   apron(s, -26, 26, -24, 22, hero)
-  // A classic dart in its own frame (nose +u), yawed on its stand so the near wing opens towards the viewer.
   const SX = -1,
     yaw = -42 * D2R
   const zk = 16.5,
     bank = 14 * D2R
-  // Banked about the spine so the near wing turns its top to the viewer.
   const P = (u: number, v: number, z: number): P3 => {
     const h = z - zk,
       vb = v * Math.cos(bank) + h * Math.sin(bank),
@@ -316,7 +280,6 @@ function paper(s: Scene, hero: boolean) {
   const N = P(20, 0, zk),
     T = P(tail, 0, zk)
   const tip = (sg: number) => P(tail, sg * 15.5, zk + dz)
-  /** A point on a wing at fraction a from nose to tail along the spine and b out towards the tip. */
   const onWing = (sg: number, a: number, b: number): P3 => {
     const sp = mix(N, T, a),
       tp = mix(N, tip(sg), a)
@@ -328,7 +291,6 @@ function paper(s: Scene, hero: boolean) {
     'shadow',
     'none',
   )
-  // Stand under the keel: weighted puck with a felt ring and a screw, a post, a clamp block, and a jaw over the keel.
   const kb = P(0, 0, keelZ(0))
   const [cx, cy] = kb
   lathe(
@@ -345,7 +307,6 @@ function paper(s: Scene, hero: boolean) {
   }
   tube(s, [cx, cy, GROUND + 2.3], [cx, cy, kb[2] - 1.4], 0.5, { shade: hero })
   slabRot(s, cx, cy, kb[2] - 1.6, 4.4, 2.6, 1.3, yaw)
-  // Far wing, keel, near wing (lit). The far wing shows its top; the keel's near face hangs under the spine.
   const far = tip(-1)
   const edge = (a: P3) => add(a, [0, 0, -0.4])
   s.poly([N, far, T], 'top', 'line')
@@ -366,7 +327,6 @@ function paper(s: Scene, hero: boolean) {
     'line',
   )
   if (hero) s.line([P(tail, kv, keelZ(tail) + 1.3), P(7, kv, keelZ(7) + 3.6)], 'crease', 0.6)
-  // The near jaw closes over the keel's foot.
   const jaw = P(0, kv + 0.4, keelZ(0) + 0.5)
   slabRot(s, jaw[0], jaw[1], kb[2] - 0.3, 2.6, 0.7, 1.6, yaw)
   if (hero)
@@ -378,7 +338,6 @@ function paper(s: Scene, hero: boolean) {
     )
   const near = tip(1)
   s.group('lit', () => {
-    // An opaque sheet under a light accent wash, outlined in accent; the folds carry the accent too.
     s.glow(3, () => s.poly([N, near, T], 'none', 'accent', 1, 1.6))
     s.poly([N, near, T], 'top', 'none')
     s.poly([N, near, T], 'accent', 'none', undefined, undefined, 0.2)
@@ -396,8 +355,6 @@ function paper(s: Scene, hero: boolean) {
       )
   })
 }
-
-// ---------------------------------------------------------------- rung 2: light single
 
 const CESSNA = spline([
   [-30, 0.7, 1.2, 17.9],
@@ -456,7 +413,6 @@ function cessna(s: Scene, hero: boolean) {
     if (sg < 0) wheel(s, add(axle, [0, -0.9, 0]), Y, 3, 1.8, hero)
     tube(s, [-1, sg * 2.6, bellyZ(sec, -1) + 0.6], axle, 0.5, { shade: hero })
     if (sg > 0) wheel(s, add(axle, [0, 0.9, 0]), Y, 3, 1.8, hero)
-    // wheel pant: a teardrop fairing round the top of the tyre
     const pant = spline([
       [-6, 0.3],
       [-3, 1.6],
@@ -489,14 +445,11 @@ function cessna(s: Scene, hero: boolean) {
     )
   }
 
-  // far side
   stab(-1)
   strut(-1)
   mainGear(-1)
-  // nose gear (under the cowl)
   wheel(s, [25.6, 0, GROUND + 2.4], Y, 2.4, 1.5, hero)
   tube(s, [24.4, 0, bellyZ(sec, 24.4) + 0.5], [25.6, 0, GROUND + 2.4], 0.5, { shade: hero })
-  // fuselage
   const b = lathe(s, AXIS, sec, -30, 28.5, {
     steps: hero ? 30 : 12,
     ring: hero ? 36 : 18,
@@ -506,7 +459,6 @@ function cessna(s: Scene, hero: boolean) {
     for (const x of [-20, -9, 17.5, 26.8]) b.seam(x)
     b.along(-8, 13, 26)
   }
-  // windshield, side windows, door, cowl inlets
   b.patch(
     [
       [17, 30],
@@ -555,7 +507,6 @@ function cessna(s: Scene, hero: boolean) {
       s.poly(circleOn(c, X, 0.9, 12), 'shade', 'none')
     }
   }
-  // nose pant over the nose wheel
   const np = spline([
     [-3.2, 0.3],
     [-1, 1.25],
@@ -573,7 +524,6 @@ function cessna(s: Scene, hero: boolean) {
     3.2,
     { steps: hero ? 8 : 3, ring: hero ? 20 : 12, shade: hero },
   )
-  // fin with a dorsal fillet
   const ft = 1.2
   const fin = foil(
     s,
@@ -595,7 +545,6 @@ function cessna(s: Scene, hero: boolean) {
   stab(1)
   mainGear(1)
   strut(1)
-  // wing: one piece across the cabin roof
   const w = foil(s, [wingSt(-36), wingSt(-17), wingSt(0), wingSt(17), wingSt(36)], {
     nose: hero ? 4 : 2,
   })
@@ -609,12 +558,9 @@ function cessna(s: Scene, hero: boolean) {
     w.line(2.6, 0.74, 2.6, 1)
     for (const i of [1.5, 2.5]) screw(s, add(w.top(i, 0.32), [0, 0, 0.05]), Z, 0.35, { ring: 0.8 })
   }
-  // nose: cowl face, prop (lit), spinner
   s.group('lit', () => propeller(s, [29.6, 0, 12.8], 8.6, 2, hero, 2.4))
   spinner(s, 28.5, 0, 12.8, 2.1, 3.6, hero)
 }
-
-// ---------------------------------------------------------------- rung 3: turboprop
 
 function turboprop(s: Scene, hero: boolean) {
   const H: HullSpec = {
@@ -686,7 +632,6 @@ function turboprop(s: Scene, hero: boolean) {
     )
     if (hero) {
       for (const x of [3, 16]) b.seam(x)
-      // the intake scoop under the spinner
       s.poly(circleOn([22.55, y, nacZ - 1.4], X, 0.7, 12), 'shade', 'none')
     }
   }
@@ -718,11 +663,9 @@ function turboprop(s: Scene, hero: boolean) {
       hero,
     })
 
-  // far side
   mainGear(-1)
   sponson(-1)
   nacelle(-1)
-  // nose gear
   gearLeg(s, [33, 0, bellyZ(sec, 33) + 0.6], [33.4, 0, GROUND + 2.2], {
     r: 2.2,
     w: 1.4,
@@ -730,7 +673,6 @@ function turboprop(s: Scene, hero: boolean) {
     leg: 0.5,
     hero,
   })
-  // fuselage
   const b = lathe(s, AXIS, sec, -42, 42, {
     steps: hero ? 34 : 12,
     ring: hero ? 36 : 18,
@@ -769,7 +711,6 @@ function turboprop(s: Scene, hero: boolean) {
     'glass',
     'crease',
   )
-  // wing-root fairing on the crown
   const fprof = spline([
     [-12, 0.5],
     [-9.5, 2.6],
@@ -789,7 +730,6 @@ function turboprop(s: Scene, hero: boolean) {
     10,
     { steps: hero ? 10 : 4, ring: hero ? 24 : 14, shade: hero },
   )
-  // T-tail: fin, then the tailplane across its tip
   const ft = 1.3
   const finTop = crown + 21
   const fin = foil(
@@ -817,7 +757,6 @@ function turboprop(s: Scene, hero: boolean) {
     { nose: hero ? 3 : 1 },
   )
   if (hero) tp.line(0, 0.72, 2, 0.72)
-  // near side
   sponson(1)
   mainGear(1)
   nacelle(1)
@@ -835,15 +774,11 @@ function turboprop(s: Scene, hero: boolean) {
   for (const sg of [-1, 1]) spinner(s, 22.5, sg * YN, nacZ, 2.2, 3.8, hero)
 }
 
-// ---------------------------------------------------------------- rungs 4 and 5: jets
-
 type JetSpec = {
   hull: Omit<HullSpec, 'Zc'>
-  /** Wing planform, +y half: rows [y, LE x, TE x, thickness], the first at the centreline. */
   wing: readonly (readonly [number, number, number, number])[]
   dihedral: number
   winglet: boolean
-  /** Engine: span station, lip x, length, radius, ground clearance. */
   eng: { y: number; x: number; len: number; r: number; clear: number; fan: number }
   stab: { le: number; chord: number; span: number; sweep: number; tip: number; t: number }
   fin: { le: number; chord: number; h: number; sweep: number; tip: number; t: number }
@@ -865,7 +800,6 @@ function jet(s: Scene, J: JetSpec, hero: boolean, initials = '') {
     const u = (y - y0) / (y1 - y0)
     return { le: l0 + (l1 - l0) * u, te: t0 + (t1 - t0) * u, t: h0 + (h1 - h0) * u }
   }
-  // Heights follow from the engine: it hangs `clear` above the apron, its pylon reaches the wing, the wing sits low on the barrel.
   const nacZ = GROUND + E.clear + E.r
   const wingBottomAtEng = nacZ + E.r + E.r * 0.42
   const W0 = wingBottomAtEng + row(E.y).t - tanD * E.y
@@ -908,7 +842,6 @@ function jet(s: Scene, J: JetSpec, hero: boolean, initials = '') {
     Zc - GROUND,
   )
 
-  // --- parts, each for one side
   const wingStations = (sg: number) => {
     const ys = [sg > 0 ? ySkin : -ySkin * 0.6, ...J.wing.slice(1).map(([y]) => y)]
     return ys.map((y) => station(sg * Math.abs(y)))
@@ -940,7 +873,6 @@ function jet(s: Scene, J: JetSpec, hero: boolean, initials = '') {
     if (!hero) return
     const n = sts.length - 1
     const i = (k: number) => (sg > 0 ? k : n - k)
-    // flap and aileron hinges, cut lines to the trailing edge, spoiler row
     w.line(i(0), 0.76, i(n * 0.62), 0.76)
     w.line(i(n * 0.64), 0.78, i(n * 0.94), 0.78)
     for (const k of [0.3, 0.62, 0.64, 0.94])
@@ -951,7 +883,6 @@ function jet(s: Scene, J: JetSpec, hero: boolean, initials = '') {
     w.line(i(0), 0.14, i(n), 0.14)
     screw(s, add(w.top(i(n * 0.97), 0.45), [0, 0, 0.05]), Z, 0.32)
   }
-  /** Flap-track fairings: pods under the trailing edge, poking out behind it. */
   const fairings = (sg: number) => {
     if (!hero) return
     for (const f of [0.28, 0.5, 0.72]) {
@@ -1027,7 +958,6 @@ function jet(s: Scene, J: JetSpec, hero: boolean, initials = '') {
       nb.seam(E.len * 0.8)
       nb.along(-30, E.len * 0.42, E.len * 0.8)
     }
-    // pylon: from the nacelle's crown up into the wing, its leading edge slanting back to the wing's
     const rw = row(E.y)
     foil(
       s,
@@ -1046,7 +976,6 @@ function jet(s: Scene, J: JetSpec, hero: boolean, initials = '') {
       { up: Y, nose: hero ? 2 : 1 },
     )
   }
-  /** Inlet lip, fan face and spinner: the lit part. */
   const intake = (sg: number) => {
     const y = sg * E.y,
       r = E.r
@@ -1122,14 +1051,12 @@ function jet(s: Scene, J: JetSpec, hero: boolean, initials = '') {
     if (hero) f.line(0, 0.7, 1, 0.7)
   }
 
-  // --- far side
   stab(-1)
   engine(-1)
   fairings(-1)
   mainGear(-1)
   wingPanel(-1)
   if (J.winglet) winglet(-1)
-  // nose gear under the barrel
   const G = J.gear
   gearLeg(s, [G.nose, 0, bellyZ(sec, G.nose) + 0.6], [G.nose + 0.6, 0, GROUND + G.r * 0.8], {
     r: G.r * 0.8,
@@ -1138,15 +1065,12 @@ function jet(s: Scene, J: JetSpec, hero: boolean, initials = '') {
     leg: G.leg * 0.8,
     hero,
   })
-  // --- near gear, near engine and both intakes: the far intake sits behind the nose, so the lit group goes before the
-  // fuselage, and the near engine and gear (clear of the fuselage on screen) go with it.
   mainGear(1)
   engine(1)
   s.group('lit', () => {
     intake(-1)
     intake(1)
   })
-  // --- fuselage
   const b = lathe(s, AXIS, sec, H.tail, H.nose, {
     steps: hero ? 40 : 14,
     ring: hero ? 40 : 18,
@@ -1164,9 +1088,7 @@ function jet(s: Scene, J: JetSpec, hero: boolean, initials = '') {
       if (!J.doors.some((d) => Math.abs(x - d) < ws.pitch * 1.1)) xs.push(x)
     windows(b, sec, xs, winDeg, ws.w, ws.h)
     for (const d of J.doors) door(b, d - R * 0.17, d + R * 0.17, -40, 52)
-    // cargo door low on the flank
     door(b, J.wing[0][1] + R * 1.4, J.wing[0][1] + R * 2.1, -48, -18)
-    // anti-collision beacon on the crown and a blade antenna behind it
     disc(s, [-R * 0.4, 0, crownZ(sec, -R * 0.4) + 0.2], Z, R * 0.09, 0.5, { shade: true })
     foil(
       s,
@@ -1185,7 +1107,6 @@ function jet(s: Scene, J: JetSpec, hero: boolean, initials = '') {
       { up: Y, nose: 1 },
     )
   } else b.along(winDeg, J.windows.x0, J.windows.x1, 'line', 1)
-  // cockpit glazing: windscreen and side panes
   const ns = H.noseStart,
     nl = H.nose - H.noseStart
   b.patch(
@@ -1208,7 +1129,6 @@ function jet(s: Scene, J: JetSpec, hero: boolean, initials = '') {
     'glass',
     'crease',
   )
-  // fin, with the initials on it
   const F = J.fin
   const ft = F.t
   const finRoot = (x: number) => crownZ(sec, x, ft / 2) - 0.1
@@ -1227,7 +1147,6 @@ function jet(s: Scene, J: JetSpec, hero: boolean, initials = '') {
     fin.line(0.55, 0.7, 0.55, 1)
   }
   if (initials && hero) {
-    // Centred on the fin's fixed part at 45% height, sized to fit its chord there.
     const hz = 0.45
     const le = F.le + (tipLE - F.le) * hz,
       ch = F.chord + (F.tip - F.chord) * hz
@@ -1240,7 +1159,6 @@ function jet(s: Scene, J: JetSpec, hero: boolean, initials = '') {
       anchor: 'middle',
     })
   }
-  // --- near side
   stab(1)
   fairings(1)
   wingPanel(1)

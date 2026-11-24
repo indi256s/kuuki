@@ -63,7 +63,6 @@ function GlobeSurface(props: Omit<MaplibreGlobeProps, 'onReady' | 'onError'>) {
   )
 }
 
-/** PAGE owns the filter bar; this consumer owns the one clock shared by card and Fullscreen. */
 type Props = Pick<GlobeCardProps, 'topLeft' | 'onFullscreenChange'>
 export function OverviewGlobe({ topLeft, onFullscreenChange }: Props) {
   const overview = useOverview()
@@ -78,7 +77,6 @@ function OwnedGlobe({ topLeft, onFullscreenChange }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const [fullscreen, setFullscreen] = useState(false)
   const [reduced, setReduced] = useState(true)
-  // Every visit opens on a still map; replay runs only after the member presses Play, and keeps its state across filters.
   const [playing, setPlaying] = useState(false)
   const [started, setStarted] = useState(false)
   useEffect(() => {

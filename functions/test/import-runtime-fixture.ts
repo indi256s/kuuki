@@ -1,4 +1,3 @@
-// Shared T11 runtime: the real import Worker and its Durable Object on Wrangler's Miniflare, with a fake provider.
 import { afterEach, beforeAll, expect } from 'vitest'
 import type { Miniflare as Runtime, MiniflareOptions } from 'miniflare'
 import { createRequire } from 'node:module'
@@ -6,7 +5,6 @@ import { mkdirSync, mkdtempSync, rmSync } from 'node:fs'
 import { applyMigrations } from '../../scripts/_migrations'
 import { csrfRequest } from './harness'
 
-// Wrangler's installed runtime supports the required keep-alive date; the root Miniflare is older.
 const require = createRequire(import.meta.url)
 type Runtime5 = Runtime
 const { Miniflare, convertV4MiniflareOptions } = createRequire(require.resolve('wrangler'))(
@@ -95,7 +93,6 @@ export async function runtime(
               feed = controller
             },
           })
-          // Counted only once `feed` is this call's stream: `start()` waits for the count before tests send chunks.
           calls++
           return new Response(body)
         },

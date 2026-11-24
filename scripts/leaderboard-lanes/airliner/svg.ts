@@ -1,25 +1,16 @@
-// Writes a built airliner as lane SVG: every point levelled (the lane shear), moved to the nose/ground origin, simplified
-// and rounded; every paint an inline var() so the art follows the theme and the member's livery through the <use> clone
-// (selectors don't reach into it, custom properties inherit).
 import type { Ink, Item, Mat } from './model'
 import type { Pt, Rings } from './surface'
 
-/**
- * Douglas–Peucker tolerance, in final viewBox units (1 unit = 1 CSS px on a desktop lane). Coordinates are written to a
- * tenth, as the ground vehicles' are: under half a pixel even in a 4× close-up, at half the gzip size of hundredths.
- */
 const EPS = 0.04
 const r2 = (n: number) => {
   const v = Math.round(n * 100) / 100
   return Object.is(v, -0) ? '0' : String(v)
 }
-/** Tenths as the shortest SVG number: no leading zero, the minus sign doubling as the separator. */
 const num = (h: number) => {
   const s = (Math.abs(h) / 10).toString().replace(/^0\./, '.')
   return h < 0 ? '-' + s : s
 }
 const join = (nums: number[]) => nums.map((h, i) => (i && h >= 0 ? ' ' : '') + num(h)).join('')
-/** One ring as an absolute move and relative lines, from coordinates rounded to tenths first so nothing drifts. */
 function encode(pts: Pt[], closed: boolean) {
   const q = pts
     .map(([x, y]) => [Math.round(x * 10), Math.round(y * 10)])
@@ -75,7 +66,6 @@ function simplify(pts: Pt[], closed: boolean): Pt[] {
 
 export type Box = { x0: number; y0: number; x1: number; y1: number }
 
-/** Material tone vars: five tones (0 darkest … 4 the lit top) and the paper fill under them. */
 const MAT: Record<Mat, string> = {
   body: 'b',
   livery: 'l',
@@ -99,7 +89,6 @@ export function serialize(items: Item[], place: (p: Pt) => Pt, scale: number) {
   const d = (rings: Rings, closed: boolean, track = true) =>
     rings
       .map((r) => {
-        // A run that comes back to its start (a door outline) is a loop: simplified and closed as one.
         const [f, l] = [r[0], r[r.length - 1]]
         const loop = closed || (r.length > 3 && Math.hypot(f[0] - l[0], f[1] - l[1]) < 1e-6)
         const pts = simplify((loop && !closed ? r.slice(0, -1) : r).map(place), loop)
@@ -157,11 +146,6 @@ export function serialize(items: Item[], place: (p: Pt) => Pt, scale: number) {
   return { body: out.join(''), box }
 }
 
-/**
- * The aircraft ramps, from the app's iso roles: four shades and a lit top per material, lines from the iso line roles.
- * Light keeps the house paper faces; dark lifts the faces one step off the surface, under the light iso line, as the
- * ground vehicles do, so a model reads as a solid, not a wireframe.
- */
 export const AIRCRAFT_CSS = `.lane-vehicle{
   --ab4:var(--iso-top);--ab3:color-mix(in oklab,var(--iso-top) 55%,var(--iso-front));--ab2:var(--iso-front);
   --ab1:color-mix(in oklab,var(--iso-front) 50%,var(--iso-side));--ab0:var(--iso-side);--abp:var(--iso-front);
@@ -181,11 +165,11 @@ export const AIRCRAFT_CSS = `.lane-vehicle{
   --ail:var(--iso-line);--ais:color-mix(in oklab,var(--iso-crease) 80%,var(--iso-line));--aif:var(--iso-crease);
 }
 :root[data-theme='dark'] .lane-vehicle{
-  --ab4:color-mix(in oklab,var(--iso-front) 78%,var(--text));--ab3:color-mix(in oklab,var(--iso-front) 84%,var(--text));
-  --ab2:color-mix(in oklab,var(--iso-front) 90%,var(--text));--ab1:color-mix(in oklab,var(--iso-front) 96%,var(--text));
-  --ab0:color-mix(in oklab,var(--iso-side) 94%,var(--text));--abp:var(--ab2);
-  --am4:color-mix(in oklab,var(--iso-front) 74%,var(--text));--am3:color-mix(in oklab,var(--iso-front) 80%,var(--text));
-  --am2:color-mix(in oklab,var(--iso-front) 88%,var(--text));--am1:var(--iso-front);--am0:var(--iso-side);--amp:var(--am2);
+  --ab4:color-mix(in oklab,var(--iso-front) 40%,var(--text));--ab3:color-mix(in oklab,var(--iso-front) 52%,var(--text));
+  --ab2:color-mix(in oklab,var(--iso-front) 64%,var(--text));--ab1:color-mix(in oklab,var(--iso-front) 78%,var(--text));
+  --ab0:color-mix(in oklab,var(--iso-side) 92%,var(--text));--abp:var(--ab2);
+  --am4:color-mix(in oklab,var(--iso-front) 66%,var(--text));--am3:color-mix(in oklab,var(--iso-front) 74%,var(--text));
+  --am2:color-mix(in oklab,var(--iso-front) 84%,var(--text));--am1:color-mix(in oklab,var(--iso-front) 96%,var(--text));--am0:var(--iso-side);--amp:var(--am2);
   --ar4:color-mix(in oklab,var(--iso-side) 80%,var(--text));--ar3:color-mix(in oklab,var(--iso-side) 88%,var(--text));
   --ar2:color-mix(in oklab,var(--iso-side) 70%,black);--ar1:color-mix(in oklab,var(--iso-side) 60%,black);
   --ar0:color-mix(in oklab,var(--iso-side) 50%,black);--arp:var(--ar1);

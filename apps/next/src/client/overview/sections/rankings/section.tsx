@@ -30,10 +30,8 @@ import { TravelPatterns } from './travel-patterns'
 import './rankings.css'
 
 type Category = 'airlines' | 'airports' | 'routes'
-// Whole-journal baseline: thin, round, sparse dots, apart from every slot's dash.
 const BASELINE_DASH = '1 6'
 
-/** The routes' undirected key, `DOH-NRT`, as the sign prints it: `DOH–NRT`. */
 const signCode = (key: string) => key.replace('-', '–')
 
 export function Section({ span }: { span: Span }) {
@@ -52,7 +50,6 @@ export function Section({ span }: { span: Span }) {
   const entities = [...new Set(rows.map((row) => row.entity))]
   const comparison = scope && payload ? airlineComparison(payload, scope.filter) : null
   const comparisonKeys = comparison?.slice(0, 5).map((row) => row.key) ?? []
-  // Slots follow the key, not its rank in the current cohort. Airlines keep their brand color and take only the dash and marker.
   const bumpSlots = useComparisonSlots({
     analysis: category === 'airlines' ? 'airlines-cues' : category,
     ownerId: ownerKey,
@@ -65,7 +62,6 @@ export function Section({ span }: { span: Span }) {
     visibleKeys: comparisonKeys,
     seedOrder: all?.rankings.airlines.map((row) => row.key) ?? [],
   })
-  // The top five of the shown view, the leader first: the chart's rows, the reading's keys and the figure button's cycle.
   const top = scope?.rankings[category].slice(0, 5) ?? []
   const keys = top.map((row) => row.key)
   const r = useReading(
@@ -154,7 +150,6 @@ export function Section({ span }: { span: Span }) {
       .x((row) => xOf(row.year, width))
       .y((row) => yOf(row.rank))
       .curve(curveBumpX)
-  // Airlines wear their own brand color (neutral when unknown); airports and routes have none and take the slot's comparison color.
   const seriesCue = (entity: string) => {
     const cue = slotCue(bumpSlots.get(entity) ?? 0)
     return category === 'airlines' ? { ...cue, color: airlineColor(entity) } : cue
@@ -170,13 +165,11 @@ export function Section({ span }: { span: Span }) {
     'Airlines · previous and selected period · top 5',
     'Авиакомпании · прошлый и выбранный период · топ-5',
   )
-  // The reading: the leader until a row is picked. Its figure code, hero value and caption all come from the same row.
   const leader = scope.rankings.leaders[category]
   const reading = top.find((row) => row.key === r.reading) ?? top[0] ?? null
   const rank = reading ? top.findIndex((row) => row.count === reading.count) + 1 : 0
   const tied = top.length > 1 && top[1].count === top[0].count ? top[1] : null
   const readingName = reading ? name(category, reading.key) : ''
-  // Airline shares are of every flight in scope, those without an airline included, as the makers' are.
   const ranked = leader.total + (category === 'airlines' ? scope.rankings.unknownAirlines : 0)
   const share = reading && ranked ? percent(reading.count / ranked) : ''
   const counted = (count: number) =>
@@ -210,7 +203,6 @@ export function Section({ span }: { span: Span }) {
       ? `${readingName} · ${fact}`
       : `${ordinal(rank)} ${nounOne} · ${readingName} · ${share} ${ofWhat}`
   const code = !reading ? '' : category === 'routes' ? signCode(reading.key) : reading.key
-  // The 112px "Only …" button cuts names, so airlines and airports use their code.
   const shortName = !reading
     ? ''
     : category === 'airlines' || category === 'airports'
@@ -359,7 +351,6 @@ export function Section({ span }: { span: Span }) {
           </KuukiChart>
         )}
       </LazyChart>
-      {/* These toggle lines in this chart only, unlike the names above, which filter the page. */}
       <div
         className="ov3-bump-dashes"
         role="group"
@@ -606,7 +597,6 @@ export function Section({ span }: { span: Span }) {
               ? [{ key: 'share', label: copy(locale, 'Share', 'Доля'), numeric: true }]
               : []),
           ],
-          // The airline ring shows every flight in scope: the top five, the rest together and the flights without an airline.
           rows:
             category === 'airlines'
               ? [

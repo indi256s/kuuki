@@ -1,4 +1,3 @@
-/** Read-only explicit-target missing-aircraft inventory; never retains journal/user IDs. */
 import { resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
@@ -21,7 +20,6 @@ async function main() {
   const reader = openRemoteReader(accountId, databaseId, 'cf')
   try {
     await artifact.write({ state: 'in_progress', inventoried_at: new Date().toISOString() })
-    // Fixed projection excludes all journal and user identities. No caller SQL is accepted.
     const [counts] = await reader.read('SELECT COUNT(*) AS total FROM flights')
     const rows = await reader.read(`SELECT date, origin, destination, airline_iata, flight_number,
       aircraft_icao, lifecycle_state FROM flights

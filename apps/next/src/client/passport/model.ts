@@ -1,6 +1,3 @@
-// Passport collection model: pure functions over the published country evidence (ADR 0001 §4).
-// Pending countries (awaiting flights only) appear as unpressed slots and never in the pressed count;
-// transit-suppressed hubs have no published row, so they never appear at all.
 import catalog from '@kuuki/data/countries.json'
 import { COUNTRY_NEIGHBORS } from '@kuuki/data/country-neighbors'
 import { catalogRegionOf } from '@kuuki/shared/regions'
@@ -25,7 +22,6 @@ type CatalogCountry = {
 }
 const COUNTRIES = catalog as Record<string, CatalogCountry>
 
-/** Every catalog country and territory: the "of 246" denominator and the empty-state headline. */
 export const CATALOG_TOTAL = Object.keys(COUNTRIES).length
 
 export const REGION_LABELS: Record<RegionId, Record<Locale, string>> = {
@@ -44,18 +40,12 @@ export const SOURCE_LABELS: Record<PassportSource, Record<Locale, string>> = {
   manual: { en: 'Manual', ru: 'Вручную' },
 }
 
-/**
- * A known point in a country's chronology. Flights and archived evidence carry a date; a land or sea visit carries
- * only its year (ADR 0001 §4 leaves the projection's dates NULL for ground-only countries), so `date` is null then.
- */
 export type MapScope = 'all' | 'flights' | 'ground'
-/** The canonical `src` behind each map segment; `null` clears it. */
 export const MAP_SCOPE_SRC: Record<MapScope, string | null> = {
   all: null,
   flights: 'flights',
   ground: 'trains,road',
 }
-/** The segment a source selection stands for, or null when it is another combination (manual only, say). */
 export function mapScopeOf(sources: readonly PassportSource[]): MapScope | null {
   const src = sources.length ? sources.join(',') : null
   return (
@@ -65,11 +55,6 @@ export function mapScopeOf(sources: readonly PassportSource[]): MapScope | null 
 
 export type VisitPoint = { year: number; date: string | null }
 
-/**
- * First and last known visit from dated evidence and land/sea years together, at their real precision. When a dated
- * visit and a year-only visit fall in the same year, their order is unknown, so that end shows just the year.
- * Undated evidence (claims, visits without a year) adds nothing.
- */
 export function chronology(
   dates: readonly (string | null | undefined)[],
   years: readonly (number | null | undefined)[],
@@ -108,10 +93,8 @@ export function chronology(
   }
 }
 
-/** Sort key for a point: a year-only point sorts at the start of its year. */
 const pointKey = (point: VisitPoint | null) => (point ? (point.date ?? String(point.year)) : '')
 
-/** «2026» for a year-only point, otherwise the date (or month and year) it carries. */
 export function formatVisitPoint(
   locale: Locale,
   point: VisitPoint,
@@ -126,19 +109,15 @@ export function formatVisitPoint(
 export type PassportEntry = {
   code: string
   status: 'pressed' | 'pending'
-  /** Logged + awaiting + manual ground visits + ground journeys; used for Records sorting. */
   visits: number
-  /** The year the country joined the passport: its first known visit (the phone atlas's year pages). */
   first: VisitPoint | null
   last: VisitPoint | null
   region: RegionId | null
-  /** Evidence kinds behind the country, in the fixed filter order; a mixed country carries several. */
   sources: PassportSource[]
 }
 
 export const catalogCountry = (code: string): CatalogCountry | undefined =>
   Object.hasOwn(COUNTRIES, code) ? COUNTRIES[code] : undefined
-/** True for the 246 catalog countries and territories (upper-case ISO codes). */
 export const isCatalogCountry = (code: string): boolean => Object.hasOwn(COUNTRIES, code)
 
 export function countryNamer(locale: Locale): (code: string) => string {
@@ -156,7 +135,6 @@ export function passportEntries(
   data: Pick<PassportData, 'countries' | 'groundVisits'> &
     Partial<Pick<PassportData, 'journeyModes'>>,
 ): PassportEntry[] {
-  // A country's rail/road ways are its journeys' and its visits' together; a visit without a way stays Manual.
   const modes = new Map<string, Set<'rail' | 'road'>>()
   const addMode = (code: string, mode: 'rail' | 'road') =>
     modes.set(code, (modes.get(code) ?? new Set()).add(mode))
@@ -195,7 +173,6 @@ export function passportEntries(
   })
 }
 
-/** Countries a visitor sees: published codes only, so no dates, counts or sources. */
 export function visitorEntries(codes: string[]): PassportEntry[] {
   return codes.map((code) => ({
     code,
@@ -208,7 +185,6 @@ export function visitorEntries(codes: string[]): PassportEntry[] {
   }))
 }
 
-/** Recent: latest visit first, undated last. Records: most visits first. Ties fall back to the name. */
 export function sortEntries(
   entries: PassportEntry[],
   sort: PassportSort,
@@ -228,7 +204,6 @@ export function sortEntries(
   return [...entries].sort(compare[sort])
 }
 
-/** Pending slots are shown in their own block, apart from the pressed collection. */
 export function splitPending(entries: PassportEntry[]): {
   collection: PassportEntry[]
   pending: PassportEntry[]
@@ -245,7 +220,6 @@ const fold = (value: string) =>
     .replace(/\p{Diacritic}/gu, '')
     .toLocaleLowerCase()
 
-/** Code, English, native and localized names, case- and accent-insensitive; the needle is already folded. */
 const matchesNeedle = (code: string, needle: string, name: (code: string) => string) => {
   const item = catalogCountry(code)
   return [code, item?.name, item?.nativeName, name(code)].some(
@@ -253,10 +227,6 @@ const matchesNeedle = (code: string, needle: string, name: (code: string) => str
   )
 }
 
-/**
- * AND across search, region and sources; OR within sources, so a mixed country matches each of its sources.
- * Visitors have no source evidence, so their sources group is ignored. Entries pass through unchanged.
- */
 export function filterEntries(
   entries: PassportEntry[],
   filters: PassportFilters,
@@ -273,16 +243,11 @@ export function filterEntries(
   )
 }
 
-/** Filters behind the Filter button; the always-visible search is not counted. */
 export const activeFilterCount = (
   filters: PassportFilters,
   { visitor = false }: { visitor?: boolean } = {},
 ) => (filters.region ? 1 : 0) + (visitor ? 0 : filters.sources.length)
 
-/**
- * The one catalog country to offer as "Add {country}" when the query finds nothing in the collection: the query
- * must match exactly one catalog country, and that country must not be in `entries` already.
- */
 export function searchSuggestion(
   query: string,
   entries: PassportEntry[],
@@ -313,7 +278,6 @@ const HIDDEN_FORMS = {
   },
 }
 
-/** «Visited 12 countries · 3 hidden»; the hidden part appears only when something is hidden. */
 export function totalsText(
   locale: Locale,
   { visited, hidden }: { visited: number; hidden: number },
@@ -322,18 +286,12 @@ export function totalsText(
   return hidden > 0 ? `${text} · ${formatCount(locale, hidden, HIDDEN_FORMS)}` : text
 }
 
-/** «Found 3 of 12» while a filter or search is active. */
 export const foundText = (locale: Locale, found: number, of: number) =>
   locale === 'ru'
     ? `Найдено ${formatNumber(locale, found)} из ${formatNumber(locale, of)}`
     : `Found ${formatNumber(locale, found)} of ${formatNumber(locale, of)}`
 
 export type Suggestions = { recent: string[]; neighbors: string[] }
-/**
- * Add-country suggestions from verified sources only: recently visited countries (published evidence) and
- * catalog neighbors of collected countries that are not collected yet, ranked by how many collected
- * countries they border. Search over the whole catalog always remains.
- */
 export function suggestCountries(
   entries: PassportEntry[],
   limits = { recent: 4, neighbors: 6 },
@@ -361,7 +319,6 @@ export function suggestCountries(
   return { recent, neighbors }
 }
 
-/** Catalog search over code, English, native and localized names (case- and accent-insensitive). */
 export function searchCountries(query: string, name: (code: string) => string): string[] {
   const needle = fold(query.trim())
   const codes = Object.keys(COUNTRIES)
@@ -380,15 +337,8 @@ export function searchCountries(query: string, name: (code: string) => string): 
     )
 }
 
-/** The awaiting queue, where every pending slot leads. */
 export const AWAITING_QUEUE_HREF = '/journal?queue=awaiting'
 
-/**
- * The awaiting flight whose arrival card a pending country leads to, read from the country's published evidence
- * (`GET /api/passport/countries/:cc/stats`). Only contributing endpoints are listed there; transit-suppressed ones,
- * including the matched outgoing origin of a connection, sit in `suppressed`, so the queue's own flags are never
- * reinterpreted here. An arrival is preferred over a departure, then the latest date.
- */
 export function arrivalFlightId(detail: Pick<CountryDetail, 'entries'>): number | null {
   const awaiting = detail.entries.flatMap((entry) =>
     entry.kind === 'flight' && entry.state === 'awaiting' ? [entry] : [],
@@ -406,22 +356,17 @@ export const arrivalHref = (flightId: number | null) =>
   flightId ? `${AWAITING_QUEUE_HREF}#arrival-${flightId}` : AWAITING_QUEUE_HREF
 
 export type RemovalOutcome = {
-  /** Only claims and manual visits are removed from the passport directly; flight stamps go through the Journal. */
   removable: boolean
   claimed: boolean
   groundVisits: number
-  /** Live ground journeys that confirmed the country; the claim removal never touches them. */
   journeys: number
-  /** The country after DELETE /api/passport/claims/:cc, which deletes the claim and every manual visit, never flights. */
   after: 'pressed' | 'pending' | 'gone'
 }
-/** Reads the country detail entries the way the evidence policy does (ADR 0001 §4, C3). */
 export function removalOutcome(
   detail: Pick<CountryDetail, 'entries' | 'groundVisits'> &
     Partial<Pick<CountryDetail, 'journeys'>>,
 ): RemovalOutcome {
   const claimed = detail.entries.some((entry) => entry.kind === 'claim')
-  // Removal deletes retained metadata too, even when a linked arrival currently supersedes that evidence.
   const groundVisits = detail.groundVisits.length
   const journeys = detail.journeys?.length ?? 0
   const logged = detail.entries.some(

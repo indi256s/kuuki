@@ -52,7 +52,6 @@ it.each(['desktop', 'mobile'])(
         saver={saver}
       />,
     )
-    // Desktop chapters mount once their code has arrived.
     const aircraft = await waitFor(() => {
       const card = container.querySelector<HTMLElement>('[data-section="aircraft"]')
       expect(card).not.toBeNull()

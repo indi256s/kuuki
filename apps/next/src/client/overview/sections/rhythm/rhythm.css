@@ -25,7 +25,6 @@
   height: 16px;
   border-radius: 4px;
 }
-/* Weak levels keep the cell's contour; "no data" is an empty dashed outline, never a fill. */
 .ov3-heat-legend i[data-weak] {
   box-shadow: inset 0 0 0 1px var(--heat-contour);
 }
@@ -44,12 +43,6 @@
 .ov3-rhythm-more:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
-}
-.ov3-heat-year-totals {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  font: 12px var(--font-mono);
 }
 
 .ov3-activity-year {
@@ -72,14 +65,12 @@
   outline-offset: 2px;
 }
 
-/* Expanded histories retain every year without making the chapter unbounded. */
 .ov3-rhythm-history-scroll {
   max-height: 480px;
   overflow: auto;
   scrollbar-gutter: stable;
 }
 
-/* Keep heat intensity quantitative while making the selected month visible. */
 .ov3-rhythm-history-scroll [data-picked] > rect {
   stroke: var(--text);
   stroke-width: 2px;

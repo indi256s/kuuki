@@ -5,16 +5,7 @@ import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'rea
 import { ChevronIcon } from './icon-morph'
 import './expandable-card.css'
 
-// Adapted from Arc "expandable-card" (uiarc.dev, MIT, see ARC-LICENSE.txt): one header button that opens a details panel
-// kept mounted (inert while closed), a summary whose changed words rise in place while unchanged words hold still, a
-// chevron that turns with the state, and Escape closing it with focus back on the header.
-// Changed for Kuuki: CSS replaces `motion` (a grid-row height transition and opacity, Kuuki tokens, no width morph), the
-// panel can open upward from a bottom-anchored card, actions sit beside the header button instead of inside it, the
-// open state can be controlled, and `onTrigger` lets the header open something else (the phone sheet) instead. The
-// upstream inset divider and tinted panel are gone: space groups the rows.
-
 type Rolled = { text: string; keys: Set<string>; fresh: Set<string> }
-/** Each word with a key of its position and text, so an unchanged word keeps its node and never replays. */
 const wordsOf = (text: string) =>
   text.split(/(\s+)/).map((word, index) => ({ key: `${index}:${word}`, word }))
 
@@ -54,21 +45,15 @@ function RollingText({ text }: { text: string }) {
 }
 
 export interface ExpandableCardProps {
-  /** The one-line summary. */
   title: ReactNode
-  /** A second line. As a string, its changed words rise in place; a node (a rolling count) renders as given. */
   description?: ReactNode
-  /** Leading mark inside the header button. */
   icon?: ReactNode
-  /** Controls beside the header button (an action, a dismiss). */
   actions?: ReactNode
   children?: ReactNode
   expanded?: boolean
   defaultExpanded?: boolean
   onExpandedChange?: (expanded: boolean) => void
-  /** `up` puts the panel above the header, for a card anchored to the bottom of the screen. */
   direction?: 'down' | 'up'
-  /** When set, the header calls this instead of opening the panel (it opens a sheet or dialog). */
   onTrigger?: () => void
   className?: string
 }
@@ -101,7 +86,6 @@ export function ExpandableCard({
     trigger.current?.focus()
   }
 
-  // With nothing to open, the header is plain content rather than a button that does nothing.
   const opens = Boolean(children) || Boolean(onTrigger)
   const summary = (
     <>

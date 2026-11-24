@@ -7,8 +7,6 @@ import { PassportPreview } from '../../../client/welcome/passport/passport-previ
 import type { PassportPreview as Preview } from '../../../client/welcome/types'
 import type { Locale } from '../../../lib/format'
 
-// The welcome passport from fixtures: the live one needs an account and an import. The phone layout follows the
-// viewport, so view this page at 390px to see the bench on a phone; the frame only fixes the passport's width.
 const COUNTRIES = ['GB', 'FR', 'DE', 'JP', 'US', 'IT', 'ES', 'NL', 'TR', 'AE']
 
 const SCENES = {

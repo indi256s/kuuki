@@ -1,7 +1,3 @@
-// Flight writes keep one stored key and payload per
-// operation and add the member's browser IANA timezone as the top-level `timezone` request field that
-// the lifecycle API reads (ADR 0001 §1). The zone is request context only: it is kept out of the stored
-// retry payload, so a replay from another zone is still the same operation.
 import { FLIGHT_BULK_CREATE_MAX, validateFlightInput } from '@kuuki/shared'
 import { api, ApiError } from '@kuuki/client/apiClient'
 import {
@@ -13,7 +9,6 @@ import {
 import type { DerivedAck } from '@kuuki/client/derivedState'
 import type { Flight, FlightInsert, FlightUpdate } from '@kuuki/client/flights'
 
-/** The browser's IANA zone, or null when unavailable (the server then falls back to UTC). */
 export function browserTimezone(): string | null {
   try {
     return Intl.DateTimeFormat().resolvedOptions().timeZone || null
@@ -22,7 +17,6 @@ export function browserTimezone(): string | null {
   }
 }
 
-/** A copy of `value` without the listed keys (client-only or server-owned fields never go on the wire). */
 const omit = <T extends object>(value: T, ...keys: string[]): Record<string, unknown> =>
   Object.fromEntries(Object.entries(value).filter(([key]) => !keys.includes(key)))
 
@@ -34,11 +28,6 @@ export const withZone = <T extends object>(
   return timezone ? { ...body, timezone } : body
 }
 
-/**
- * Send with the browser zone; if the server rejects the zone (400 INVALID_TIMEZONE, answered before any
- * write or idempotency record), send the same operation once more without it so the server falls back to UTC.
- * The stored retry payload never contains the zone, so a failing zone is not persisted or retried again.
- */
 export async function sendWithZone<T>(send: (zone: boolean) => Promise<T>): Promise<T> {
   try {
     return await send(true)
@@ -54,21 +43,15 @@ export async function sendWithZone<T>(send: (zone: boolean) => Promise<T>): Prom
   }
 }
 
-/** The exact payload a create stores in its receipt, so two flights can be compared as the server would see them. */
 export const flightCreatePayload = (flight: object): object =>
   validateFlightInput(omit(flight, 'is_upcoming'), 'create')
 
-/** Server answers that come from validating the details, before any receipt or write exists (flights/index.ts). */
 export const isFlightValidationRefusal = (error: unknown): error is ApiError =>
   error instanceof ApiError &&
   (error.status === 400 || error.status === 422) &&
   !(error.code ?? '').startsWith('IDEMPOTENCY_') &&
   error.code !== 'CSRF'
 
-/**
- * A validation refusal of the first attempt proves nothing was written, so its receipt is freed here and the corrected
- * details can be a fresh operation. Any later attempt, or any other failure, keeps the receipt.
- */
 export async function createFlight(
   userId: string,
   flight: FlightInsert,
@@ -105,7 +88,6 @@ interface BulkCreateResult {
   error?: string
 }
 
-/** Chunk creates with per-entry keys and outcomes, using one timezone per request. */
 export async function createFlights(
   userId: string,
   entries: Array<{
@@ -161,7 +143,6 @@ export async function createFlights(
   return outcomes
 }
 
-/** The API recomputes lifecycle from a changed date in the sent zone, so lifecycle fields are never sent. */
 export async function updateFlight(
   flightId: number,
   updates: FlightUpdate,

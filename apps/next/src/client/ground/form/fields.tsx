@@ -6,7 +6,6 @@ import { Calendar } from '../../ui/calendar'
 import { Field } from '../../ui/field'
 import type { ErrorCode } from './model'
 
-/** Enter in a helper input (country search, ticket preview) must not submit the whole journey form. */
 export function blockImplicitSubmit(event: KeyboardEvent<HTMLElement>) {
   if (event.key === 'Enter' && event.target instanceof HTMLInputElement) event.preventDefault()
 }
@@ -40,7 +39,6 @@ export function errorText(code: ErrorCode | undefined, locale: Locale): string |
   }
 }
 
-/** The typeable date field. An empty value is saved as no date: the label says it is optional. */
 export function DateField({
   label,
   value,
@@ -98,7 +96,6 @@ export function TimeField({
   )
 }
 
-/** `Field` has no multi-line variant; this mirrors its label, hint and error wiring. */
 export function TextAreaField({
   label,
   optionalLabel,

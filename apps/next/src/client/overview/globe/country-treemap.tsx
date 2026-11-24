@@ -18,7 +18,6 @@ type Tile = {
   code: string
   value: number
   name: string
-  /** The region colour: a country inherits its region's. */
   role: RegionRole
 }
 
@@ -38,7 +37,6 @@ export function CountryTreemap() {
         ? 'Регион не указан'
         : 'Unknown region'
       : (REGION_LABELS[code as keyof typeof REGION_LABELS]?.[locale] ?? code)
-  // The synthetic Unknown bucket matches no region value, so a region filter on it would only empty the view.
   const canFilterRegion = (code: string) => code !== UNKNOWN_REGION
   const title =
     locale === 'ru' ? 'Страны по завершённым перелётам' : 'Countries from completed flights'
@@ -66,7 +64,6 @@ export function CountryTreemap() {
     datum,
     label: `${datum.name}: ${formatNumber(locale, datum.value)}`,
   }))
-  // Its evidence is flights only (the title says so), so По земле would leave it empty.
   if (scope?.figures.scope === 'ground') return null
   return (
     <div className="globe-country-evidence">

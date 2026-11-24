@@ -89,14 +89,13 @@ describe('manual flights and the shared create receipt', () => {
 
     const blocked = await saveManualRows('u1', [edited])
     expect(blocked.failures.get(row.key)?.kind).toBe('unconfirmed')
-    expect(post).toHaveBeenCalledTimes(1) // nothing was sent for the changed payload
+    expect(post).toHaveBeenCalledTimes(1)
 
     post.mockResolvedValueOnce(answer({ status: 'replayed' }))
     const original = await saveManualRows('u1', [edited], new Set([row.key]))
     expect(original.saved[0].values.destination).toBe('BOS')
     expect(sentItems(1)[0]).toEqual(sentItems(0)[0])
 
-    // Alternatively the member says the journal was checked: the edited row is a fresh operation.
     post.mockRejectedValueOnce(new TypeError('Failed to fetch'))
     const lost = await saveManualRows('u1', [
       newManualRow(values({ origin: 'LHR', destination: 'CDG' })),
@@ -112,7 +111,6 @@ describe('manual flights and the shared create receipt', () => {
   })
 
   describe('an unsettled operation keeps its receipt, operation id and pinned payload', () => {
-    // A server that commits every key once; the first answer can be lost after the commit.
     const committed = new Set<string>()
     const lostCommit = async (row: ManualRowState) => {
       post.mockImplementationOnce(
@@ -223,7 +221,7 @@ describe('manual flights and the shared create receipt', () => {
     it('is listed for its owner whatever batch wrote it, and retrying it ends with one committed key', async () => {
       const lost = await loseCommittedResponse()
       expect(lost.operationId.startsWith('manual:b1:')).toBe(true)
-      expect(unconfirmedSaves('other')).toEqual([]) // never another member's
+      expect(unconfirmedSaves('other')).toEqual([])
       const [listed] = unconfirmedSaves('u1')
       expect(listed).toMatchObject({ operationId: lost.operationId, expired: false })
       expect(listed.values).toMatchObject({ date: '2026-03-01', origin: 'JFK', destination: 'BOS' })
@@ -244,7 +242,6 @@ describe('manual flights and the shared create receipt', () => {
         },
       )
       const old = crypto.randomUUID()
-      // Written as before (plain UUID), with its fields in another order and the empty optional ones left out.
       const flight = Object.fromEntries(
         Object.entries({
           ...toFlightInput(values({ airline_iata: 'AA', flight_number: '100' })),
@@ -289,20 +286,17 @@ describe('manual flights and the shared create receipt', () => {
         code: null,
         heldBy: lost.operationId,
       })
-      expect(post).toHaveBeenCalledTimes(1) // no second key was minted
+      expect(post).toHaveBeenCalledTimes(1)
       expect(pendingFlightCreateOperation('u1', again.operationId)).toBeNull()
       expect(pendingFlightCreateOperation('u1', lost.operationId)).not.toBeNull()
-      // Another member's identical flight is not held by u1's save.
       serverCommits()
       expect((await saveManualRows('u2', [newManualRow(values())])).saved).toHaveLength(1)
 
-      // A different flight is not held.
       serverCommits()
       expect(
         (await saveManualRows('u1', [newManualRow(values({ destination: 'LAX' }), 'b1')])).saved,
       ).toHaveLength(1)
 
-      // The member checked the journal for the unresolved save: the identical row is now a normal new save.
       settleUnconfirmedSave('u1', lost.operationId)
       serverCommits()
       expect((await saveManualRows('u1', [again])).saved).toHaveLength(1)

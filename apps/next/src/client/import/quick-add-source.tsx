@@ -1,8 +1,5 @@
 'use client'
 
-// Quick Add source step: two equal ways to bring a boarding pass in, then a local barcode read. A readable pass goes to
-// the server as flight fields only; anything else is offered as an upload for online recognition, after the member has
-// been told the document will leave the device. The file lives in this component's state and is never stored.
 import { Camera, FileArrowUp, CircleAlert } from '@keyline-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import type { Locale } from '../../lib/format'
@@ -14,7 +11,6 @@ import { FileDropzone } from './file-dropzone'
 import type { DocumentSource, ImportSource } from './import-api'
 import { ACCEPT, checkFile, fileToBase64, type FileProblem } from './source-step'
 
-// The camera input only offers still images; the file inputs take SourceStep's list.
 const PHOTO_ACCEPT = 'image/jpeg,image/png'
 
 type Problem = FileProblem | 'read'
@@ -30,7 +26,6 @@ const REASON: Record<NoneReason, 'qaNoBarcode' | 'qaNotPass' | 'qaUnsupported'> 
   failed: 'qaUnsupported',
 }
 
-/** The online-recognition body for a file: its base64 lives only in this request, and the flown question is required. */
 export async function uploadSource(file: File): Promise<DocumentSource> {
   return {
     type: file.type === 'application/pdf' ? 'pdf' : 'image',
@@ -40,7 +35,6 @@ export async function uploadSource(file: File): Promise<DocumentSource> {
   }
 }
 
-/** What the member is told before anything is uploaded, and the one action that uploads. */
 export function UploadFallback({
   locale,
   intro,
@@ -83,9 +77,7 @@ export function QuickAddSource({
   notice,
 }: {
   locale: Locale
-  /** The operation id stays the same while the source is unchanged. `file` stays in memory for a later upload. */
   onSubmit: (source: ImportSource, operationId: string, file: File) => void
-  /** Switch to the general file/text import. */
   onGeneral: () => void
   notice?: string | null
 }) {
@@ -96,7 +88,6 @@ export function QuickAddSource({
   const [uploading, setUploading] = useState(false)
   const photoInput = useRef<HTMLInputElement>(null)
   const fileInput = useRef<HTMLInputElement>(null)
-  // A new revision starts at every choose/remove; answers that arrive for an older one are dropped.
   const revision = useRef(0)
   const controller = useRef<AbortController | null>(null)
   const mounted = useRef(false)
@@ -160,7 +151,6 @@ export function QuickAddSource({
         setState('none')
       },
       () => {
-        // An abort is a replacement or a removal and says nothing; anything else is a read this browser could not do.
         if (!current()) return
         setReason('failed')
         setState('none')
@@ -190,7 +180,6 @@ export function QuickAddSource({
 
   const pick = (input: HTMLInputElement) => {
     const chosen = input.files?.[0]
-    // Cancelling the camera or the picker delivers no file: nothing is created and the current choice stays.
     if (chosen) choose(chosen)
     input.value = ''
   }
@@ -210,7 +199,6 @@ export function QuickAddSource({
         >
           {S.qaChoose[locale]}
         </Button>
-        {/* The buttons are the controls; these only receive the browser's picker result. */}
         <input
           ref={photoInput}
           className="sr-only"
@@ -243,7 +231,6 @@ export function QuickAddSource({
         />
       </div>
       <p className="import-hint" role="status">
-        {/* The outcome of a read that found no pass is announced here once; the fallback below stays silent. */}
         {state === 'reading'
           ? S.qaReading[locale]
           : state === 'none'

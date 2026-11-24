@@ -52,7 +52,6 @@ type ProfileFields = IdentityProfile & {
 type Shared = {
   locale: Locale
   profile: ProfileFields
-  /** The handle from the route, for a read that carries none. */
   routeHandle: string
   stats: PassportStats | null
   badges: EarnedBadge[]
@@ -60,30 +59,22 @@ type Shared = {
   derivedState: string
 }
 
-/**
- * The shared Passport page, one tree for three viewers. `visitor` and `preview` receive only the public payload
- * (the permitted country codes, public stats, badges and rankings): no owner passport data reaches their props or DOM.
- */
 export type PassportPageProps =
   | (Shared & {
       mode: 'owner'
       ownerId: string
-      /** The full owner read: every source, dates, hidden countries and pending slots. */
       data: PassportData
       visibility: 'public' | 'private'
       shareUrl: string | null
     })
   | (Shared & {
       mode: 'visitor'
-      /** The public set, sorted by name on the client. */
       countries: string[]
       memberViewer: boolean
-      /** The viewer is the owner reading their own public page: a slim bar links back to /passport. */
       viewerIsOwner: boolean
     })
   | (Shared & {
       mode: 'preview'
-      /** The owner's public projection under the stored publication, whether or not the profile is public. */
       countries: string[]
     })
 
@@ -104,14 +95,12 @@ function OwnerPassport(props: OwnerProps) {
   )
 }
 
-/** Countries pressed since this owner last looked play their impression once; the first visit records a baseline. */
 function useFreshStamps(ownerId: string, codes: string[]) {
   const [fresh, setFresh] = useState<ReadonlyMap<string, string>>(NO_STAMPS)
   const key = codes.join(',')
   useEffect(() => {
     const added = unseenCountries(ownerId, key ? key.split(',') : [], notificationStorage())
     if (!added.length) return
-    // Effects run twice in development; the in-memory baseline makes the second pass empty, so keep the first.
     // oxlint-disable-next-line hooks-compat/set-state-in-effect -- one-shot, derived from device storage that cannot be read during render
     setFresh((current) => {
       const next = new Map(current)
@@ -148,7 +137,6 @@ function OwnerInner({
   const [hiddenOpen, setHiddenOpen] = useState(false)
   const [undatedOpen, setUndatedOpen] = useState(false)
   const [removedCountry, setRemovedCountry] = useState<string | null>(null)
-  // A pending slot resolving its arrival card: shown while the evidence loads, dropped when the member leaves or acts.
   const [opening, setOpening] = useState<string | null>(null)
   const arrivalIntent = useRef<{ code: string; href: string } | null>(null)
   useEffect(() => {
@@ -217,7 +205,6 @@ function OwnerInner({
     arrivalIntent.current = null
     setOpening(null)
   }
-  // Filters and the sheet replace the history entry, a mode change pushes one; either drops a pending arrival card.
   const navigate = useCallback(
     (patch: PassportPatch, mode?: 'push' | 'replace') => {
       arrivalIntent.current = null
@@ -229,14 +216,10 @@ function OwnerInner({
   const openCountry = (code: string, element?: HTMLElement, pointer?: boolean) => {
     opener.remember(element)
     const open = () => navigate({ country: code })
-    // The hero needs the desktop side panel: the mobile bottom sheet is driven by JS motion that moves its stamp.
     if (pointer && element && mobile === false && openWithStampHero(element, code, open)) return
     open()
   }
 
-  // A pending slot's arrival card comes from the country's published evidence, not from the queue page's flags.
-  // Repeated activation of the same slot is ignored; a newer activation, any other navigation or leaving the page
-  // supersedes it, so a late read never pulls the member away.
   async function openArrival(code: string) {
     if (arrivalIntent.current?.code === code) return
     const intent = { code, href: window.location.href }
@@ -250,7 +233,6 @@ function OwnerInner({
     setOpening(null)
     if (window.location.href === intent.href) router.push(arrivalHref(flight))
   }
-  // The menu closes into the sheet: focus goes back to its button first, so the sheet returns there when dismissed.
   const fromMenu = (open: () => void) => () => {
     menuTrigger.current?.focus()
     cancelArrival()
@@ -264,7 +246,6 @@ function OwnerInner({
     ])
   }
 
-  /** Brings a hidden country back from the Undo on the toast; a failure is a calm notice with a retry. */
   async function undoHide(code: string) {
     const controller = new AbortController()
     const release = trackPrivateOperation(controller)
@@ -289,10 +270,8 @@ function OwnerInner({
     }
   }
   async function onHidden(code: string) {
-    // A slow response must not close a sheet the member opened since: close only the hidden country's own sheet.
     if (new URLSearchParams(window.location.search).get('country') === code)
       navigate({ country: null })
-    // The toast outlives the sheet and the locale switch, so it carries both languages.
     toast.show({
       message: {
         en: `${countryNamer('en')(code)} hidden from your passport.`,
@@ -338,9 +317,6 @@ function OwnerInner({
       </MenuItem>
       <MenuItem onSelect={fromMenu(() => setAdding(true))}>
         {ru ? 'Добавить страну' : 'Add country'}
-      </MenuItem>
-      <MenuItem asChild>
-        <Link href="/passport/manage">{ru ? 'Самолёты в журнале' : 'Aircraft in journal'}</Link>
       </MenuItem>
     </Menu>
   )

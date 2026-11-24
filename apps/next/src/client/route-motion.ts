@@ -1,9 +1,5 @@
 import type { Integrator, PrepareArgs } from '@ssgoi/react'
 
-/**
- * Critically damped (damping at least 2√stiffness), so nothing overshoots. ssgoi ends a spring once it has held inside
- * the rest thresholds for 50ms; counted that way, pages finish in about 0.28s and the stamp hero in about 0.38s.
- */
 export type Spring = { stiffness: number; damping: number }
 export const ROUTE_SPRINGS = {
   page: { stiffness: 800, damping: 57 },
@@ -11,7 +7,6 @@ export const ROUTE_SPRINGS = {
 }
 export const SPRING_REST = { restDelta: 0.02, restSpeed: 0.5 }
 
-/** CSS `cubic-bezier(x1, y1, x2, y2)` as a function of linear progress; the curve's x is solved by bisection. */
 function cubicBezier(x1: number, y1: number, x2: number, y2: number) {
   const at = (a: number, b: number, t: number) =>
     3 * a * t * (1 - t) ** 2 + 3 * b * t ** 2 * (1 - t) + t ** 3
@@ -30,10 +25,6 @@ function cubicBezier(x1: number, y1: number, x2: number, y2: number) {
   }
 }
 
-/**
- * Moves progress at a constant rate, so a track ends after `ms`. ssgoi's LinearIntegrator scales its speed by the
- * distance left, which approaches the target exponentially: a 200ms one held the page for about 0.9s.
- */
 export function clock(ms: number): Integrator {
   const rate = 1000 / ms
   return {
@@ -48,13 +39,11 @@ export function clock(ms: number): Integrator {
   }
 }
 
-/** The tab fade-in: `--dur-base` on `--ease-out`; under reduced motion `--dur-fast`, linear (DESIGN.md "Reduced motion"). */
 export const TAB_FADE = {
   motion: { ms: 200, ease: cubicBezier(0.23, 1, 0.32, 1) },
   reduced: { ms: 150, ease: (t: number) => t },
 }
 
-/** A Passport stamp that will not be fully on screen once the page settles has no partner; it appears in place. */
 export function keepVisibleStamps({ to, context }: PrepareArgs) {
   void to.then((page) => {
     const scroller = context.scrollingElement

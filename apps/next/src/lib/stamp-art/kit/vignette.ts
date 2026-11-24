@@ -1,7 +1,3 @@
-// Vignette modules: the backdrop that fills the whole window (sky, distance, ground). They are
-// recipe `backdrop` layers: the box defaults to the window box, `horizonY` is injected, every
-// stroke is flagged as backdrop by the renderer so a subject halo stops it short, and nothing here
-// is ever outlined except the lit ridge (hair) and the one bold ground line.
 import { mulberry32 } from '../hash'
 import { clipStrokeOutside } from '../geom'
 import {
@@ -20,7 +16,6 @@ import { type KitModule, num, nums, pairs, str } from './util'
 const hatchTone = (p: Record<string, unknown>, key: string, fallback: ToneName): ToneName =>
   str(p, key, ['T1', 'T2', 'T3', 'T4'] as const, fallback)
 
-/** T1 sky: horizontal fine lines from the top of the box down to the horizon, opening downward. */
 export const sky: KitModule = ([x, y, w], p) => {
   const horizon = num(p, 'horizonY', y + 100)
   const gap = nums(p, 'gap', [])
@@ -29,7 +24,6 @@ export const sky: KitModule = ([x, y, w], p) => {
     ...(p.weight === 'hair' ? { weight: 'hair' as const } : {}),
     ...(gap.length === 2 ? { gap: [gap[0], gap[1]] as [number, number] } : {}),
   })
-  // Optional clouds as flat [x, y, width] triples: lens-shaped gaps in the hatching.
   const c = nums(p, 'clouds', [])
   let out: SvgNode[] = lines
   for (let i = 0; i + 2 < c.length; i += 3) {
@@ -45,7 +39,6 @@ export const sky: KitModule = ([x, y, w], p) => {
 
 type Ridge = { pts: Pt[]; vertices: number[] }
 
-/** Refines coarse vertices into a ridge line with deterministic kinks that vanish at the vertices. */
 function refine(coarse: Pt[], jag: number, bow: number, seed: number): Ridge {
   const rand = mulberry32(seed)
   const pts: Pt[] = [coarse[0]]
@@ -69,12 +62,6 @@ function refine(coarse: Pt[], jag: number, bow: number, seed: number): Ridge {
   return { pts, vertices }
 }
 
-/**
- * Receding mountains in T2. `ridge` lists [x fraction of the box, y fraction of the box height from
- * the box top]; the ends are the edges of the box. Rising faces are lit (sparser diagonal), falling
- * faces are shaded (denser, opposite diagonal, or T4 verticals with `shade: 'T4'`). Above `snow` (a
- * fraction of each summit's height) the faces stay white. Only the ridge gets a hair outline.
- */
 export const distanceMountains: KitModule = ([x, y, w, h], p) => {
   const horizon = num(p, 'horizonY', y + h * 0.7)
   const coarse = pairs(p, 'ridge', [
@@ -96,7 +83,6 @@ export const distanceMountains: KitModule = ([x, y, w, h], p) => {
     occlude([...pts, [pts[pts.length - 1][0], horizon + 2], [pts[0][0], horizon + 2]], { halo: 2 }),
   )
 
-  // Face boundaries: the ridge's local extremes and its ends, found on the refined line.
   const cuts = [0]
   for (let i = 1; i < pts.length - 1; i++) {
     const up = pts[i][1] < pts[i - 1][1] && pts[i][1] <= pts[i + 1][1]
@@ -114,7 +100,6 @@ export const distanceMountains: KitModule = ([x, y, w, h], p) => {
     else out.push(...toneFill(face, 'T2'))
   }
 
-  // Snowfields: erase the hatching around each summit down to a jagged snow line.
   if (snow > 0) {
     cuts.forEach((ci) => {
       const peak = pts[ci]
@@ -142,12 +127,10 @@ export const distanceMountains: KitModule = ([x, y, w, h], p) => {
   return out
 }
 
-/** A band of distant trees: scalloped top, fine vertical hatching, no outline. */
 export const distanceTrees: KitModule = ([x, y, w, h], p) => {
   const horizon = num(p, 'horizonY', y + h * 0.7)
   const height = num(p, 'height', 18)
   const amp = num(p, 'amp', 3)
-  // Optional slow undulation of the crown line (default: none, so older recipes are unchanged).
   const swell = num(p, 'swell', 0)
   const rand = mulberry32(Math.round(num(p, 'seed', 3)))
   const top: Pt[] = []
@@ -165,11 +148,6 @@ export const distanceTrees: KitModule = ([x, y, w, h], p) => {
   ]
 }
 
-/**
- * Ground or water below the horizon: T3 horizontal hair lines, gap 3.6 at the horizon closing to
- * 2.2 at the bottom, and one bold ground line behind the subject. `water: true`
- * breaks the lines into glints.
- */
 export const ground: KitModule = ([x, y, w, h], p) => {
   const horizon = num(p, 'horizonY', y + h * 0.7)
   const bottom = y + h
@@ -194,13 +172,10 @@ export const ground: KitModule = ([x, y, w, h], p) => {
       }
     }
   } else out.push(...lines)
-  if (p.line !== false)
-    // The accepted six retain their original horizon placement through their recipes.
-    out.push({ ...hline('bold', x, x + w, horizon), late: p.lineLate === true })
+  if (p.line !== false) out.push({ ...hline('bold', x, x + w, horizon), late: p.lineLate === true })
   return out
 }
 
-/** Columnar basalt cliff under a plateau: T4 verticals of staggered length, top edge in hair. */
 export const basalt: KitModule = ([x, y, w, h], p) => {
   const side = str(p, 'side', ['left', 'right'] as const, 'right')
   const top = num(p, 'horizonY', y + h * 0.7)
@@ -209,7 +184,6 @@ export const basalt: KitModule = ([x, y, w, h], p) => {
   const reach = num(p, 'reach', 0.5) * w
   const drop = num(p, 'drop', 0.5) * (bottom - top)
   const fx = (t: number) => (side === 'right' ? x + w - t : x + t)
-  // Face: the plateau runs `reach` in from the edge, then the face steps back out and down.
   const poly: Pt[] = [
     [fx(0), top],
     [fx(reach), top],

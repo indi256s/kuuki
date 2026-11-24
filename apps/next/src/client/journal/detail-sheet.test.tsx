@@ -86,7 +86,6 @@ const dto = (base: JournalFlight, overrides: Partial<JournalFlight>) => {
 let payloadNow: () => JournalPayload = () => {
   throw new Error('not mounted')
 }
-/** The server's flights: a PATCH applies its body here and answers with the row, a GET serves them. */
 let server: JournalFlight[] = []
 let beforeEdit: JournalFlight | undefined
 const serve = async (path: string, body: unknown) => {
@@ -182,7 +181,6 @@ describe('Journal detail sheet', () => {
     expect(within(dialog).getByText('UTC+4')).toBeInTheDocument()
     expect(within(dialog).getByText('UTC+3')).toBeInTheDocument()
     expect(within(dialog).getByText('2 h 40 min in the air')).toBeInTheDocument()
-    // The upcoming flight does not count: this is the second logged arrival in Istanbul.
     expect(within(dialog).getByText('2nd recorded arrival in Istanbul')).toBeInTheDocument()
     expect(within(dialog).getByText('Turkish Airlines')).toBeInTheDocument()
     expect(within(dialog).getByText('Airbus A321')).toBeInTheDocument()
@@ -252,9 +250,8 @@ describe('Journal detail sheet', () => {
       departure_time: '05:20',
       origin_country: 'GE',
     })
-    await waitFor(() => expect(api.get).toHaveBeenCalled()) // background refresh
+    await waitFor(() => expect(api.get).toHaveBeenCalled())
 
-    // The overlay is modal, so its Undo lives inside it rather than in a toast behind the focus trap.
     expect(within(dialog).getByText('Flight saved')).toBeInTheDocument()
     await user.click(within(dialog).getByRole('button', { name: 'Undo' }))
     await waitFor(() => expect(api.patch).toHaveBeenCalledTimes(2))
@@ -285,7 +282,7 @@ describe('Journal detail sheet', () => {
     const aircraft = await within(pane).findByRole('combobox', { name: 'Aircraft' })
     await user.clear(aircraft)
     await user.type(aircraft, 'A333')
-    await user.keyboard('{Enter}') // takes A333 from the list
+    await user.keyboard('{Enter}')
     await user.click(within(pane).getByRole('button', { name: 'Save changes' }))
     await waitFor(() => expect(api.patch).toHaveBeenCalledTimes(2))
     await user.click(firstUndo)
@@ -469,7 +466,6 @@ describe('Journal detail sheet', () => {
       await user.click(await within(pane).findByRole('button', { name: 'Edit flight' }))
       await user.type(await within(pane).findByRole('textbox', { name: 'Flight number' }), '0')
 
-      // Back has landed on the list; bootstrap asks the gate before Next's popstate listener runs.
       window.history.replaceState(null, '', '/journal')
       const gate = new Event('kuuki:before-popstate', { cancelable: true })
       act(() => {
@@ -532,16 +528,13 @@ describe('Journal detail sheet', () => {
     const pane = await screen.findByRole('complementary', { name: 'Flight details' })
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(within(pane).getByRole('heading', { level: 2 })).toHaveFocus()
-    // Identity before any decision: the title names the date, not only a route that may repeat; the flight number leads the facts.
     expect(within(pane).getByRole('heading', { level: 2 })).toHaveAccessibleName(
       /^TBS\s*to\s*IST\s*,\s*May 4, 2024$/,
     )
     expect(await within(pane).findByText('TK381')).toBeInTheDocument()
-    // Edit shares the header with Close instead of a bar inside the content.
     const header = within(pane).getByRole('heading', { level: 2 }).parentElement!
     expect(within(header).getByRole('button', { name: 'Edit flight' })).toBeInTheDocument()
     expect(within(header).getByRole('button', { name: 'Close flight details' })).toBeInTheDocument()
-    // The connection's next leg swaps the pane and keeps focus inside it.
     expect(within(pane).getByText('2 h 40 min transfer in IST')).toBeInTheDocument()
     await user.click(within(pane).getByRole('button', { name: /^Open IST → JFK/ }))
     await waitFor(() =>

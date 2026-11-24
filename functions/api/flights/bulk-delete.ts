@@ -1,6 +1,3 @@
-// POST /api/flights/bulk-delete — delete the given own flights, then recompute derived stats.
-// D1 caps bound variables per statement, so ids are chunked into batched DELETEs.
-
 import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireCsrf, requireUser, type RequestData } from '../_lib/auth'
 import { dirtyUserStatement, repairUserDerivedState } from '../_services/derivedState'
@@ -13,7 +10,6 @@ interface Body {
 export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) =>
   bulkDeleteRequest(context.request, context.env, context.data)
 
-/** Actual Request/Response domain entry, shared by the Pages compatibility transport. */
 export function bulkDeleteRequest(
   request: Request,
   env: Env,
@@ -35,7 +31,6 @@ export function bulkDeleteRequest(
     if (ids.length === 0) return json({ deleted: 0 })
 
     const [, result] = await env.DB.batch([
-      // ADR 0008: imported source cells go with their flights, in the same transaction.
       tombstoneHistoryRowsStatement(env.DB, user.id, ids),
       env.DB.prepare(
         'DELETE FROM flights WHERE user_id = ? AND id IN (SELECT value FROM json_each(?))',

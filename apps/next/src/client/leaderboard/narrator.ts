@@ -1,9 +1,5 @@
 import type { Locale } from '../../lib/format'
 
-// The leaderboard narrator: one line about the viewer in the selected category and period (glados-copy). Witty where it
-// observes a standing; calm and direct where it is about privacy, publication or settings. Numbers arrive pre-formatted
-// (values with their unit, so RU plurals are already agreed); names are Latin-script @handles, which do not decline.
-
 export type NarratorState =
   | 'leader'
   | 'tied'
@@ -20,21 +16,16 @@ export type NarratorState =
   | 'empty'
 
 export interface NarratorParams {
-  /** "#3" */
   place?: string
-  /** An @handle without the @. */
   name?: string
-  /** A value with its unit: "2 flights", "1 страна или территория". */
   gap?: string
   value?: string
   have?: string
   need?: string
-  /** Places lost since the previous publication. */
   places?: string
 }
 
 type Line = (p: NarratorParams) => string
-/** `link` is the trailing action: Settings for trust states, sign-in for guests. */
 type Entry = { en: Line; ru: Line; link?: 'settings' | 'signin' }
 
 export const narratorCopy: Record<NarratorState, Entry> = {
@@ -102,7 +93,6 @@ export const narratorLink = {
   signin: { href: '/signin', en: 'sign in.', ru: 'войдите.' },
 } as const
 
-/** "Close" means a gap of at most this many units (flights, km, countries…) to the next place. */
 export const CLOSE_GAP = 2
 
 export function narrate(state: NarratorState, params: NarratorParams, locale: Locale) {

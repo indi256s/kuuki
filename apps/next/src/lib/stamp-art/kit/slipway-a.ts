@@ -1,7 +1,3 @@
-// Boat shed, slipway and longboat at the head of a cove (Bounty Bay, lane A, `-a` until
-// consolidated). Box: the shed stands on its footing at the upper left, the slipway runs from its
-// door down and to the right into the water, and the longboat sits at the foot of the slip. The box
-// bottom is the waterline.
 import {
   type Pt,
   type SvgNode,
@@ -20,7 +16,6 @@ export const slipwayA: KitModule = ([x, y, w, h]) => {
   const out: SvgNode[] = []
   const water = y + h
   const footY = y + h * 0.55
-  // Slipway: a lit strip widening toward the viewer, sleepers across it.
   const s0 = x + w * 0.2
   const slip: Pt[] = [
     [s0, footY],
@@ -41,7 +36,6 @@ export const slipwayA: KitModule = ([x, y, w, h]) => {
       ]),
     )
   }
-  // Shed: gabled box with a dark door; roof in T4.
   const sw = w * 0.36
   const sh = h * 0.3
   const sx = x
@@ -61,7 +55,6 @@ export const slipwayA: KitModule = ([x, y, w, h]) => {
       [sx + sw + 6, footY],
     ]),
   )
-  // Longboat: a long open hull with raised ends, thwarts and a plank line.
   const bx0 = x + w * 0.42
   const bx1 = x + w * 0.98
   const by = water - 3

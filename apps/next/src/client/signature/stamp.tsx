@@ -11,42 +11,26 @@ export type StampStatus = 'pressed' | 'pending'
 
 export type StampProps = {
   countryCode: string
-  /** Native-script name: the hero of the face. */
   nativeName: string
-  /** Localized name in small caps. */
   name?: string
   kind: StampKind
-  /** Number of visits; drives the ring count (see ringCount). */
   visits?: number
   firstYear?: number
   status?: StampStatus
-  /** Flag-derived color (hex); normalized per theme by stampInk, neutral when missing. */
   color?: string | null
-  /**
-   * Theme to compute ink for. Omit it in server-rendered grids: both inks are then set and the stylesheet picks
-   * the one matching `<html data-theme>`, so markup never depends on a theme the server cannot know.
-   */
   theme?: 'light' | 'dark'
   locale: Locale
-  /** Readable text below the stamp, e.g. «×12 · 2 мес. назад» (relative time is formatted by the caller). */
   caption?: string
-  /** Immutable ID of the press event. The press animation plays once per ID per browser session. */
   pressEventId?: string
-  /** No animation at all (grids, print). */
   static?: boolean
   className?: string
-  /** Pairs this stamp with the Passport stamp of the same country for the import → Passport hero. */
   heroExitKey?: string
 }
 
-/**
- * Ring count by visits (UX brief §6.4): 1 visit = 1 ring, 2–9 visits = 2 rings, 10 or more = 3 rings.
- */
 export function ringCount(visits: number): 1 | 2 | 3 {
   return visits >= 10 ? 3 : visits >= 2 ? 2 : 1
 }
 
-// ----- one-shot press: module-level Set + sessionStorage, so remount / refetch / route changes never replay -----
 const STORAGE_KEY = 'kuuki:stamp-press'
 const seen = new Set<string>()
 let loaded = false
@@ -56,9 +40,7 @@ function load() {
   try {
     for (const id of JSON.parse(window.sessionStorage.getItem(STORAGE_KEY) ?? '[]') as string[])
       seen.add(id)
-  } catch {
-    /* storage unavailable */
-  }
+  } catch {}
 }
 export function wasPressed(id: string): boolean {
   load()
@@ -69,19 +51,14 @@ export function markPressed(id: string) {
   seen.add(id)
   try {
     window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify([...seen].slice(-200)))
-  } catch {
-    /* storage unavailable */
-  }
+  } catch {}
 }
-/** Test helper: forget what this session has seen. */
 export function resetStampPressMemory() {
   seen.clear()
   loaded = false
   try {
     window.sessionStorage.removeItem(STORAGE_KEY)
-  } catch {
-    /* storage unavailable */
-  }
+  } catch {}
 }
 
 const COPY = {
@@ -115,7 +92,6 @@ export function Stamp({
   const round = kind === 'air'
   const pending = status === 'pending'
   const rings = ringCount(visits)
-  // Decided once per mount, after hydration (so SSR markup always matches). Marked synchronously, so a remount or refetch can never replay it.
   const [play, setPlay] = useState(false)
   useLayoutEffect(() => {
     if (isStatic || pending || !pressEventId || wasPressed(pressEventId)) return

@@ -1,10 +1,3 @@
-// Karst module: limestone islets rising sheer from calm water (Ha Long Bay). `islets` lists
-// [centre x, width, height, depth] per islet as fractions of the box (height from the waterline at
-// the box bottom; depth 0 is the nearest, 1 the farthest). Far islets are a light diagonal T2
-// hatch with a hair outline; near ones are lit paper on the left with sparse fissures, and a
-// shaded right side of vertical hair lines of staggered length. Every islet is undercut at the
-// waterline and capped with a rounded, tufted crown. An optional `junk` ([centre x, size]) adds a
-// small junk sail in front.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, hline, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, nums, num } from './util'
@@ -32,7 +25,6 @@ export const karst: KitModule = ([x, y, w, h], p) => {
     const lean = (rand() - 0.5) * 0.18 * it.w
     const taper = 0.22 + rand() * 0.25
     const shoulder = 0.84
-    // Sides: undercut at the waterline, a belly, a taper toward the shoulder, crags along the way.
     for (let i = 0; i <= N; i++) {
       const t = (i / N) * shoulder
       let f = 1 + 0.1 * Math.sin(Math.PI * Math.min(1, t * 1.6)) - taper * t * t
@@ -44,7 +36,6 @@ export const karst: KitModule = ([x, y, w, h], p) => {
       left.push([it.cx - lw + sh, yy])
       right.push([it.cx + rw + sh, yy])
     }
-    // Crown: a ragged cap across the full width at the shoulder, the dome higher in the middle.
     const lTop = left[left.length - 1],
       rTop = right[right.length - 1]
     const crownPts: Pt[] = []
@@ -71,11 +62,9 @@ export const karst: KitModule = ([x, y, w, h], p) => {
       out.push(stroke('hair', rim))
       continue
     }
-    // Shaded right side: vertical hair lines of staggered length, from the right edge inward.
     const xr = it.cx + hw * 0.05
     const acc: SvgNode[] = []
     for (let px = xr; px < it.cx + hw; px += 2.2) {
-      // Line spans from just under the crown line to just above the waterline where it lies inside.
       let top = base
       for (let i = N; i >= 0; i--)
         if (right[i][0] >= px) {
@@ -93,7 +82,6 @@ export const karst: KitModule = ([x, y, w, h], p) => {
       )
     }
     out.push(...acc)
-    // Lit side: a few fine fissures.
     for (let k = 0; k < 4; k++) {
       const px = it.cx - hw * (0.7 - k * 0.2) + (rand() - 0.5) * 2
       const yTop = base - it.h * (0.7 - rand() * 0.2)
@@ -104,7 +92,6 @@ export const karst: KitModule = ([x, y, w, h], p) => {
         ]),
       )
     }
-    // Crown tufts.
     for (let k = 0; k < 5; k++) {
       const t = 0.9 + rand() * 0.05
       const i = Math.round(N * t)
@@ -118,7 +105,6 @@ export const karst: KitModule = ([x, y, w, h], p) => {
       )
     }
     out.push(stroke('line', rim))
-    // Waterline notch: a short bold line at the foot.
     out.push(hline('hair', it.cx - hw * 0.78, it.cx + hw * 0.82, base - 0.5))
   }
 

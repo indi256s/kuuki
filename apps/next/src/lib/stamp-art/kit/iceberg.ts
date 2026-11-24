@@ -1,7 +1,3 @@
-// Iceberg module: a tabular berg (flat top, near-vertical flanks, a ledge on the shaded side) or an
-// arched berg (two buttresses and a natural arch). The box is the visible berg, its bottom the
-// waterline. The lit left face is paper with sparse fine crevasse lines; everything right of `lit`
-// (fraction of the width) is T4 vertical hatching; a broken hair waterline closes the base.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, hline, quad, stroke, toneFill, vline } from '../grid'
 import { type KitModule, num, str } from './util'
@@ -83,12 +79,10 @@ export const iceberg: KitModule = ([x, y, w, h], p) => {
   for (const s of toneFill(outline, 'T4', { inset: 0.6 })) {
     if (s.kind === 'stroke' && s.pts[0][0] >= split) out.push(s)
   }
-  // Crevasses on the lit side: short fine verticals of staggered length.
   for (let px = x + 4; px < split - 3; px += 6.5) {
     const len = h * (0.2 + rand() * 0.3)
     out.push(vline('fine', px + j(2), y + h * 0.1 + rand() * h * 0.2, y + h * 0.1 + len))
   }
-  // Facet edge: a hair line down the berg where the lit and shaded faces meet.
   out.push(
     stroke('hair', [
       [split, y + h * 0.04],
@@ -96,7 +90,6 @@ export const iceberg: KitModule = ([x, y, w, h], p) => {
       [split, base],
     ]),
   )
-  // Waterline: a broken hair line either side of the berg.
   out.push(
     hline('hair', x - 4, x + w * 0.2, base + 1.2),
     hline('hair', x + w * 0.35, x1 + 5, base + 1.2),

@@ -25,7 +25,6 @@ it.each([
   expect(makerOf(code)).toBe(maker)
 })
 
-// Overview has no Other families to fold any more: a manufacturer added to the reference needs its own slot (and colour).
 it('names every reference manufacturer', () => {
   const named = new Set<string>(Object.values(MAKER_NAMES))
   expect(aircraft.map((row) => row.manufacturer).filter((name) => !named.has(name))).toEqual([])

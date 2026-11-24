@@ -124,7 +124,6 @@ it('keeps the whole globe inside the viewport on mount, resize and fullscreen, a
       reduced={false}
     />,
   )
-  // A filter keeps the member's view: no move towards the new centroid.
   expect(latitude).toBe(0)
   expectContained()
   container.clientWidth = 960
@@ -324,7 +323,6 @@ it('draws ground between the ghosts and the flights, keeps it out of clicks, and
   )
   expect(data.get('globe-routes')?.features).toEqual([])
   expect(data.get('globe-ground')?.features).toHaveLength(2)
-  // The shared city is one square, and it is solid because a completed journey uses it.
   const cities = data.get('globe-ground-cities')?.features ?? []
   expect(cities).toHaveLength(3)
   expect(cities.find((c) => c.properties?.planned === false)).toBeDefined()

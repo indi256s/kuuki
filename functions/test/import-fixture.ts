@@ -1,5 +1,3 @@
-// Shared fixture and call helpers for the T10 import-draft tests (jobs, batches, drafts, conversion).
-// The provider is stubbed by each test file (`vi.mock('@google/genai')`): no test reaches the network.
 import { vi } from 'vitest'
 import { createApiDatabase, csrfRequest, testOrigin } from './harness'
 import { onRequestPost as jobsRoute } from '../api/import/jobs'
@@ -15,7 +13,6 @@ export const OTHER = { id: 'u2', email: 'u2@example.test' }
 export const DAY = 86_400_000
 export const NOW = new Date('2026-10-05T12:00:00.000Z')
 
-/** Date-only fake clock: handlers read `new Date()`, timers stay real. Callers restore with `vi.useRealTimers()`. */
 export function clock(at: Date | string = NOW) {
   vi.useFakeTimers({ toFake: ['Date'] })
   vi.setSystemTime(new Date(at))
@@ -55,7 +52,6 @@ export async function importAccount() {
   return { db, dispose }
 }
 
-/** One provider flight with an explicit year, as the model would return it. */
 export const providerFlight = (over: Record<string, unknown> = {}) => ({
   date: '2026-03-10',
   origin: 'JFK',
@@ -180,7 +176,6 @@ export async function confirm(
   )
 }
 
-/** A fresh batch of provider flights through the real job endpoint; returns the snapshot. */
 export async function seedBatch(
   db: D1Database,
   generate: (flights: unknown[]) => void,

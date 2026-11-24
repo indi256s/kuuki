@@ -5,8 +5,8 @@
 }
 .gt-ocr-heading {
   margin: 0;
-  font-size: 17px;
-  line-height: 24px;
+  font-size: 1.0625rem;
+  line-height: 1.5rem;
 }
 .gt-ocr-bar {
   display: flex;
@@ -41,8 +41,8 @@
 }
 .gt-ocr-status {
   margin: 0;
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
 }
 .gt-ocr-file-actions {
   display: flex;
@@ -64,8 +64,8 @@
 }
 .gt-ocr-flags {
   margin: 0;
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   font-weight: 600;
 }
 .gt-ocr-replace {
@@ -81,7 +81,7 @@
 }
 .gt-ocr-check {
   margin: 0;
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   color: var(--text-muted);
 }

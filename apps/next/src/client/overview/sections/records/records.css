@@ -12,12 +12,12 @@
   margin: 8px 0 16px;
 }
 .ov3-record-inset strong {
-  font-size: 32px;
+  font-size: 2rem;
   font-weight: 600;
   display: block;
 }
 .ov3-record-inset strong small {
-  font-size: 20px;
+  font-size: 1.25rem;
 }
 .ov3-record-route {
   display: block;
@@ -26,12 +26,12 @@
   padding-block: 8px;
   padding-inline: 0;
   min-block-size: 44px;
-  font: 18px var(--font-mono);
+  font: 1.125rem var(--font-mono);
   color: var(--text);
   text-align: start;
 }
 .ov3-record-lead .ov3-record-route {
-  font-size: 28px;
+  font-size: 1.75rem;
 }
 .ov3-record-small-grid {
   display: grid;
@@ -46,10 +46,10 @@
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .ov3-record-stats strong {
-  font-size: 17px;
+  font-size: 1.0625rem;
 }
 .ov3-record-track {
   position: relative;
@@ -97,7 +97,7 @@
 }
 .ov3-record-month b {
   color: var(--text);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   text-align: center;
   font-variant-numeric: tabular-nums;
@@ -119,7 +119,7 @@
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-muted);
 }
 .ov3-record-range-labels span:last-child {

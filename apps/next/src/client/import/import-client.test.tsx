@@ -20,7 +20,7 @@ vi.mock('../capture/flight-writes', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../capture/flight-writes')>()),
   createFlights: (...args: unknown[]) => createFlights(...args),
 }))
-vi.mock('../signature/stamp', () => ({ Stamp: () => null }))
+vi.mock('../stamps', () => ({ CountryStamp: () => null }))
 vi.mock('./import-api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./import-api')>()),
   confirmItems: (...args: unknown[]) => confirmItems(...args),
@@ -215,7 +215,7 @@ describe('ImportClient journeys', () => {
       { draftId: 'b', version: 2 },
       { draftId: 'c', version: 2 },
     ])
-    expect(acknowledge).toHaveBeenCalledTimes(1) // a partial success still refreshes the freshness owners
+    expect(acknowledge).toHaveBeenCalledTimes(1)
     const failedList = screen.getByRole('heading', { name: 'Not saved' }).parentElement!
     expect(within(failedList).getAllByRole('listitem')).toHaveLength(1)
 
@@ -286,7 +286,7 @@ describe('ImportClient journeys', () => {
     confirmItems.mockImplementationOnce(async () => {
       server.state.drafts = server.state.drafts.map((row) =>
         row.id === 'a' ? { ...row, status: 'converted' as const } : row,
-      ) // saved, but the response was lost
+      )
       throw new TypeError('Failed to fetch')
     })
     render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={server.api} />)
@@ -372,7 +372,6 @@ describe('I1 typed corrections gate the import', () => {
     window.dispatchEvent(leave)
     expect(leave.defaultPrevented).toBe(true)
 
-    // An unrelated selection change returns a newer version of the same draft; the typed text stays.
     await user.click(screen.getAllByRole('checkbox', { name: /include in import/i })[1])
     await waitFor(() => expect(patchDraft).toHaveBeenCalledTimes(1))
     await waitFor(() =>
@@ -865,7 +864,6 @@ describe('N2 the review is frozen while a save is in flight', () => {
     const user = userEvent.setup()
     const { release } = await holdManualReplay(user)
     await user.click(screen.getAllByText('Edit')[0])
-    // A change event reaches the form despite the pause (for example from autofill): the review must not close over it.
     fireEvent.change(screen.getAllByLabelText(/^To \(airport code\)/)[0], {
       target: { value: 'LAX' },
     })

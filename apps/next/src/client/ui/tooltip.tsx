@@ -15,23 +15,15 @@ import {
 import { createPortal } from 'react-dom'
 import './tooltip.css'
 
-// Adapted from Arc "tooltip" (uiarc.dev, MIT, see ARC-LICENSE.txt): the `content` / `children` / `side` API, the hover delay and the skip window that opens an adjacent tooltip without waiting.
-// Dropped: Radix Tooltip and `motion` (neither is installed; this is plain React and a portal), the text crossfade and size spring, the left and right sides, and the inverted dark bubble (level-2 surface here).
-// Never the only carrier of essential information: touch has no hover, and a tap does not open it.
-
 export type TooltipProps = {
   content: ReactNode
-  /** One focusable element. It receives `aria-describedby` while the tooltip is open. */
   children: ReactElement<{ 'aria-describedby'?: string }>
   side?: 'top' | 'bottom'
 }
 
 const HOVER_DELAY = 250
-/** A tooltip that opens within this long after another one closed skips the delay. */
 const SKIP_WINDOW = 300
-/** Matches `--dur-fast`; the bubble stays mounted this long so it can fade out. */
 const EXIT_MS = 150
-/** Time to cross the gap from the trigger onto the bubble before a pointer leave closes it (WCAG 1.4.13: hoverable). */
 const LEAVE_GRACE = 120
 const GAP = 8
 const MARGIN = 8
@@ -41,7 +33,6 @@ let closedAt = 0
 const finePointer = () =>
   typeof window.matchMedia === 'function' &&
   window.matchMedia('(hover: hover) and (pointer: fine)').matches
-/** Keyboard focus only: a tap on a button also focuses it, and that must not leave a tooltip open. */
 const keyboardFocus = (element: Element) => {
   try {
     return element.matches(':focus-visible')
@@ -53,7 +44,6 @@ const keyboardFocus = (element: Element) => {
 export function Tooltip({ content, children, side = 'top' }: TooltipProps) {
   const id = useId()
   const [open, setOpen] = useState(false)
-  // Mounted while open and for the fade-out after it.
   const [present, setPresent] = useState(false)
   const [instant, setInstant] = useState(false)
   const anchor = useRef<HTMLSpanElement>(null)
@@ -114,7 +104,6 @@ export function Tooltip({ content, children, side = 'top' }: TooltipProps) {
     }
   }, [open])
 
-  // Placed before paint: above the trigger, flipped when there is no room, and kept inside the viewport.
   useLayoutEffect(() => {
     const trigger = anchor.current?.firstElementChild
     const node = bubble.current
@@ -155,7 +144,6 @@ export function Tooltip({ content, children, side = 'top' }: TooltipProps) {
 
   return (
     <>
-      {/* The wrapper only listens: it generates no box, so the trigger keeps its place in the surrounding layout. */}
       <span
         ref={anchor}
         className="ui-tooltip-anchor"
@@ -165,8 +153,6 @@ export function Tooltip({ content, children, side = 'top' }: TooltipProps) {
         onBlur={hide}
       >
         {cloneElement(children, { 'aria-describedby': describedBy })}
-        {/* The portal sits inside the wrapper in the React tree, so React counts the bubble as part of it for pointer enter
-          and leave: the pointer can cross the gap (within LEAVE_GRACE) and rest on the bubble without closing it. */}
         {present &&
           createPortal(
             <div

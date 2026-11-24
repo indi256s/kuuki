@@ -1,17 +1,3 @@
-// Generates two files in apps/next/src/client/passport/atlas/: small-states.ts (one label point for every catalog
-// country that the pinned 110m polygons do not draw; the atlas renders them as point markers) and label-points.ts (the
-// same for every country the polygons do draw, where the atlas puts its name label). Drawn countries the source does
-// not cover (or place outside the country's largest ring) are left out and the atlas falls back to that ring's
-// bounding-box centre.
-//
-//   node scripts/generate-atlas-points.mjs <ne_10m_admin_0_label_points.geojson>
-//
-// Source (pinned, supplied by path so this script never fetches silently):
-// https://raw.githubusercontent.com/nvkelso/natural-earth-vector/ca96624a56bd078437bca8184e78163e5039ad19/geojson/ne_10m_admin_0_label_points.geojson
-//
-// That file is keyed by ISO 3166-1 alpha-3 (`sr_su_a3`, `sr_adm0_a3`), not alpha-2, so catalog codes are translated
-// through the ISO3 column of the stamp index. Where one country has several points (archipelagos), the lowest
-// `scalerank` wins (Natural Earth's own "most important label first"), then file order.
 import { readFileSync, writeFileSync } from 'node:fs'
 
 const [labelPath] = process.argv.slice(2)
@@ -28,7 +14,6 @@ const stamps = JSON.parse(
 )
 const labels = JSON.parse(readFileSync(labelPath, 'utf8')).features
 
-// Natural Earth files Svalbard and Kosovo under their own subunit/country codes, not the catalog's ISO3.
 const NE_CODE = { SJ: 'NSV', XK: 'KOS' }
 
 const drawn = new Set(polygons.features.map((feature) => feature.properties.id))
@@ -37,7 +22,6 @@ const pointsFor = (iso3, key) =>
   labels.filter((feature) => feature.properties[key] === iso3 && feature.geometry?.type === 'Point')
 const round = (feature) =>
   feature?.geometry.coordinates.map((value) => Math.round(value * 1e4) / 1e4) ?? null
-/** The lowest scalerank wins; `closer` breaks a tie, else file order. */
 const best = (features, closer = () => false) =>
   features.reduce(
     (current, feature) =>
@@ -55,8 +39,6 @@ const lookup = (code) => {
   return round(best(subunits.length ? subunits : pointsFor(iso3, 'sr_adm0_a3')))
 }
 
-// A drawn country's label must sit on its main landmass: the file lists subunit points too (Corsica, Alaska, Svalbard),
-// all tied at scalerank 0, so keep only points inside the largest outer ring and take the one nearest its centre.
 const outerRings = (geometry) =>
   (geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates).map(
     ([ring]) => ring,

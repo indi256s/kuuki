@@ -3,7 +3,6 @@ import type { SectionId } from './prefs'
 
 export type GateUnit = 'flights' | 'months' | 'times' | 'aircraft'
 
-/** Each gated section's gate and what its threshold counts. */
 export const SECTION_GATES: Record<
   Exclude<SectionId, 'rankings'>,
   { gate: (scope: OverviewScope) => Gate<unknown>; unit: GateUnit }

@@ -25,7 +25,6 @@ const BLANK = '    '
 const pad = (hour: number) => String(hour).padStart(2, '0')
 const hourKey = (hour: number) => `h${pad(hour)}`
 const TICKS = [0, 6, 12, 18, 23]
-/** The axis ticks, plus the picked hour when it is not crowded by a neighbour (the sheet's pitch fits a label every second hour). */
 const ticksFor = (hour: number | null): StageTick[] =>
   (hour === null || TICKS.some((tick) => Math.abs(tick - hour) < 2) ? TICKS : [...TICKS, hour])
     .sort((a, b) => a - b)
@@ -50,11 +49,6 @@ const arrivalForms = {
   },
 }
 
-/**
- * The two readings the display holds. A pick writes the new time into the slot that is not shown, flips `side` and sets `pressed`, so CSS
- * presses the snooze bar and sets the clock: the old segments go dark and the new ones light (iso/clock.css). Anything that is not a pick
- * rewrites both slots: the display changes without moving.
- */
 function useMorph(time: string, picked: boolean) {
   const [slots, setSlots] = useState({ a: time, b: time, side: 'a' as 'a' | 'b', pressed: false })
   if (slots[slots.side] === time) return slots
@@ -67,7 +61,6 @@ function useMorph(time: string, picked: boolean) {
   return next
 }
 
-/** The clock in the card's figure box: its face shows `a` and `b`, `side` names the one in front, and `pressed` says a pick has set it (clock.css). */
 function ClockFigure({
   a,
   b,
@@ -94,7 +87,6 @@ export function Section({ span }: { span: Span }) {
   const found = scope ? departures(scope) : null
   const earliest = found?.earliest ?? null,
     latest = found?.latest ?? null
-  // One reading per hour: departures and arrivals of the same hour share a row.
   const rows: readonly Row[] = data
     ? data.byHour.map((row, index) => ({ ...row, arrivals: data.arrByHour[index]?.flights ?? 0 }))
     : []
@@ -108,7 +100,6 @@ export function Section({ span }: { span: Span }) {
     ...filled.map((row) => hourKey(row.hour)),
   ]
   const r = useReading(keys, earliest ? 'earliest' : busiest)
-  // The figure button steps through earliest, latest and the busiest departure hour.
   const cycle = [
     ...new Set(
       [earliest ? 'earliest' : null, latest ? 'latest' : null, busiest].filter(
@@ -144,7 +135,6 @@ export function Section({ span }: { span: Span }) {
     label: `${row.key}:00–${row.key}:59 · ${counts(row)}`,
   }))
   const row = hour !== null ? rows.find((item) => item.hour === hour) : undefined
-  // «Только» takes the departure hour, or the arrival hour when the hour has no departures.
   const facetOf = (item: Row) => (item.flights > 0 ? 'depHours' : 'arrHours')
   const isApplied = (item: Row) =>
     (filter.depHours ?? []).includes(item.hour) || (filter.arrHours ?? []).includes(item.hour)

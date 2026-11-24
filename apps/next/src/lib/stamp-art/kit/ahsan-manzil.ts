@@ -1,7 +1,3 @@
-// Ahsan Manzil (Bangladesh): the riverfront palace in Dhaka. Long arcaded wings under a flat
-// cornice, a taller central block with a columned first-floor porch, twin stairs climbing from the
-// quay to that porch, and an octagonal drum under a ribbed dome with a finial. The box is the whole
-// palace; its bottom is the ground (the quay).
 import { type Pt, type SvgNode, body, fill, hline, rectPts, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
 import { archPts } from './windows'
@@ -12,7 +8,6 @@ export const ahsanManzil: KitModule = ([x, y, w, h], p) => {
   const out: SvgNode[] = []
   const wingTop = y + h * num(p, 'wingTop', 0.6)
   const mid = wingTop + (base - wingTop) * 0.5
-  // Wings: two floors of arches under a flat cornice and parapet.
   out.push(...body(rectPts(x, wingTop, w, base - wingTop), 'line'))
   out.push(hline('bold', x - 1, x + w + 1, wingTop))
   out.push(hline('hair', x, x + w, mid))
@@ -25,13 +20,11 @@ export const ahsanManzil: KitModule = ([x, y, w, h], p) => {
       out.push(fill(archPts(ax, mid + 2, aw, base - mid - 2)))
     }
   }
-  // Central block.
   const bw = w * 0.38
   const blockTop = y + h * 0.4
   out.push(...body(rectPts(cx - bw / 2, blockTop, bw, base - blockTop), 'line'))
   out.push(hline('bold', cx - bw / 2 - 1.4, cx + bw / 2 + 1.4, blockTop))
   const landing = base - h * 0.26
-  // Porch columns on the first floor.
   const cols = 5
   const colX = (i: number) => cx - bw * 0.42 + (bw * 0.84 * i) / (cols - 1)
   for (let i = 0; i < cols - 1; i++)
@@ -45,12 +38,10 @@ export const ahsanManzil: KitModule = ([x, y, w, h], p) => {
     )
   out.push(hline('hair', cx - bw / 2, cx + bw / 2, blockTop + 4))
   out.push(hline('bold', cx - bw * 0.5, cx + bw * 0.5, landing))
-  // Ground floor of the block: three arches.
   for (let k = -1; k <= 1; k++) {
     const aw = bw * 0.16
     out.push(fill(archPts(cx + k * bw * 0.3 - aw / 2, landing + 4, aw, base - landing - 4)))
   }
-  // Twin stairs from the quay to the porch.
   for (const s of [-1, 1]) {
     const stair: Pt[] = [
       [cx + s * w * 0.3, base],
@@ -75,7 +66,6 @@ export const ahsanManzil: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // Drum and dome.
   const dw = w * 0.2
   const drumTop = blockTop - h * 0.08
   out.push(...body(rectPts(cx - dw / 2, drumTop, dw, blockTop - drumTop + 0.5), 'line'))

@@ -6,7 +6,6 @@ test('the figure box never outgrows the room its layout leaves it', () => {
     const { wide, box } = cardLayout(width)
     expect(wide).toBe(width >= WIDE_MIN)
     if (box === STAGE_BOX) continue
-    // Wide: the column beside the reading column. Otherwise: the top row, with a hero at least as wide as the stage figure beside it.
     const room = wide ? width - READING_COLUMN - FIGURE_GAP : width - 24 - STAGE_BOX.width
     expect(box.width).toBeLessThanOrEqual(room)
   }

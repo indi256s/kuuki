@@ -3,20 +3,11 @@
 import { useEffect, useRef } from 'react'
 import './ring-backdrop.css'
 
-/** Ring spacing and count: enough rings to reach the corners of a 2560px screen. */
 const STEP = 60
 const RINGS = 26
-/** The furthest the innermost ring drifts from the centre, in px; outer rings drift less, so the set reads as depth. */
 const DRIFT = 14
-/** Exponential follow time constant for the drift, in seconds. */
 const FOLLOW = 0.35
 
-/**
- * The auth page's backdrop: concentric hairline rings on a crosshair, centred on the screen like a radar scope (after
- * Arc's centered login). Decorative and hidden from assistive tech. With a fine pointer the rings drift toward it while
- * it moves, written as circle transforms with no re-render; they stay still on touch, under reduced motion and on phones,
- * where the card fills the screen.
- */
 export function RingBackdrop() {
   const root = useRef<SVGSVGElement>(null)
   useEffect(() => {

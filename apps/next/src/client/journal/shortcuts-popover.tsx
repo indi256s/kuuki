@@ -8,8 +8,6 @@ import { Kbd } from '../ui/kbd'
 import { PopoverContent, PopoverRoot } from '../ui/popover'
 import './shortcuts-popover.css'
 
-// The keyboard map from the Journal spec, mirrored by use-journal-keys.ts.
-
 const copy = {
   en: {
     title: 'Keyboard shortcuts',
@@ -57,14 +55,12 @@ function rows(t: Copy): Array<{ id: string; keys: ReactNode; label: string }> {
   ]
 }
 
-/** Where the popover points when the page passes no anchor, or the anchor is not mounted: bottom centre of the viewport. */
 const viewportBottom = () => new DOMRect(window.innerWidth / 2, window.innerHeight - 16, 0, 0)
 
 export type ShortcutsPopoverProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   locale: Locale
-  /** The element the popover points at, usually the `ShortcutsButton`. Without one it sits at the bottom of the viewport. */
   anchor?: RefObject<HTMLElement | null>
 }
 
@@ -97,7 +93,6 @@ export function ShortcutsPopover({ open, onOpenChange, locale, anchor }: Shortcu
 
 export type ShortcutsButtonProps = { locale: Locale; onClick: () => void }
 
-/** Page footer/toolbar trigger. Hidden on coarse pointers, where there is no keyboard to list. */
 export const ShortcutsButton = forwardRef<HTMLButtonElement, ShortcutsButtonProps>(
   function ShortcutsButton({ locale, onClick }, ref) {
     return (

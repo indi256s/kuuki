@@ -94,7 +94,6 @@ it('suggestions never write flights, preferences or derived state', async () => 
     ],
   })
   expect((await api.db.prepare('SELECT * FROM flights ORDER BY id').all()).results).toEqual(before)
-  // Paid-quota counters may be written; suggestions never accept a schedule or dirty user projections.
   expect(tracked.hooks.sql.filter((sql) => /^(INSERT|UPDATE|DELETE)/i.test(sql.trim()))).toEqual([
     expect.stringContaining('INSERT INTO auth_rate_limits'),
   ])

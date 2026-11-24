@@ -48,7 +48,6 @@ it('describes clock refunds without calling eastbound date-line flights westboun
   const crossings = ready(candidate.crossings)
   expect(crossings.eastboundShare).toBe(1)
   expect(crossings.backHours).toBeGreaterThan(2 * crossings.forwardHours)
-  // A Continents line may win the slot; the clock-refund trigger must still fire and never say west.
   expect(params('crossings:mostly-backwards', candidate, candidate)).toEqual({
     back: crossings.backHours,
   })
@@ -220,7 +219,6 @@ it('keeps signed clock jumps absolute and departure times ungrouped at their thr
   expect(params('records:latest-departure', candidate)).toBeNull()
 })
 
-// Unknown coordinates must not turn into an absence claim, even when clocks are ready.
 it.each([0, 1])(
   'suppresses geographic absence claims with coordinate coverage %s',
   (locatedFlights) => {
@@ -235,3 +233,29 @@ it.each([0, 1])(
     expect(params('crossings:no-date-line', candidate)).toEqual({ count: 0 })
   },
 )
+
+it('writes rhythm months as words, never as ISO keys or month numbers', () => {
+  const candidate = structuredClone(scope)
+  const rhythm = ready(candidate.rhythm)
+  rhythm.longestGap = { months: 8, from: '2020-10', to: '2021-05' }
+  for (const cell of rhythm.cells) cell.flights = cell.month === 5 ? 3 : 0
+  rhythm.busiestMonthOfYear = {
+    month: 5,
+    flights: rhythm.cells.filter((c) => c.month === 5).length * 3,
+  }
+  const only = (id: string) => TRIGGERS.filter((trigger) => trigger.id === id)
+  for (const id of ['rhythm:gap', 'rhythm:pooled-month']) {
+    const saved = TRIGGERS.splice(0, TRIGGERS.length, ...only(id))
+    try {
+      for (const locale of ['en', 'ru'] as const) {
+        const line = pickLine('rhythm', candidate, candidate, 'owner', locale)!
+        expect(line, id).not.toMatch(/\d{4}-\d{2}|month number|номер/)
+        expect(line, id).toMatch(
+          id === 'rhythm:gap' ? (locale === 'en' ? /October 2020/ : /октябрь 2020/) : /May|май/,
+        )
+      }
+    } finally {
+      TRIGGERS.splice(0, TRIGGERS.length, ...saved)
+    }
+  }
+})

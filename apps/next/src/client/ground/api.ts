@@ -1,6 +1,3 @@
-// Same-origin calls for ground journeys and places. Shared by the list, the forms and the OCR panel; each
-// write carries its own operation key so a retry replays instead of writing twice.
-
 import { api, getAuthGeneration } from '@kuuki/client/apiClient'
 import type {
   GroundCommand,
@@ -25,8 +22,6 @@ type ListMemo = {
   lists: Partial<Record<ListKey, GroundJourneyList>>
 }
 
-// The last list answers of this browser tab, so returning to the page shows them at once while a fresh read runs.
-// Written only from browser effects, never on the server. Any write drops it: a stale copy could hide the change.
 let listMemo: ListMemo | null = null
 
 export function rememberedLists(ownerId: string): Pick<ListMemo, 'today' | 'lists'> | null {
@@ -71,7 +66,6 @@ export function readJourney(id: string, options: Signal = {}): Promise<GroundJou
   )
 }
 
-/** Sends one command; the route and method follow its action. */
 export function sendCommand(
   command: GroundCommand,
   options: Signal = {},
@@ -87,13 +81,11 @@ export function sendCommand(
       : command.action === 'delete'
         ? api.delete<GroundMutationResult>(path, command, options)
         : api.patch<GroundMutationResult>(path, command, options)
-  // A list read during the write may already be remembered; drop it once the write settles too.
   return sent.finally(() => {
     listMemo = null
   })
 }
 
-/** Resolves an unconfirmed write: saved, deleted, or unknown (never written or expired). */
 export function readOperation(key: string, options: Signal = {}): Promise<GroundOperationStatus> {
   return api.get<GroundOperationStatus>(
     `/api/ground-journeys/operations/${encodeURIComponent(key)}`,
@@ -121,10 +113,6 @@ export function createManualPlace(
   return api.post<GroundPlaceSnapshot>('/api/ground-places/manual', place, options)
 }
 
-/**
- * One file per call; the server detects the type from its bytes and stores nothing. The provider may take up to
- * 90 s, so the client waits longer than its 30 s default, as flight import does.
- */
 export function readRailTicket(base64: string, options: Signal = {}): Promise<RailOcrResult> {
   return api.post<RailOcrResult>(
     '/api/ground-journeys/ocr',

@@ -1,5 +1,3 @@
-// POST /api/auth/signup — open registration (email + password, optional displayName).
-
 import { z } from 'zod'
 import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireSameOrigin } from '../_lib/auth'
@@ -27,16 +25,10 @@ export const onRequestPost: PagesFunction<Env> = (context) =>
       throw new HttpError(400, 'A valid email is required', 'INVALID_EMAIL')
     const password = parsePassword(body?.password, 'new')
 
-    // Account-enumeration tradeoff (security finding #8, LOW): a distinct 409 here reveals that
-    // an email is registered. The privacy-preserving fix (accept-then-verify by email) needs
-    // transactional email infrastructure this app does not have, so the leak is accepted: it is
-    // per-IP rate-limited (above), low-value for this app, and sign-in is separately hardened
-    // against enumeration (dummyVerify + generic INVALID_CREDENTIALS).
     if (await getUserByEmail(env.DB, email)) {
       throw new HttpError(409, 'An account with this email already exists', 'EMAIL_TAKEN')
     }
 
-    // Validate secrets/configuration before writing any account rows.
     createAuth(env)
     const displayName = body?.displayName ?? body?.name
     const user = await createUserWithProfile(

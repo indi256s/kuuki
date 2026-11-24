@@ -1,6 +1,3 @@
-// A hillside stepped into dry-stone terrace rows. Each row is a curved wall following the contour,
-// the slope above it in fine diagonal hatching (T2) and the wall face in short vertical ticks. The
-// hill rises on the left and falls off to the right; the box bottom is the horizon.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, hline, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
@@ -22,7 +19,6 @@ export const hillTerracesB: KitModule = ([x, y, w, h], p) => {
   out.push(occlude(hill, { halo: 1.5 }))
   out.push(...toneFill(hill, 'T2', { gap: 3, weight: 'fine', inset: 0.4 }))
   out.push(stroke('hair', hill.slice(1, -1)))
-  // Terrace walls: contour lines at fixed depth below the crest, each with ticks beneath.
   for (let r = 1; r <= rows; r++) {
     const depth = ((base - y - h * 0.3) * r) / (rows + 0.6)
     const line: Pt[] = []

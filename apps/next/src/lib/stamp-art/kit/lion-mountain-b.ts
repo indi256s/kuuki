@@ -1,7 +1,3 @@
-// Lion Mountain (Sierra Leone): a ridge shaped like a crouching lion, head and mane high on the
-// left, a long back dipping then rising to the haunch on the right. Rising faces are lit with
-// sparse diagonals (T2), the faces that look right are T4. Nothing is drawn under the ridge at the
-// foot: the town module sits on the waterline. The box bottom is the ridge foot.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
@@ -64,11 +60,9 @@ export const lionMountainB: KitModule = ([x, y, w, h], p) => {
   )
   const poly: Pt[] = [...ridge, [x + w, base], [x, base]]
   const out: SvgNode[] = [occlude(poly, { halo: 1.6 })]
-  // Lit rock: sparse diagonals closing towards the foot.
   out.push(
     ...toneFill(poly, 'T2', { angle: -58, gap: [5.6, 3.8], weight: 'fine', ramp: [y, base] }),
   )
-  // Shaded faces: under the mane's back and under the haunch.
   const seg = (u0: number, u1: number): Pt[] =>
     ridge.filter(([px]) => px >= x + w * u0 && px <= x + w * u1)
   for (const [u0, u1, toe] of [
@@ -80,7 +74,6 @@ export const lionMountainB: KitModule = ([x, y, w, h], p) => {
     out.push(...toneFill(shade, 'T4', { angle: 72, gap: 2.6, weight: 'hair', inset: 0.2 }))
   }
   out.push(stroke('line', ridge))
-  // Mane: a few short strokes at the head, reading as shaggy texture, not detail.
   for (let k = 0; k < 5; k++) {
     const u = 0.12 + k * 0.025
     const top = ridge.reduce(

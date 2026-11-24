@@ -17,12 +17,9 @@ import { rubberBand } from './sheet-physics'
 import { useKeyboardMotion } from './use-keyboard-motion'
 import './ui.css'
 
-/** Release past this share of the sheet's size dismisses it. */
 export const DISMISS_RATIO = 0.35
-/** Release faster than this (px/ms, in the dismissing direction) dismisses it. */
 export const DISMISS_VELOCITY = 0.11
 
-/** Pure release decision. `distance` and `velocity` are measured in the dismissing direction (down / right). */
 export function shouldDismiss({
   distance,
   height,
@@ -47,12 +44,10 @@ export type SheetProps = Pick<
   onOpenChange: (open: boolean) => void
   title: ReactNode
   description?: ReactNode
-  /** `bottom` on mobile, `right` on desktop. */
   side?: 'bottom' | 'right'
   trigger?: ReactNode
   children?: ReactNode
   footer?: ReactNode
-  /** Visible, keyboard-reachable alternative to dragging. */
   closeLabel?: string
 }
 
@@ -82,10 +77,6 @@ export function Sheet({ open, onOpenChange, trigger, ...contentProps }: SheetPro
   )
 }
 
-/**
- * The desktop `right` sheet. Every other side renders BottomSheet. `ref` is the Portal's Presence ref: it must reach the
- * Content node, or Presence cannot see the exit animation and unmounts the sheet at once.
- */
 function SideSheetContent({
   ref,
   open,
@@ -112,11 +103,9 @@ function SideSheetContent({
     },
     [ref],
   )
-  // Reopened during a drag-dismiss exit: Presence keeps this node, so drop the dragged offset before the enter plays.
   useLayoutEffect(() => {
     if (open && contentRef.current) contentRef.current.style.transform = ''
   }, [open])
-  // Capture each Portal mount before a child autoFocus can replace the opener, as Dialog does.
   const [opener] = useState(() => {
     if (typeof document === 'undefined') return null
     const active = document.activeElement
@@ -156,14 +145,13 @@ function SideSheetContent({
     setDragging(false)
     const p = event.clientX
     const distance = p - d.start
-    // Velocity over roughly the last 100ms of movement.
     const last = { t: event.timeStamp, p }
     const from = d.samples.find((s) => last.t - s.t <= 100) ?? d.samples[d.samples.length - 1]
     const elapsed = from ? last.t - from.t : 0
     const velocity = from && elapsed > 0 ? (last.p - from.p) / elapsed : 0
     const size = contentRef.current?.getBoundingClientRect().width ?? 0
-    if (!cancelled && shouldDismiss({ distance, height: size, velocity })) onOpenChange(false) // exit animation starts from the dragged offset
-    else setOffset(0) // transition settles it back with --ease-drawer
+    if (!cancelled && shouldDismiss({ distance, height: size, velocity })) onOpenChange(false)
+    else setOffset(0)
   }
 
   return (

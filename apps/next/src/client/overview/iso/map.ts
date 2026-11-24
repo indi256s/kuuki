@@ -1,24 +1,18 @@
 import { LAND_RINGS } from './land.generated'
 import { Scene, r3, type P3, type Pt } from './scene'
 
-// The sheet folds like an accordion: fold lines at X, each at height Z.
 const X = [0, 46, 92, 138, 184],
   Z = [0, 13, 1, 13, 0],
   D = 84
-/** How far each fold line sinks when the map unfolds a little on hover, in iso units. */
 const UNFOLD = [0, 5, 0, 5, 0]
-// Where the pins stand when the airports have no coordinates, and the margin real pins keep from the sheet's edges (their heads and labels need it).
 const A0 = [30, 40] as const,
   B0 = [158, 52] as const,
   EDGE = { x0: 26, x1: 158, y0: 24, y1: 62 }
-/** The narrowest window the sheet shows, in degrees, so a short hop zooms the map in until its route fills the sheet, yet still sits on a recognisable coast. */
 const MIN_SPAN = 8
-// Screen-space dash pattern of the route, in px, at every scale.
 const DASH = 3,
   GAP = 3
 
 export type MapPin = { code: string; lat: number | null; lon: number | null }
-/** A pin for `code`, placed by its airport's coordinates when the payload has them. */
 export const mapPin = (
   code: string,
   airport?: { lat: number | null; lon: number | null },
@@ -26,7 +20,6 @@ export const mapPin = (
 type Plan = readonly [number, number]
 
 const RAD = Math.PI / 180
-/** Points along the great circle from `a` to `b` ([lon, lat] in degrees), with longitudes unwrapped so the path never jumps at the antimeridian. */
 function greatCircle(a: Plan, b: Plan, n: number): Plan[] {
   const v = ([lon, lat]: Plan) => [
     Math.cos(lat * RAD) * Math.cos(lon * RAD),
@@ -50,10 +43,6 @@ function greatCircle(a: Plan, b: Plan, n: number): Plan[] {
   return out
 }
 
-/**
- * Lays an equirectangular window on the sheet that holds the whole great circle. The sheet turns so the route runs along its long side, as a folded map is held, but never more than a quarter turn, so north stays on the far half.
- * Returns `plan`, which places any [lon, lat] on the sheet, and the window's centre longitude.
- */
 function windowOf(path: readonly Plan[]) {
   const lons = path.map((p) => p[0]),
     lats = path.map((p) => p[1])
@@ -83,7 +72,6 @@ function windowOf(path: readonly Plan[]) {
     cy = (EDGE.y0 + EDGE.y1) / 2
   return {
     cLon,
-    /** Plan units per degree of latitude. */
     scale,
     plan: (p: Plan): Plan => {
       const [u, v] = turned(p)
@@ -92,7 +80,6 @@ function windowOf(path: readonly Plan[]) {
   }
 }
 
-/** The runs of a plan polyline that lie on the sheet. */
 function onSheet(line: readonly Plan[]): Plan[][] {
   const inside = ([x, y]: Plan) => x >= 0 && x <= X[4] && y >= 0 && y <= D
   const runs: Plan[][] = []
@@ -108,7 +95,6 @@ function onSheet(line: readonly Plan[]): Plan[][] {
   return runs.filter((r) => r.length > 1)
 }
 
-/** Land rings in sheet plan, cut to the sheet. Each ring is tried at the copies of the world either side, so a window across the antimeridian still finds its coast. */
 function landOn(cLon: number, plan: (p: Plan) => Plan): Pt[][] {
   const out: Pt[][] = []
   for (const flat of LAND_RINGS)
@@ -122,7 +108,6 @@ function landOn(cLon: number, plan: (p: Plan) => Plan): Pt[][] {
   return out
 }
 
-/** Sutherland–Hodgman against an axis-aligned rectangle. */
 function clipRect(ring: readonly Pt[], x0: number, y0: number, x1: number, y1: number): Pt[] {
   let pts: readonly Pt[] = ring
   for (const [axis, edge, side] of [
@@ -146,7 +131,6 @@ function clipRect(ring: readonly Pt[], x0: number, y0: number, x1: number, y1: n
   return [...pts]
 }
 
-/** Liang–Barsky: the part of segment a–b inside the sheet's plan rectangle, or null. */
 function clipSeg(a: Plan, b: Plan): [Plan, Plan] | null {
   let t0 = 0,
     t1 = 1
@@ -167,7 +151,6 @@ function clipSeg(a: Plan, b: Plan): [Plan, Plan] | null {
     else t1 = Math.min(t1, r)
   }
   if (t1 - t0 < 1e-6) return null
-  // Clamped, so rounding never leaves an end a hair outside the sheet.
   const on = (t: number): Plan => [
     Math.min(X[4], Math.max(0, a[0] + dx * t)),
     Math.min(D, Math.max(0, a[1] + dy * t)),
@@ -184,7 +167,6 @@ const lerp = (a: number[], i: number, x: number) =>
 const zAt = (x: number) => lerp(Z, panelOf(x), x)
 const sinkAt = (x: number) => lerp(UNFOLD, panelOf(x), x)
 
-/** Splits a 3D polyline where it crosses a fold line, so each piece lies on one panel. A cut keeps the mark's height above the paper, so it lands on the fold rather than on the chord under it. */
 function byPanel(pts: readonly P3[]): { panel: number; pts: P3[] }[] {
   const out: { panel: number; pts: P3[] }[] = []
   let piece: P3[] = [pts[0]],
@@ -207,7 +189,6 @@ function byPanel(pts: readonly P3[]): { panel: number; pts: P3[] }[] {
   return out.filter((p) => p.pts.length > 1)
 }
 
-/** Clips a closed plan outline to panel `i` (Sutherland–Hodgman against its two fold lines) and lays it on that panel. */
 function onPanel(i: number, outline: readonly Pt[]): P3[] {
   let pts = outline
   for (const [fx, side] of [
@@ -226,7 +207,6 @@ function onPanel(i: number, outline: readonly Pt[]): P3[] {
   return pts.map(([x, y]) => [x, y, lerp(Z, i, x)])
 }
 
-/** The sheet in plan units: route, coast, graticule and equator. */
 function planSheet(from: MapPin, to: MapPin) {
   const located =
     from.lat !== null && from.lon !== null && to.lat !== null && to.lon !== null
@@ -236,7 +216,6 @@ function planSheet(from: MapPin, to: MapPin) {
   const course: Plan[] = sheet
     ? located!.map(sheet.plan)
     : Array.from({ length: 61 }, (_, i) => {
-        // No coordinates: the route bows north between the fixed pins.
         const u = i / 60
         return [
           A0[0] + (B0[0] - A0[0]) * u,
@@ -246,7 +225,6 @@ function planSheet(from: MapPin, to: MapPin) {
   const A = course[0],
     B = course[60]
   const land = sheet ? landOn(sheet.cLon, sheet.plan) : []
-  // Graticule: lines of longitude and latitude are straight in the equirectangular plan, so each is one segment clipped to the sheet and ends on its edge.
   const graticule: [Plan, Plan][] = []
   let scaleBar = 32
   if (sheet) {
@@ -274,14 +252,11 @@ function planSheet(from: MapPin, to: MapPin) {
         [X[4], y],
       ])
   }
-  // The equator is a line of latitude, so on a turned sheet it runs at the same angle; sampled every 2° and kept where it lies on the paper.
   const equatorLines: Plan[][] = sheet
     ? onSheet(Array.from({ length: 201 }, (_, i) => sheet.plan([sheet.cLon - 200 + i * 2, 0])))
     : [X.map((x): Plan => [x, 46])]
   return { course, A, B, land, graticule, scaleBar, equatorLines }
 }
-// The plan depends on the pins alone, and fitting draws one map at several scales: the coast is clipped once per route.
-// Callers only read it.
 let lastSheet: { key: string; sheet: ReturnType<typeof planSheet> } | undefined
 function sheetFor(from: MapPin, to: MapPin) {
   const key = `${from.lat},${from.lon},${to.lat},${to.lon}`
@@ -289,15 +264,9 @@ function sheetFor(from: MapPin, to: MapPin) {
   return lastSheet.sheet
 }
 
-/**
- * Records: a folded map with the longest flight pinned to it, `from` → `to`. With both airports' coordinates the sheet is a real equirectangular window: land is the true coast, the pins stand on the airports and the route is the great circle between them. Without, the pins take fixed places on a blank sheet.
- * `equator` draws the line the flight crosses.
- * Parts: `fold` (one per panel and layer; carries --fold-y/--fold-s/--fold-k, the screen transform that flattens that panel by UNFOLD), `dash` (a lit copy of one route dash; --t is its place along the route, 0 at `from`) and `pin` (carries --lift-y).
- */
 export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
   const { course, A, B, land, graticule, scaleBar, equatorLines } = sheetFor(from, to)
   const s = new Scene(k)
-  // Lowering fold heights shears each panel along z linearly in x; projected, that is one 2D affine map per panel, solved from three of its corners.
   const fold = (i: number) => {
     const corners: P3[] = [
       [X[i], 0, Z[i]],
@@ -306,7 +275,6 @@ export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
     ]
     const src = corners.map((p) => s.project(p)),
       dst = corners.map(([x, y, z]) => s.project([x, y, z - sinkAt(x)]))
-    // x stays put, y' = b·x + d·y + f.
     const [[x0, y0], [x1, y1], [x2, y2]] = src
     const det = x0 * (y1 - y2) - y0 * (x1 - x2) + (x1 * y2 - x2 * y1)
     const [v0, v1, v2] = dst.map((p) => p[1])
@@ -321,7 +289,6 @@ export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
   }
   const folds = [0, 1, 2, 3].map(fold)
 
-  // A segment is cut at every fold it crosses before it is laid on the panels.
   const graticulePieces = graticule.flatMap(([a, b]) => {
     const [lo, hi] = a[0] <= b[0] ? [a, b] : [b, a],
       cuts = X.slice(1, 4).filter((fx) => fx > lo[0] && fx < hi[0]),
@@ -333,11 +300,9 @@ export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
     return xs.slice(1).flatMap((x, j) => {
       const p0 = j === 0 ? ([lo[0], lo[1], zAt(lo[0]) + 0.05] as P3) : at(xs[j])
       const p1 = j === xs.length - 2 ? ([hi[0], hi[1], zAt(hi[0]) + 0.05] as P3) : at(x)
-      // A piece belongs to the panel its middle lies on, not the one an end sits on at a fold.
       return [{ panel: panelOf((p0[0] + p1[0]) / 2), pts: [p0, p1] }]
     })
   })
-  // Scale bar on the last panel's front edge: banded strip with ticks hanging from it.
   const legend = (len: number) => {
     const x0 = X[4] - 8 - len,
       y0 = D - 9,
@@ -381,7 +346,6 @@ export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
           ],
           'side',
         )
-        // The far end of the sheet shows its thickness too.
         if (i === 3)
           s.poly(
             [
@@ -398,7 +362,6 @@ export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
           [X[i + 1], D, Z[i + 1]],
           [X[i], D, Z[i]],
         ]
-        // Land sits between the paper and its edges, so the creases stay crisp where a coast crosses them.
         s.poly(panel, up ? 'front' : 'top', 'none')
         s.group('land', () => {
           for (const outline of land) {
@@ -406,7 +369,6 @@ export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
             if (piece.length > 2) s.poly(piece, 'land', 'detail', undefined, 0.9)
           }
         })
-        // Folds shade the paper beside them: deep in a valley, light on a ridge.
         for (const [fx, dir, valley] of [
           [X[i], 1, Z[i] < Z[i - 1]],
           [X[i + 1], -1, Z[i + 1] < Z[i]],
@@ -426,7 +388,6 @@ export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
         }
         for (const piece of graticulePieces.filter((g) => g.panel === i))
           s.line(piece.pts, 'detail', 0.5)
-        // Paper corners: a mounting triangle tucked into each corner of the sheet.
         for (const [cx, cy] of i === 0
           ? ([
               [0, 0],
@@ -459,7 +420,6 @@ export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
     pts.map(([x, y]) => [x, y, zAt(x) + lift])
   const equatorPieces = equator ? equatorLines.flatMap((line) => byPanel(on(line, 0.2))) : []
 
-  // Dashes are cut in screen space so the pattern matches the design at every scale.
   const route: P3[] = course.map(([x, y]) => [x, y, zAt(x) + 0.6])
   const screen = route.map((p) => s.project(p))
   const len = [0]
@@ -511,7 +471,6 @@ export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
     return [m[0] + (a * c - b * q) * 1.5, m[1] + (a * q + b * c) * 1.5, m[2] + 2]
   })
 
-  // Everything lying on a panel rides that panel's fold; drawn after all panels so a later panel never covers it.
   for (let i = 0; i < 4; i++)
     s.group(
       'fold',
@@ -539,9 +498,6 @@ export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
       { vars: folds[i] },
     )
 
-  // Pins stand off the sheet, so they rise and sink whole instead of shearing with it.
-  // The destination's label stands above the sheet's back-right edge, which would otherwise cut through it.
-  // Each label sits on its pin's outer side, so close pins never share one: the right pin's above and right of its head, clear of the sheet's back-right edge; the left pin's to the left.
   const right = B[0] - B[1] >= A[0] - A[1]
   for (const [[x, y], code, outer] of [
     [A, from.code, !right],
@@ -579,7 +535,6 @@ export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
           side: 'accent',
           stroke: 'accent',
         })
-        // The x-facing side in shade; the accent stroke stays as its rim, so the head keeps its size at tile scale.
         s.poly(
           [
             [x + 3, y - 3, z + 36],
@@ -590,7 +545,6 @@ export function foldedMap(from: MapPin, to: MapPin, k = 1, equator = false) {
           'accent-side',
           'none',
         )
-        // The label rides a small plate hung on the head's outer side, riveted at both ends; a blank sheet has none.
         if (code) {
           const [hx, hy] = s.P(x, y, z + 32.5),
             pw = Math.max(1, code.length) * 4.4 + 5,

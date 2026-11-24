@@ -1,6 +1,3 @@
-// Private, compact route projection for the opened map (C6). It shares the Overview's completed-period predicate, its
-// country policy (published transit suppressions) and its publication stamps, so the map and the summary agree or
-// visibly differ by revision. Geometry comes from D1's authoritative airport reference and is bounded.
 import { runHandler, json, HttpError } from '../_lib/http'
 import { requireUser, type RequestData } from '../_lib/auth'
 import { assertRows } from '../_lib/d1'
@@ -12,7 +9,6 @@ import type {
   RouteProjection,
 } from '../../../packages/shared/src/routeProjection'
 
-/** Per list. 5,000 distinct pairs is the largest payload the opened map is measured at (docs/research local performance). */
 export const MAX_PROJECTED_ROUTES = 5000
 
 type Geometry = {
@@ -39,7 +35,6 @@ type StateRow = {
 }
 type CountryRow = { id: string; visits: number; pending: number }
 
-/** Coordinates and countries of the two ends (`l` joins the first, `r` the second airport) from the airport reference. */
 const GEOMETRY = `
       l.latitude AS a_lat, l.longitude AS a_lng, l.country_code AS a_country,
       r.latitude AS b_lat, r.longitude AS b_lng, r.country_code AS b_country`

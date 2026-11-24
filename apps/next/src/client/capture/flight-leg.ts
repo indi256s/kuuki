@@ -3,11 +3,6 @@ import { localToday } from '@kuuki/shared/calendar'
 
 const clock = /^(\d{2}):(\d{2})$/
 
-/**
- * One leg from local departure and arrival clocks: its duration, the way the saved flight computes it, and whether the
- * arrival's local clock falls on the day after departure. Without both time zones, an arrival at or before the
- * departure clock is the next day.
- */
 export function legSummary(
   date: string,
   departure: string,

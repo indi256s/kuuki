@@ -1,12 +1,8 @@
-// Screen-space outline of the atlas sticker: pure maths, no DOM.
-
 export type Point = readonly [number, number]
 export type Ring = readonly Point[]
 
-/** A pointer that moves further than this (px) after pressing a stub is a pull, not a tap. */
 export const PULL_SLOP = 6
 
-/** Projects geographic rings ([lon, lat]) into screen rings with the map's own projection. */
 export function projectOutline(
   rings: readonly (readonly (readonly number[])[])[],
   project: (lngLat: [number, number]) => { x: number; y: number },

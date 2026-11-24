@@ -12,8 +12,6 @@ import {
 import { join, relative, resolve } from 'node:path'
 import { gzipSync } from 'node:zlib'
 
-// This is a local artifact admission record, not a deployment or a live-binding check.
-// Limits: https://developers.cloudflare.com/workers/platform/limits/
 const root = resolve(import.meta.dirname, '..')
 const workerLimit = 64 * 1024 * 1024
 const assetFileLimit = 25 * 1024 * 1024

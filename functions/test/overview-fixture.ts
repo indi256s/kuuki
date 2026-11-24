@@ -1,5 +1,3 @@
-// Reusable Overview fixtures (T17, accepted by T18): an account built from `FixtureFlight` rows plus the columns
-// the figures read (airline, aircraft, distance, duration), and a reader that calls the route like a client would.
 import { apiContext } from './harness'
 import { accountWith, USER, type FixtureFlight } from './country-fixture'
 import { onRequestGet as getOverview } from '../api/me/overview/data'
@@ -11,7 +9,6 @@ import type { RouteProjection } from '../../packages/shared/src/routeProjection'
 export { USER, at, T0, publish } from './country-fixture'
 export type { FixtureFlight } from './country-fixture'
 
-/** Columns outside the lifecycle fixture; every one may stay unset (NULL) to model unknown data. */
 export interface FlightExtras {
   airline?: string
   aircraft?: string
@@ -20,7 +17,6 @@ export interface FlightExtras {
 }
 export type OverviewFlight = FixtureFlight & FlightExtras
 
-/** Aircraft the fixtures name; manufacturers come from the reference table, as in production. */
 const AIRCRAFT: Array<[string, string, string]> = [
   ['A320', 'Airbus A320', 'Airbus'],
   ['A359', 'Airbus A350-900', 'Airbus'],
@@ -84,7 +80,6 @@ export async function readOverviewScope(
   return computeOverview(await readOverviewPayload(db, user), filter)
 }
 
-/** `count` completed flights one day apart from 2020-01-01, for volume tests (one statement, no per-row writes). */
 export function bulkFlights(db: D1Database, count: number, origin = 'TBS', destination = 'JFK') {
   return db
     .prepare(`WITH RECURSIVE n(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM n WHERE x < ?)
@@ -93,7 +88,6 @@ export function bulkFlights(db: D1Database, count: number, origin = 'TBS', desti
     .bind(count, USER.id, origin, destination)
 }
 
-/** An account with no canonical flights and one published archived (legacy) visit: real geography, no flights. */
 export function legacyOnlyAccount(country = 'AE', airport = 'DXB', visits = 2) {
   return overviewAccount([], (d) => [
     d
@@ -103,7 +97,6 @@ export function legacyOnlyAccount(country = 'AE', airport = 'DXB', visits = 2) {
   ])
 }
 
-/** The opened map's read for the same account, called like a client would (`period=all|YYYY`). */
 export async function readRouteProjection(
   db: D1Database,
   period = 'all',

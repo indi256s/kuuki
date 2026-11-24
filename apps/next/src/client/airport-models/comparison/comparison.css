@@ -45,7 +45,7 @@
 
 .airport-plan-scale {
   fill: var(--text);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 .airport-plan-scale path {

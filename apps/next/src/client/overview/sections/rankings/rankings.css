@@ -15,7 +15,7 @@
 }
 .ov3-chart-caption {
   margin: 0;
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.6;
   font-weight: 600;
   text-wrap: pretty;
@@ -29,7 +29,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px 16px;
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .ov3-bump-dashes span {
   display: inline-flex;
@@ -47,7 +47,6 @@
   color: var(--text);
   cursor: pointer;
 }
-/* Rows sit 4px apart; the 44px touch target extends past the visible 32px row. */
 .ov3-bump-dashes button::after {
   content: '';
   position: absolute;
@@ -56,7 +55,6 @@
 .ov3-bump-dashes button[aria-pressed='false'] {
   text-decoration: line-through;
 }
-/* A series under the pointer, in keyboard focus, pinned or named by the legend gets a heavier line; the others stay as drawn. */
 .ov3-rankings [data-bump-series]:is([data-active], :has([data-selected='true'])) > path {
   stroke-width: 3.5px;
 }
@@ -67,5 +65,5 @@
 .ov3-bump-hint {
   margin: var(--space-3) 0 0;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }

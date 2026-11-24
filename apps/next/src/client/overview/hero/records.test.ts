@@ -42,7 +42,6 @@ describe('record lines', () => {
   })
 
   it('reads the footer line on first opening, then rotates through all three', () => {
-    // The board journal clears 100,000 km, so the timing-belt trigger wins the footer for kilometres.
     const footer = pickLine('hero', all, all, 'owner', 'en')
     const turns = [0, 1, 2, 3].map((turn) => recordLine('km', all, all, 'owner', 'en', turn))
     expect(turns[0]).toBe(footer)

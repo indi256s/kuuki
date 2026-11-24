@@ -1,9 +1,7 @@
-/** Month and day printed without a year. The year is never inferred. */
 export interface RailPartialDate {
   month: number
   day: number
 }
-/** `YYYY-MM-DD` only when the year is printed; a partial date or null otherwise. */
 export type RailTicketDate = string | RailPartialDate | null
 
 export const RAIL_CANDIDATE_FIELDS = [
@@ -27,12 +25,10 @@ export interface RailTicketCandidate {
   toCity: string | null
   departureDate: RailTicketDate
   arrivalDate: RailTicketDate
-  /** HH:MM local time as printed. */
   departureTime: string | null
   arrivalTime: string | null
   trainNumber: string | null
   operator: string | null
-  /** Names of the fields above that the source states unclearly. */
   uncertain: RailCandidateField[]
   cancelled: boolean | null
   otherPassenger: boolean | null

@@ -1,4 +1,3 @@
-// Match whole color literals and CSS colors without flagging URL fragments.
 const hex = '#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![\\w-])'
 const palette = new RegExp(`^\\s*${hex}\\s*$|[\\s:,(]${hex}|\\b(?:rgba?|hsla?|oklch)\\(`)
 const transitionAll = /transition:\s*all\b|\btransition-all\b/

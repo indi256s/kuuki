@@ -1,6 +1,3 @@
-// Kolmanskop: abandoned gable-fronted houses with dark window grids and a few missing roof planks,
-// sand drifted over the lower walls from the right. The box bottom is the sand line. Sand is paper
-// under a bold crest with lee wedges of horizontal hair hatching.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, hline, hatch, quad, rectPts, stroke } from '../grid'
 import { type KitModule, num } from './util'
@@ -27,7 +24,6 @@ function house(
   const apex: Pt = [x + w * 0.5, top - roof]
   const gable: Pt[] = [[x - 1.6, top], apex, [x + w + 1.6, top]]
   out.push(...body(gable, 'line'))
-  // Roof hatching with a ragged missing patch near the ridge.
   for (let i = 1; i < 8; i++) {
     const t = i / 8
     const ex = gable[0][0] + (gable[2][0] - gable[0][0]) * t
@@ -76,7 +72,6 @@ export const kolmanskop: KitModule = ([x, y, w, h], p) => {
     )
     out.push(...body([...crest, [dx + dw, base], [dx, base]], 'hair'))
   }
-  // Drift: sand climbs the right-hand houses, crest falling to the left.
   const crest = quad(
     [x + w * 0.2, base],
     [x + w * 0.62, base - h * 0.02],

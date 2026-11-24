@@ -1,16 +1,12 @@
-// The security lane figure shows where each import source is. This maps source phases to tray places; it knows nothing about drawing.
 import type { SessionEntry } from '../unified-session'
 
 export type LaneSlot = 'mouth' | 'queue' | 'frame' | 'tunnel' | 'exit' | 'side' | 'stack' | 'table'
 export type LaneCargo = 'none' | 'document' | 'stubs' | 'logbook'
 export interface LaneTray {
-  /** The source id; 'idle' for the empty tray of a lane with no sources, 'history' for the Flighty logbook. */
   id: string
   slot: LaneSlot
-  /** Place in the queue or the stack, otherwise 0. */
   index: number
   cargo: LaneCargo
-  /** 0..4 */
   stubs: number
   rejected: 'size' | 'type' | null
 }
@@ -33,7 +29,6 @@ export interface LaneInput {
   saved: boolean
 }
 
-/** Trays past these counts are not drawn; the file list still shows every source. */
 export const QUEUE_SLOTS = 3
 export const STACK_SLOTS = 4
 export const MAX_STUBS = 4
@@ -72,7 +67,6 @@ export function laneModel({ entries, dragging, history, saved }: LaneInput): Lan
   let trays = entries.map(place)
   if (saved) trays = trays.map(({ id }) => tray(id, 'stack'))
   else {
-    // One tray per place: the latest source there. Earlier settled trays return to the stack, emptied; the rest are not drawn.
     const latest = new Map<LaneSlot, string>()
     for (const { id, slot } of trays) latest.set(slot, id)
     trays = trays.flatMap((item) => {
@@ -83,7 +77,6 @@ export function laneModel({ entries, dragging, history, saved }: LaneInput): Lan
   if (history === 'reading') trays.push(tray('history', 'table', 'logbook'))
   if (history === 'done') trays.push(tray('history', 'stack'))
 
-  // The stack keeps its newest trays; the queue its oldest, which are read next.
   const stacked = trays.filter((item) => item.slot === 'stack').slice(-STACK_SLOTS)
   let queued = 0
   trays = trays.flatMap((item) => {

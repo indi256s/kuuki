@@ -174,7 +174,6 @@ describe('Journal store URL mirror', () => {
     window.history.replaceState(null, '', '/journal?airline=TK')
     mount(payloadOf([flight(1), flight(2, { airline_iata: 'PC' })]), 'airline=TK')
     act(() => store().openFlight(1))
-    // A shell link to the bare Journal: Next pushes the entry, the store follows the link's view.
     act(() => {
       window.history.pushState({}, '', '/journal')
       window.dispatchEvent(new CustomEvent(ROUTE_LINK_EVENT, { detail: '/journal' }))

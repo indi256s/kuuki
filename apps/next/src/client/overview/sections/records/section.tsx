@@ -37,7 +37,6 @@ export function Section({ span }: { span: Span }) {
   const gate = scope?.records
   const data = gate?.status === 'ready' ? gate.value : null
   const lead = data?.longest ?? null
-  // The five longest routes, the headline first. A journal whose route list is empty still has its one longest flight.
   const routes: Route[] = data?.longest5.length
     ? data.longest5
     : lead
@@ -144,7 +143,6 @@ export function Section({ span }: { span: Span }) {
     new Intl.DateTimeFormat(locale, { month: 'long', timeZone: 'UTC' }).format(
       new Date(`2000-${String(month).padStart(2, '0')}-01T00:00:00Z`),
     )
-  // A bare flight number says nothing; show it only with its carrier (or when it already carries letters).
   const leadFlight = lead?.flightNumber
     ? /^[A-Za-z]/.test(lead.flightNumber)
       ? lead.flightNumber

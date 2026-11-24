@@ -1,6 +1,3 @@
-// Wire types of the server-owned import batch (ADR 0001 §6/§9). They mirror `functions/api/_services/importDrafts.ts`
-// and `importConversion.ts`; the client keeps its own copy so the Next bundle never imports Worker code.
-
 export type BatchStatus = 'processing' | 'review' | 'partial' | 'failed' | 'cancelled' | 'completed'
 export type BatchStage = 'accepted' | 'recognizing' | 'validating' | 'review_ready'
 export type DraftStatus = 'review' | 'dismissed' | 'converted'
@@ -15,20 +12,14 @@ export interface DraftFields {
   departure_time?: string
   arrival_time?: string
   airline_was_placeholder?: boolean
-  /** Day and month printed without a year (MM-DD); kept only while `date` is empty. */
   date_month_day?: string
-  /** The barcode's flight day of the year (1–366); kept only while `date` is empty, until the member chooses a year. */
   date_ordinal_day?: number
-  /** Quick Add row: a today/past date needs `flown_confirmed` before it can be saved (set at admission). */
   flown_required?: true
-  /** The member said they took the flight; written only by the `flownConfirmed` patch. */
   flown_confirmed?: true
-  /** Catalog airports for a city with several, when the source did not say which one. */
   origin_options?: string[]
   destination_options?: string[]
   origin_hint?: string
   destination_hint?: string
-  /** The source's status or evidence is uncertain (possible refund, cancelled outbound, conflicting details). */
   review_required?: boolean
   verification?: 'verified' | 'disagreed' | 'failed' | 'unsupported' | 'not_verified'
 }
@@ -49,7 +40,6 @@ export interface Draft {
   convertedFlightId: number | null
   duplicateFlightId: number | null
   issue: { code: string; message: string } | null
-  /** Only rendered when the server actually supplies a verified source snippet (none does today). */
   snippet?: string | null
 }
 
@@ -73,7 +63,6 @@ export interface Snapshot {
   drafts: Draft[]
 }
 
-/** `{sequence,rowIds}` rows event, `snapshot` instruction (optionally `reupload`), or the terminal `end` event. */
 export interface ImportEvent {
   name: string
   sequence: number
@@ -88,7 +77,6 @@ export interface DraftPatchBody {
   fields?: Record<string, string | null>
   selected?: boolean
   yearConfirmed?: boolean
-  /** Only for `flown_required` rows; `false` withdraws the confirmation. */
   flownConfirmed?: boolean
   duplicateAcknowledged?: boolean
   dismissed?: boolean

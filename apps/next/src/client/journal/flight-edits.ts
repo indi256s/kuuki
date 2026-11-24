@@ -1,6 +1,3 @@
-// Flight writes for the Journal detail sheet's Edit mode: one PATCH /api/flights/:id carrying every changed field together, the
-// client-side consequence preview, Undo and the merge of the server's row into the cached payload.
-// Loaded only when a member starts an edit: it carries the airport, airline and aircraft catalogues.
 import { familyOf, findAircraft } from '@kuuki/data/aircraft-lookup'
 import { findAirport } from '@kuuki/data/airport-lookup'
 import { api, ApiError, getAuthGeneration } from '@kuuki/client/apiClient'
@@ -22,7 +19,6 @@ import type { JournalFlight, JournalRefs } from './model'
 
 export { aircraftChoices, airlineChoices, airportChoices }
 
-/** The fields the sheet's Edit mode changes. Every one is accepted by the PATCH as-is. */
 export type EditableField =
   | 'origin'
   | 'destination'
@@ -43,26 +39,20 @@ export const EDITABLE_FIELDS: readonly EditableField[] = [
   'aircraft_icao',
 ]
 
-/** The PATCH answer: the own-flight DTO plus the derived-state acknowledgement. */
 export type FlightDto = Omit<JournalFlight, 'origin_country' | 'destination_country'> &
   DerivedAck & { undo_token?: string }
 
-/** Rejected: the server answered no (drafts stay, the form shows why). Unknown: the request may or may not have landed (drafts stay, outcome is not claimed). */
 export type EditOutcome =
   | { status: 'saved' }
   | { status: 'rejected'; message: string; messageCopy?: Record<Locale, string> }
   | { status: 'unknown'; message: string; messageCopy?: Record<Locale, string> }
-/** A save attempt: `invalid` never left the browser and names each field's problem. */
 export type SaveOutcome = EditOutcome | { status: 'invalid'; errors: FieldErrors }
 export type FieldErrors = Partial<Record<EditableField, string>>
-/** Edit text per field ('' for none). */
 export type Drafts = Record<EditableField, string>
-/** Normalized values to send, only for the fields that differ from the flight. */
 export type Changes = Partial<Record<EditableField, string | null>>
 
 export type FlightWrite = { outcome: EditOutcome; flight?: FlightDto }
 
-/** What Undo needs: the fields one save changed and the editable values it left behind. */
 export type EditRecord = {
   flightId: number
   fields: EditableField[]
@@ -94,11 +84,9 @@ const FORM_KEY: Record<EditableField, FlightField> = {
   aircraft_icao: 'aircraft',
 }
 
-/** The flight's current values as edit text ('' for none). */
 export const draftsOf = (flight: Pick<JournalFlight, EditableField>): Drafts =>
   Object.fromEntries(EDITABLE_FIELDS.map((field) => [field, flight[field] ?? ''])) as Drafts
 
-/** The value to send: trimmed, codes upper-cased, an emptied optional field becomes null. */
 export function normalizeDraft(field: EditableField, draft: string): string | null {
   const text = CODES.has(field) ? draft.trim().toUpperCase() : draft.trim()
   return text || REQUIRED.has(field) ? text : null
@@ -112,7 +100,6 @@ export const editableValues = (
     string | null
   >
 
-/** The fields whose normalized draft differs from the flight, with the value to send. Empty when nothing changed. */
 export function changesOf(flight: Pick<JournalFlight, EditableField>, drafts: Drafts): Changes {
   const changes: Changes = {}
   for (const field of EDITABLE_FIELDS) {
@@ -122,10 +109,6 @@ export function changesOf(flight: Pick<JournalFlight, EditableField>, drafts: Dr
   return changes
 }
 
-/**
- * The localized problem with each changed draft, checked together as the full form checks them. Unchanged fields are not sent, so a
- * legacy value the catalogue no longer knows never blocks another edit. Empty when the changes may be sent.
- */
 export function validateDrafts(
   flight: Pick<JournalFlight, EditableField>,
   drafts: Drafts,
@@ -149,7 +132,6 @@ export function validateDrafts(
     const problem = formErrors[FORM_KEY[field]]
     if (problem && field in changed) errors[field] = problem
   }
-  // The same-airport check lands on the destination; a changed origin owns it when the destination stayed.
   if (
     formErrors.destination &&
     'origin' in changed &&
@@ -173,10 +155,6 @@ function countryName(locale: Locale, code: string): string {
   }
 }
 
-/**
- * One line saying what a pending airport or date change will do, computed from the bundled catalogue before anything is sent.
- * The PATCH response is the truth; this is a forecast. Null when the draft is unchanged, invalid or changes nothing else.
- */
 export function previewConsequence(
   flight: JournalFlight,
   field: EditableField,
@@ -228,7 +206,6 @@ export function previewConsequence(
   return null
 }
 
-/** What the pending changes will do, one line each: the route's new distance and country, then a lifecycle move from the date. */
 export function previewChanges(
   flight: JournalFlight,
   changes: Changes,
@@ -237,7 +214,6 @@ export function previewChanges(
 ): string[] {
   const lines: string[] = []
   const { origin, destination, date } = changes
-  // Both ends changed: forecast the destination against the new origin.
   if (destination)
     lines.push(
       previewConsequence(
@@ -253,7 +229,6 @@ export function previewChanges(
   return lines.filter(Boolean)
 }
 
-/** Copy for an outcome nobody can confirm: the compare-and-set update may have landed before the answer was lost. */
 export const unknownMessage = (locale: Locale) =>
   say(
     locale,
@@ -268,7 +243,6 @@ export const sessionChangedMessage = (locale: Locale) =>
     'Сессия изменилась. Откройте журнал снова перед редактированием.',
   )
 
-/** 4xx: the server said no and nothing changed. 5xx, a dropped connection or an abort: unknown. */
 export function failureOutcome(
   cause: unknown,
   locale: Locale,
@@ -288,11 +262,6 @@ export function failureOutcome(
   return { status: 'unknown', message: unknownMessage(locale) }
 }
 
-/**
- * One PATCH carrying every changed field, so related changes land together or not at all. The answer is applied only while the
- * session that asked is still current and it really is this flight with the sent values; anything else is unknown. A sign-out or
- * owner switch aborts the request through `trackPrivateOperation`.
- */
 export async function writeFlightFields(
   flightId: number,
   changes: Changes,
@@ -360,7 +329,6 @@ export async function writeFlightFields(
   }
 }
 
-/** Undo restores the signed server snapshot only while its complete post-edit state still matches. */
 export const undoWrite = (
   record: EditRecord,
   locale: Locale,
@@ -368,7 +336,6 @@ export const undoWrite = (
 ): Promise<FlightWrite> =>
   writeFlightFields(record.flightId, {}, locale, generation, record.undoToken)
 
-/** Undo is safe only while the flight still holds exactly what that save left behind, and no later edit of it was recorded. */
 export function canUndo(
   record: EditRecord,
   current: JournalFlight | undefined,
@@ -379,10 +346,6 @@ export function canUndo(
   return EDITABLE_FIELDS.every((field) => now[field] === record.after[field])
 }
 
-/**
- * The server's row in the payload's shape. Endpoint countries are not in the DTO: an unchanged airport keeps the payload's country,
- * a changed one takes the catalogue's (the refetch that follows brings the server's).
- */
 export function mergeSavedFlight(
   previous: JournalFlight,
   dto: FlightDto,
@@ -405,7 +368,6 @@ export function mergeSavedFlight(
   return merged
 }
 
-/** Reference names the payload does not carry yet for a saved flight, from the bundled catalogue. Empty sections are omitted. */
 export function refsPatch(flight: JournalFlight, refs: JournalRefs): Partial<JournalRefs> {
   const patch: Partial<JournalRefs> = {}
   for (const code of [flight.origin, flight.destination]) {

@@ -1,12 +1,4 @@
 'use client'
-// The atlas sticker: an unrecorded country lifts as a sticker with a baggage tag tied to its lowest point; the tag's
-// tear-off stubs name the way. Tearing a stub (a tap, or a pull down) records the visit (quick-visit.ts), and the way's
-// vehicle crosses the country left to right, inking it behind itself; the stamp lands as it leaves.
-//
-// Following the camera: everything here is drawn in screen pixels at the last React render. The map is flat Mercator
-// with bearing and pitch locked, so a camera move is exactly one translate and scale of that drawing. Each `move` writes
-// it synchronously (never rAF, never React state: MapLibre's own render rAF is already queued ahead of any of ours, and
-// a re-queued one is cancelled before it runs during a drag); `moveend` re-renders once to re-project crisply.
 
 import { animate, useReducedMotion, type AnimationPlaybackControls } from 'motion/react'
 import {
@@ -43,47 +35,33 @@ import { REVERT_MS, type RecordVisit } from './quick-visit'
 import './sticker.css'
 
 export type StickerGeometry = {
-  /** Outer rings of the country's polygons, [lon, lat]. */
   rings: number[][][]
-  /** Where the stamp lands. */
   centre: [number, number]
 }
 
 export type StickerHandle = {
   lift: (code: string) => void
-  /** Drops a lifted sticker; true when one was showing. */
   dismiss: () => boolean
-  /** Jumps an in-flight crossing to its end state. */
   finish: () => void
 }
 
 const LIFT_SCALE = 1.04
 const SETTLE_MS = 150
 const REDUCED_MS = 150
-/** Smaller outlines than this (px, longest side) get the camera first. */
 const SMALL_OUTLINE = 96
 const MAX_CAMERA_MS = 300
-/** The baggage tag: string length from the knot to the eyelet, one stub's width, and the whole tag's height. */
 const STRING = 28
 const STUB_WIDTH = 76
 const TAG_HEIGHT = 120
-/** Where the eyelet sits below the tag's top edge. */
 const EYELET = 10
-/** The tag swings in on its string: a small arc, settled by a light spring (purpose: it hangs from the country). */
 const SWING_DEG = 5
 const SWING = { type: 'spring', duration: 0.5, bounce: 0.2 } as const
-/** A stub pulled down this far (px), or flicked so its projected travel gets there, tears. */
 const STUB_TEAR = 28
-/** Seconds of a released pull's speed projected forward: a flick tears. */
 const PROJECTION_S = 0.2
-/** Up, the stub is held by its perforation: it gives at most this much. */
 const STUB_GIVE = 8
-/** The crossing: on-screen time grows with the country's width, within a rare-moment budget. */
 const CROSS_MIN_MS = 600
 const CROSS_MAX_MS = 900
-/** Strong ease-in-out (DESIGN --ease-in-out): the vehicle pulls away and slows to a stop off the far edge. */
 const EASE_IN_OUT: [number, number, number, number] = [0.77, 0, 0.175, 1]
-/** The vehicle's drawn length (px). */
 const VEHICLE_PX = 72
 const VEHICLE_PX_PHONE = 56
 
@@ -95,7 +73,6 @@ const WAY_ICONS: Record<VisitWay, ComponentType<IconProps>> = {
   other: MoreHorizontal,
 }
 
-/** Each way's vehicle: its lane art and the family whose shared frame it is drawn in. */
 const VEHICLES: Record<
   VisitWay,
   { key: LaneVehicleKey | AtlasVehicleKey; family: keyof typeof laneGeometry }
@@ -106,7 +83,6 @@ const VEHICLES: Record<
   sea: { key: 'sea', family: 'sea' },
   other: { key: 'other', family: 'other' },
 }
-/** The way's vehicle drawn with its longer side (its length, or the balloon's height) `px` long. */
 function vehicleFrame(way: VisitWay, px: number) {
   const { key, family } = VEHICLES[way]
   const geometry = laneGeometry[family]
@@ -119,7 +95,6 @@ function vehicleFrame(way: VisitWay, px: number) {
     width: vw * scale,
     height: vh * scale,
     length: vw * geometry.nose * scale,
-    /** Its height above the ground line. */
     rise: vh * geometry.ground * scale,
   }
 }
@@ -129,26 +104,22 @@ const artUrl = (key: LaneVehicleKey | AtlasVehicleKey) => {
   return typeof asset === 'string' ? asset : asset.src
 }
 
-/** A stub held under the finger: how far it is pulled down, and whether the finger is still on it. */
 type StubPull = { way: VisitWay; dy: number; dragging: boolean }
 type Press = { id: number; way: VisitWay; startY: number; moved: boolean; samples: Sample[] }
 type Active = {
   code: string
   phase: 'lifted' | 'closing' | 'crossing'
   way?: VisitWay
-  /** The crossing's progress, 0 → 1. */
   progress: number
   pull: StubPull | null
 }
 type Ghost = { key: number; code: string }
-/** The camera as the last render saw it: `at` is a fixed point near the view and `x`,`y` where it was drawn. */
 type Anchor = { zoom: number; at: GL.LngLat; x: number; y: number }
 type StampNode = { node: HTMLElement; at: [number, number]; size: number }
 type LandedStamp = { key: number; code: string; at: [number, number]; leaving: boolean }
 
 let sequence = 0
 
-/** The country's screen outline: its largest polygon and the parts near it, so far-flung islands do not stretch it. */
 function screenRings(map: GL.Map, geometry: StickerGeometry): Ring[] {
   const rings = projectOutline(geometry.rings, (lngLat) => map.project(lngLat))
   const sized = rings.map((ring) => ({ ring, box: bounds([ring]) }))
@@ -182,7 +153,6 @@ export function Sticker({
   name: (code: string) => string
   geometryOf: (code: string) => StickerGeometry | null
   record: RecordVisit
-  /** The countries a sticker (any phase) or a landed stamp covers: the map hides their always-on labels meanwhile. */
   onCovered?: (codes: string[]) => void
 }) {
   const { map } = useMap()
@@ -199,7 +169,6 @@ export function Sticker({
   const anchor = useRef<Anchor | null>(null)
   const firstTab = useRef<HTMLButtonElement>(null)
   const swing = useRef<HTMLDivElement>(null)
-  /** A lift's camera flight is under way: the tag is hidden until it lands, so it swings in then. */
   const flying = useRef(false)
   const motion = useRef<AnimationPlaybackControls | null>(null)
   const timers = useRef(new Set<number>())
@@ -207,7 +176,6 @@ export function Sticker({
   useLayoutEffect(() => {
     activeRef.current = active
   }, [active])
-  // The crossing's pending landing: the stamp and toast arrive as the vehicle leaves, or at once when cut short.
   const landing = useRef<{ code: string; land: () => void; announce: () => void } | null>(null)
   const pointerState = useRef<Press | null>(null)
   const closing = useRef<number | undefined>(undefined)
@@ -227,17 +195,14 @@ export function Sticker({
       motion.current?.stop()
       pending.forEach((id) => window.clearTimeout(id))
       pending.clear()
-      // Gone mid-crossing (a view switch or a filter): the write goes on, so its toast and Undo still arrive.
       landing.current?.announce()
       landing.current = null
     }
   }, [])
 
-  // What this render drew is the base for the camera-follow transform.
   useLayoutEffect(() => {
     const at = map?.getCenter()
     anchor.current = map && at ? { zoom: map.getZoom(), at, ...map.project(at) } : null
-    // This render re-projected everything: the camera-follow transforms start over.
     for (const node of [faceFollow.current, shadowFollow.current])
       if (node) node.style.transform = ''
   })
@@ -258,7 +223,6 @@ export function Sticker({
         const { x, y } = map.project(at)
         node.style.transform = `translate(${x - size / 2}px, ${y - size / 2}px)`
       }
-      // The tag sits in screen space and waits for the camera to land.
       root?.setAttribute('data-moving', '')
     }
     const settle = () => {
@@ -278,7 +242,6 @@ export function Sticker({
     }
   }, [map, drawing, reduced])
 
-  // A landed stamp prints the country's name itself; its label returns as the stamp starts to leave.
   const coveredKey = [
     ...new Set([
       ...(active ? [active.code] : []),
@@ -294,7 +257,6 @@ export function Sticker({
     map?.getCanvas().focus({ preventScroll: true })
   }, [map])
 
-  /** Lands a stamp at the country's centre; it stays until the returned leave runs (the recorded toast closing). */
   const landStamp = useCallback(
     (code: string) => {
       const geometry = geometryOf(code)
@@ -317,7 +279,6 @@ export function Sticker({
     motion.current = null
     landing.current?.land()
     landing.current = null
-    // The tag leaves with the sticker: focus on one of its stubs returns to the map.
     if (rootRef.current?.contains(document.activeElement)) focusMap()
     setActive((current) => (current?.phase === 'crossing' ? null : current))
   }, [focusMap])
@@ -330,13 +291,11 @@ export function Sticker({
         landing.current = null
         setActive(null)
       }
-      // The sticker fades back over the inked country; the fill leaves underneath it (REVERT_MS), then the ghost goes.
       const key = ++sequence
       setGhosts((list) => [...list, { key, code }])
       setStamps((list) =>
         list.map((item) => (item.code === code ? { ...item, leaving: true } : item)),
       )
-      // The reverted country's stamps go with the fill.
       later(REVERT_MS, () => {
         setGhosts((list) => list.filter((item) => item.key !== key))
         setStamps((list) => list.filter((item) => item.code !== code || !item.leaving))
@@ -379,7 +338,6 @@ export function Sticker({
         dy = box.top + box.height / 2 - container.clientHeight / 2
       const travel = Math.hypot(dx, dy) / Math.hypot(container.clientWidth, container.clientHeight)
       const duration = reduced ? 0 : Math.round(Math.min(MAX_CAMERA_MS, travel * 2 * MAX_CAMERA_MS))
-      // An animated flight ends in a moveend, which swings the tag in; an instant jump leaves it to the lift.
       flying.current = duration > 0
       map.fitBounds(
         [
@@ -402,24 +360,18 @@ export function Sticker({
     endCrossing,
   ])
 
-  // Focus moves to the first stub when a sticker lifts.
   const liftedCode = active?.phase === 'lifted' ? active.code : null
   useEffect(() => {
     if (liftedCode) firstTab.current?.focus({ preventScroll: true })
-    // A press belongs to the lifted sticker; its stub may unmount before the pointerup arrives.
     return () => {
       pointerState.current = null
     }
   }, [liftedCode])
 
-  // The tag swings in as it appears: here at the lift, or at moveend when the lift's camera flight lands.
   useLayoutEffect(() => {
     if (liftedCode && !flying.current && !reduced) swingTag(swing.current)
   }, [liftedCode, reduced])
 
-  // The member panning, wheeling or pinching the map closes a lifted sticker like a popover: every gesture opens with a
-  // `movestart` carrying its input event, while the lift's own flight and the zoom buttons carry none. A crossing in
-  // flight is never interrupted (close only acts on a lifted sticker).
   useEffect(() => {
     if (!liftedCode || !map) return
     const pan = (event: { originalEvent?: unknown }) => {
@@ -431,7 +383,6 @@ export function Sticker({
     }
   }, [liftedCode, map, close])
 
-  // A tap anywhere outside the sticker and the map closes it; map taps are routed by the atlas.
   useEffect(() => {
     if (!liftedCode || !map) return
     const outside = (event: globalThis.PointerEvent) => {
@@ -452,12 +403,10 @@ export function Sticker({
   const container = map.getContainer()
   const vehiclePx = mobile ? VEHICLE_PX_PHONE : VEHICLE_PX
 
-  /** The string's knot: the outline's lowest point. The tag hangs from here. */
   const knot: Point | null = rings
     ? rings.flat().reduce((low, point) => (point[1] > low[1] ? point : low))
     : null
 
-  /** Tears `way`'s stub: the write starts now and the vehicle crosses; the stamp and toast land as it leaves. */
   function cross(way: VisitWay) {
     const current = activeRef.current
     if (!current || current.phase !== 'lifted' || !box) return
@@ -469,14 +418,11 @@ export function Sticker({
     landing.current = {
       code,
       announce,
-      // The stamp stays while its toast does: the toast carries the year and Undo.
       land: () => announce(landStamp(code)),
     }
-    // The torn stub keeps the pull it was released at, so it falls from where the finger left it.
     const pull = current.pull?.way === way ? { ...current.pull, dragging: false } : null
     setActive({ code, way, phase: 'crossing', progress: 0, pull })
     if (reduced) {
-      // Opacity only: the cover clears while the stamp appears, together.
       landing.current.land()
       landing.current = null
       later(REDUCED_MS, () => {
@@ -485,8 +431,6 @@ export function Sticker({
       return
     }
     const duration = Math.min(CROSS_MAX_MS, Math.max(CROSS_MIN_MS, CROSS_MIN_MS + box.width))
-    // A single value: the start, then its keyframes. An array as the first argument is a list of subjects to animate,
-    // which never calls onUpdate or onComplete.
     motion.current = animate(0, [0, 1], {
       duration: duration / 1000,
       ease: EASE_IN_OUT,
@@ -507,7 +451,6 @@ export function Sticker({
   }
 
   function onStubPointerDown(way: VisitWay, event: PointerEvent<HTMLButtonElement>) {
-    // One finger at a time: a second touch never steals the stub.
     if (activeRef.current?.phase !== 'lifted' || event.button !== 0 || pointerState.current) return
     event.currentTarget.setPointerCapture?.(event.pointerId)
     pointerState.current = {
@@ -529,7 +472,6 @@ export function Sticker({
       if (Math.abs(raw) <= PULL_SLOP) return
       press.moved = true
     }
-    // Down, the stub follows the finger; up, its perforation holds it.
     const dy = raw >= 0 ? raw : -rubberBand(-raw, STUB_GIVE)
     press.samples = recentSamples(press.samples, event.timeStamp, dy)
     setActive({ ...current, pull: { way: press.way, dy, dragging: true } })
@@ -541,14 +483,11 @@ export function Sticker({
     pointerState.current = null
     const current = activeRef.current
     const pull = current?.pull
-    // A press without a drag is a tap: its click tears.
     if (!current || current.phase !== 'lifted' || !pull?.dragging) return
-    // A pull never also counts as a tap.
     suppressClick.current = true
     window.setTimeout(() => {
       suppressClick.current = false
     })
-    // Where the pull is going decides, not only where it stopped: a flick tears, a pull back returns.
     const velocity = velocityOf(recentSamples(press.samples, event.timeStamp, pull.dy))
     if (pull.dy + velocity * PROJECTION_S >= STUB_TEAR) {
       cross(pull.way)
@@ -565,7 +504,6 @@ export function Sticker({
     if (current?.phase === 'lifted') release(current)
   }
 
-  /** A pull let go short of tearing: the stub returns to its perforation. */
   function release(current: Active) {
     if (current.pull) setActive({ ...current, pull: { ...current.pull, dy: 0, dragging: false } })
   }
@@ -576,9 +514,7 @@ export function Sticker({
     if (close()) focusMap()
   }
 
-  // The tag hangs on its string under the knot, kept inside the map; the eyelet stays over the knot when it can.
   const tagWidth = Math.min(container.clientWidth - 16, VISIT_WAYS.length * STUB_WIDTH)
-  // The knot as drawn: the lifted sticker is scaled about its centre.
   const hang: Point | null =
     knot && centre && !reduced
       ? [
@@ -593,7 +529,6 @@ export function Sticker({
     ? Math.min(Math.max(8, hang[1] + STRING), container.clientHeight - TAG_HEIGHT - 8)
     : 0
   const eyeletX = hang ? Math.min(Math.max(tagLeft + 16, hang[0]), tagLeft + tagWidth - 16) : 0
-  /** The eyelet in the sticker's unscaled space, where the string is drawn. */
   const eyelet: Point | null =
     centre && !reduced
       ? [
@@ -602,7 +537,6 @@ export function Sticker({
         ]
       : [eyeletX, tagTop + EYELET]
 
-  // Drawing the sticker: the face is the cover over the inked country; a crossing clips it away behind the vehicle.
   let face: ReactNode = null
   let shadow: ReactNode = null
   let vehicle: ReactNode = null
@@ -612,11 +546,8 @@ export function Sticker({
     const id = `atlas-sticker-${active.code}`
     const frame = active.way ? vehicleFrame(active.way, vehiclePx) : null
     const length = frame?.length ?? vehiclePx
-    // The nose runs from the left edge (the vehicle wholly outside) to past the right edge (wholly outside again).
     const nose = box.left + active.progress * (box.width + length)
-    // The ink's edge sits under the vehicle's middle, so the vehicle seems to lay it down.
     const inked = nose - length / 2
-    // The lift's shadow is its own composited layer: blurred once, then only faded; the camera moves its wrapper.
     shadow = reduced ? null : (
       <div className="atlas-sticker-follow-html" ref={shadowFollow}>
         <svg
@@ -659,7 +590,6 @@ export function Sticker({
     if (clipped && frame) {
       const { key, family, geometry, width, height, rise } = frame
       const [vx, vy, vw, vh] = geometry.viewBox
-      // Each vehicle stands centred on the country's middle line; the airliner flies a little above its own shadow.
       const ground = centre[1] + (family === 'air' ? vehiclePx * 0.2 : rise / 2)
       vehicle = (
         <g className="atlas-vehicle" data-way={active.way}>
@@ -673,7 +603,6 @@ export function Sticker({
             />
           ) : null}
           <g className="atlas-vehicle-bob">
-            {/* The lane art's own class carries its material ramps; its 100% width is overridden inline. */}
             <svg
               className="lane-vehicle"
               x={nose - geometry.nose * width}
@@ -792,7 +721,6 @@ export function Sticker({
   )
 }
 
-/** The tag's string: from the knot to the eyelet, with a little slack. */
 function TagString({ from, to }: { from: Point; to: Point }) {
   const sag = Math.min(12, Math.hypot(to[0] - from[0], to[1] - from[1]) / 4)
   const control: Point = [(from[0] + to[0]) / 2, (from[1] + to[1]) / 2 + sag]
@@ -804,7 +732,6 @@ function TagString({ from, to }: { from: Point; to: Point }) {
   )
 }
 
-/** The tag swings on its string about its eyelet. A full transform string, so WAAPI runs it off the main thread. */
 function swingTag(node: HTMLElement | null) {
   if (node) animate(node, { transform: [`rotate(${SWING_DEG}deg)`, 'rotate(0deg)'] }, SWING)
 }

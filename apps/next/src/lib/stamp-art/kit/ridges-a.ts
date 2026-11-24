@@ -1,7 +1,3 @@
-// Misty forest ridges (lane A, `-a` until consolidated): three rounded ridges stacked front to
-// back, the highest peak behind. Each ridge hides the one behind it, carries fall-line hatching
-// on its upper flank and leaves a band of paper mist at its foot. The box bottom is the foot of
-// the front ridge.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'

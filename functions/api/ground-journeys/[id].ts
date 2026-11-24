@@ -1,6 +1,3 @@
-// GET /api/ground-journeys/:id — one own journey; foreign, missing and deleted ids are one 404.
-// PATCH — update | complete | reopen | cancel | restore. DELETE — delete (body: operationKey, expectedVersion).
-
 import { runHandler, json, readJson, HttpError } from '../_lib/http'
 import { requireUser, requireCsrf, type RequestData } from '../_lib/auth'
 import { isUuid } from '../../../packages/shared/src/groundTravel'

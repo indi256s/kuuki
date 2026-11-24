@@ -1,5 +1,3 @@
-// POST /api/import/history/:id/groups — `{group, answer, revision}`: one answer for every open record of a shared
-// question, at the run revision the owner saw (ADR 0008).
 import { json, readJson, runHandler } from '../../../_lib/http'
 import { rateLimit } from '../../../_lib/ratelimit'
 import { requireCsrf, requireUser, type RequestData } from '../../../_lib/auth'

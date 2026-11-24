@@ -1,6 +1,4 @@
 'use client'
-// The recorded toast's own controls (quick-visit.ts): the visit's year and Undo, under "Poland is in your passport."
-// The year pill opens a five-row wheel inside the toast, which grows to hold it; while open the pill reads Done.
 
 import { PlaneLanding, Plus } from '@keyline-icons/react'
 import { useEffect, useRef, useState } from 'react'
@@ -40,12 +38,10 @@ export function RecordedToast({
   country: Country
   setYear: SetYear
   undo: () => void
-  /** Only an acknowledged air visit offers optional flight capture. */
   flightHref?: Promise<string | null>
 }) {
   const locale = useLocale()
   const [year, setShown] = useState<YearValue>(null)
-  /** How the wheel was opened (the keyboard skips its entrance), or null while closed. */
   const [wheel, setWheel] = useState<'pointer' | 'keyboard' | null>(null)
   const pill = useRef<HTMLButtonElement>(null)
   const [flight, setFlight] = useState<string | null>(null)
@@ -58,7 +54,6 @@ export function RecordedToast({
       current = false
     }
   }, [flightHref])
-  // The toast waits while the wheel is open, and lets go if it unmounts open. The toast keeps `controls` stable.
   useEffect(() => {
     controls.hold(wheel !== null)
     return () => controls.hold(false)

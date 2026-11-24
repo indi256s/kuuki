@@ -1,6 +1,3 @@
-// Dogon granaries: clay cylinders under pointed thatch caps, in a loose staggered cluster at the
-// foot of a cliff. Entries are [x fraction, scale, row]; row 1 sits behind row 0. Box bottom is
-// the ground.
 import { mulberry32 } from '../hash'
 import { type SvgNode, body, fill, hatch, rectPts, stroke } from '../grid'
 import { type KitModule } from './util'

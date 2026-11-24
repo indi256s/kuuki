@@ -1,4 +1,3 @@
-// Passport blocks shared by the owner and public page: closed covers, headline numbers, ranks and the join card.
 import Link from 'next/link'
 import type { CSSProperties, ReactNode } from 'react'
 import { EARTH_CIRCUMFERENCE_KM } from '@kuuki/shared/constants'
@@ -28,7 +27,6 @@ function CoverArt({ ru }: { ru: boolean }) {
   )
 }
 
-/** Visitor on a private profile (no name, no data) or a handle that does not exist (spec "States"). */
 export function ClosedCover({
   kind,
   viewer,
@@ -99,7 +97,6 @@ export type ProfileTotals = {
   countries_count: number
 }
 
-/** Public profile blocks enter in order; member Passport and its preview remain static. */
 export function Block({
   index,
   className = '',
@@ -122,7 +119,6 @@ export function Block({
   )
 }
 
-/** Headline numbers: distance with its Earth caption, then flights, countries and air-time hours. */
 export function HeadlineNumbers({
   stats,
   locale,

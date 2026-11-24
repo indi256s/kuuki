@@ -11,7 +11,6 @@ import {
 import { Button } from '../../../client/ui/button'
 import type { Locale } from '../../../lib/format'
 
-// Every import dock state from fixtures, rendered in place: the live dock needs a bound import job worker.
 function fixtures(locale: Locale, found: number): Record<DockKind, DockItem> {
   const base = {
     need: 0,

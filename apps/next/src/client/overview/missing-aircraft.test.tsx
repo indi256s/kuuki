@@ -30,7 +30,6 @@ const flight = (id: number) => ({
   origin: 'JFK',
   destination: 'BOS',
 })
-/** A page of the server's set: `ids` on this page, `total` in the whole set, `offset` flights before it, `next` the cursor or null. */
 const page = (
   ids: number[],
   total = ids.length,
@@ -147,7 +146,7 @@ describe('MissingAircraftReview', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Show the next 1 flight' }))
     expect(await screen.findByText('Flights 3–3 of 3 without an aircraft.')).toBeInTheDocument()
     expect(read).toHaveBeenNthCalledWith(2, 'cursor-1', expect.any(AbortSignal))
-    expect(await screen.findByRole('button', { name: /identify aircraft/i })).toBeEnabled() // a fresh panel for the new page
+    expect(await screen.findByRole('button', { name: /identify aircraft/i })).toBeEnabled()
     expect(screen.queryByRole('button', { name: /show the next/i })).toBeNull()
     await userEvent.click(screen.getByRole('button', { name: 'Back to the newest' }))
     await waitFor(() => expect(read).toHaveBeenNthCalledWith(3, null, expect.any(AbortSignal)))
@@ -199,7 +198,6 @@ describe('MissingAircraftReview', () => {
       derived_state: 'ready' as const,
       revision: 3,
     }))
-    // Before the save: flights 1 and 2 of three. After it: flight 1 has left the set, so the same page now holds 2 and 3.
     const read = answer(page([1, 2], 3, 0, null), page([2, 3], 2, 0))
     render(
       <MissingAircraftReview locale="en" count={3} read={read} aircraftApi={aircraftApi(accept)} />,
@@ -213,7 +211,6 @@ describe('MissingAircraftReview', () => {
     await waitFor(() => expect(read).toHaveBeenCalledTimes(2))
     expect(read).toHaveBeenLastCalledWith(null, expect.any(AbortSignal))
     expect(await screen.findByText('1 aircraft saved.')).toBeInTheDocument()
-    // The saved flight is gone and the one that moved up is offered: a fresh panel with the new targets.
     expect(await screen.findByRole('button', { name: /identify aircraft/i })).toBeEnabled()
   })
 
@@ -257,7 +254,6 @@ describe('MissingAircraftReview', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Show the next 1 flight' }))
     await userEvent.click(screen.getByRole('button', { name: 'Discard and continue' }))
     await waitFor(() => expect(read).toHaveBeenCalledTimes(4))
-    // Continue after the reviewed boundary, not after unseen flights that filled the refreshed page.
     expect(read).toHaveBeenLastCalledWith('cursor', expect.any(AbortSignal))
     expect(await screen.findByRole('button', { name: /identify aircraft/i })).toBeInTheDocument()
   })
@@ -388,7 +384,6 @@ describe('active review across payload refreshes', () => {
         confidence: 0.9,
       })),
     })
-    // Both saves committed, but the answer for flight 2 is absent: the real accept reconciler marks it uncertain.
     apiPost.mockResolvedValueOnce({
       results: [{ id: 1, status: 'accepted', flight: { id: 1, aircraft_icao: 'B738' } }],
     })

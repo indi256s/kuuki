@@ -1,7 +1,3 @@
-// A forested islet seen at eye level (lane A, `-a` until consolidated): a low mound whose crown is
-// a row of rounded tree clumps, filled with one tone from the ladder (T2 far diagonals, T3 near
-// ground hatching, T4 dense verticals). The far islets are not outlined; near ones get a hair crest.
-// The box bottom is the waterline and `clumps` sets the number of tree masses along the top.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, hline, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, num, str } from './util'

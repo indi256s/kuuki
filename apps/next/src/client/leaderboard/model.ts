@@ -22,14 +22,11 @@ export const entryName = (entry: LeaderboardEntry, locale: Locale) =>
   entry.display_name ||
   (entry.username ? `@${entry.username}` : locale === 'ru' ? 'Участник' : 'Member')
 
-/** The name the narrator and gap lines use: the handle, else the display name. */
 export const handleOf = (entry: LeaderboardEntry) => entry.username ?? entry.display_name ?? ''
 
-/** The last place we know for the viewer: ranked now, or the last published one while changes are pending. */
 export const shownEntry = (place: ViewerPlace | null) =>
   place?.state === 'ranked' || place?.state === 'pending' ? place.entry : null
 
-/** Another board entry on the viewer's rank (ties share a place). */
 export const sharer = (place: ViewerPlace | null) =>
   place?.state === 'ranked'
     ? (place.neighbours.find(
@@ -43,7 +40,6 @@ export type TileModel =
   | { kind: 'progress'; have: number; need: number; text: string; name: string }
   | { kind: 'lock'; name: string }
 
-/** What a category tile shows and how it is named, for the viewer (or the leader, for a guest). */
 export function tileModel(
   payload: LeaderboardBoardPayload,
   category: LeaderboardCategory,
@@ -107,7 +103,6 @@ export interface NarratorChoice {
   params: NarratorParams
 }
 
-/** The narrator state for the selected category and period; the facts are the numbers on screen. */
 export function narratorChoice(
   payload: LeaderboardBoardPayload,
   category: LeaderboardCategory,

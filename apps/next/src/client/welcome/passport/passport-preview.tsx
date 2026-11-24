@@ -29,7 +29,6 @@ const COPY = {
   },
 } as const
 
-/** What the drawing prints on the passport itself. */
 const PRINT: Record<Locale, BenchCopy> = {
   en: {
     cover: 'FLIGHT JOURNAL',
@@ -70,7 +69,6 @@ const subscribeDesk = (callback: () => void) => {
 }
 const readDesk = () => matchMedia(DESK).matches
 
-/** The strip's cover thumbnail: a ring and a plane. */
 function Emblem({ size }: { size: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" fill="none" aria-hidden="true">
@@ -86,16 +84,9 @@ function Emblem({ size }: { size: number }) {
   )
 }
 
-/**
- * The brand side of the name and following steps. On desktop it is the passport bench (bench-live.ts): the closed cover
- * prints the name as it is typed, the cover swings open on the flights step, the bridge presses one stamp per country
- * found and the ready step takes a WELCOME entry stamp. On a phone it is the strip, with the bench under it while a
- * batch is read and on the reveal. The drawing is decorative; the captions and the card carry the facts.
- */
 export function PassportPreview({ preview, locale = 'en' }: { preview: Preview; locale?: Locale }) {
   const t = COPY[locale]
   const { step, found } = preview
-  // What the first render already showed (a reload or resume) stays still; only later arrivals animate.
   const [initial] = useState(() => ({
     countries: [...found.countries],
     open: preview.open,
@@ -113,8 +104,6 @@ export function PassportPreview({ preview, locale = 'en' }: { preview: Preview; 
           ? t.captionReady
           : t.captionFlights
   const stripStats = step === 'name' ? null : step === 'flights'
-  // The server and the first render are the phone's; the bench loads for the desktop at once, and on a phone once a
-  // batch is read or the reveal comes.
   const desk = useSyncExternalStore(subscribeDesk, readDesk, () => false)
   const benchOnPhone = step === 'ready' || (step === 'flights' && preview.reading)
   const stage = useRef<HTMLDivElement>(null)

@@ -1,6 +1,3 @@
-// Pyramids seen corner-on: a lit face left, a shaded face right, one silhouette. `pyramid` is the
-// smooth-sided Giza kind; `stepped-pyramid` is the terraced Mesoamerican kind (El Castillo). Both
-// are drawn from a box whose bottom is the front corner of the base.
 import {
   type Pt,
   type SvgNode,
@@ -14,11 +11,6 @@ import {
 } from '../grid'
 import { type KitModule, num } from './util'
 
-/**
- * Smooth pyramid. The apex sits at `apex` (fraction of the width) from the left; the base corners
- * are `depth` (fraction of the height) higher than the front corner. The right face takes diagonal
- * hair hatching, the left face stays lit with `courses` fine casing lines.
- */
 export const pyramid: KitModule = ([x, y, w, h], p) => {
   const apexAt = num(p, 'apex', 0.42)
   const depth = h * num(p, 'depth', 0.07)
@@ -45,13 +37,6 @@ export const pyramid: KitModule = ([x, y, w, h], p) => {
   return out
 }
 
-/**
- * Stepped pyramid with terraces, a central stairway and a summit temple. Proportions are params so
- * the same module draws squat El Castillo (`steep` 0.5) and the tall Tikal or Copan kind (`steep` 1.4+):
- * the box is the whole building (terraces plus temple), `temple` is the temple's share of the height,
- * `top` the width of the summit platform as a fraction of the base. The front face is seen square-on
- * with the right face compressed to a shaded sliver of `side` (fraction of width) so it keeps its mass.
- */
 export const steppedPyramid: KitModule = ([x, y, w, h], p) => {
   const terraces = Math.max(2, Math.round(num(p, 'terraces', 9)))
   const templeShare = num(p, 'temple', 0.16)
@@ -69,8 +54,7 @@ export const steppedPyramid: KitModule = ([x, y, w, h], p) => {
   const top = y + combH + templeH
   const out: SvgNode[] = []
   const stepH = bodyH / terraces
-  const widthAt = (i: number) => front * (1 - (1 - topW) * (i / terraces)) // i = terraces climbed
-  // Terrace fronts, from the base up so each higher one overlaps nothing below it.
+  const widthAt = (i: number) => front * (1 - (1 - topW) * (i / terraces))
   for (let i = 0; i < terraces; i++) {
     const tw = widthAt(i)
     const yb = base - stepH * i
@@ -82,7 +66,6 @@ export const steppedPyramid: KitModule = ([x, y, w, h], p) => {
       [cx + tw / 2 + sxo, yb - stepH * 0.82],
       [cx + tw / 2 + sxo, yb + 0],
     ]
-    // Right cap polygon for this terrace (shaded).
     const cap: Pt[] = [
       [cx + tw / 2, yb - stepH],
       [cx + tw / 2 + sxo, yb - stepH * 0.82],
@@ -94,7 +77,6 @@ export const steppedPyramid: KitModule = ([x, y, w, h], p) => {
     out.push(...toneFill(cap, 'T4', { gap: 2 }))
     out.push(stroke('hair', [cap[0], cap[3]]))
   }
-  // Stairway: central strip, a dark flank each side, lit treads between (fine lines).
   const sw = front * stairW
   const sTop = top
   const sTw = sw * 0.62
@@ -121,12 +103,9 @@ export const steppedPyramid: KitModule = ([x, y, w, h], p) => {
     const half = (sw / 2) * (1 - t) + (sTw / 2) * t
     out.push(hline('fine', cx - half + sw * 0.14, cx + half - sw * 0.14, yy))
   }
-  // Summit temple on the top terrace, a door and a lintel.
   const tw = front * templeW
   const ty = y + combH
   if (combH > 0) {
-    // Roof comb (Tikal Temple I): a tall tapering block set on the temple, its flanks stepping in
-    // toward a flat crest, the right third shaded and a few dark niches cut into the face.
     const cw = tw * num(p, 'combW', 0.78)
     const cwTop = cw * num(p, 'combTop', 0.7)
     const steps = Math.max(2, Math.round(num(p, 'combSteps', 3)))

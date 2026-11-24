@@ -1,7 +1,3 @@
-// Taj Mahal (India): a mausoleum on a raised white plinth. Central pointed-arch iwan between stacked
-// side niches, an onion dome on a drum with four kiosks around the roof, and four slender minarets
-// standing free at the corners of the plinth. The right side of every shaft is shaded. The box is
-// the whole complex; its bottom is the ground.
 import { type SvgNode, body, fill, hline, rectPts, stroke, toneFill } from '../grid'
 import { kiosk, onionDome, pointedArch } from './dome-parts-c'
 import { type KitModule, num } from './util'
@@ -11,7 +7,6 @@ export const tajMahal: KitModule = ([x, y, w, h], p) => {
   const cx = x + w / 2
   const out: SvgNode[] = []
   const plinthTop = base - h * 0.1
-  // Plinth: a paper cap over a dark foundation.
   out.push(...body(rectPts(x, plinthTop, w, base - plinthTop), 'line'))
   out.push(
     ...toneFill(rectPts(x + 1, plinthTop + 3.4, w - 2, base - plinthTop - 3.4), 'T4', {
@@ -20,7 +15,6 @@ export const tajMahal: KitModule = ([x, y, w, h], p) => {
     }),
   )
   out.push(hline('bold', x, x + w, plinthTop))
-  // Minarets.
   const mw = w * 0.05
   const mTop = y + h * num(p, 'minaretTop', 0.38)
   for (const mx of [x + w * 0.045, x + w - w * 0.045]) {
@@ -36,7 +30,6 @@ export const tajMahal: KitModule = ([x, y, w, h], p) => {
       out.push(hline('bold', mx - mw / 2 - 1.1, mx + mw / 2 + 1.1, mTop + sh * f))
     out.push(...kiosk(mx, mTop + sh * 0.1 + 0.5, mw * 1.7, sh * 0.2))
   }
-  // Main body.
   const bw = w * 0.55
   const bx = cx - bw / 2
   const roof = y + h * 0.5
@@ -48,7 +41,6 @@ export const tajMahal: KitModule = ([x, y, w, h], p) => {
     }),
   )
   out.push(hline('bold', bx - 1, bx + bw + 1, roof))
-  // Pishtaq frame rising over the roofline, with the central iwan and side niches.
   const pw = bw * 0.38
   const pTop = roof - h * 0.04
   out.push(...body(rectPts(cx - pw / 2, pTop, pw, roof - pTop + 1), 'line'))
@@ -70,7 +62,6 @@ export const tajMahal: KitModule = ([x, y, w, h], p) => {
     out.push(fill(pointedArch(nx, roof + nh * 0.12, bw * 0.13, roof + nh * 0.45)))
     out.push(fill(pointedArch(nx, roof + nh * 0.55, bw * 0.13, plinthTop - 1.5)))
   }
-  // Roof kiosks, drum, dome.
   for (const s of [-1, 1]) out.push(...kiosk(cx + s * bw * 0.4, roof, bw * 0.09, h * 0.13))
   const dr = bw * 0.17
   const drumTop = roof - h * 0.075

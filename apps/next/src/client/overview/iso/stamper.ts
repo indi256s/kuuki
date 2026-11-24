@@ -1,34 +1,20 @@
 import { MON, X, Y, Zd, flat, flatText, onPlan } from './flat'
 import { Scene, hull, labelSize, type IsoFigureData, type P3 } from './scene'
 
-/** How far a pick pushes the head down, and how far the month band rolls per month, in iso units. */
 const PRESS_TRAVEL = 3,
   ROLL_STEP = 6.5
 
 export type StamperInput = {
-  /** 0–11: the month the band shows. */
   month: number
-  /** The count behind `flightsLabel`; the lettering itself is the caller's. */
   flights: number
-  /** Localized short month, upper-case: the impression's lettering (and the band's current line, unless `bandLabel` says otherwise). */
   monthLabel: string
-  /** The band's current line when it differs from the impression: mid-pick the band has rolled on and the impression has not been stamped yet. A year works as well as a month. */
   bandLabel?: string
-  /** The impression's count line, pre-formatted by the caller ("11 FLIGHTS"). */
   flightsLabel: string
-  /** Twelve localized short months, upper-case, January first, for the band's neighbours; English when omitted. */
   monthLabels?: readonly string[]
-  /** How far the head is already pushed down, as geometry: the housing compresses and the posts shorten. A pick animates the `head` part instead. */
   press?: number
-  /** The impression's stroke width; 0 leaves it unprinted. */
   ink?: number
 }
 
-/**
- * Rhythm: the passport-control date stamper. Its month band reads the picked month and its last impression sits beside it.
- * Parts: `head` (housing with its band window, then crossbar, spring and handle: two groups, the near post stands between them), `band` (the month labels, clipped to the window, inside the first `head`) and `impression`.
- * Vars: `head` carries `--press-y` (the push down, in px), `band` carries `--roll-y` (one month's roll, in px). Live: the impression alone; the band's plate is plain ink.
- */
 export function stamper(
   k: number,
   {
@@ -62,7 +48,6 @@ export function stamper(
     )
   const dot = (x: number, y: number, z: number, r = 0.55) =>
     s.poly(s.circle([x, y, z], X, Y, 0, 0, r, 8), 'detail', 'line')
-  /** The near half of a ring round an upright cylinder, `rise` climbing over it (a seam when 0, a coil turn otherwise). */
   const ring = (
     cx: number,
     cy: number,
@@ -80,11 +65,9 @@ export function stamper(
     s.line(pts, stroke, width)
   }
 
-  // The base: a darker pan, so the paper and the pad stand out of it.
   s.poly(rect(-6, -5, 110, 62, 0), 'shadow', 'none')
   s.rbox(-2, -2, 0, 108, 60, Z, 1.5, { top: 'front' })
 
-  // The page the stamper prints on: ghosted earlier impressions at its margins, the new one in the middle.
   s.box(46, 1, Z, 56, 48, 0.5)
   const ghost = (cx: number, cy: number, w: number, d: number) => {
     s.poly(rect(cx - w, cy - d, cx + w, cy + d, ZP), 'none', 'crease', 0.9)
@@ -109,7 +92,6 @@ export function stamper(
   ghost(66, 6.5, 14, 4.8)
   ghost(92, 44, 8.5, 3.8)
 
-  // Impression: coral ink, double frame.
   s.group('impression', () => {
     if (ink <= 0) return
     const frame = (w: number, d: number) => rect(76 - w, 25 - d, 76 + w, 25 + d, ZP)
@@ -117,12 +99,10 @@ export function stamper(
     s.poly(frame(24, 14), 'none', 'accent', undefined, ink)
     s.poly(frame(21.5, 11.5), 'none', 'accent', undefined, ink)
     flatText(s, onPlan, 0, monthLabel, 76, 22, ZP, { size: 11, fill: 'accent', weight: 700 })
-    // The minimum readable font can outgrow the inner frame at smaller scales.
     if (flightsLabel.length * labelSize(5.4, k) * 0.62 <= 41)
       flatText(s, onPlan, 0, flightsLabel, 76, 31, ZP, { size: 5.4, fill: 'accent', weight: 600 })
   })
 
-  // A ruler along the front edge: ticks grow from its front edge.
   s.box(4, 50.5, Z, 96, 5, 0.8, { top: 'side' })
   const ticks: P3[][] = []
   for (let x = 6; x <= 98; x += 2)
@@ -132,7 +112,6 @@ export function stamper(
     ])
   s.segs(ticks, 'crease', 0.6)
 
-  // The stamper: base and far post stand still.
   s.poly(rect(1, 1, 45, 36, Z), 'shadow', 'none')
   s.box(4, 4, Z, 36, 28, 3.6)
   s.box(5, 5, Z + 3.6, 34, 26, 1.4)
@@ -147,7 +126,6 @@ export function stamper(
   s.box(3.4, 13.6, Z + 5, 4.2, 8.8, 1.2)
   s.box(4, 14, Z + 6.2, 3, 8, 32.8 - press, post)
 
-  // The head: the housing, with its band window. The clip is the housing's hull, so a head pushed down sinks into the base instead of drawing over it.
   const m = 0.7 / k,
     housing: P3[] = []
   for (const x of [9.4 - m, 34.6 + m])
@@ -163,7 +141,6 @@ export function stamper(
         [12, F, z],
         [32, F, z],
       ]
-      // The bezel round the opening, then the glass.
       s.poly(
         [
           [11.4, F, H + 25.6],
@@ -175,7 +152,6 @@ export function stamper(
         'line',
       )
       s.poly([...win(H + 25), ...win(H + 7.5 + press).reverse()], 'glass', 'line')
-      // The month on the line is read in plain ink on a pale plate; the impression is the lit part.
       s.poly(
         [
           [12.8, F, H + 19.2],
@@ -187,7 +163,6 @@ export function stamper(
         'crease',
       )
       for (const x of [10.7, 33.3]) dot(x, F, Z + 6.1, 0.5)
-      // Labels two steps out wait outside the window, so a roll has a line to bring in.
       s.group(
         'band',
         () => {
@@ -214,13 +189,11 @@ export function stamper(
     { clip: housing, vars: { '--press-y': `${pressY}px` } },
   )
 
-  // The near post is nearer than the housing, so it comes after; the crossbar rides on the posts' tops.
   s.box(36.4, 13.6, Z + 5, 4.2, 8.8, 1.2)
   s.box(37, 14, Z + 6.2, 3, 8, 32.8 - press, post)
   s.group(
     'head',
     () => {
-      // The band wheel on the housing's side, ahead of the near post.
       const wheel = (x: number) => s.circle([x, 0, 0], Y, [0, 0, 1], 25.4, H + 12.6, 2.7, 24)
       const a = wheel(34),
         b = wheel(36.4)
@@ -235,7 +208,6 @@ export function stamper(
       s.box(4.6, 14.6, H + 42, 34.8, 6.8, 0.6, { top: 'top' })
       dot(7.5, 18, H + 42.6)
       dot(36.5, 18, H + 42.6)
-      // The handle: a washer, the spring, a washer, then the cap with its seam.
       s.cylinder(22, 18, 4.3, H + 42.6, H + 43.4)
       s.cylinder(22, 18, 3.4, H + 43.4, H + 50, { side: 'side' })
       for (let j = 0; j < 4; j++) ring(22, 18, 3.4, H + 44.2 + j * 1.6, 1.2, 'line', 0.9)
@@ -248,7 +220,6 @@ export function stamper(
     { vars: { '--press-y': `${pressY}px` } },
   )
 
-  // The ink pad in its tin, with the lid beside it: in front of the stamper, so they come last.
   s.poly(s.circle([16, 41, Z], X, Y, 0, 0, 8, 24), 'shadow', 'none')
   s.poly(s.circle([33, 41, Z], X, Y, 0, 0, 7, 24), 'shadow', 'none')
   s.cylinder(16, 41, 6, Z, Z + 4.2)

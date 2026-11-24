@@ -166,7 +166,6 @@ it('keeps derived state published when unclaiming, including a no-op and ground-
     expect(noop.status).toBe(200)
     expect(await derivedState(db)).toEqual(before)
 
-    // Ground visits need no claim; dropping only them must still repair.
     await db
       .prepare('INSERT INTO ground_visits (id,user_id,country_code) VALUES (?,?,?)')
       .bind('visit-2', user.id, 'FR')
@@ -301,7 +300,6 @@ it("edits only the owner's visit, keeping omitted fields and checking the merged
       await db.prepare("SELECT visit_year FROM ground_visits WHERE id = 'theirs'").first(),
     ).toEqual({ visit_year: null })
 
-    // Changing only the entry to sea would leave a rail way on a sea visit.
     expect((await editGroundVisit(editContext(db, 'own', { entryMethod: 'sea' }))).status).toBe(400)
 
     const edited = await editGroundVisit(editContext(db, 'own', { visitYear: 2019, mode: 'road' }))

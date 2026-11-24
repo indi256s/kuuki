@@ -1,6 +1,3 @@
-// Torres del Paine: three sheer granite needles of unequal height standing on a dark scree slope.
-// The box bottom is the foot of the needles; the scree slope fills the lower `slope` fraction. Each
-// needle is a lit left face and a shaded right face with a few vertical cracks and a ragged top.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, hline, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, num, nums } from './util'
@@ -14,7 +11,6 @@ export const paineTowers: KitModule = ([x, y, w, h], p) => {
   const colW = w / (n + 0.4)
   const out: SvgNode[] = []
   const slopeTop = base - slope
-  // Scree skirt first: a ridge line of rubble running across the needle feet.
   const skirt: Pt[] = [[x, base]]
   for (let i = 0; i <= 12; i++) {
     const t = i / 12
@@ -61,7 +57,6 @@ export const paineTowers: KitModule = ([x, y, w, h], p) => {
       [cx + half * 1.5, base],
     ]
     out.push(occlude(poly), stroke('line', poly.slice(1, -1)))
-    // Shaded right face with hair verticals along the fall line.
     const split = cx + half * 0.4
     const shade: Pt[] = [
       [split + lean * 0.3, top + 2],
@@ -79,7 +74,6 @@ export const paineTowers: KitModule = ([x, y, w, h], p) => {
         [split, base - slope * 0.5],
       ]),
     )
-    // Lit-face cracks.
     for (let k = 0; k < 3; k++) {
       const fx = cx - half * (0.6 - k * 0.3)
       const t0 = top + 6 + rand() * tall * 0.3
@@ -92,7 +86,6 @@ export const paineTowers: KitModule = ([x, y, w, h], p) => {
     }
     out.push(hline('hair', cx - half * 0.45 + lean, cx + half * 0.3 + lean, top + 1.8))
   }
-  // Dark scree skirt over the needle feet.
   out.push(occlude(skirt))
   out.push(stroke('line', skirt.slice(1, -1)))
   out.push(...toneFill(skirt, 'T4', { gap: 3, weight: 'hair', angle: 70 }))

@@ -6,7 +6,6 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { Kuukies, openKuukies } from './kuukies'
 
 describe('Kuukies', () => {
-  // jsdom paints no frames, so springs and exits would never settle; motion is covered by the browser check.
   beforeAll(() => {
     MotionGlobalConfig.skipAnimations = true
   })

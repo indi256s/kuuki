@@ -1,11 +1,5 @@
-// Boarding pass barcodes (IATA BCBP, Resolution 792) projected onto the few fields Kuuki may send: airports, carrier,
-// flight number and Julian day. Passenger name, PNR, seat, sequence, status and the conditional/security sections are
-// read past by offset and never copied out, so nothing else can leave this module. `null` means the text is not a
-// boarding pass the member can use, and the caller falls back to uploading the source.
-
 import { BOARDING_PASS_MAX_LEGS } from '@kuuki/shared/constants'
 
-/** The leg shape the server admits for `type: 'boarding_pass'`; optional keys are omitted, never empty strings. */
 export interface Leg {
   origin: string
   destination: string
@@ -15,15 +9,11 @@ export interface Leg {
 }
 export interface BcbpResult {
   legs: Leg[]
-  /** Some encoded legs could not be read, so the list is shorter than the pass says. */
   incomplete: boolean
 }
 
 export const MAX_LEGS = BOARDING_PASS_MAX_LEGS
 
-// The first leg is a 23-character header (format, leg count, name, e-ticket flag) followed by the same 37-character
-// block every later leg repeats: PNR 7, from 3, to 3, carrier 3, flight 5, day 3, compartment 1, seat 4, sequence 5,
-// status 1, then the size of the conditional section in two hex digits.
 const HEADER_LENGTH = 23
 const BLOCK_LENGTH = 37
 const AIRPORT = /^[A-Z]{3}$/
@@ -45,7 +35,6 @@ function dayOfYearOf(field: string): number | undefined {
   return day >= 1 && day <= 366 ? day : undefined
 }
 
-/** Reads the leg block starting at `at` (the PNR) and the size of the conditional section behind it. */
 function readLeg(text: string, at: number): { leg: Leg; sectionSize: number } | null {
   if (text.length < at + BLOCK_LENGTH) return null
   const origin = text.slice(at + 7, at + 10)
@@ -63,7 +52,6 @@ function readLeg(text: string, at: number): { leg: Leg; sectionSize: number } | 
   return { leg, sectionSize: parseInt(size, 16) }
 }
 
-/** Projects decoded barcode text onto its legs, or returns null when it is not a readable boarding pass. */
 export function parseBcbp(text: string): BcbpResult | null {
   if (text[0] !== 'M') return null
   const encoded = Number(text[1])
@@ -84,10 +72,6 @@ export function parseBcbp(text: string): BcbpResult | null {
 const legKey = (leg: Leg) =>
   [leg.origin, leg.destination, leg.airline, leg.flightNumber, leg.dayOfYear].join('|')
 
-/**
- * Merges the readings of one file (a barcode seen in several renderings, or several passes on one page) in source
- * order without repeating identical legs. Legs past the cap are dropped and the result is marked incomplete.
- */
 export function combineLegs(results: BcbpResult[]): BcbpResult | null {
   if (results.length === 0) return null
   const seen = new Set<string>()

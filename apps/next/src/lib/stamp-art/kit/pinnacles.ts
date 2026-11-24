@@ -1,6 +1,3 @@
-// Sandstone pinnacles (lane C): a row of tall weathered rock needles of uneven height with lit
-// left faces, shaded right faces and bedding lines, plus an optional low wall between them
-// (Belogradchik, BG). `spires` rows are [centre, width, height] as fractions of the box.
 import { type Pt, type SvgNode, body, fill, hatchPoly, hline, rectPts, stroke } from '../grid'
 import { mulberry32 } from '../hash'
 import { type KitModule, bool, num } from './util'
@@ -20,7 +17,6 @@ export const pinnacles: KitModule = ([x, y, w, h], p) => {
   const spires = Array.isArray(raw) ? (raw as [number, number, number][]) : SPIRES
   const out: SvgNode[] = []
   const base = y + h
-  // back-to-front by height so tall needles stand behind short ones
   const order = [...spires].sort((a, b) => b[2] - a[2])
   for (const [cx, sw, sh] of order) {
     const bw = w * sw
@@ -33,7 +29,6 @@ export const pinnacles: KitModule = ([x, y, w, h], p) => {
     for (let i = 0; i <= rows; i++) {
       const t = i / rows
       const ty = top + (base - top) * t
-      // ragged taper: slender at the crown, spreading to a broad foot
       const prof = p.rounded
         ? 0.65 + 0.35 * Math.sin((Math.min(1, t * 3) * Math.PI) / 2)
         : 0.34 + 0.66 * Math.pow(t, 0.85)

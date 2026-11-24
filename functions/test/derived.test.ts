@@ -238,7 +238,6 @@ describe('durable derived repair', () => {
     ).toEqual({ published_revision: 0, last_error: 'DERIVED_REPAIR_FAILED' })
     await db.prepare('DROP TRIGGER fail_stats').run()
 
-    // Interleave a newer canonical commit immediately before the old publish batch.
     let publishing = false
     let intercepted = false
     const interleaved = new Proxy(db, {

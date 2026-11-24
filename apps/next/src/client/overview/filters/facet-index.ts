@@ -140,7 +140,6 @@ export function buildFacetIndex(
       : former
         ? `${locale === 'ru' ? 'покинула' : 'left'} ${facetValueLabel('alliances', former.alliance, labels, locale)} ${former.leftYear}`
         : null
-    // Qualify the note by the latest actual source flight, including mixed historical memberships.
     if (membership)
       option.sublabel = `${option.value} · ${membership} · ${locale === 'ru' ? 'на дату рейса' : 'as of flight'} ${date}`
   }

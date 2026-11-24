@@ -1,5 +1,3 @@
-// GET /api/flights/routes — lightweight route rows for the map.
-
 import { runHandler, json } from '../_lib/http'
 import { requireUser, type RequestData } from '../_lib/auth'
 import { toFlightRoute, type FlightRouteRow } from '../_lib/flights'

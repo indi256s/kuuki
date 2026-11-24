@@ -1,6 +1,3 @@
-// Peak Tram (Hong Kong): a steep funicular track climbing a hillside, drawn as a paper (T0) band
-// that cuts the backdrop hatching, two rails, sleepers, and one small car on the line. `from` and
-// `to` are [x, y] fractions of the box.
 import { type Pt, type SvgNode, fill, occlude, stroke } from '../grid'
 import { type KitModule, nums } from './util'
 
@@ -23,7 +20,6 @@ export const funicularC: KitModule = ([x, y, w, h], p) => {
   out.push(occlude(band, { halo: 1.6 }))
   out.push(stroke('hair', [at(0, -2.4), at(1, -2.4)]), stroke('hair', [at(0, 2.4), at(1, 2.4)]))
   for (let t = 0.04; t < 1; t += 0.1) out.push(stroke('fine', [at(t, -2.4), at(t, 2.4)]))
-  // The car: a box tilted with the track and one dark window band, halfway up the climb.
   const c0 = 0.5
   const c1 = 0.5 + 12 / len
   const body: Pt[] = [at(c0, 2.4), at(c0, 8.4), at(c1, 8.4), at(c1, 2.4)]

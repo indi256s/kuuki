@@ -40,7 +40,6 @@ const countryForms: CountForms = {
 const noun = (locale: Locale, n: number, set: CountForms) =>
   formatCount(locale, n, set).replace(formatNumber(locale, n), '').trim()
 
-/** One leading fact and a static drawing; explanations stay with the values they qualify. */
 export function HeroPanel() {
   const { scope, all, payload, filter, locale, ownerKey } = useOverview()
   const f = scope?.figures
@@ -155,6 +154,7 @@ export function HeroPanel() {
         </div>
       </dl>
       {!zero && f.flights > 0 && !ground ? <JournalLink /> : null}
+      {ground && !zero ? <JournalLink ground /> : null}
       {footer ? <p className="ov3-hero-footer">{footer}</p> : null}
     </section>
   )
@@ -178,11 +178,14 @@ function NumericValue({ locale, value }: { locale: Locale; value: string }) {
   ))
 }
 
-function JournalLink() {
+function JournalLink({ ground = false }: { ground?: boolean }) {
   const { filter, payload, locale, flushPrefs, isCurrent } = useOverview()
   const router = useRouter()
   const note = useId()
-  const { href, dropped } = useMemo(() => journalLinkFor(filter, payload!), [filter, payload])
+  const { href, dropped } = useMemo(
+    () => (ground ? { href: '/ground-travel', dropped: [] } : journalLinkFor(filter, payload!)),
+    [ground, filter, payload],
+  )
   const names = dropped
     .map((facet) => facetName(facet, locale).toLocaleLowerCase(locale))
     .join(', ')
@@ -198,6 +201,7 @@ function JournalLink() {
         aria-describedby={dropped.length ? note : undefined}
         onClick={(event) => {
           if (
+            ground ||
             event.defaultPrevented ||
             event.button !== 0 ||
             event.metaKey ||

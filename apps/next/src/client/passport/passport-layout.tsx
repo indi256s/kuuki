@@ -51,24 +51,18 @@ export type PassportStats = ComponentProps<typeof HeadlineNumbers>['stats'] &
   NonNullable<ComponentProps<typeof AchievementCabinet>['stats']> &
   RemarksStats
 
-/** The slim bar above the page when it is not a plain visitor read. */
 export type PassportBar = 'preview-public' | 'preview-private' | 'own-public-page'
 
 export type OwnerLayout = {
   ownerId: string
   identity: IdentityOwner
-  /** The pending slot whose arrival card is being resolved. */
   opening: string | null
-  /** Live status line: opening an arrival card, a removed country. */
   status: string
   onOpenArrival: (code: string) => void
   onAdd: () => void
   onOpenHidden: () => void
-  /** Ground visits without a year, any way; the entry shows only while there are some. */
   undatedCount: number
-  /** Opens the round-up from its entry button. */
   onOpenUndated: (opener: HTMLElement) => void
-  /** Records a ground visit from an atlas sticker. */
   quickWrites: QuickWrites
 }
 
@@ -76,49 +70,34 @@ export type PassportLayoutProps = {
   locale: Locale
   mode: 'owner' | 'visitor' | 'preview'
   profile: IdentityProfile & { bio: string | null; is_public: boolean; theme_color: string | null }
-  /** The handle from the route when the read carries none. */
   routeHandle: string
   stats: PassportStats | null
   badges: EarnedBadge[]
   rankings: { category: string; rank: number }[]
   memberViewer: boolean
-  /** `ready`, `pending` or `error`: a passport still being derived is never shown as an empty one. */
   derivedState: string
-  /** The visited total: the owner's factual count (hidden countries included) or the public set's size. */
   visited: number
-  /** Visible pressed collection, unfiltered. */
   entries: PassportEntry[]
-  /** Awaiting countries (owner only; always empty otherwise). */
   pending: PassportEntry[]
-  /** Hidden country codes (owner only). */
   hiddenCodes: string[]
   name: (code: string) => string
   query: ReturnType<typeof usePassportQuery>
-  /** Press-event IDs for newly pressed countries. */
   fresh: ReadonlyMap<string, string>
-  /** `pointer` is true when a pointer opened the card: only then may the stamp grow into the sheet. */
   onOpen: (code: string, opener?: HTMLElement, pointer?: boolean) => void
   bar: PassportBar | null
-  /** Status notes above the page: preparing, error, refresh failure. */
   notices: ReactNode
   owner: OwnerLayout | null
-  /** The sheets this mode opens. */
   sheets: ReactNode
 }
 
 const norm = (value: string) => value.replace(/\s+/g, ' ').trim().slice(0, 64).trim()
 
-/**
- * The one Passport tree behind `/passport`, `/passport?as=visitor` and `/fly/<handle>`. Owner-only controls render
- * only when `owner` is set; the public modes receive no owner data at all.
- */
 export function PassportLayout(props: PassportLayoutProps) {
   const { locale, mode, name, query, entries, pending, hiddenCodes, owner } = props
   const ru = locale === 'ru'
   const isOwner = !!owner
   const { state, navigate } = query
 
-  // The search text is local so typing is instant; the URL follows it and, on Back, the field follows the URL.
   const [draft, setDraft] = useState(state.q)
   const [syncedQ, setSyncedQ] = useState(state.q)
   if (state.q !== syncedQ) {
@@ -129,7 +108,6 @@ export function PassportLayout(props: PassportLayoutProps) {
     () => ({ q: draft, region: state.region, sources: state.sources }),
     [draft, state.region, state.sources],
   )
-  // On the owner's map a canonical source choice belongs to the map segment, not to Filters: it adds no badge or Reset.
   const mapScoped = isOwner && state.view === 'map' && mapScopeOf(state.sources) !== null
   const filterCount = activeFilterCount(mapScoped ? { ...filters, sources: [] } : filters, {
     visitor: !isOwner,
@@ -144,7 +122,6 @@ export function PassportLayout(props: PassportLayoutProps) {
     () => filterEntries(sorted, filters, name, { visitor: !isOwner }),
     [sorted, filters, name, isOwner],
   )
-  // Pending countries follow the same filters wherever they are drawn (the atlas shows them beside the collection).
   const filteredPending = useMemo(
     () => (isOwner ? filterEntries(pending, filters, name) : []),
     [pending, filters, name, isOwner],
@@ -175,6 +152,12 @@ export function PassportLayout(props: PassportLayoutProps) {
   const next = isOwner ? nearestRung(props.badges, props.stats) : null
   const hiddenCount = hiddenCodes.length
 
+  const blank =
+    !!owner &&
+    entries.length === 0 &&
+    pending.length === 0 &&
+    hiddenCount === 0 &&
+    props.derivedState === 'ready'
   let collection: ReactNode
   if (entries.length === 0) {
     if (!owner) {
@@ -262,8 +245,6 @@ export function PassportLayout(props: PassportLayoutProps) {
       />
     )
   }
-  // Stickers only on the owner's own, unfiltered map: under a filter a just-recorded country could vanish at once.
-  // Eligibility reads the full collection, so a country hidden or pending elsewhere never lifts.
   const quickVisit = useMemo<QuickVisit | null>(() => {
     if (!owner || mode !== 'owner' || norm(draft) || state.region || state.sources.length)
       return null
@@ -280,8 +261,7 @@ export function PassportLayout(props: PassportLayoutProps) {
       recording: owner.quickWrites.recording,
     }
   }, [owner, mode, draft, state.region, state.sources, entries, pending, hiddenCodes])
-  // The atlas draws what the filters leave, pending included; a pending-only passport keeps its explanation above it.
-  if (state.view === 'map' && filtered.length + filteredPending.length > 0) {
+  if (blank || (state.view === 'map' && filtered.length + filteredPending.length > 0)) {
     const atlas = (
       <PassportAtlas
         locale={locale}

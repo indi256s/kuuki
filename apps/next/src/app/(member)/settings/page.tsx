@@ -27,9 +27,7 @@ export default async function Settings() {
       (SELECT COUNT(*) FROM ground_manual_places WHERE user_id = ?) AS manualPlaces`)
       .bind(...Array<string>(7).fill(own.ownerId))
       .first<SettingsCounts>()
-  } catch {
-    /* Keep Settings usable; unavailable counts must never become an empty account. */
-  }
+  } catch {}
   let previews: PublicationPreviews | null = null
   try {
     const [flights, all] = await Promise.all([
@@ -37,9 +35,7 @@ export default async function Settings() {
       getOwnPublicPreview('all'),
     ])
     if (flights && all) previews = { flights: flights.countries, all: all.countries }
-  } catch {
-    /* Without previews Settings cannot widen publication; it must never widen blind. */
-  }
+  } catch {}
   return (
     <IdentitySnapshot ownerId={own.ownerId}>
       <SettingsForm

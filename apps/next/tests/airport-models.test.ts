@@ -108,7 +108,6 @@ for (const width of [1440, 390]) {
           })
         : 0
     if (width === 390) expect(sheetY).toBeGreaterThan(0)
-    // Deliberately fail preference saves: the entry snapshot still owns exact return state.
     await page.route('**/api/me/overview/prefs', async (route) => {
       if (route.request().method() === 'PUT')
         await route.fulfill({
@@ -201,7 +200,6 @@ test('direct comparison closes in place, and invalid scope stays explicit during
   await expect(page.getByRole('button', { name: 'Retry model', exact: true })).toBeVisible()
 })
 
-// Browser-only risks: real GPU context, native pointer capture and disposed DOM listeners.
 test('real airport canvases pick, retire and recover without an idle render loop', async ({
   page,
   baseURL,
@@ -319,7 +317,6 @@ test('real airport canvases pick, retire and recover without an idle render loop
     const canvas = page.locator('.airport-viewer canvas')
     const rect = await canvas.boundingBox()
     expect(rect).toBeTruthy()
-    // Hover discovers an actual visible object, then a tap must select that exact object.
     let name: string | null = null
     let hitPoint = { x: 0, y: 0 }
     for (const [x, y] of [
@@ -337,9 +334,7 @@ test('real airport canvases pick, retire and recover without an idle render loop
         await expect(page.locator('.airport-hover')).toBeVisible({ timeout: 450 })
         name = await page.locator('.airport-hover').textContent()
         break
-      } catch {
-        /* Try another real screen location. */
-      }
+      } catch {}
     }
     expect(name).toBeTruthy()
     await page.mouse.down()
@@ -349,7 +344,6 @@ test('real airport canvases pick, retire and recover without an idle render loop
     ).toContainText(name!)
     await canvas.click({ position: { x: 5, y: 5 } })
     await expect(page.getByRole('complementary')).toHaveCount(0)
-    // A stationary second touch must suppress selection independently of the drag guard.
     const stationary = await page.context().newCDPSession(page)
     await stationary.send('Input.dispatchTouchEvent', {
       type: 'touchStart',
@@ -362,7 +356,6 @@ test('real airport canvases pick, retire and recover without an idle render loop
     await expect(page.getByRole('complementary')).toHaveCount(0)
     await stationary.detach()
     await page.getByRole('button', { name: 'Reset', exact: true }).click()
-    // More than six CSS pixels changes the view and must never publish a selection.
     const framesBeforeDrag = await page.evaluate(() => {
       const probe = Reflect.get(window, 'airportProbe')
       probe.frameDraws = []
@@ -377,9 +370,9 @@ test('real airport canvases pick, retire and recover without an idle render loop
     await expect(page.getByRole('complementary')).toHaveCount(0)
     const measured = await page.evaluate(async (framesBeforeDrag) => {
       const probe = Reflect.get(window, 'airportProbe')
-      await new Promise((resolve) => setTimeout(resolve, 100)) // Let the final coalesced frame finish.
+      await new Promise((resolve) => setTimeout(resolve, 100))
       const before = probe.frames
-      await new Promise((resolve) => setTimeout(resolve, 250)) // Observe an idle window, not a readiness delay.
+      await new Promise((resolve) => setTimeout(resolve, 250))
       return {
         frames: before - framesBeforeDrag,
         drawCallsPerFrame: Math.max(...probe.frameDraws),
@@ -389,7 +382,6 @@ test('real airport canvases pick, retire and recover without an idle render loop
     expect(measured.frames).toBeGreaterThan(2)
     expect(measured.idleFrames).toBe(0)
     expect(measured.drawCallsPerFrame).toBeLessThanOrEqual(32)
-    // Hidden documents must not submit GPU work, even when a control changes pose.
     await page.evaluate(() => {
       Object.defineProperty(document, 'hidden', { configurable: true, value: true })
       document.dispatchEvent(new Event('visibilitychange'))
@@ -408,7 +400,6 @@ test('real airport canvases pick, retire and recover without an idle render loop
     await expect
       .poll(() => page.evaluate(() => Reflect.get(window, 'airportProbe').frames))
       .toBeGreaterThan(hiddenFrames)
-    // Two real touch pointers exercise capture/pinch and suppress tap selection.
     const scaleBeforePinch = await page.evaluate(
       () => Reflect.get(window, 'airportProbe').projectionScale,
     )
@@ -437,7 +428,6 @@ test('real airport canvases pick, retire and recover without an idle render loop
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] })
     await expect(page.getByRole('complementary')).toHaveCount(0)
     await cdp.detach()
-    // Keyboard actions use the DOM list, with focus returning after comparison.
     await page.getByRole('button', { name: 'Objects', exact: true }).focus()
     await page.keyboard.press('Enter')
     await expect(page.getByRole('heading', { name: 'Objects', exact: true })).toBeFocused()
@@ -534,7 +524,6 @@ test('owner switch retires a delayed airport history response before publication
     try {
       await route.fulfill({ response, json: data })
     } catch {
-      /* Identity retirement may have already aborted the transport. */
     } finally {
       completed()
     }

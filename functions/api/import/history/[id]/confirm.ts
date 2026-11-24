@@ -1,5 +1,3 @@
-// POST /api/import/history/:id/confirm — `{timezone?, items: [{rowId, version, key}]}`, at most 50 (ADR 0008).
-// Receipt-first and per item: a retry after a lost answer replays; flights come from the shared create chain.
 import { json, readJson, runHandler } from '../../../_lib/http'
 import { rateLimit } from '../../../_lib/ratelimit'
 import { requireCsrf, requireUser, type RequestData } from '../../../_lib/auth'

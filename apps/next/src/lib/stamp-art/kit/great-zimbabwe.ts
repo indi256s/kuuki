@@ -1,5 +1,3 @@
-// Great Zimbabwe: the long dry-stone Great Enclosure wall with its chevron band under the coping,
-// and the solid conical tower standing in front. Courses are drawn as slightly bowed lines.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, hline, occlude, quad, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
@@ -10,7 +8,6 @@ export const greatZimbabwe: KitModule = ([x, y, w, h], p) => {
   const out: SvgNode[] = []
   const wallTop = y + h * num(p, 'wallTop', 0.42)
   const sag = (px: number): number => Math.sin(((px - x) / w) * Math.PI) * -3
-  // Enclosure wall: a long coursed mass, lit on the left, shaded to the right end.
   const top: Pt[] = []
   for (let px = x; px <= x + w + 0.01; px += 6)
     top.push([px, wallTop + sag(px) + (rand() - 0.5) * 0.8])
@@ -23,7 +20,6 @@ export const greatZimbabwe: KitModule = ([x, y, w, h], p) => {
       line.push([px, cy + sag(px) * 0.8 + (rand() - 0.5) * 0.5])
     out.push(stroke('fine', line))
   }
-  // Chevron band: two opposed zig-zags between courses 1 and 3.
   const zig = (y0: number, dir: number): Pt[] => {
     const pts: Pt[] = []
     for (let px = x, i = 0; px <= x + w + 0.01; px += 2.6, i++)
@@ -34,7 +30,6 @@ export const greatZimbabwe: KitModule = ([x, y, w, h], p) => {
     stroke(p.chevron === true ? 'line' : 'fine', zig(wallTop + 6.2, 1)),
     stroke(p.chevron === true ? 'hair' : 'fine', zig(wallTop + 10.2, -1)),
   )
-  // Shaded right end of the wall.
   const shade: Pt[] = [
     [x + w * 0.78, wallTop + sag(x + w * 0.78)],
     ...top.filter((q) => q[0] > x + w * 0.78),
@@ -49,7 +44,6 @@ export const greatZimbabwe: KitModule = ([x, y, w, h], p) => {
       top.map(([px, py]) => [px, py + 1.8] as Pt),
     ),
   )
-  // Loose boulders along the wall foot.
   for (const [bx, bw] of [
     [x + w * 0.1, 7],
     [x + w * 0.82, 9],
@@ -65,7 +59,6 @@ export const greatZimbabwe: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // Conical tower in front.
   const tx = x + w * num(p, 'towerAt', 0.4)
   const bw = w * 0.115,
     tw = bw * num(p, 'taper', 0.69565),

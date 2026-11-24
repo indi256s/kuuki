@@ -1,10 +1,7 @@
 import type { SVGProps } from 'react'
 import type { ChartPoint } from './kuuki-chart'
 
-// Adapted from Arc UI Line Chart (MIT), source hash 1276d1375167311c.
 // Copyright (c) 2026 Elia Kuratli; license: ../../ui/ARC-LICENSE.txt.
-// Full provenance: docs/research/2026-10-08-arc-source-inventory.md.
-// Keep Arc's SVG line/area composition; use real numeric time rather than index spacing.
 export type ArcLinePoint<T> = ChartPoint<T> & { x: number; y: number }
 export type ArcLineProps<T> = {
   points: readonly ArcLinePoint<T>[]

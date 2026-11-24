@@ -1,13 +1,9 @@
-/* Arc metric-card, progress, search-field and Timeline presentation (uiarc.dev, MIT; see docs/research/2026-10-08-arc-source-inventory.md).
-   House tokens, immediate figures and native dated evidence; no Arc global styles or activity animation. */
-
 .passport-data {
   display: grid;
   gap: var(--space-8);
   min-width: 0;
 }
 
-/* ---------- Page ---------- */
 .passport-page {
   display: grid;
   gap: var(--space-6);
@@ -30,13 +26,12 @@
 }
 .passport-caption {
   margin: 0;
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   color: var(--text-muted);
   overflow-wrap: break-word;
 }
 
-/* The preview and own-page bar: one quiet line and the way back. */
 .passport-bar {
   display: flex;
   flex-wrap: wrap;
@@ -53,7 +48,6 @@
   text-wrap: pretty;
 }
 
-/* ---------- Identity ---------- */
 .passport-identity {
   display: grid;
   gap: var(--space-3);
@@ -96,6 +90,25 @@
 .passport-identity-actions .profile-share .ui-button {
   inline-size: auto;
 }
+@media (max-width: 700px) {
+  .passport-identity-text {
+    flex-basis: 0;
+  }
+  .passport-identity-actions {
+    display: contents;
+  }
+  .passport-identity-actions > * {
+    order: 2;
+  }
+  .passport-identity-actions > .ui-icon-button {
+    order: 0;
+  }
+  .passport-identity-row:has(.passport-identity-actions)::after {
+    content: '';
+    flex-basis: 100%;
+    order: 1;
+  }
+}
 .passport-bio {
   margin: 0;
   max-width: 60ch;
@@ -114,11 +127,10 @@
   margin: 0;
 }
 
-/* ---------- Totals and found ---------- */
 .passport-total {
   margin: 0;
-  font-size: 22px;
-  line-height: 28px;
+  font-size: 1.375rem;
+  line-height: 1.75rem;
   font-weight: 600;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -126,8 +138,8 @@
 }
 .passport-found {
   margin: 0;
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
@@ -137,7 +149,6 @@
   text-wrap: pretty;
 }
 
-/* ---------- Toolbar: search, view, filters, sort ---------- */
 .passport-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -148,11 +159,9 @@
   min-width: 0;
   max-width: 100%;
 }
-/* Wider screens: the map's row is no box of its own; its controls wrap with the rest of the toolbar. */
 .passport-toolbar-row {
   display: contents;
 }
-/* Phones: search, then each segmented control across the row, then Filters and sort as two equal halves, all 44px tall. */
 @media (max-width: 700px) {
   .passport-toolbar {
     display: grid;
@@ -169,11 +178,9 @@
     min-inline-size: 0;
     padding-inline: 12px;
   }
-  /* A lone button (Filters with no sort or Reset beside it) spans the row instead of half of it. */
   .passport-toolbar:not(:has(> .ui-button ~ .ui-button)) > .ui-button {
     grid-column: 1 / -1;
   }
-  /* The owner's map controls: what the map shows takes the row, Filters shrinks to its icon (and count) beside it. */
   .passport-toolbar > .passport-toolbar-row {
     grid-column: 1 / -1;
     display: flex;
@@ -182,6 +189,18 @@
   .passport-toolbar-row > :first-child {
     flex: 1;
     min-width: 0;
+  }
+  .passport-toolbar > .passport-toolbar-row {
+    flex-wrap: wrap;
+  }
+  .passport-toolbar-row > .ui-segmented {
+    flex: 1 1 auto;
+    width: auto;
+    grid-template-columns: repeat(3, minmax(min-content, 1fr));
+  }
+  .passport-toolbar-row > .ui-segmented .ui-segment {
+    padding-inline: 8px;
+    overflow-wrap: normal;
   }
   .passport-toolbar-row > .ui-button {
     flex: none;
@@ -195,8 +214,8 @@
 .passport-map-sources {
   margin: 0;
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
 }
 .passport-search-field {
   position: relative;
@@ -226,8 +245,8 @@
   border-radius: var(--radius-full);
   background: var(--accent);
   color: var(--accent-foreground);
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 0.75rem;
+  line-height: 1rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -247,8 +266,8 @@
 .passport-filter-group legend {
   padding: 0;
   margin-block-end: var(--space-2);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   font-weight: 600;
   color: var(--text-muted);
 }
@@ -298,7 +317,6 @@
   }
 }
 
-/* ---------- Awaiting entry ---------- */
 .passport-awaiting-entry {
   justify-self: start;
   min-height: 44px;
@@ -319,7 +337,6 @@
     color: var(--accent-text);
   }
 }
-/* The owner's quiet entries (awaiting, visits without a year) sit side by side and wrap. */
 .passport-entries {
   display: flex;
   flex-wrap: wrap;
@@ -327,7 +344,6 @@
   justify-self: start;
 }
 
-/* ---------- Round-up: visits without a year ---------- */
 .passport-undated {
   padding-block: var(--space-6);
 }
@@ -339,8 +355,8 @@
   min-width: 0;
 }
 .passport-undated-way {
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   color: var(--text-muted);
 }
 .passport-undated-year {
@@ -375,9 +391,6 @@
   flex-basis: 100%;
 }
 
-/* ---------- Stamp cards ----------
-   Columns follow the room the page has: two up from a 288px container, one when narrow or when the text is enlarged
-   (the minimum is in rem). Space groups the content; cards carry no rules. */
 .passport-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 8rem), 1fr));
@@ -418,8 +431,8 @@
   text-wrap: balance;
 }
 .passport-card-date {
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
@@ -429,8 +442,8 @@
   color: var(--text-muted);
 }
 .passport-card-action {
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   font-weight: 600;
   color: var(--accent-text);
 }
@@ -444,7 +457,6 @@
   }
 }
 
-/* ---------- Pending block ---------- */
 .passport-pending {
   display: grid;
   gap: var(--space-4);
@@ -452,8 +464,8 @@
 }
 .passport-pending h2 {
   margin: 0;
-  font-size: 22px;
-  line-height: 28px;
+  font-size: 1.375rem;
+  line-height: 1.75rem;
   letter-spacing: -0.02em;
 }
 .passport-pending h2:focus-visible {
@@ -470,8 +482,8 @@
 }
 .passport-filtered-empty h2 {
   margin: 0;
-  font-size: 22px;
-  line-height: 28px;
+  font-size: 1.375rem;
+  line-height: 1.75rem;
 }
 .passport-filtered-empty p {
   margin: 0;
@@ -481,49 +493,21 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ---------- Empty passport page ---------- */
 .passport-empty {
   display: grid;
   gap: var(--space-6);
   justify-items: start;
-  container-type: inline-size;
-}
-.passport-ghosts {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 104px));
-  gap: var(--space-4);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-@container (min-width: 720px) {
-  .passport-ghosts {
-    grid-template-columns: repeat(6, minmax(0, 120px));
-  }
-}
-.passport-ghost {
-  border: 2px dashed var(--control-border);
-}
-.passport-ghost[data-shape='round'] {
-  aspect-ratio: 1;
-  border-radius: var(--radius-full);
-}
-.passport-ghost[data-shape='rect'] {
-  aspect-ratio: 4/3;
-  border-radius: var(--radius-sm);
-  align-self: center;
 }
 .passport-empty h2 {
   margin: 0;
-  font-size: 22px;
-  line-height: 28px;
+  font-size: 1.375rem;
+  line-height: 1.75rem;
 }
 .passport-empty p {
   margin: 0;
   color: var(--text-muted);
 }
 
-/* ---------- Country and add-country sheets ---------- */
 .ui-sheet.passport-sheet-panel[data-side='right'] {
   width: min(520px, 100vw);
 }
@@ -542,8 +526,8 @@
 }
 .passport-sheet h3 {
   margin: 0;
-  font-size: 15px;
-  line-height: 24px;
+  font-size: 0.9375rem;
+  line-height: 1.5rem;
   font-weight: 600;
 }
 .passport-sheet dl {
@@ -553,8 +537,8 @@
   margin: 0;
 }
 .passport-sheet dt {
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   color: var(--text-muted);
 }
 .passport-sheet dd {
@@ -585,6 +569,14 @@
   color: var(--accent-text);
   font-weight: 600;
 }
+@media (pointer: coarse) {
+  .passport-list:not(.passport-timeline) a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-block: calc(-1 * var(--space-2));
+  }
+}
 .passport-timeline a {
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr);
@@ -611,8 +603,8 @@
 }
 .passport-note {
   margin: 0;
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   color: var(--text-muted);
 }
 .passport-form {
@@ -629,23 +621,18 @@
   flex: 1 1 180px;
   min-width: 0;
 }
-/* Four digits: the year stays narrow and the note takes the rest of the row. */
 .passport-form-row .passport-year-field {
   flex: 0 1 7rem;
 }
-/* The four ways stay one row, as a segmented control should: cells trim their padding, and at 320px a long label
-   («На машине») wraps inside its own cell instead of pushing a segment onto a second row. */
 .passport-form .ui-segmented {
   grid-template-columns: repeat(var(--n), minmax(0, 1fr));
 }
 .passport-form .ui-segment {
   padding-inline: var(--space-1);
 }
-/* Delete trails the edit form's answers, apart from Save and Cancel. */
 .passport-form-delete {
   margin-inline-start: auto;
 }
-/* The title fills the header row, so the country menu sits beside Close instead of mid-row. */
 .passport-sheet-panel .ui-panel-header > :first-child {
   flex: 1;
   min-width: 0;
@@ -653,8 +640,6 @@
 .passport-sheet-panel .ui-panel-header .passport-sheet-menu {
   margin-inline-end: 0;
 }
-/* A land or sea visit opens in the form. The row bleeds its padding so its text stays on the list's edge, and the
-   visit being edited keeps the selection contour. */
 .passport-visit-row {
   flex: 1;
   min-height: 44px;
@@ -750,13 +735,9 @@
 }
 .passport-country-list [data-collected='true'] span:last-child {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
-/* ---------- Stamp hero (stamp-hero.ts) ---------- */
-/* The card's stamp and the sheet's stamp share a per-country name while html[data-stamp-hero] is set, so the stamp
-   grows into the sheet illustration. The page under it must not crossfade, and the sheet fades in place instead of
-   sliding: a slide would put the stamp's target off screen when the new state is captured. */
 :root[data-stamp-hero]::view-transition-old(root) {
   animation: none;
   opacity: 0;

@@ -5,7 +5,6 @@ import { useState } from 'react'
 import { airlineColor, airlineIdentity } from '../../lib/airline'
 import './ui.css'
 
-/** The row supplies the airline name and flight number; this mark is decorative. */
 export function AirlineMark({ iata }: { iata: string | null }) {
   const airline = airlineIdentity(iata ?? '')
   const [failedLogo, setFailedLogo] = useState<string>()

@@ -20,7 +20,6 @@ const AircraftPanel = lazy(() =>
 
 type Read = (after: string | null, signal: AbortSignal) => Promise<MissingAircraftPage>
 
-/** Same missing-only keyset contract, backed by the admitted owner payload. */
 export function payloadMissingAircraft(
   rows: OverviewRow[],
   after: string | null,
@@ -70,12 +69,6 @@ type Load =
   | { phase: 'ready'; page: MissingAircraftPage; after: string | null; remaining: number }
 type Notice = 'more' | 'refresh' | null
 
-/**
- * "N flights have no aircraft listed" with the retained enrichment review (`AircraftPanel`) in a sheet. The review works
- * through the set one page at a time, newest first: "Show the next N" reaches every flight whether or not the earlier ones
- * could be identified or saved, and a confirmed save re-reads the same page (the saved flights leave it, the next ones
- * fill it, the total follows) before the server summary is refreshed.
- */
 export function MissingAircraftReview({
   locale,
   count,
@@ -99,7 +92,6 @@ export function MissingAircraftReview({
   const [saved, setSaved] = useState(0)
   const [work, setWork] = useState({ busy: false, dirty: false })
   const [discard, setDiscard] = useState<(() => void) | null>(null)
-  // Only replace the panel when leaving a page or when all its suggestions were saved.
   const [generation, setGeneration] = useState(0)
   const current = useRef<string | null>(null)
   const pending = useRef<{ controller: AbortController; release: () => void } | null>(null)
@@ -121,7 +113,6 @@ export function MissingAircraftReview({
       window.removeEventListener('kuuki:identity-reset', reset)
     }
   }, [])
-  /** Reads the page that starts after `after`; `mode` decides what a failure leaves on screen. */
   const fetchPage = (
     after: string | null,
     mode: 'open' | 'next' | 'refresh',
@@ -137,11 +128,9 @@ export function MissingAircraftReview({
       .then((page) => {
         if (controller.signal.aborted) return
         current.current = after
-        // Keep the reviewed boundary: the refreshed page may contain older targets not reviewed yet.
         setLoad((previous) => {
           const retained = preserveReview && previous.phase === 'ready' ? previous.page : null
           const reviewedIds = new Set(retained?.flights.map((flight) => flight.id))
-          // Saved rows no longer consume the server cursor's missing-only prefix.
           const consumed = retained
             ? page.flights.filter((flight) => reviewedIds.has(flight.id)).length
             : page.flights.length
@@ -196,7 +185,7 @@ export function MissingAircraftReview({
       (value) => value + [...run.rows.values()].filter((row) => row.status === 'saved').length,
     )
     onConfirmedSaved?.(run)
-    fetchPage(current.current, 'refresh', unresolved) // the open targets, not just the summary behind the sheet
+    fetchPage(current.current, 'refresh', unresolved)
     router.refresh()
   }
 

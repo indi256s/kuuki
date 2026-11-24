@@ -1,10 +1,3 @@
-// Shared flight creation (ADR 0001 §6 "Shared services"). `POST /api/flights`, `POST /api/flights/bulk` and import
-// draft conversion all create flights here, so there is exactly one validation path (`parseFlightBodies`) and one
-// ledger/receipt scheme. No internal HTTP round trip.
-//
-// A plain create is: ledger insert, conditional flight insert, ledger link. A draft conversion adds a guard to the
-// first statement and two statements after the link (the draft flip and the conversion receipt), so every statement
-// is gated on this batch's own previous write and the chain is all-or-nothing per item (see `conversionStatements`).
 import { HttpError } from '../_lib/http'
 import { sha256Hex } from '../_lib/crypto'
 import { FLIGHT_COLUMNS, toOwnFlight, type FlightRow } from '../_lib/flights'
@@ -29,31 +22,20 @@ export function digestInput(input: object): Promise<string> {
   return sha256Hex(JSON.stringify(sorted))
 }
 
-/** The draft a flight is being created from. Present only for import conversion. */
 export interface ConversionTarget {
   draftId: string
-  /** The draft version the member reviewed; the chain converts only that version. */
   version: number
   batchId: string
-  /** Identity of the conversion request, recomputable without the draft (see `conversionDigest`). */
   requestDigest: string
 }
 
-/**
- * The Flighty history row a flight is being created from (ADR 0008). Built only by the history confirmation service
- * after it has re-mapped the row on the server; never from a request body.
- */
 export interface HistoryTarget {
   rowId: string
-  /** The row version the owner reviewed. */
   version: number
   runId: string
-  /** The run generation the row was read under; a discard or erasure since then fences the write. */
   generation: number
-  /** The owner said this is a different flight from an owned one on the same date and route. */
   acknowledged: boolean
   requestDigest: string
-  /** Resolved source instants; `fromSchedule` when they came from the scheduled gate pair. */
   timing: (ExplicitInstants & { fromSchedule: boolean }) | null
 }
 
@@ -61,19 +43,9 @@ type CreateGuard = Pick<ConversionTarget, 'draftId' | 'version'> | HistoryTarget
 const isHistoryGuard = (guard: CreateGuard | undefined): guard is HistoryTarget =>
   !!guard && 'rowId' in guard
 
-/** What a conversion receipt pins: the draft and the version the member reviewed. It must not need the draft row. */
 export const conversionDigest = (draftId: string, version: number) =>
   sha256Hex(JSON.stringify({ kind: 'import_conversion', draftId, version }))
 
-/**
- * Ledger insert, conditional flight insert and ledger link for one create; batch them with a dirty mark.
- * `timezone` is request context (ADR 0001 §1): it picks the lifecycle state and deadlines but is outside
- * `FlightInput`, so it never enters the idempotency digest.
- *
- * With `guard`, the ledger insert requires the reviewed draft version and duplicate acknowledgement when needed,
- * so stale, converted or unacknowledged repeated drafts write nothing at all (ADR 0001 §6 step 4). A history guard
- * does the same for a reviewed Flighty row in an open run of the same generation, and carries its trusted timing.
- */
 export async function createFlightStatements(
   db: D1Database,
   userId: string,
@@ -238,13 +210,6 @@ export async function createFlightStatements(
   return { digest, statements }
 }
 
-/**
- * The two statements that follow the ledger link of a conversion (ADR 0001 §6 step 4):
- *  - flip the draft, still gated on the version and `changes() = 1` from the link. A ledger `UPDATE` does not change
- *    `last_insert_rowid()`, so it is still the flight this batch inserted;
- *  - the receipt, whose flight id comes only from the draft this batch converted. The no-target `ON CONFLICT` covers
- *    both the key and the draft uniqueness; neither conflict is reachable after the guards above.
- */
 function conversionStatements(
   db: D1Database,
   userId: string,
@@ -278,10 +243,6 @@ function conversionStatements(
   ]
 }
 
-/**
- * The statement that follows the ledger link of a history create (ADR 0008): the row becomes `created`, linked to the
- * flight this batch inserted, and records its receipt. Gated like the draft flip, so the chain is all-or-nothing.
- */
 function historyStatements(
   db: D1Database,
   userId: string,
@@ -305,7 +266,6 @@ export type BulkItemResult =
       key: string | null
       status: 'created' | 'replayed'
       flight: ReturnType<typeof toOwnFlight>
-      /** ADR 0001 §5: countries this item newly pressed; null on `replayed`, pending publication or an unknown before-set. */
       newly_stamped_countries: string[] | null
     }
   | { key: string | null; status: 'error'; http_status: number; code: string; error: string }
@@ -325,22 +285,11 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
 
 export interface BulkCreateOptions {
   timezone: string | null
-  /** Positional with `items`: a target turns that item into a draft conversion. */
   conversion?: Array<ConversionTarget | null | undefined>
-  /** Positional with `items`: a target turns that item into a Flighty history create (ADR 0008). */
   history?: Array<HistoryTarget | null | undefined>
-  /** Statements that commit in the same D1 batch, after every item chain (conversion's batch completion). */
   trailing?: D1PreparedStatement[]
 }
 
-/**
- * Create up to FLIGHT_BULK_CREATE_MAX flights, each under its own idempotency key. Items validate independently;
- * accepted flights and their receipts commit in one D1 batch with one dirty mark, then derived state is repaired
- * once. Results are positional: created / replayed / error. `derived` is null when nothing was accepted.
- *
- * For a conversion item `created` means this batch inserted the flight and converted the draft. Anything else must
- * be classified by the caller from the conversion receipts (a `replayed` result only says the key had a ledger row).
- */
 export async function bulkCreate(
   db: D1Database,
   userId: string,
@@ -401,13 +350,12 @@ export async function bulkCreate(
         ...(target ? conversionStatements(db, userId, key, target) : []),
         ...(historyTarget ? historyStatements(db, userId, key, historyTarget) : []),
       )
-      results.push(itemFailure(key, 500, 'RECEIPT_MISSING', 'Flight receipt missing')) // replaced once the ledger is read
+      results.push(itemFailure(key, 500, 'RECEIPT_MISSING', 'Flight receipt missing'))
     }
   }
   if (accepted.length === 0) return { results, derived: null }
 
   const pressedBefore = await readPressedBefore(db, userId)
-  // Unconditional dirty mark: changes() only sees the last item, and a pure replay just repairs again.
   const batch = await db.batch([...statements, ...trailing, dirtyUserStatement(db, userId)])
   const ledgers = await db
     .prepare(

@@ -1,9 +1,3 @@
-// U Bein Bridge (Myanmar): the very long teak footbridge on a regular row of posts, seen in the
-// classic view that runs away from the viewer toward the far shore. Perspective is a scale `s` that
-// falls from 1 at the near end (left) to `far` at the vanishing point (right): posts shrink and bunch,
-// the deck band narrows, roofed rest shelters stand on the deck. Paired posts are lit/shaded apart.
-// The box is the bridge: its left edge is the near end, its bottom the near waterline; the far water
-// meets the horizon at `hz` (fraction of the box height from the top).
 import { type Pt, type SvgNode, body, hline, rectPts, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
 
@@ -21,7 +15,6 @@ export const uBeinBridge: KitModule = ([x, y, w, h], p) => {
   })
   const levels: number[] = []
   for (let s = 1; s >= far * 0.98; s *= ratio) levels.push(s)
-  // Posts, far to near so near ones overlap. Each is a pair across the deck width.
   for (const s of [...levels].reverse()) {
     const { px, foot } = pos(s)
     const top = foot - H * s
@@ -45,7 +38,6 @@ export const uBeinBridge: KitModule = ([x, y, w, h], p) => {
           [px + wd, top + 0.1 * H * s],
         ]),
       )
-    // Reflection under the foot.
     out.push(
       stroke('fine', [
         [px - 0.4 * s, foot + 1.4],
@@ -53,7 +45,6 @@ export const uBeinBridge: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // Deck: a band joining the post tops, thicker near, plus a lower edge.
   const upper: Pt[] = []
   const lower: Pt[] = []
   for (let i = 0; i <= 40; i++) {
@@ -64,7 +55,6 @@ export const uBeinBridge: KitModule = ([x, y, w, h], p) => {
     lower.push([px, top + 2.6 * s])
   }
   out.push(...body([...upper, ...lower.reverse()], 'line'))
-  // Rest shelters on the deck: a roofed box at two distances.
   for (const s of [0.62, 0.34]) {
     const { px, foot } = pos(s)
     const top = foot - H * s - 1.6 * s

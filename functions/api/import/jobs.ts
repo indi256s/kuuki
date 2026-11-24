@@ -1,9 +1,3 @@
-// POST /api/import/jobs — start a persisted import batch (ADR 0001 §6, C5).
-// CSRF, auth and the per-user `import-parse:` rate limit gate a provider extraction. The result is a server-owned batch
-// of review drafts the member can reload, edit and convert. Idempotent on `submissionOperationId`: a replay returns the
-// stored batch and never calls the provider again.
-// `type: 'boarding_pass'` admits legs the browser decoded itself: validated here, persisted as unverified review drafts
-// through the same batch writer, with no provider call and no import job.
 import { type ParseRequest } from './_shared'
 import { MAX_IMPORT_BODY_BYTES, validateImportSource } from './_extract'
 import { corsHeaders, corsPreflight } from '../_lib/cors'
@@ -41,7 +35,6 @@ function text(value: unknown, pattern: RegExp, name: string, optional = false) {
   return value
 }
 
-/** One decoded leg as an unverified draft: no date yet (the member picks the year), no confidence, never preselected. */
 function legRow(leg: unknown): DraftRowInput {
   if (!isRecord(leg)) throw invalidPass('Each leg must be an object')
   onlyKeys(leg, ['origin', 'destination', 'airline', 'flightNumber', 'dayOfYear'], 'a leg')
@@ -106,7 +99,6 @@ const requireOperationId = (value: unknown) => {
   return value
 }
 
-/** Real Request/Response transport entry. */
 export async function importJobRequest(
   request: Request,
   env: Env,

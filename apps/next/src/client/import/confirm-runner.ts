@@ -1,6 +1,3 @@
-// Sequential confirm of reviewed drafts. Each chunk (<= 50 items, the server cap) is sent only after the previous one
-// answered, never fanned out. Every item has a deterministic key (`import:<draftId>:<version>`), so a lost response is
-// replayed by the server instead of creating a second flight, and no receipt is kept in browser storage.
 import { FLIGHT_BULK_CREATE_MAX } from '@kuuki/shared'
 import { classifyRequestFailure, classifyRowFailure, type RowFailureKind } from './import-errors'
 import type { ConfirmResponse } from './import-types'
@@ -19,16 +16,12 @@ export type RowOutcome =
       failure: RowFailureKind
       retryable: boolean
     }
-  /** The request was sent but no answer arrived: the row may or may not be saved. Resending the same key is safe. */
   | { status: 'uncertain' }
-  /** Never sent because an earlier chunk did not answer. */
   | { status: 'unsent' }
 
 export interface ConfirmOutcome {
   rows: Map<string, RowOutcome>
-  /** Header of the last answered chunk. */
   batch: ConfirmResponse['batch'] | null
-  /** One derived-state acknowledgement per answered chunk, for the publication check. */
   acks: Array<Pick<ConfirmResponse, 'derived_state' | 'revision'>>
   uncertain: boolean
 }
@@ -72,7 +65,6 @@ export async function runConfirm({ batchId, items, send, signal }: Run): Promise
       response = await send(batchId, chunk)
     } catch (error) {
       const failure = classifyRequestFailure(error)
-      // A transport failure or a 5xx may have been committed; a 4xx was refused before any write.
       const maybeCommitted = failure.status === null || failure.status >= 500
       for (const item of chunk) {
         outcome.rows.set(
@@ -99,7 +91,6 @@ export async function runConfirm({ batchId, items, send, signal }: Run): Promise
         })
       }
     }
-    // A well-formed answer covers every item; an item it omitted is unknown, never assumed saved.
     for (const item of chunk)
       if (!answered.has(item.draftId)) {
         outcome.rows.set(item.draftId, { status: 'uncertain' })

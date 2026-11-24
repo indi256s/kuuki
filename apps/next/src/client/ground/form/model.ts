@@ -1,6 +1,3 @@
-// Form state for ground journeys, kept as plain strings (what the inputs hold) and converted to the shared
-// GroundJourneyInput only when it is valid. Pure: no DOM, no network.
-
 import {
   GROUND_LIMITS,
   isIsoDate,
@@ -32,9 +29,7 @@ export interface LegDraft {
   departureTime: string
   arrivalDate: string
   arrivalTime: string
-  /** Minutes the owner typed. Empty means "let the schedule decide"; a schedule-derived value is never copied here. */
   durationManual: string
-  /** A city printed on a ticket, kept while the place is unset so the picker can search for it. Never a place. */
   fromCity?: string
   toCity?: string
 }
@@ -50,7 +45,6 @@ export interface PointDraft {
 
 export interface FormState {
   mode: GroundMode
-  /** What the journey becomes on save. Plans carry no countries; completed ones always carry an answer. */
   status: 'planned' | 'completed'
   title: string
   note: string
@@ -58,9 +52,7 @@ export interface FormState {
   endDate: string
   legs: LegDraft[]
   points: PointDraft[]
-  /** Owner-confirmed crossed countries (ISO-2). Nothing is ever pre-filled. */
   countries: string[]
-  /** "None of these": the deliberate empty answer. Mutually exclusive with `countries`. */
   noCountries: boolean
 }
 
@@ -103,10 +95,6 @@ export function blankState(mode: GroundMode, status: FormState['status'] = 'plan
   }
 }
 
-/**
- * The editable state of a stored journey. A leg's duration is copied only when the owner typed it
- * (`durationSource === 'manual'`): echoing a schedule-derived value would turn it into a manual one on save.
- */
 export function stateFromDto(dto: GroundJourneyDto, complete: boolean): FormState {
   const completed = dto.status === 'completed'
   const base = {
@@ -116,7 +104,6 @@ export function stateFromDto(dto: GroundJourneyDto, complete: boolean): FormStat
     note: dto.note ?? '',
     startDate: dto.startDate ?? '',
     endDate: dto.endDate ?? '',
-    // A stored completed list, even an empty one, is a deliberate answer; completing a plan starts unanswered.
     countries: completed ? [...dto.countries] : [],
     noCountries: completed && dto.countries.length === 0,
   }
@@ -156,10 +143,6 @@ export function stateFromDto(dto: GroundJourneyDto, complete: boolean): FormStat
   }
 }
 
-// ---------------------------------------------------------------------------
-// Validation
-// ---------------------------------------------------------------------------
-
 export type ErrorCode =
   | 'required'
   | 'date'
@@ -172,7 +155,6 @@ export type ErrorCode =
   | 'too-few'
   | 'countries'
 
-/** Keys: `title` `note` `startDate` `endDate` `route` `countries`, and `leg:<id>:<field>` / `point:<id>:<field>`. */
 export type FormErrors = Record<string, ErrorCode>
 
 const blank = (value: string) => value.trim() === ''
@@ -242,11 +224,9 @@ export function validateState(state: FormState): FormErrors {
   return errors
 }
 
-/** An empty checklist alone is silence; the answer is a chosen country or an explicit "None of these". */
 export const countriesAnswered = (state: Pick<FormState, 'countries' | 'noCountries'>): boolean =>
   state.noCountries || state.countries.length > 0
 
-/** The country list to send: `[]` only for a deliberate "None of these", never for an unanswered form. */
 export function confirmedCountries(
   state: Pick<FormState, 'countries' | 'noCountries'>,
 ): string[] | null {
@@ -254,7 +234,6 @@ export function confirmedCountries(
   return state.countries.length > 0 ? [...state.countries] : null
 }
 
-/** Country codes of the route's chosen places, first appearance first. A suggestion only, never a confirmation. */
 export function routeCountryCodes(state: Pick<FormState, 'mode' | 'legs' | 'points'>): string[] {
   const places =
     state.mode === 'rail'
@@ -266,7 +245,6 @@ export function routeCountryCodes(state: Pick<FormState, 'mode' | 'legs' | 'poin
   return [...seen]
 }
 
-/** Input for the shared metrics: legs/points whose places are all chosen; incomplete rows are left out. */
 export function previewInput(state: FormState): GroundJourneyInput | null {
   const shell = { title: null, note: null, startDate: null, endDate: null }
   if (state.mode === 'rail') {
@@ -281,7 +259,6 @@ export function previewInput(state: FormState): GroundJourneyInput | null {
   return points.length > 0 ? { ...shell, mode: 'road', points } : null
 }
 
-/** The shared leg for a draft whose places are chosen; null while either end is missing. */
 export const legPreview = (leg: LegDraft): RailLegInput | null =>
   leg.from && leg.to ? toLegInput(leg, leg.from, leg.to) : null
 
@@ -319,7 +296,6 @@ function toPointInput(point: PointDraft, place: GroundPlaceSnapshot): RoadPointI
   }
 }
 
-/** The shared input for a state that passed `validateState`; null if anything required is still missing. */
 export function toJourneyInput(state: FormState): GroundJourneyInput | null {
   if (Object.keys(validateState(state)).length > 0) return null
   const fields = {
@@ -344,14 +320,8 @@ export function toJourneyInput(state: FormState): GroundJourneyInput | null {
   return { ...fields, mode: 'road', points }
 }
 
-// ---------------------------------------------------------------------------
-// Commands
-// ---------------------------------------------------------------------------
-
-/** The journey a form edits; absent while creating. */
 export interface Target {
   journeyId: string
-  /** Stored status; undefined for a journey that does not exist yet. */
   existing?: GroundStatus
   expectedVersion?: number
 }
@@ -359,10 +329,6 @@ export interface Target {
 export type CommandBody = DistributiveOmit<GroundCommand, 'operationKey'>
 type DistributiveOmit<T, K extends keyof never> = T extends unknown ? Omit<T, K> : never
 
-/**
- * The one command a form save sends. The action follows the stored status: a plan that is being completed uses
- * `complete`, a completed journey `update` with its countries, any other stored journey `update` without them.
- */
 export function buildCommandBody(state: FormState, target: Target): CommandBody | null {
   const journey = toJourneyInput(state)
   if (!journey) return null
@@ -393,7 +359,6 @@ export function buildCommandBody(state: FormState, target: Target): CommandBody 
   return { action: 'update', journeyId: target.journeyId, expectedVersion, journey }
 }
 
-/** Plain-text route for summaries, alerts and announcements. Unchosen places read as "?". */
 export function routeSummary(
   state: Pick<FormState, 'mode' | 'legs' | 'points'>,
   name: (p: GroundPlaceSnapshot) => string,

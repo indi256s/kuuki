@@ -1,8 +1,3 @@
-// User + profile creation, porting Supabase's handle_new_user.
-//
-// handle_new_user (live): on auth.users INSERT → insert profiles(id, display_name, avatar_url).
-//   No username, no user_stats row (user_stats is created lazily by the derived-state repair).
-
 import { newId, hashPassword } from './crypto'
 import { nowIso } from './time'
 import { HttpError } from './http'
@@ -19,22 +14,15 @@ export interface AuthUser {
   email: string
 }
 
-/** users.password_hash value of an account nobody has claimed yet (no password, no credential row). */
 export const RESET_REQUIRED = 'RESET_REQUIRED'
 export type AccountPhase = 'unclaimed' | 'active'
 export const accountPhase = (hash: string | null | undefined): AccountPhase =>
   hash === RESET_REQUIRED ? 'unclaimed' : 'active'
-/** SQL fragments over a password_hash column expression. The sentinel is a fixed literal, never user input. */
 export const unclaimedSql = (column = 'password_hash') => `${column} = '${RESET_REQUIRED}'`
 export const activeSql = (column = 'password_hash') => `${column} <> '${RESET_REQUIRED}'`
 
-/** Shape-only email check shared by signup and activation requests. */
 export const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/
 
-/**
- * Password shape check. A new password needs 8+ characters; a current one only needs to be
- * present. Both cap at 1024 to bound hashing cost.
- */
 export function parsePassword(value: unknown, kind: 'new' | 'current'): string {
   if (kind === 'new') {
     if (typeof value !== 'string' || value.length < 8 || value.length > 1024)
@@ -59,7 +47,6 @@ export async function getUserByEmail(
     .first<{ id: string; email: string; password_hash: string }>()
 }
 
-/** Fetch a user's stored password hash by id (re-auth gate for account deletion). */
 export async function getPasswordHashById(db: D1Database, userId: string): Promise<string | null> {
   const row = await db
     .prepare(
@@ -70,18 +57,8 @@ export async function getPasswordHashById(db: D1Database, userId: string): Promi
   return row?.password_hash ?? null
 }
 
-/**
- * Delete every row a user owns, then the profile and user rows, in one batch.
- *
- * D1's FK ON DELETE CASCADE is not guaranteed on every path (see schema header), so we
- * delete children explicitly in child→parent order. Tables enumerated from §4 of the
- * migration plan + the schema. The whole thing runs as a single db.batch() so a failure
- * rolls back rather than leaving a half-deleted account.
- */
 export async function deleteUserCascade(db: D1Database, userId: string): Promise<string[]> {
   const childTables = [
-    // ADR 0001 §6: drafts, receipts and evidence first, then the flights they point at.
-    // ADR 0008: Flighty history rows (private source cells), then their runs.
     'history_import_rows',
     'history_import_runs',
     'import_conversion_receipts',
@@ -96,8 +73,6 @@ export async function deleteUserCascade(db: D1Database, userId: string): Promise
     'country_claims',
     'ground_visits',
     'user_activity_days',
-    // Ground travel, children before parents: receipts, countries, legs/points, then every journey row
-    // (tombstones included), then the owner's private places.
     'ground_operation_receipts',
     'ground_journey_countries',
     'ground_rail_legs',
@@ -116,7 +91,6 @@ export async function deleteUserCascade(db: D1Database, userId: string): Promise
     'flight_idempotency',
   ]
   const [jobs] = await db.batch([
-    // Capture live jobs in the same transaction as their deletion fence, including racing submissions.
     db
       .prepare("SELECT id FROM import_batches WHERE user_id = ? AND status = 'processing'")
       .bind(userId),
@@ -132,10 +106,6 @@ export async function deleteUserCascade(db: D1Database, userId: string): Promise
   return (jobs.results as Array<{ id: string }>).map((job) => job.id)
 }
 
-/**
- * Create the auth user and profile in one batch. Founding badges already earned by
- * historical users remain untouched; new signups do not receive one.
- */
 export async function createUserWithProfile(
   db: D1Database,
   input: NewUserInput,

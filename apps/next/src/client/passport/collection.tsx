@@ -23,7 +23,6 @@ const SOURCE_ICONS: Record<PassportSource, typeof Plane> = {
   manual: PenLine,
 }
 
-/** Compact source marks with a text alternative: the icons are decoration, the labels are read. */
 function SourceMarks({ sources, locale }: { sources: PassportSource[]; locale: Locale }) {
   if (!sources.length) return null
   return (
@@ -42,10 +41,6 @@ function SourceMarks({ sources, locale }: { sources: PassportSource[]; locale: L
   )
 }
 
-/**
- * The collection as stamp cards. Each card is one button (click and keyboard) and the stamp's motion host. The owner
- * sees the last known date and the source marks; a visitor gets the stamp and the name only.
- */
 export function PassportCards({
   entries,
   locale,
@@ -58,9 +53,7 @@ export function PassportCards({
   locale: Locale
   name: (code: string) => string
   owner: boolean
-  /** Immutable press-event IDs for countries pressed since the owner last looked; the stamp plays them once. */
   fresh: ReadonlyMap<string, string>
-  /** `pointer` is false for a keyboard activation (a click with no pointer behind it), which never plays the stamp hero. */
   onOpen: (code: string, opener: HTMLElement, pointer: boolean) => void
 }) {
   const ru = locale === 'ru'
@@ -75,7 +68,6 @@ export function PassportCards({
             data-code={entry.code}
             onClick={(event) => onOpen(entry.code, event.currentTarget, event.detail > 0)}
           >
-            {/* The Import → Passport hero (route-motion.ts) pairs this stamp with the one on the Import page. */}
             <span className="passport-card-stamp" data-hero-enter-key={entry.code}>
               <CountryStamp
                 iso2={entry.code}
@@ -108,14 +100,9 @@ const AWAITING_FORMS = {
     other: 'Ждут подтверждения · {count}',
   },
 }
-/** «Awaiting confirmation · 3», the label of the entry above the collection and the pending block's heading. */
 export const awaitingLabel = (locale: Locale, count: number) =>
   formatCount(locale, count, AWAITING_FORMS)
 
-/**
- * The owner's awaiting countries, apart from the collection: dashed outline without ink, and a Confirm action that
- * opens the arrival card of the flight behind the country. The link keeps the queue as its fallback target.
- */
 export function PendingBlock({
   entries,
   locale,
@@ -126,7 +113,6 @@ export function PendingBlock({
   entries: PassportEntry[]
   locale: Locale
   name: (code: string) => string
-  /** The pending slot whose arrival card is being resolved: busy, and not activated again. */
   opening: string | null
   onOpenArrival: (code: string) => void
 }) {
@@ -199,23 +185,15 @@ const WAITING_FORMS = {
     other: '{count} страны ждут вас',
   },
 }
-const GHOSTS = ['round', 'rect', 'round', 'round', 'rect', 'round'] as const
-
-/** An empty passport page: six ghost stamps, the catalog headline and the two ways in. */
 export function EmptyPassport({ locale, onAdd }: { locale: Locale; onAdd: () => void }) {
   const ru = locale === 'ru'
   return (
     <section className="passport-empty" aria-labelledby="passport-empty-title">
-      <ul className="passport-ghosts" aria-hidden="true">
-        {GHOSTS.map((shape, index) => (
-          <li key={index} className="passport-ghost" data-shape={shape} />
-        ))}
-      </ul>
       <h2 id="passport-empty-title">{formatCount(locale, CATALOG_TOTAL, WAITING_FORMS)}</h2>
       <p>
         {ru
-          ? 'Добавьте страну, где вы были, или импортируйте перелёты: штампы появятся здесь.'
-          : 'Add a country you have visited or import your flights, and the stamps appear here.'}
+          ? 'Нажмите на карте страну, где вы были, или импортируйте перелёты.'
+          : 'Tap a country you have visited on the map, or import your flights.'}
       </p>
       <p>
         {ru
@@ -234,7 +212,6 @@ export function EmptyPassport({ locale, onAdd }: { locale: Locale; onAdd: () => 
   )
 }
 
-/** The collection is empty only because of the search or filters; one way back, and the add suggestion for the owner. */
 export function FilteredEmpty({
   locale,
   suggestion,
@@ -242,7 +219,6 @@ export function FilteredEmpty({
   onReset,
 }: {
   locale: Locale
-  /** The unvisited country the query names, as a separate explicit offer (owner: an action; visitor: the name). */
   suggestion: ReactNode
   action: ReactNode
   onReset: () => void
@@ -270,7 +246,6 @@ export function FilteredEmpty({
   )
 }
 
-/** Quiet line shown instead of the collection when there is nothing to list. */
 export function QuietLine({ children }: { children: ReactNode }) {
   return <p className="passport-quiet">{children}</p>
 }

@@ -1,5 +1,3 @@
-// Eight stamp inks with light/dark values. Every value is at least 4.5:1 against `--surface`
-// (SURFACE_COLOR) in its theme, because the ring text is small type. Checked by lint.test.ts.
 import { hash32 } from './hash'
 import registry from './registry.json'
 
@@ -22,11 +20,6 @@ export const isInkName = (v: string): v is InkName => Object.hasOwn(INKS, v)
 
 export type InkRequest = { iso2: string; cluster?: string | null; ink?: InkName }
 
-/**
- * Assigns an ink per country. Explicit `ink` wins. Countries without a cluster take a stable hash
- * pick. Countries in one cluster walk the palette from a cluster-specific start in ISO order, skipping
- * inks already taken by an explicit pick, so members differ (up to eight members).
- */
 export function resolveInks(requests: InkRequest[]): Map<string, InkName> {
   const out = new Map<string, InkName>()
   const byCluster = new Map<string, InkRequest[]>()
@@ -54,10 +47,6 @@ export function resolveInks(requests: InkRequest[]): Map<string, InkName> {
 type RegistryRow = { iso2: string; cluster: string | null }
 const registryRows = registry as RegistryRow[]
 
-/**
- * Inks for the whole catalog: the registry clusters decide who must differ, recipe `ink` and
- * `cluster` values override the registry for their country.
- */
 export function inkMap(overrides: Record<string, { ink?: InkName; cluster?: string | null }> = {}) {
   return resolveInks(
     registryRows.map((row) => {

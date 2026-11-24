@@ -1,10 +1,3 @@
-/**
- * Generates apps/next/src/client/overview/iso/continents.generated.ts for the Continents puzzle figure: the 110m country polygons
- * (`apps/next/public/maps/countries-110m-2.0.2-r2.geojson`) assigned to seven continents by airport-level rules (Russia and Kazakhstan split
- * at the Urals, Turkey's Thrace is Europe, Sinai is Asia, the Americas split by subregion from `packages/data/src/countries.json`),
- * clipped where a country straddles a line, merged into one outline per landmass by cancelling shared borders, and simplified (Douglas–Peucker at 1.5°, rings under 10 deg² dropped, coordinates to 0.1°).
- * Run: pnpm exec tsx scripts/generate-continent-pieces.ts
- */
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -28,7 +21,6 @@ type Geo = {
   }[]
 }
 
-/** Douglas–Peucker tolerance and smallest ring kept, in degrees: the puzzle draws at about 300 px wide, so finer detail would not show. */
 const TOLERANCE = 1.5,
   MIN_AREA = 10
 
@@ -44,7 +36,6 @@ const OUTPUT = join(
   'continents.generated.ts',
 )
 
-/** Continent of a point in a country, by airport-level rules. Overseas pieces of European countries (French Guiana, the Caribbean) belong where they lie. */
 function continentOf(catalog: Catalog, cc: string, lon: number, lat: number): Continent | null {
   const v = catalog[cc]
   if (!v) return null
@@ -59,7 +50,6 @@ function continentOf(catalog: Catalog, cc: string, lon: number, lat: number): Co
   return v.continent as Continent
 }
 
-/** Sutherland–Hodgman against one half-plane, keeping where f(p) >= 0 (f linear). */
 function clip(pts: Pt[], f: (p: Pt) => number): Pt[] {
   const out: Pt[] = []
   pts.forEach((p, i) => {
@@ -75,7 +65,6 @@ function clip(pts: Pt[], f: (p: Pt) => number): Pt[] {
   return out
 }
 
-/** Douglas–Peucker for a closed ring: split at the point farthest from the start, so neither half is degenerate. */
 function simplify(ring: Pt[], tol: number): Pt[] {
   const first = ring[0],
     last = ring[ring.length - 1]
@@ -145,7 +134,6 @@ export function pieces(geo: Geo, catalog: Catalog): Map<Continent, Pt[][]> {
       f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates
     ) as number[][][][]
     for (const poly of polys) {
-      // Antarctica's south edge sits on the pole; the puzzle's tray stops at 84°S.
       const r = poly[0].map(([lon, lat]) => [lon, Math.max(lat, -84)] as Pt)
       if (area(r) < 1.2) continue
       if (split[cc]) {
@@ -164,7 +152,6 @@ export function pieces(geo: Geo, catalog: Catalog): Map<Continent, Pt[][]> {
           ),
         )
         const east = clip(r, (p) => p[0] - 29.1)
-        // Split the east cut at Thrace's corner so its shared southern edge cancels in union.
         const joined = east.flatMap((a, i): Pt[] => {
           const b = east[(i + 1) % east.length]
           return Math.abs(a[0] - 29.1) < 1e-8 &&
@@ -195,8 +182,6 @@ const signed = (pts: Pt[]) =>
     const [x2, y2] = pts[(i + 1) % pts.length]
     return sum + x * y2 - x2 * y
   }, 0)
-/** Edges shared by two neighbouring countries cancel, so a continent is the outline of its land: the rings left after stitching what is left. */
-// shortcut: borders must share whole segments; subdivide new synthetic cuts when clipping adds partial overlaps.
 function union(rings: Pt[][]): Pt[][] {
   const edges = new Map<string, [Pt, Pt]>()
   for (const raw of rings) {

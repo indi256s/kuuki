@@ -1,5 +1,3 @@
-// Owner reads of ground journeys: DTO assembly (few batched queries), list order and totals, publication
-// readiness and operation receipts (.scratch/ground-travel/storage-contract.md).
 import {
   compareJourneys,
   journeyMetrics,
@@ -77,7 +75,6 @@ export interface ReceiptRow {
 const RECEIPT_COLUMNS =
   'kind, request_digest, journey_id, outcome, result_version, account_revision'
 
-/** Completed receipts of this owner and key that have not expired; an expired receipt reads as absent. */
 export const receiptStatement = (db: D1Database, userId: string, key: string, instant: string) =>
   db
     .prepare(
@@ -88,7 +85,6 @@ export const receiptStatement = (db: D1Database, userId: string, key: string, in
 
 const round1 = (km: number | null) => (km === null ? null : Math.round(km * 10) / 10)
 
-/** Owner-wide child reads; exported so tests can EXPLAIN the exact SQL that runs. */
 export const childReadSql = {
   legs: (childScope: string) =>
     `SELECT journey_id, id, from_place, to_place, from_station, to_station, train_number, operator,
@@ -102,7 +98,6 @@ export const childReadSql = {
      WHERE user_id = ?${childScope} ORDER BY journey_id, country_code`,
 }
 
-/** Live journeys of one owner (optionally a single id) with children, countries and metrics; unsorted. */
 export async function readOwnerJourneys(
   db: D1Database,
   userId: string,
@@ -112,10 +107,6 @@ export async function readOwnerJourneys(
   return read.derive(await db.batch(read.statements))
 }
 
-/**
- * The owner journey read as statements plus assembly, so a caller can put them in its own batch and keep one
- * snapshot (Overview pairs them with the revision its ETag names).
- */
 export function ownerJourneysRead(db: D1Database, userId: string, journeyId?: string) {
   const scope = journeyId ? ' AND id = ?' : ''
   const childScope = journeyId ? ' AND journey_id = ?' : ''
@@ -226,7 +217,6 @@ export async function readOwnerJourney(
   return (await readOwnerJourneys(db, userId, journeyId))[0] ?? null
 }
 
-/** Publication is sufficient once the published and evidence revisions reach the one a commit recorded. */
 export const publicationOf = (
   state: DerivedStateRow | null,
   accountRevision: number,
@@ -237,7 +227,6 @@ export const publicationOf = (
 
 export interface ListFilter {
   mode?: GroundMode
-  /** `cancelled` lists only cancelled journeys; absent hides them. */
   cancelledOnly: boolean
   today: string
 }
@@ -256,9 +245,7 @@ export async function readJourneyList(
     .sort(compareJourneys(filter.today))
   return {
     journeys,
-    // Completed-only totals of every mode, whatever the list filter (the client hides them for cancelled-only).
     totals: { rail: modeTotals(all, 'rail'), road: modeTotals(all, 'road') },
-    // No row means nothing was ever written (revision 0): nothing to publish, so the account is ready.
     derivedState:
       !state ||
       (state.revision === state.published_revision &&

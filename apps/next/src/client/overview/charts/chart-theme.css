@@ -1,7 +1,7 @@
 .kc {
   min-width: 0;
   color: var(--text-muted);
-  font: 400 13px/20px var(--font-sans);
+  font: 400 0.8125rem/1.25rem var(--font-sans);
   font-variant-numeric: tabular-nums;
 }
 
@@ -15,7 +15,7 @@
   box-shadow: var(--shadow-floating);
   padding: var(--space-3);
   max-width: min(320px, calc(100vw - 32px));
-  font: 400 13px/20px var(--font-sans);
+  font: 400 0.8125rem/1.25rem var(--font-sans);
   color: var(--text);
   font-variant-numeric: tabular-nums;
 }
@@ -35,7 +35,6 @@
 .kc svg text[font-size='13'] {
   font-family: var(--font-sans);
 }
-/* Mono is a size-keyed default (12, 22). Axis names and numeric ticks that need the 12px floor opt back to the sans face with data-sans. */
 .kc svg text[data-sans] {
   font-family: var(--font-sans);
 }
@@ -50,9 +49,6 @@
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
-/* Mark states. Hover and a legend-linked highlight outline the mark, a pinned tooltip keeps that outline,
-   and an applied filter keeps a thinner one. Fill and stroke colors stay the data's own, and neighbours
-   are never dimmed. Keyboard focus is the outline ring above. */
 .kc-svg
   [data-kc-key]:is([data-pinned], [data-highlight])
   :is(circle, rect, path, polygon):not([fill='none'], [fill='transparent'], [data-no-contour]),
@@ -62,7 +58,6 @@
   stroke: var(--text);
   stroke-width: 2px;
 }
-/* Transparent outline marks (the Unknown maker cell) keep their fill and thicken the outline instead. */
 .kc-svg [data-kc-key]:is([data-pinned], [data-highlight], [data-filtered]) [data-kc-outline] {
   stroke: var(--text);
   stroke-width: 3px;
@@ -115,7 +110,6 @@
 .kc-svg [role='button'] {
   cursor: pointer;
 }
-/* Count-driven charts keep their natural width, left-aligned, and scroll when the host is narrower. */
 .kc[data-scroll] {
   overflow-x: auto;
 }
@@ -131,7 +125,6 @@
   width: 100%;
   height: var(--brush-height);
 }
-/* Handles cover the plot area; each input is widened by one thumb so the thumb centre lands exactly on its value. Only thumbs take pointer input. */
 .arc-brush-handles {
   position: absolute;
   inset: 0 var(--brush-right) 0 var(--brush-left);

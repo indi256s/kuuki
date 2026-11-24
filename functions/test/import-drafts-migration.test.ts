@@ -1,4 +1,3 @@
-// ADR 0001 §6/§7 (T07): the additive import-draft schema, shipped separately from 0006 for a reviewable deploy order.
 import { describe, expect, it } from 'vitest'
 import { databaseThrough } from './lifecycle-fixture'
 
@@ -106,8 +105,8 @@ describe('0007 import drafts schema', () => {
       await expect(batch(db, 'b2', { stage: 'done' })).rejects.toThrow()
       await expect(batch(db, 'b2', { source_label: 'x'.repeat(121) })).rejects.toThrow()
       await expect(batch(db, 'b2', { sequence: -1 })).rejects.toThrow()
-      await expect(batch(db, 'b2', { user_id: 'missing-user' })).rejects.toThrow() // FK
-      await expect(batch(db, 'b3', { submission_operation_id: 'op-b1' })).rejects.toThrow() // UNIQUE (user_id, submission_operation_id)
+      await expect(batch(db, 'b2', { user_id: 'missing-user' })).rejects.toThrow()
+      await expect(batch(db, 'b3', { submission_operation_id: 'op-b1' })).rejects.toThrow()
       await batch(db, 'b4', { stage: null, source_label: null, status: 'processing' })
     } finally {
       await dispose()
@@ -135,7 +134,7 @@ describe('0007 import drafts schema', () => {
         year_confirmed: 0,
         duplicate_acknowledged: 0,
       })
-      await expect(draft(db, 'd2', 'b1', 0)).rejects.toThrow() // UNIQUE (batch_id, ordinal)
+      await expect(draft(db, 'd2', 'b1', 0)).rejects.toThrow()
       await expect(draft(db, 'd2', 'b1', -1)).rejects.toThrow()
       await expect(draft(db, 'd2', 'b1', 1, { fields_json: 'x'.repeat(2049) })).rejects.toThrow()
       await expect(
@@ -145,7 +144,7 @@ describe('0007 import drafts schema', () => {
       await expect(draft(db, 'd2', 'b1', 1, { status: 'raw' })).rejects.toThrow()
       await expect(draft(db, 'd2', 'b1', 1, { version: 0 })).rejects.toThrow()
       await expect(draft(db, 'd2', 'b1', 1, { selected: 2 })).rejects.toThrow()
-      await expect(draft(db, 'd2', 'nope', 1)).rejects.toThrow() // FK to batch
+      await expect(draft(db, 'd2', 'nope', 1)).rejects.toThrow()
       await draft(db, 'd3', 'b1', 2, { confidence: 0.5, field_confidence_json: '{}' })
     } finally {
       await dispose()
@@ -163,9 +162,9 @@ describe('0007 import drafts schema', () => {
           )
           .bind(USER, key, draftId, 'gone-batch', 'digest', 99, NOW)
           .run()
-      await receipt('key-0001', 'draft-a') // no FK to drafts, batches or flights
-      await expect(receipt('key-0001', 'draft-b')).rejects.toThrow() // PRIMARY KEY (user_id, operation_key)
-      await expect(receipt('key-0002', 'draft-a')).rejects.toThrow() // UNIQUE (user_id, draft_id)
+      await receipt('key-0001', 'draft-a')
+      await expect(receipt('key-0001', 'draft-b')).rejects.toThrow()
+      await expect(receipt('key-0002', 'draft-a')).rejects.toThrow()
       await receipt('key-0002', 'draft-b')
     } finally {
       await dispose()

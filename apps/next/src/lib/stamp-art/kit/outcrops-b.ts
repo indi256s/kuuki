@@ -1,6 +1,3 @@
-// Granite outcrops on a grass plateau edge: a pile of rounded boulders and tors of different sizes
-// standing on a low rise. Each boulder is a dome with a curved crack, lit upper left and hatched
-// along the fall line on the right. The box bottom is the foot of the pile.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, occlude, quad, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
@@ -9,7 +6,6 @@ export const outcropsB: KitModule = ([x, y, w, h], p) => {
   const rand = mulberry32(Math.round(num(p, 'seed', 8)))
   const base = y + h
   const out: SvgNode[] = []
-  // [cx fraction, width fraction, height fraction, bottom fraction]
   const rocks: [number, number, number, number][] = [
     [0.2, 0.34, 0.5, 1],
     [0.58, 0.42, 0.7, 1],
@@ -47,7 +43,6 @@ export const outcropsB: KitModule = ([x, y, w, h], p) => {
       ),
     )
   }
-  // Grass foot: short horizontal flecks.
   for (let k = 0; k < 3; k++)
     for (let sx = x + rand() * 5; sx < x + w - 5; sx += 7 + rand() * 7)
       out.push(

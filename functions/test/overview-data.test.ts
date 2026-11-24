@@ -251,7 +251,6 @@ it('payload carries every lifecycle state in one owner-scoped batch', async () =
     const batch = vi.fn(db.batch.bind(db))
     const readDb = { prepare: db.prepare.bind(db), batch } as unknown as D1Database
     const payload = await readOverviewData(readDb, USER.id)
-    // Flights, Passport and ground journeys share one batch, so the ETag's revision names all of them.
     expect(batch).toHaveBeenCalledTimes(1)
     expect(payload).toMatchObject({
       schemaVersion: 4,
@@ -397,7 +396,6 @@ it('aggregate mode preserves totals above 5000 rows', async () => {
     expect(
       payload.rows.every((row) => row.flightNumber === null && row.departureUtc === null),
     ).toBe(true)
-    // Exercise the real SELECT/map/aggregate/JSON boundary with a witness unlike the group representative.
     await db.batch([
       db
         .prepare(
@@ -964,7 +962,6 @@ it('payload lists live non-cancelled ground journeys with located runs and their
       ],
     })
     expect(byId['g-rail'].distanceKm).toBeGreaterThan(800)
-    // The unlocated place ends the first run and starts a new one after it.
     expect(byId['g-road'].runs).toEqual([
       [[2.35, 48.85]],
       [

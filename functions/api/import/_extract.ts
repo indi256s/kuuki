@@ -1,7 +1,4 @@
 import { IMPORT_MAX_FILE_BYTES } from '../../../packages/shared/src/constants'
-// Provider extraction shared by the synchronous parse endpoint and the persisted import job writer
-// (ADR 0001 §6, controller ruling R3): one prompt, one schema, one model and one set of limits.
-// Nothing here persists anything; callers decide what to keep (the job writer drops `raw_text`).
 import { GoogleGenAI, Type } from '@google/genai'
 import {
   type ParseRequest,
@@ -27,12 +24,9 @@ import { parseStructuredText } from './_text'
 import { verifyFlights, type VerificationStatus } from './_verify'
 
 export const MAX_FILE_SIZE = IMPORT_MAX_FILE_BYTES
-export const MAX_TEXT_LENGTH = 100_000 // chars — cap the (previously uncapped) text branch; controls Gemini cost
-// A 10 MiB file becomes at most 13,981,016 base64 bytes; 14 MiB includes
-// the JSON envelope. The stream limit applies even without Content-Length.
+export const MAX_TEXT_LENGTH = 100_000
 export const MAX_IMPORT_BODY_BYTES = 14 * 1024 * 1024
 
-// JSON schema for structured output (full extraction with aircraft/times)
 export const FLIGHT_RESPONSE_SCHEMA = {
   type: Type.OBJECT,
   properties: {
@@ -147,12 +141,10 @@ export const FLIGHT_RESPONSE_SCHEMA = {
       description: 'At most one short sentence about the source, never a copy of the document',
     },
   },
-  // Flights first, so streamed rows arrive before the note; the note stays short so long sources cannot hit the output cap.
   propertyOrdering: ['flights', 'raw_text'],
   required: ['flights'],
 }
 
-// One structured extraction for text, image, and PDF.
 async function extractFlightsWithGemini(
   ai: GoogleGenAI,
   model: string,
@@ -164,7 +156,6 @@ async function extractFlightsWithGemini(
   rejected?: RejectedFlight[]
   gemini_count?: number
 }> {
-  // Call Gemini API using the official SDK
   const response = await ai.models.generateContent({
     model,
     contents,
@@ -176,13 +167,11 @@ async function extractFlightsWithGemini(
     },
   })
 
-  // Extract response text
   const responseText = response.text
   if (!responseText) {
     throw new ProviderResponseError('Empty AI response')
   }
 
-  // Parse JSON response
   let parsedResponse: { flights: ExtractedFlight[]; raw_text?: string }
   try {
     parsedResponse = JSON.parse(responseText)
@@ -216,21 +205,18 @@ async function extractFlightsWithGemini(
     )
     return result
   } catch (error) {
-    // Normalization refuses a non-empty envelope only when every row was rejected.
     if (error instanceof ProviderResponseError)
       logValidation(0, parsedResponse.flights.length, parsedResponse.flights.length)
     throw error
   }
 }
 
-/** One summary per extraction. Per-row normalization logs only actual problems (`flight_rejected`). */
 export function logValidation(valid: number, total: number, rejected: number) {
   console.log(JSON.stringify({ event: 'validation_complete', valid, total, rejected }))
 }
 
 const DAYS_IN_MONTH = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
-/** "MM-DD" naming a real calendar day (02-29 allowed: the year is unknown), else undefined. */
 function validMonthDay(value: unknown): string | undefined {
   const match = typeof value === 'string' ? /^(\d{2})-(\d{2})$/.exec(value) : null
   if (!match) return undefined
@@ -244,12 +230,10 @@ function validMonthDay(value: unknown): string | undefined {
 const cleanHint = (value: unknown) =>
   typeof value === 'string' ? value.trim().slice(0, 60).trim() || undefined : undefined
 
-/** Shared normalization for complete streamed rows and the legacy envelope. */
 export function normalizeFlights(
   parsedResponse: { flights: ExtractedFlight[]; raw_text?: string },
   ordinalStart = 0,
 ): ParseResponse {
-  // Validate and normalize flights, collecting rejected ones for diagnostics
   const rejectedFlights: RejectedFlight[] = []
   const geminiCount = parsedResponse.flights?.length || 0
 
@@ -273,8 +257,6 @@ export function normalizeFlights(
       }
       const originHint = cleanHint(flight.origin_hint)
       const destinationHint = cleanHint(flight.destination_hint)
-      // City stays can establish a tentative route without airport codes or a usable date.
-      // Both distinct endpoints and an explicit review marker are required; the draft stays unselected.
       const hintedRoute =
         flight.review_required === true &&
         originHint &&
@@ -287,7 +269,6 @@ export function normalizeFlights(
         !hintedRoute
       )
         reasons.push('missing route and date')
-      // Apply ZZ placeholder for missing airline instead of rejecting
       if (
         typeof flight.airline_iata !== 'string' ||
         !flight.airline_iata ||
@@ -297,10 +278,9 @@ export function normalizeFlights(
         flight.airline_was_placeholder = true
         flight.field_confidence = {
           ...flight.field_confidence,
-          airline_iata: 0, // Zero confidence for placeholder
+          airline_iata: 0,
         }
       } else if (!/^[a-z0-9]{2}$/i.test(flight.airline_iata)) {
-        // Still reject invalid lengths
         reasons.push('airline is not 2 letters')
       }
 
@@ -313,9 +293,6 @@ export function normalizeFlights(
       return true
     })
     .map((flight) => {
-      // Normalize codes to uppercase, convert empty time strings to undefined
-      // A model-supplied year without explicit source evidence is never a save-ready fact.
-      // Keep the draft for review with a blank date and a visible provenance flag.
       const explicitYear = flight.field_confidence?.date_year_explicit === true
       const score = (value: unknown) =>
         typeof value === 'number' && Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0
@@ -365,9 +342,6 @@ export function normalizeFlights(
         },
       }
 
-      // Determine enrichment_status based on aircraft data
-      // - 'skipped' if aircraft_icao is present with high confidence
-      // - 'pending' if we need to enrich it later
       const aircraftConfidence = flight.field_confidence?.aircraft_icao ?? 0
       const enrichmentStatus: EnrichmentStatus =
         normalizedFlight.aircraft_icao && aircraftConfidence >= 0.8 ? 'skipped' : 'pending'
@@ -395,7 +369,6 @@ export function normalizeFlights(
   }
 }
 
-/** The same type/content limits for every import entry point. Throws a 400/413 HttpError. */
 export function validateImportSource(body: Partial<ParseRequest> | null): ParseRequest {
   const type = body?.type
   const content = body?.content
@@ -413,7 +386,6 @@ export function validateImportSource(body: Partial<ParseRequest> | null): ParseR
   return { type, content }
 }
 
-/** Supported lists parse locally; other sources make one provider call with the shared deadline. */
 export async function extractFlights(
   env: Env,
   { type, content }: ParseRequest,

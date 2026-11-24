@@ -2,7 +2,6 @@ import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireCsrf, requireUser, type RequestData } from '../_lib/auth'
 import { findDuplicateMatches, type DuplicateCandidate as Candidate } from '../_services/duplicates'
 
-// Bounded candidate keys query the entire owned history, independently of list paging.
 export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) =>
   runHandler(async () => {
     const user = requireUser(context.data)

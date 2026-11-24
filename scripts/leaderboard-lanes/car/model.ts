@@ -1,5 +1,3 @@
-// A 993-inspired narrow-body coupe in metres: tail station 0, nose station LENGTH, z above the road.
-// Envelope and wheelbase are factory dimensions; all intermediate skin and trim stations are illustrative.
 import type { Surface, V3 } from '../airliner/surface'
 
 export const LENGTH = 4.245
@@ -17,7 +15,6 @@ const smooth = (x: number) => {
   const t = clamp(x)
   return t * t * (3 - 2 * t)
 }
-// Monotone Hermite interpolation keeps the roof and body free of spline overshoot at short stations.
 export function profile(rows: [number, number][]) {
   const slopes = rows.slice(1).map(([x, y], i) => (y - rows[i][1]) / (x - rows[i][0]))
   const tangent = rows.map((_, i) => {
@@ -104,7 +101,6 @@ const endSweep = (a: number, yFraction: number) =>
   a +
   0.12 * yFraction * yFraction * (1 - smooth(a / 0.3)) -
   0.14 * yFraction * yFraction * smooth((a - 3.9) / 0.345)
-/** The wheel cut is a real boundary of each side panel, not a dark patch painted over a closed body. */
 export function lowerEdge(a: number) {
   let z = baseZ
   for (const axle of AXLES) {
@@ -134,7 +130,6 @@ export const top: Surface = {
   closed: false,
   flip: true,
 }
-// Include every arch endpoint and crown, so no sampled side polygon bridges a wheel opening.
 const xs = [
   ...Array.from({ length: 121 }, (_, i) => (LENGTH * i) / 120),
   ...AXLES.flatMap((a) =>
@@ -153,7 +148,6 @@ export const side = (sg: number): Surface => ({
   closed: false,
   flip: sg > 0,
 })
-/** Cabin section: upright at the belt, round shoulders into a broad roof; one continuous fastback. */
 export const cabinAt = (a: number, v: number): V3 => {
   const theta = v * Math.PI,
     f = Math.cos(theta)

@@ -63,9 +63,7 @@ function load() {
         )
           records.set(item.data.token, item.data)
       }
-  } catch {
-    /* Memory remains available when session storage is blocked. */
-  }
+  } catch {}
 }
 function persist() {
   for (const [token, item] of records) if (Date.now() - item.createdAt >= TTL) records.delete(token)
@@ -74,9 +72,7 @@ function persist() {
   for (const item of keep) records.set(item.token, item)
   try {
     sessionStorage.setItem(KEY, JSON.stringify(keep))
-  } catch {
-    /* Same-tab memory fallback. */
-  }
+  } catch {}
 }
 function bound(owner: string, token: string | null | undefined) {
   load()
@@ -131,7 +127,6 @@ export const subscribeOverviewReturn = (listener: () => void) => {
     window.removeEventListener('popstate', listener)
   }
 }
-/** User changes update this exact source entry; Forward→Back cannot replay an older choice. */
 export function updateOverviewReturn(
   owner: string,
   change: Partial<ReturnUI> & { filter?: OverviewFilter },
@@ -178,9 +173,7 @@ export function clearAirportReturns() {
   loaded = true
   try {
     sessionStorage.removeItem(KEY)
-  } catch {
-    /* No persisted records to clear. */
-  }
+  } catch {}
   if (typeof window !== 'undefined') {
     const state = { ...history.state }
     delete state.kuukiAirportReturn

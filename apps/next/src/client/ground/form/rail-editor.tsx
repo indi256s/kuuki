@@ -14,16 +14,8 @@ import { moved, OrderedRows, RowDetails, RowFields } from './ordered-rows'
 import { countryNamer } from '../../passport/model'
 import { PlacePicker, placeDetail } from './place-picker'
 
-/**
- * How the OCR panel (a later change) hands recognized legs to the form.
- * - `append`: the candidates are added after the last leg.
- * - `replace` with `replaceLegId`: that leg is swapped for the candidates, in place.
- * - `replace` without an id: the whole route is replaced.
- * Nothing else in the form changes: journey dates, status and countries stay as the owner left them.
- */
 export type RailCandidateMode = 'append' | 'replace'
 
-/** Previews received and not yet added, as the draft keeps them (see draft.ts). */
 export interface StoredOcrRow {
   id: string
   fileName: string
@@ -33,16 +25,12 @@ export interface StoredOcrRow {
 
 export interface RailOcrSlotApi {
   legs: readonly LegDraft[]
-  /** Returns false, changing nothing, when the result would pass the leg limit. */
   onCandidates: (candidates: LegDraft[], mode: RailCandidateMode, replaceLegId?: string) => boolean
   disabled: boolean
-  /** Rows restored from the draft when the form opened; read once, at mount. */
   restoredRows: readonly StoredOcrRow[]
-  /** Reports the rows still holding unadded previews, so the draft can keep them across a reload. */
   onUnaddedChange: (rows: StoredOcrRow[]) => void
 }
 
-/** The route after the hand-off, or null when it would pass the leg limit (nothing is cut off silently). */
 export function applyLegCandidates(
   legs: readonly LegDraft[],
   candidates: readonly LegDraft[],
@@ -76,15 +64,12 @@ export function RailEditor({
   locale: Locale
   errors: FormErrors
   disabled: boolean
-  /** Where the OCR panel mounts: rendered above the legs with the candidate entry point. */
   ocrSlot?: (api: RailOcrSlotApi) => ReactNode
-  /** The unadded OCR previews the draft keeps: restored into the slot, reported back on change. */
   ocrDraft?: Pick<RailOcrSlotApi, 'restoredRows' | 'onUnaddedChange'>
 }) {
   const ru = locale === 'ru'
   const root = useRef<HTMLDivElement>(null)
   const added = useRef<string | null>(null)
-  // Legs added in this session start open even when their start is already known.
   const [fresh, setFresh] = useState<ReadonlySet<string>>(new Set())
   const name = (place: LegDraft['from']) => (place ? placeLabel(place, locale) : '?')
   const update = (id: string, patch: Partial<LegDraft>) =>
@@ -102,7 +87,6 @@ export function RailEditor({
   })
 
   const addLeg = () => {
-    // A transfer starts where the last leg ended, so the known city is not typed again.
     const leg = emptyLeg(legs.at(-1)?.to ?? null)
     added.current = leg.id
     setFresh((ids) => new Set(ids).add(leg.id))
@@ -192,7 +176,6 @@ function LegFields({
 }) {
   const ru = locale === 'ru'
   const error = (field: string) => errorText(errors[`leg:${leg.id}:${field}`], locale)
-  // A printed city asks for a search, never a choice: the owner still picks the place from the list.
   const [find, setFind] = useState<{ side: 'from' | 'to'; nonce: number } | null>(null)
   const pending = {
     from: !leg.from && leg.fromCity ? leg.fromCity : null,
@@ -210,7 +193,6 @@ function LegFields({
     'durationManual',
   ].some((field) => !!error(field))
   const country = countryNamer(locale)
-  // With no typed duration the server derives one from the schedule; show that figure as a fact, never as a field value.
   const schedule = useMemo(() => {
     const input = legPreview(leg)
     return input && leg.durationManual.trim() === '' ? railLegDuration(input) : null

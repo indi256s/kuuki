@@ -467,7 +467,6 @@ it('retains barcode-only resume as incomplete until the original unknown online 
   original.add([file('incomplete.pdf', 'application/pdf')])
   await done(original)
   const records = original.retained()
-  // Simulate a crash after barcode receipt and before the main online response, without a recorded error.
   delete records[0].problem
   const resumed = new UnifiedSession(api)
   resumed.resume(records)

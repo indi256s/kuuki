@@ -1,7 +1,3 @@
-// Node-only raster lint. Kept apart from lint.ts so a browser bundle never imports resvg.
-//
-// The engraving is rasterised at 96px with the impression applied, then measured inside the frame
-// window. Thresholds were tuned on the six reference countries (see the table in RASTER_LIMITS).
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
@@ -13,21 +9,6 @@ import { composeScene, renderNodes } from './render'
 
 export const RASTER_PX = 96
 
-/**
- * Allowed bands at 96px, impression applied, measured inside the frame window. The vignette fills
- * the window with tone, so the bands sit far above the old line-icon look (percent of window area
- * unless noted). Measured values live in the check:stamps output and the W1b report.
- *
- * Coverage 38-58: below 38 the window reads empty again; above 58 the hatching clogs into grey
- * slabs. Paper regions >= 6: a scene breaks the window into separate paper areas. Solid share
- * <= 15: share of window pixels inside a fully inked 3x3 block; the tone ladder is built from
- * lines, so only T5 roofs and openings reach it. Subject interior >= 50% paper: the subject is the
- * lit shape against the tone, so under half of its silhouette may be ink. Weak quarter <= 0.75 of
- * the strong quarter, 0.70-0.92: the impression keeps that share of the ink on the weak side relative
- * to the strong side (retention, so the art's own distribution does not matter). The intent is a
- * visible pressure falloff without fading: below 0.70 the weak side reads as faded ink, above 0.92 the
- * pressure is not visible. Measured: 0.82-0.84 on the five textures and the six references.
- */
 export const RASTER_LIMITS = {
   coverage: [38, 58],
   minPaperRegions: 6,
@@ -36,25 +17,16 @@ export const RASTER_LIMITS = {
   weakStrong: [0.7, 0.92],
 } as const
 
-/** The wear texture removes this much ink from a fully inked stamp (percent). */
-/** Measured 9.0-10.2 per shape; the bigger grain specks removed a little more than the old 6-10 band allowed. */
 export const IMPRESSION_REMOVED = [7, 12] as const
 
 export type RasterReport = {
   iso2: string
-  /** Ink as a percent of the window area, anti-aliased (a half-covered pixel counts half). */
   coverage: number
-  /** Separate paper regions of at least 4px2 inside the window. */
   paperRegions: number
-  /** Separate ink components of at least 2px2. */
   inkComponents: number
-  /** Percent of window pixels that sit in a solid 3x3 ink block. */
   solidShare: number
-  /** Largest ink component as a share of all ink. */
   blobShare: number
-  /** Percent of the subject silhouette interior that stays paper (clean engraving). */
   subjectPaper: number
-  /** Ink kept by the impression on the weak quarter over the strong quarter (retention ratio). */
   weakStrong: number
   issues: string[]
 }
@@ -62,7 +34,6 @@ export type RasterReport = {
 let ready: Promise<void> | undefined
 function init() {
   ready ??= (async () => {
-    // __filename under tsx (CommonJS); import.meta.url under vitest (ESM).
     const here = typeof __filename === 'string' ? __filename : fileURLToPath(import.meta.url)
     const require = createRequire(here)
     const wasm = readFileSync(require.resolve('@resvg/resvg-wasm/index_bg.wasm'))
@@ -89,7 +60,6 @@ function maskDef(shape: ShapeName, iso2: string): string {
   )
 }
 
-/** The engraving with the impression composited on top, as one standalone SVG document. */
 export function compositeSvg(recipe: Recipe): string {
   const shape = shapeFor(recipe.iso2, recipe.shape)
   const frame = frames[shape]
@@ -101,7 +71,6 @@ export function compositeSvg(recipe: Recipe): string {
   )
 }
 
-/** Frame rules plus engraving, optionally worn: what the component paints without ring text. */
 function ruledSvg(recipe: Recipe, worn: boolean): string {
   const shape = shapeFor(recipe.iso2, recipe.shape)
   const frame = frames[shape]
@@ -120,7 +89,6 @@ function ruledSvg(recipe: Recipe, worn: boolean): string {
   )
 }
 
-/** Connected components (4-neighbour) of pixels where `on` is true. Returns component sizes. */
 function components(on: Uint8Array, width: number, height: number): number[] {
   const seen = new Uint8Array(on.length)
   const sizes: number[] = []
@@ -153,10 +121,8 @@ function components(on: Uint8Array, width: number, height: number): number[] {
   return sizes
 }
 
-/** Subject interior is measured at 3x the display size, 1.4 grid units inside the contour. */
 const INTERIOR_RASTER = RASTER_PX * 3
 const INTERIOR_ERODE = 2
-/** Silhouettes smaller than this are all outline (wall strips, small ornaments) and are skipped. */
 const MASS_AREA = 60
 
 const polyArea = (pts: [number, number][]) =>
@@ -167,7 +133,6 @@ const polyArea = (pts: [number, number][]) =>
     }, 0),
   ) / 2
 
-/** Keeps a pixel only when every pixel within `r` (a square) is covered. */
 function erode(alpha: Uint8Array, width: number, height: number, r: number): Uint8Array {
   const out = new Uint8Array(alpha.length)
   for (let y = r; y < height - r; y++)
@@ -184,17 +149,11 @@ function erode(alpha: Uint8Array, width: number, height: number, r: number): Uin
   return out
 }
 
-/** Horizontal extent of the shape's outer rule in pixels of a `px` wide raster of the stamp. */
 function shapeSpan(shape: ShapeName, px: number): [number, number] {
   const xs = outerPoly(shape).map((q) => q[0])
   return [(Math.min(...xs) / 200) * px, (Math.max(...xs) / 200) * px]
 }
 
-/**
- * Percent of the subject's interior that is paper in the clean engraving. The interior is the union
- * of the subject's silhouettes (masses only) pulled in from the contour, so outline weight does not
- * count against it: what counts is tone laid inside the subject (T4 shade, T5 fills, hatching).
- */
 function subjectPaper(
   scene: ReturnType<typeof composeScene>,
   viewBox: string,
@@ -239,7 +198,7 @@ export async function measureRaster(recipe: Recipe): Promise<RasterReport> {
     inkPx = 0,
     inkMass = 0
   for (let i = 0; i < inWindow.length; i++) {
-    if (win.alpha[i] < 250) continue // strictly inside, so anti-aliased window edges do not count
+    if (win.alpha[i] < 250) continue
     inWindow[i] = 1
     windowPx++
     inkMass += ink.alpha[i] / 255
@@ -248,12 +207,11 @@ export async function measureRaster(recipe: Recipe): Promise<RasterReport> {
       inkPx++
     } else paperOn[i] = 1
   }
-  // Weak against strong quarter of the stamp along the pressure axis: ink the impression keeps.
   const stampClean = rasterize(ruledSvg(recipe, false), RASTER_PX)
   const stampWorn = rasterize(ruledSvg(recipe, true), RASTER_PX)
   const t = impressionTransform(recipe.iso2, restTilt(recipe.iso2))
   const strongRight = t.pressureAngle < 90 || t.pressureAngle > 270
-  const quarter = { weak: [0, 0], strong: [0, 0] } // [kept, clean]
+  const quarter = { weak: [0, 0], strong: [0, 0] }
   const [sx0, sx1] = shapeSpan(shape, width)
   for (let i = 0; i < stampClean.alpha.length; i++) {
     const x = i % width
@@ -332,14 +290,11 @@ export async function measureRaster(recipe: Recipe): Promise<RasterReport> {
 
 export type ImpressionReport = {
   shape: ShapeName
-  /** Percent of a fully inked stamp the texture removes. */
   removed: number
-  /** Ink kept on the weak quarter over the strong quarter of a fully inked stamp. */
   weakStrong: number
   issues: string[]
 }
 
-/** Applies a shape's texture to solid ink inside its outer rule and measures what is removed. */
 export async function measureImpression(shape: ShapeName): Promise<ImpressionReport> {
   await init()
   const frame = frames[shape]
@@ -367,7 +322,6 @@ export async function measureImpression(shape: ShapeName): Promise<ImpressionRep
     const x = i % px
     all += 255
     kept += worn.alpha[i]
-    // The texture is strong on +x: the right quarter of the shape is strong.
     const bucket =
       x >= sx0 + (sx1 - sx0) * 0.75 ? strong : x < sx0 + (sx1 - sx0) * 0.25 ? weak : null
     if (bucket) {
@@ -394,7 +348,6 @@ export async function measureImpression(shape: ShapeName): Promise<ImpressionRep
   return report
 }
 
-/** PNG of the composited engraving, for previews. */
 export async function renderPng(
   recipe: Recipe,
   px: number,

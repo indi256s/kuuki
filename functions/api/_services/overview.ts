@@ -52,7 +52,6 @@ type NextRow = {
 type LongestRow = { origin: string; destination: string; distance_km: number }
 type RouteRow = { origin: string; destination: string; count: number }
 
-/** One batch provides a consistent canonical/revision snapshot for a single owner and period. */
 export async function readOverview(
   db: D1Database,
   userId: string,
@@ -66,11 +65,8 @@ export async function readOverview(
   const completedWhere = current.where
   const bindPeriod = (sql: string, ...extra: Array<string | number>) =>
     db.prepare(sql).bind(...current.binds, ...extra)
-  // Bind the filtered selection once; three 25-code filters remain under D1's
-  // variable limit instead of doubling their placeholders for both endpoints.
   const endpoints = `WITH selected AS (SELECT origin, destination FROM flights f WHERE ${completedWhere}),
     endpoints AS (SELECT origin AS iata FROM selected UNION ALL SELECT destination AS iata FROM selected)`
-  // Unfiltered all-time reads the published projection (flight and legacy countries, no claims or ground visits).
   const projection = period === 'all' && Object.keys(filters).length === 0
   const monthStart =
     period === 'all'
@@ -89,7 +85,6 @@ export async function readOverview(
           .slice(0, 7)
       : `${Number(period) + 1}-01`
 
-  // Each read is registered under a key, so adding a read never renumbers the others.
   const reads = new Map<string, D1PreparedStatement>()
   const add = (key: string, statement: D1PreparedStatement) => {
     reads.set(key, statement)
@@ -117,7 +112,6 @@ export async function readOverview(
       COUNT(DISTINCT CASE WHEN a.city IS NOT NULL THEN a.country_code || ':' || a.city END) AS cities
       FROM endpoints e LEFT JOIN airports_reference a ON a.iata = e.iata`),
   )
-  // Visit counts per country feed the mini map buckets; `pending` is the country's published status (awaiting-only).
   add('countries', countryVisitsStatement(db, userId, current, projection))
   add(
     'longest',
@@ -195,9 +189,6 @@ export async function readOverview(
       )
       .bind(userId),
   )
-  // Only all-time includes archives. Match mergeVisits: an unsuppressed logged airport supplies its
-  // reference country; otherwise use the first contributing legacy country (rowid order), with reference fallback.
-  // Counts max-merge across all contributing rows before country validity is checked.
   if (projection) {
     add(
       'archived',
@@ -217,7 +208,6 @@ export async function readOverview(
     )
   }
   if (period !== 'all') {
-    // Earliest non-transit evidence across all time, from the published projection: the year only selects first visits.
     add(
       'firstVisits',
       db
@@ -264,7 +254,6 @@ export async function readOverview(
   const places = firstAt<PlaceRow>('places')
   const revision = state?.revision ?? 0
   const publishedRevision = state?.published_revision ?? 0
-  // Published and current (ADR 0001 §10): revision and the evidence stamp both equal the published revision.
   const ready = isDerivedReady({
     revision,
     published_revision: publishedRevision,
@@ -340,7 +329,6 @@ export async function readOverview(
       airports: places?.airports ?? 0,
       airlines: aggregate?.airlines ?? 0,
       aircraft: aggregate?.aircraft ?? 0,
-      // Six-region catalog collection model (`regionPolicyVersion`), not the numeric continentOf7 of badges.
       continents: ready ? regionCount(countryIds) : null,
       pendingCountries: ready ? pendingIds.length : null,
       upcomingFlights: firstAt<{ count: number }>('upcoming')?.count ?? 0,

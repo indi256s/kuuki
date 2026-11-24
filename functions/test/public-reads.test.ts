@@ -43,7 +43,6 @@ it('checks live visibility, participation and publication before exposing cached
           JSON.stringify({ username: 'traveller' }),
           '2026-10-04T12:00:00.000Z',
         ),
-      // Year and ground rows exist beside the all-time sky row; profile readers must not pick them up.
       db
         .prepare(
           "INSERT INTO leaderboard_cache(user_id,category,period,value,rank,metadata,updated_at) VALUES (?,'flights','2026',2,1,'{}',?),(?,'rail','all',3,1,'{}',?)",
@@ -98,7 +97,6 @@ it('checks live visibility, participation and publication before exposing cached
       .prepare('UPDATE profiles SET show_on_leaderboards=1 WHERE id=?')
       .bind('public-owner')
       .run()
-    // A private owner has no place: the rebuild drops private members, and the owner read agrees at once.
     expect(await own()).toEqual([])
     const hidden = await readPublicProfile(db, 'traveller')
     expect(hidden).toMatchObject({
@@ -164,7 +162,6 @@ it('ranks visible cached members with competition ties before pagination and own
         ),
       ])
     }
-    // Changes after publication must remove members and close their places immediately.
     await db.batch([
       db.prepare("UPDATE profiles SET is_public=0 WHERE id='rank-0'"),
       db.prepare("UPDATE profiles SET show_on_leaderboards=0 WHERE id='rank-1'"),

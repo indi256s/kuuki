@@ -4,7 +4,6 @@ import { PageShell } from './page-shell'
 import { Wordmark } from './wordmark'
 import type { Locale } from '../server/locale'
 
-/** Wordmark and preferences only; no member navigation. `actions` adds guest links. */
 export function BrandShell({
   locale,
   actions,

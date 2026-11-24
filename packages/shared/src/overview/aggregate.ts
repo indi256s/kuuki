@@ -28,7 +28,6 @@ export function aggregateRows(
       row.arrMinute > 1439
         ? null
         : Math.floor(row.arrMinute / 60)
-    // Keep filters, paired metrics and zone coverage identical; invalid dates cannot add to valid calendar evidence.
     const key = JSON.stringify([
       row.state,
       row.origin,

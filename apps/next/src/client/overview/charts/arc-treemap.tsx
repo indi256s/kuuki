@@ -1,9 +1,7 @@
 import type { SVGProps } from 'react'
 import type { ChartPoint } from './kuuki-chart'
 
-// Adapted from Arc UI Treemap (MIT), source SHA256 80615b9948ab7e5e066c4d666b983dfb02da8f2a630e682eeab24485dc81751e.
 // Copyright (c) 2026 Elia Kuratli; license: ../../ui/ARC-LICENSE.txt.
-// Full provenance: docs/research/2026-10-08-arc-source-inventory.md.
 type Rect = { x: number; y: number; w: number; h: number }
 
 function squarify(items: { id: string; value: number }[], rect: Rect, out: Map<string, Rect>) {
@@ -60,7 +58,6 @@ function squarify(items: { id: string; value: number }[], rect: Rect, out: Map<s
     if (!out.has(item.id)) out.set(item.id, { x: rect.x, y: rect.y, w: 0, h: 0 })
 }
 
-/** How a tile is painted. `outline` is the Unknown role: a transparent tile with a `fill`-coloured outline and a «?». */
 export type TreemapPaint = { fill: string; outline?: boolean }
 
 export function ArcTreemap<T extends { value: number }>({
@@ -119,7 +116,6 @@ export function ArcTreemap<T extends { value: number }>({
             )}
             {rect.w > 70 && rect.h > 40 && (
               <>
-                {/* Region colours are mid-tone in both themes, so the label sits on a surface plate that holds text contrast on any of them. */}
                 <rect
                   x={rect.x + 6}
                   y={rect.y + 8}

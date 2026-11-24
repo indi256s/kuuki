@@ -33,7 +33,6 @@ it('0018 keeps legacy visits and only lets a land visit name rail or road', asyn
   await expect(insert('rail', 'land', 'rail')).resolves.toBeTruthy()
   await expect(insert('sea-unknown', 'sea', null)).resolves.toBeTruthy()
   await expect(insert('sea-road', 'sea', 'road')).rejects.toThrow(/CHECK/)
-  // `entry_method = 'land'` is NULL here, which a CHECK would let through.
   await expect(insert('no-entry', null, 'rail')).rejects.toThrow(/CHECK/)
   await expect(insert('plane', 'land', 'plane')).rejects.toThrow(/CHECK/)
 })

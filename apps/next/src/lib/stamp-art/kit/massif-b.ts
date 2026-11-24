@@ -1,6 +1,3 @@
-// Mulanje-type granite massif: a high plateau of steep buttresses and gullied cliff faces, jagged
-// at the top, under a dark forest skirt. Each buttress peak casts a shaded right flank. The box
-// bottom is the foot of the forest; `ridge` is the skyline as [x, y] fractions of the box.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, hline, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, num, pairs } from './util'
@@ -46,7 +43,6 @@ export const massifB: KitModule = ([x, y, w, h], p) => {
   sky.push(ridge[ridge.length - 1])
   const massif: Pt[] = [...sky, [sky[sky.length - 1][0], foot + 3], [sky[0][0], foot + 3]]
   const out: SvgNode[] = [occlude(massif)]
-  // Shaded right flank under each summit (local maxima of the skyline).
   for (let i = 1; i + 1 < ridge.length; i++) {
     if (!(ridge[i][1] < ridge[i - 1][1] && ridge[i][1] <= ridge[i + 1][1])) continue
     const px = ridge[i][0]
@@ -65,7 +61,6 @@ export const massifB: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // Gullies down the lit face.
   for (let gx = x + 6; gx < x + w - 4; gx += 5 + rand() * 6) {
     const top = yAtX(sky, gx) + 5 + rand() * 6
     const bot = top + (foot - top) * (0.35 + rand() * 0.45)
@@ -79,7 +74,6 @@ export const massifB: KitModule = ([x, y, w, h], p) => {
     )
   }
   out.push(stroke('line', sky))
-  // Forest skirt: dark scalloped band.
   const crown: Pt[] = []
   for (let px = x; px <= x + w + 0.1; px += 4) crown.push([px, foot - 1 + (rand() - 0.5) * 3.2])
   const skirt: Pt[] = [...crown, [x + w, base], [x, base]]

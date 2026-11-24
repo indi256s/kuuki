@@ -15,7 +15,6 @@ vi.mock('@kuuki/client/apiClient', async (importOriginal) => ({
   api: { post },
 }))
 vi.mock('../activity', () => ({ withIdentityMutation: identity }))
-// The turning model loads after hydration and may mount once a test's globals are restored.
 vi.mock('../auth-card/concorde/concorde-field', () => ({ ConcordeField: () => null }))
 beforeEach(() => {
   sessionStorage.clear()
@@ -183,7 +182,6 @@ it('keeps the password and captured token through EN to RU to EN changes and loc
   await userEvent.type(await screen.findByLabelText('New password', { exact: true }), 'short')
   await userEvent.click(screen.getByRole('button', { name: 'Save password' }))
   await userEvent.click(screen.getByRole('button', { name: 'Русский (RU)' }))
-  // The switch keeps its element, so keyboard focus stays on it while its name and lang flip.
   expect(screen.getByRole('button', { name: 'English (EN)' })).toHaveFocus()
   expect(screen.getByRole('button', { name: 'English (EN)' })).toHaveAttribute('lang', 'en')
   const password = screen.getByLabelText('Новый пароль', { exact: true })

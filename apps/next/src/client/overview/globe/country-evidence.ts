@@ -5,15 +5,10 @@ import { REGION_KEYS, type RegionKey } from '@kuuki/shared/theme/palette'
 export type CountryEvidence = { code: string; value: number }
 export type RegionEvidence = { region: string; value: number; countries: CountryEvidence[] }
 
-/** The region bucket of a country whose airports carry no region; its tiles take the Unknown role. */
 export const UNKNOWN_REGION = 'unknown'
 export type RegionRole = RegionKey | typeof UNKNOWN_REGION
 const AMERICAS = new Set(['north-america', 'south-america', 'central-america', 'caribbean'])
 
-/**
- * The palette region for a payload region code. The payload carries the six catalog regions (both Americas are
- * already `americas`); the Americas sub-regions are folded in defensively. Anything else is Unknown, never Other.
- */
 export function regionKey(code: string | null | undefined): RegionRole {
   const key = code?.trim().toLowerCase() ?? ''
   return (REGION_KEYS as readonly string[]).includes(key)
@@ -23,7 +18,6 @@ export function regionKey(code: string | null | undefined): RegionRole {
       : UNKNOWN_REGION
 }
 
-/** Each logged flight contributes its weight once per unsuppressed country, including both countries internationally. */
 export function countryEvidence(
   payload: OverviewPayload,
   filter: OverviewFilter,

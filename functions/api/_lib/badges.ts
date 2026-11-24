@@ -1,7 +1,3 @@
-// Badge definitions + user-badge join DTOs. badge_definitions.criteria is JSON-as-TEXT → parse it
-// before returning. Used by the public badges endpoint (definitions) and by me/public badge lists
-// (the user_badge joined with its definition).
-
 export interface BadgeDefinitionRow {
   id: number
   code: string
@@ -35,7 +31,6 @@ export interface UserBadgeRow {
   earned_at: string
 }
 
-/** Join shape the frontend expects: a user_badge with its nested badge definition. */
 export function toUserBadgeWithDefinition(userBadge: UserBadgeRow, def: BadgeDefinitionRow) {
   return {
     id: userBadge.id,

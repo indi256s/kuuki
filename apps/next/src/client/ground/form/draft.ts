@@ -1,7 +1,3 @@
-// Unfinished ground-journey input on this device. Keys sit under the capture prefix so the identity reset
-// (clearCapturePreferences) removes them, and carry the owner id and a schema version, so another account
-// never reads them and an older shape is discarded instead of half-restored.
-
 import {
   isUuid,
   parsePlaceSnapshot,
@@ -15,24 +11,15 @@ import type { StoredOcrRow } from './rail-editor'
 
 export const DRAFT_VERSION = 1
 
-/** `new-rail`, `new-road`, or `edit-<journey id>`. */
 export type DraftKind = `new-${GroundMode}` | `edit-${string}`
 
 export interface Draft {
   v: typeof DRAFT_VERSION
-  /** The id a new journey is created under; kept so a retry after a reload never creates a second one. */
   journeyId: string
-  /** The version the edit started from; the server's 409 decides whether it is still current. */
   baseVersion: number | null
-  /** Saved baseline after this form created a journey while newer edits remained. */
   savedStatus?: GroundStatus
   state: FormState
-  /** A save whose result is not known yet, frozen with its operation key. */
   pending: GroundCommand | null
-  /**
-   * Ticket previews received and not yet added to the route. Only the editable preview fields: never the file
-   * or the text the reader returned. Absent in drafts written before the reader existed.
-   */
   ocr?: StoredOcrRow[]
 }
 
@@ -91,11 +78,6 @@ const PENDING_ACTIONS = ['create', 'update', 'complete'] as const
 const version = (value: unknown): value is number =>
   Number.isSafeInteger(value) && (value as number) >= 1
 
-/**
- * The frozen command is re-sent verbatim, so its identity is checked in full: a known form action, an operation
- * key, the draft's own journey id, a version where the action needs one, and a route whose places the notice
- * reads. Anything else is dropped rather than half-trusted.
- */
 function parsePending(value: unknown, mode: GroundMode, journeyId: string): GroundCommand | null {
   if (!isRecord(value)) return null
   const { action } = value
@@ -167,7 +149,6 @@ function preview(value: unknown): Preview | null {
   }
 }
 
-/** Rows that hold at least one readable, unadded preview; an unreadable row is skipped, not the whole draft. */
 function parseOcr(value: unknown): StoredOcrRow[] {
   if (!Array.isArray(value)) return []
   const out: StoredOcrRow[] = []
@@ -185,7 +166,6 @@ function parseOcr(value: unknown): StoredOcrRow[] {
   return out
 }
 
-/** Rebuilds a draft from storage; anything unreadable, foreign or of another mode is rejected whole. */
 export function parseDraft(raw: unknown, mode: GroundMode): Draft | null {
   if (!isRecord(raw) || raw.v !== DRAFT_VERSION || !isUuid(raw.journeyId)) return null
   const state = raw.state
@@ -244,7 +224,6 @@ export function readDraft(ownerId: string, kind: DraftKind, mode: GroundMode): D
   }
 }
 
-/** Returns whether the draft was stored; storage is optional, so a failure becomes a visible note, not an error. */
 export function writeDraft(ownerId: string, kind: DraftKind, draft: Draft): boolean {
   try {
     localStorage.setItem(draftStorageKey(ownerId, kind), JSON.stringify(draft))
@@ -257,12 +236,9 @@ export function writeDraft(ownerId: string, kind: DraftKind, draft: Draft): bool
 export function removeDraft(ownerId: string, kind: DraftKind): void {
   try {
     localStorage.removeItem(draftStorageKey(ownerId, kind))
-  } catch {
-    /* Storage is optional. */
-  }
+  } catch {}
 }
 
-/** A trailing-edge debounced writer: typing does not serialize the whole route on every key. */
 export function createDraftWriter(
   ownerId: string,
   kind: DraftKind,
@@ -271,7 +247,6 @@ export function createDraftWriter(
 ) {
   let timer: ReturnType<typeof setTimeout> | undefined
   let queued: Draft | null = null
-  // After an identity reset the stored draft belongs to nobody: nothing queued or scheduled later may bring it back.
   let reset = false
   const flush = () => {
     clearTimeout(timer)
@@ -294,9 +269,7 @@ export function createDraftWriter(
       timer = setTimeout(flush, delayMs)
     },
     flush,
-    /** Drops anything queued, e.g. after a successful save removed the stored draft. */
     cancel,
-    /** Stops writing for good when the identity resets; returns the unsubscribe for unmount. */
     watchIdentityReset() {
       const onReset = () => {
         reset = true

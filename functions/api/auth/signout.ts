@@ -1,5 +1,3 @@
-// POST /api/auth/signout — revoke the current session and clear cookies.
-
 import { runHandler, json } from '../_lib/http'
 import { requireCsrf } from '../_lib/auth'
 import {

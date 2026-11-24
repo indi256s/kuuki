@@ -15,7 +15,6 @@ export type MonthRangeProps = MonthRangeValue & {
 }
 
 export function MonthRange({ from, to, min, max, onChange, onClear, locale }: MonthRangeProps) {
-  // Only incomplete input is local; complete ranges remain controlled by the caller.
   const [draft, setDraft] = useState<
     (MonthRangeValue & { sourceFrom: string; sourceTo: string }) | null
   >(null)

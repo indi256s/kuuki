@@ -2,7 +2,6 @@ export interface OverviewUISnapshot {
   hoverRoute: string | null
   hoverGhost: number | null
   focusRoute: string | null
-  /** Replay is playing because the member pressed Play in this visit; the default autoplay leaves it false. The hero takeover rests while it is true. */
   replayStarted: boolean
 }
 export function createUIBus() {

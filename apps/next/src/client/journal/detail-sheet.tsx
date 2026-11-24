@@ -1,29 +1,4 @@
 'use client'
-/**
- * The Journal detail sheet (spec "Detail sheet", D5): the open flight (`view.flight` in the Journal store), read first as a journey,
- * with an Edit mode that saves related changes together.
- *
- * `<JournalDetail>` renders inside `JournalStoreProvider` and the member shell's `ToastProvider`, and stays mounted for the page's
- * lifetime (it renders nothing while no flight is open), so a toast's Undo still works after the sheet closes. Props:
- * - `ownerId`, `locale`.
- * - `docked`: the value of `useDockedDetail()`. True (≥1280px, after mount) renders a non-modal 460px `<aside aria-label="Flight details">`
- *   meant as the second column of the page grid beside the ledger; pass `compact={docked && view.flight !== null}` to the ledger.
- *   False renders the modal `Sheet` (`side="right"`, or the `.flight-full-sheet` bottom sheet at ≤700px), opened only after mount, so a
- *   `?flight=` deep link renders the same markup on the server and the client and opens once hydrated.
- * - `initialField`: `{ flightId, field }` opens that flight's content in Edit with that field focused (the ledger's "Add aircraft"
- *   maps `field: 'aircraft'` to `'aircraft_icao'`).
- * - Review mode extension points (ticket 12): `top` renders above the read-first content ("Did you take this flight?"), `status`
- *   beside the title ("Review 2 of 3"), and `footer` in the sheet footer ("Next to review"). This component does not read `view.review`.
- * - `placeholder`: `{ title, content }` shown while no flight is open. While it is set the sheet stays open with it, so review mode
- *   can say "Nothing to confirm" or "All confirmed" in the same pane or overlay. Without it, no open flight means a closed sheet.
- *
- * Undo: the docked pane offers it in a "Saved" toast. The overlay is modal (focus trapped, a press outside dismisses it), so it
- * offers the same Undo in a status line inside the sheet instead, until the next edit or until the sheet closes.
- *
- * Focus: the docked pane takes focus on open (its title, or the requested field) and returns it to the opener
- * (or the flight row/Journal title when the opener has gone) on close; Escape inside it closes it. The overlay does the same through Radix.
- * While Edit is open, Escape first leaves Edit, and Escape or a close request with unsaved changes asks before discarding them.
- */
 import { X } from '@keyline-icons/react'
 import dynamic from 'next/dynamic'
 import {
@@ -74,7 +49,6 @@ const subscribeDock = (notify: () => void) => {
   query.addEventListener('change', notify)
   return () => query.removeEventListener('change', notify)
 }
-/** True at ≥1280px once mounted; false on the server and during hydration, so the first render never depends on `window`. */
 export function useDockedDetail(): boolean {
   return useSyncExternalStore(
     subscribeDock,
@@ -151,13 +125,8 @@ const copy = {
 } as const
 
 type EditorState = 'idle' | 'loading' | 'ready' | 'failed'
-/** The latest saved edit, offered for Undo inside the modal overlay. */
 type UndoOffer = { record: EditRecord }
 
-/**
- * The write side: one save per flight at a time, the lazily loaded write module and Undo records.
- * A save or Undo answered after a sign-out or owner switch is dropped, never applied.
- */
 function useFlightEdits({
   ownerId,
   locale,
@@ -224,7 +193,6 @@ function useFlightEdits({
   const seqs = useRef(new Map<number, number>())
 
   const current = (id: number) => latest.current.payload.flights.find((flight) => flight.id === id)
-  /** Applies the server's row at once, then lets the refetch recompute firsts, connections and refs. */
   const settle = (mod: FlightEditor, flightId: number, dto: FlightDto): JournalFlight | null => {
     const before = current(flightId)
     feedback.acknowledge(dto)
@@ -234,7 +202,6 @@ function useFlightEdits({
     }
     const merged = mod.mergeSavedFlight(before, dto)
     applyFlight(merged, mod.refsPatch(merged, latest.current.payload.refs))
-    // Lifecycle moved (a date edit): Query-owned reads elsewhere (queue, badges) refresh too; the store's own listener refetches the list.
     if (merged.lifecycle_state !== before.lifecycle_state)
       window.dispatchEvent(new Event(LIFECYCLE_CHANGED_EVENT))
     else void refresh()
@@ -325,7 +292,6 @@ function useFlightEdits({
         locale,
         generation,
       )
-      // The answer belongs to a session that has ended: never applied, never refetched here (the page is leaving).
       if (dropped(generation))
         return outcome.status === 'saved'
           ? {
@@ -356,7 +322,7 @@ function useFlightEdits({
             })
           } else setOffer({ record })
         }
-      } else void refresh() // unknown: the list shows what landed; rejected: a conflict needs the current row
+      } else void refresh()
       return outcome
     } finally {
       mark(flight.id, false)
@@ -410,7 +376,6 @@ export function JournalDetail({
   }, [loadEditorModule])
 
   const id = view.flight
-  // The overlay keeps showing the last flight while it animates out.
   const [shownId, setShownId] = useState(id)
   if (id !== null && id !== shownId) setShownId(id)
   const flight =
@@ -419,16 +384,21 @@ export function JournalDetail({
       : undefined
   const idle = id === null ? (placeholder ?? null) : null
 
-  // `guard` is the store's leave guard, filled by the content while Edit is open: Escape, close and opening another flight ask it first.
   const requestClose = () => {
     if (!guard.current?.('close', closeSheet)) closeSheet()
   }
   const paneTitle = useRef<HTMLHeadingElement | null>(null)
-  /** Header slot beside Close; the content portals its Edit button here so identity and actions share one region. */
   const [actionSlot, setActionSlot] = useState<HTMLElement | null>(null)
   const actions = <span ref={setActionSlot} className="jd-actions" />
+  const [footerSlot, setFooterSlot] = useState<HTMLElement | null>(null)
+  const footerContent =
+    flight && !idle ? (
+      <>
+        <div ref={setFooterSlot} className="jd-form-slot" />
+        {footer}
+      </>
+    ) : undefined
   const body = useRef<HTMLDivElement | null>(null)
-  /** A swap started inside the sheet (a connection leg): the clicked button unmounts, so focus moves to the title. */
   const swapFromInside = useRef(false)
   const previousId = useRef<number | null>(null)
   const previousDockOpen = useRef(false)
@@ -441,7 +411,6 @@ export function JournalDetail({
     previousId.current = id
     previousDockOpen.current = dockOpen
     if (wasDockOpen && !dockOpen) {
-      // Review can keep an idle pane open after its last flight; restore focus only when the dock closes.
       if (!document.activeElement || document.activeElement === document.body)
         (opener.current?.isConnected
           ? opener.current
@@ -471,7 +440,7 @@ export function JournalDetail({
       return
     }
     if (docked) {
-      if (before === null && initialField?.flightId === id) return // the requested field takes focus
+      if (before === null && initialField?.flightId === id) return
       if (before === null || inside) paneTitle.current?.focus()
     } else if (inside) {
       body.current
@@ -501,7 +470,6 @@ export function JournalDetail({
       <span aria-hidden="true"> → </span>
       <span className="sr-only">{locale === 'ru' ? ' в ' : ' to '}</span>
       {flight.destination}
-      {/* Identity before any decision: the date sits under the route; the flight number leads the facts below. */}
       <span className="sr-only">,</span>
       <span className="jd-title-meta">{formatDateOnly(locale, flight.date, 'long')}</span>
     </>
@@ -526,6 +494,7 @@ export function JournalDetail({
         onOpenFlight={swap}
         guardRef={guard}
         actionSlot={actionSlot}
+        footerSlot={footerSlot}
       />
     </Crossfade>
   ) : (
@@ -596,7 +565,7 @@ export function JournalDetail({
             </>
           )}
         </div>
-        {footer && flight && !idle && <div className="jd-footer">{footer}</div>}
+        {footerContent && <div className="jd-footer">{footerContent}</div>}
       </aside>
     )
   }
@@ -616,7 +585,7 @@ export function JournalDetail({
       side={mobile ? 'bottom' : 'right'}
       className={mobile ? 'journal-detail-sheet flight-full-sheet' : 'journal-detail-sheet'}
       closeLabel={t.close}
-      footer={footer && flight && !idle ? footer : undefined}
+      footer={footerContent}
       onCloseAutoFocus={(event) => {
         const row = shownId !== null ? rowFor(shownId) : null
         if (row) {

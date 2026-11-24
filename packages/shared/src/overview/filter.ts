@@ -16,7 +16,6 @@ import {
 type Refs = OverviewPayload['refs']
 
 export const routeKey = (a: string, b: string): string => [a, b].sort().join('-')
-/** An undirected route key for display: `LHR-TBS` → `LHR ↔ TBS`. */
 export const routeArrow = (key: string): string => key.replace('-', ' ↔ ')
 export const haulOf = (km: number): Haul =>
   km < HAUL_KM.medium ? 'short' : km < HAUL_KM.long ? 'medium' : 'long'
@@ -42,7 +41,6 @@ function monthIndex(month: string): number | null {
   return Number(month.slice(0, 4)) * 12 + Number(month.slice(5)) - 1
 }
 
-/** Calendar month (1–12) of a `YYYY-MM-DD` day; legacy month rows may carry `YYYY-MM`. Null when unparseable. */
 export function monthOfYear(date: string): number | null {
   if (monthIndex(date) !== null) return Number(date.slice(5))
   return dayToEpoch(date) === null ? null : Number(date.slice(5, 7))
@@ -51,7 +49,6 @@ export function monthOfYear(date: string): number | null {
 const has = <T>(values: readonly T[] | undefined, value: T | null | undefined) =>
   !values?.length || (value != null && values.includes(value))
 
-/** Whether a `YYYY-MM-DD` day (legacy rows may carry `YYYY-MM`) falls in the period; no period admits every day. */
 function inPeriod(day: string | null, period: OverviewFilter['period']): boolean {
   if (!period) return true
   if ('years' in period)
@@ -150,14 +147,12 @@ export function matches(row: OverviewRow, filter: OverviewFilter, refs: Refs): b
 
 const NON_AVIATION_KEYS = new Set(['period', 'scope', 'countries', 'regions'])
 
-/** True when any facet beyond countries/regions is set: ground journeys carry no aviation evidence to match. */
 export function hasAviationFacet(filter: OverviewFilter): boolean {
   return Object.entries(filter).some(
     ([key, values]) => !NON_AVIATION_KEYS.has(key) && !!(values as unknown[] | undefined)?.length,
   )
 }
 
-/** Ground journeys match by `startDate ?? endDate`, with the same period rules as flight dates. */
 export function groundMatches(
   journey: OverviewGroundJourney,
   filter: OverviewFilter,
@@ -176,7 +171,6 @@ export function groundMatches(
   return true
 }
 
-/** The scope that actually applies: a stored scope is ignored while the payload has no ground journeys. */
 export function effectiveScope(
   payload: Pick<OverviewPayload, 'ground'>,
   filter: OverviewFilter,
@@ -184,7 +178,6 @@ export function effectiveScope(
   return effectiveScopeFromPresence(payload.ground.length > 0, filter)
 }
 
-/** Global non-cancelled ground presence controls whether a stored travel scope applies. */
 export function effectiveScopeFromPresence(
   hasGround: boolean,
   filter: OverviewFilter,
@@ -192,7 +185,6 @@ export function effectiveScopeFromPresence(
   return filter.scope && hasGround ? filter.scope : 'all'
 }
 
-/** Ground journeys the scope and filter admit, planned included; none under the flights scope. */
 export function scopedGround(
   payload: Pick<OverviewPayload, 'ground' | 'refs'>,
   filter: OverviewFilter,

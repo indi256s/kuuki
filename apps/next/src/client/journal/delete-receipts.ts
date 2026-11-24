@@ -2,7 +2,6 @@ export type DeleteReceipt = { key: number; ids: number[]; remaining: number | nu
 
 const storageKey = (ownerId: string) => `kuuki-journal-delete:${ownerId}`
 
-/** Receipts stay in this tab and contain only IDs, never flight or account details. */
 export function readDeleteReceipts(ownerId: string): DeleteReceipt[] {
   const value: unknown = JSON.parse(sessionStorage.getItem(storageKey(ownerId)) ?? '[]')
   if (!Array.isArray(value)) throw new Error('Invalid delete receipt')
@@ -29,7 +28,6 @@ export function writeDeleteReceipts(ownerId: string, receipts: DeleteReceipt[]):
   }
 }
 
-/** Identity changes clear deferred intentions even while the Journal is unmounted. */
 export function clearDeleteReceipts(ownerId: string): void {
   writeDeleteReceipts(ownerId, [])
 }

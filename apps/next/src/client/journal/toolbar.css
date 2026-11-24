@@ -65,8 +65,8 @@
 }
 .journal-menu-hint {
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
 }
 .journal-menu-count {
   margin-inline-start: auto;
@@ -75,8 +75,8 @@
   border-radius: var(--radius-full);
   background: var(--surface-inset);
   color: var(--text);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
@@ -93,15 +93,15 @@
   inset-inline-end: -6px;
   min-width: 18px;
   padding: 0 4px;
-  font-size: 12px;
-  line-height: 18px;
+  font-size: 0.75rem;
+  line-height: 1.125rem;
   pointer-events: none;
 }
 .journal-facet-hint {
   margin: 0 0 var(--space-1);
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   text-wrap: pretty;
 }
 
@@ -143,8 +143,8 @@
 .journal-facet-group legend {
   padding: 0;
   margin-block-end: var(--space-2);
-  font-size: 15px;
-  line-height: 24px;
+  font-size: 0.9375rem;
+  line-height: 1.5rem;
   font-weight: 500;
 }
 .journal-facet-row {
@@ -156,8 +156,8 @@
 }
 .journal-facet-count {
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   font-variant-numeric: tabular-nums;
 }
 

@@ -14,7 +14,6 @@
   block-size: 100%;
   background: var(--surface-inset);
 }
-/* The map fills the card edge to edge; the corner controls float over it. */
 .globe-viewport {
   position: relative;
   inline-size: 100%;
@@ -58,8 +57,8 @@
 }
 .globe-legend {
   color: var(--text);
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 0.75rem;
+  line-height: 1rem;
 }
 .globe-legend ul {
   display: flex;
@@ -148,13 +147,12 @@
   padding: var(--space-8);
   text-align: center;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .globe-surface[data-webgl-ready='true'] .globe-webgl-layer {
   opacity: 1;
   pointer-events: auto;
 }
-/* One-finger drags turn the globe both ways, so the browser must not claim them for page scroll. */
 .maplibre-globe,
 .maplibre-globe .globe-map-canvas {
   position: absolute;
@@ -175,7 +173,6 @@
   color: var(--plane-fill);
   pointer-events: none;
 }
-/* Land fills run up to 90% accent, so an accent plane vanished on it (1.2:1). Neutral fill plus a background-toned halo keeps one tone readable on any land bucket, in both themes and every accent. */
 .globe-plane path {
   stroke: var(--plane-halo);
   stroke-width: 2;
@@ -211,7 +208,7 @@
 .replay-transport .replay-month.ui-button {
   padding-inline: 10px;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 0.75rem;
   white-space: nowrap;
 }
 .replay-transport .replay-play.ui-button {
@@ -247,7 +244,7 @@
   block-size: 20px;
   margin-inline: 8px;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .replay-years span {
   position: absolute;
@@ -321,8 +318,6 @@
   vertical-align: -2px;
 }
 
-/* Wide Overview: the card height follows --ov-globe-h (set on .ov3-globe-band) and the map canvas fills the card width; the globe still fits the shorter side. Fullscreen is untouched.
-   When the figures column (next flight over the figures) runs taller, the card grows to the row instead of leaving a gap under the map. */
 @media (min-width: 1024px) {
   .ov3-globe-band > .ov3-globe-region,
   .ov3-globe-band .globe-host {
@@ -346,7 +341,6 @@
   }
 }
 
-/* Docked country list (wide Overview band): the globe's key. The slot takes what the heading and note leave; its content is out of flow so the globe and figures set the band's height. */
 .globe-country-card {
   display: none;
   flex-direction: column;
@@ -355,8 +349,8 @@
 }
 .globe-country-card h2 {
   margin: 0;
-  font-size: 18px;
-  line-height: 24px;
+  font-size: 1.125rem;
+  line-height: 1.5rem;
   letter-spacing: -0.01em;
   text-wrap: balance;
 }
@@ -393,8 +387,8 @@
   background: transparent;
   color: var(--text);
   font: inherit;
-  font-size: 15px;
-  line-height: 20px;
+  font-size: 0.9375rem;
+  line-height: 1.25rem;
   text-align: start;
   cursor: pointer;
   transition: background-color var(--dur-fast) var(--ease-out);
@@ -434,8 +428,8 @@
 .globe-country-note {
   margin: 0;
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   text-wrap: pretty;
 }
 @media (hover: hover) and (pointer: fine) {
@@ -443,7 +437,6 @@
     background: var(--surface-inset);
   }
 }
-/* Scroll hints: sticky fades that take no space and show only when there is more list that way. Without scroll-state support they stay hidden; the list still scrolls. */
 .globe-country-fade {
   position: sticky;
   z-index: 1;

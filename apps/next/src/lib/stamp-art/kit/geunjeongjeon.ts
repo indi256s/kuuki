@@ -1,7 +1,3 @@
-// Geunjeongjeon (Seoul): a wide palace hall under two stacked hipped roofs whose eaves sweep up at
-// the corners, a shallow row of columns and bays below, an upper storey between the roofs, all on a
-// two-tier stone terrace with a broad central stair. Roofs are hatched along the fall line (dark
-// tile), terrace and walls stay lit. The box is the whole hall; its bottom is the ground.
 import {
   type Pt,
   type SvgNode,
@@ -27,7 +23,6 @@ export const geunjeongjeon: KitModule = ([x, y, w, h], p) => {
   const wall2Top = base - h * 0.62
   const roof2Y = y + 1
   const gap = num(p, 'tileGap', 3.6)
-  // Terrace tiers.
   const t1w = w * 0.47,
     t2w = w * 0.41
   out.push(...body(rectPts(cx - t1w, terr1, t1w * 2, base - terr1), 'line'))
@@ -46,7 +41,6 @@ export const geunjeongjeon: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // Balustrade posts along the upper terrace edge.
   for (let px = cx - t2w + 3; px < cx + t2w - 2; px += 5.2) {
     if (Math.abs(px - cx) < w * 0.1) continue
     out.push(
@@ -56,7 +50,6 @@ export const geunjeongjeon: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // Central stair: sides and treads.
   const sw = w * 0.11
   const treads = 7
   for (let i = 1; i < treads; i++) {
@@ -83,7 +76,6 @@ export const geunjeongjeon: KitModule = ([x, y, w, h], p) => {
       inset: 0.4,
     }),
   )
-  // Hall body: columns and bays.
   const bw = w * 0.35
   out.push(...body(rectPts(cx - bw, bodyTop, bw * 2, terr2 - bodyTop + 0.5), 'line'))
   const bays = 6
@@ -110,7 +102,6 @@ export const geunjeongjeon: KitModule = ([x, y, w, h], p) => {
       [cx + bw, terr2],
     ]),
   )
-  // Roofs.
   const roof = (halfEave: number, yEave: number, halfTop: number, yTop: number, lift: number) => {
     const bot: Pt[] = quad(
       [cx - halfEave, yEave - lift],
@@ -138,7 +129,6 @@ export const geunjeongjeon: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // Upper storey wall between the roofs.
   const uw = w * 0.2
   out.push(...body(rectPts(cx - uw, wall2Top, uw * 2, base - h * 0.5 - wall2Top + 2), 'line'))
   for (const f of [-0.5, 0, 0.5])

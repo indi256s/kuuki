@@ -9,7 +9,6 @@ afterEach(() => {
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
 })
-// Reduced motion makes the settle instant, which is what jsdom (no animation clock) can observe.
 const reduced = () =>
   vi.stubGlobal('matchMedia', (query: string) => ({
     matches: query.includes('reduce'),
@@ -46,7 +45,6 @@ function Flow({
     </div>
   )
 }
-// Cards stack 100px apart; row i spans [i*100, i*100+90].
 function stack() {
   vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
     this: HTMLElement,

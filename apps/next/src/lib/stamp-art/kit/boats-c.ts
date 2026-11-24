@@ -1,5 +1,3 @@
-// Monaco: a row of moored yachts and sailboats seen from the quay. Solid hulls, white cabins, thin
-// masts with stays. The box bottom is the waterline.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, occlude, rectPts, stroke, vline } from '../grid'
 import { type KitModule, num } from './util'

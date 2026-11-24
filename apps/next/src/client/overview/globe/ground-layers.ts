@@ -1,5 +1,3 @@
-// The globe's ground journeys: two sources, five layers and three icons, owned here so the flight globe only places
-// them. Ground is not interactive (no cursor, hover or click) and draws in the same ink as the routes.
 import type { ExpressionSpecification, GeoJSONSource, Map as LibreMap } from 'maplibre-gl'
 import type { GlobeData } from '@kuuki/shared/overview/globe'
 import { wrappedBounds } from '../../maps/geometry'
@@ -17,14 +15,11 @@ const CITY_SQUARES = 'globe-ground-city-squares'
 const TIE_IMAGE = 'globe-rail-tie'
 const DOT_IMAGE = 'globe-road-dot'
 const CITY_IMAGE = 'globe-city-square'
-// Below this zoom ground is the plain line; ties and dots only read once a leg is long enough on screen.
 const GROUND_DETAIL_MINZOOM = 4
 const GROUND_LINE_WIDTH = 1.5
-// Planned journeys stay in the same encoding at a lower weight, in every scope.
 export const plannedOpacity: ExpressionSpecification = ['case', ['get', 'planned'], 0.35, 1]
 const round = { 'line-cap': 'round', 'line-join': 'round' } as const
 
-/** A run crossing the antimeridian breaks there, so MapLibre draws the short way and not around the world. */
 export function splitAtSeam(run: Position[]): Position[][] {
   const lines: Position[][] = [[run[0]]]
   for (let i = 1; i < run.length; i++) {
@@ -42,7 +37,6 @@ export function splitAtSeam(run: Position[]): Position[][] {
   return lines
 }
 
-/** Lines per run and one square per distinct place; a place is planned only when every journey through it is. */
 export function groundData(journeys: GlobeData['ground']) {
   const cities = new Map<string, { position: Position; planned: boolean }>()
   const runs = journeys.flatMap((journey) =>
@@ -80,14 +74,12 @@ export function groundData(journeys: GlobeData['ground']) {
 }
 export type GroundData = ReturnType<typeof groundData>
 
-/** The smallest longitude span holding every point, across the seam; null for one place (the centroid frames it). */
 export function groundBounds(points: Position[]): Bounds | null {
   const bounds = wrappedBounds([{ type: 'LineString', coordinates: points }])
   if (!bounds) return null
   return bounds[1][0] - bounds[0][0] < 0.01 && bounds[1][1] - bounds[0][1] < 0.01 ? null : bounds
 }
 
-/** Sources and the line layers; call where ground sits in the stack (under the flight layers). */
 export function addGroundLines(map: LibreMap) {
   for (const id of [GROUND_SOURCE, CITY_SOURCE])
     map.addSource(id, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
@@ -96,7 +88,6 @@ export function addGroundLines(map: LibreMap) {
     type: 'line',
     source: GROUND_SOURCE,
     layout: round,
-    // The same 5px halo the routes carry.
     paint: { 'line-width': GROUND_LINE_WIDTH + 5, 'line-blur': 2, 'line-opacity': plannedOpacity },
   })
   map.addLayer({
@@ -106,7 +97,6 @@ export function addGroundLines(map: LibreMap) {
     layout: round,
     paint: { 'line-width': GROUND_LINE_WIDTH, 'line-opacity': plannedOpacity },
   })
-  // icon-image is set once the image exists (paintGround), so no missing-image warning fires at creation.
   for (const [id, mode] of [
     [RAIL_TIES, 'rail'],
     [ROAD_DOTS, 'road'],
@@ -128,7 +118,6 @@ export function addGroundLines(map: LibreMap) {
     })
 }
 
-/** The place squares; call where they sit in the stack (over the airport dots, under the labels). */
 export function addGroundCities(map: LibreMap) {
   map.addLayer({
     id: CITY_SQUARES,
@@ -144,7 +133,6 @@ export function setGroundData(map: LibreMap, data: GroundData) {
   ;(map.getSource(CITY_SOURCE) as GeoJSONSource | undefined)?.setData(data.cities)
 }
 
-/** Icons and line colours for the current theme. Icons are drawn at 2x: tie 1x6, dot 3 and city square 7 CSS px. */
 export function paintGround(map: LibreMap, ink: string, casing: string) {
   if (!map.getLayer(GROUND_LINE)) return
   const icons: Array<[string, string, number, number, (c: CanvasRenderingContext2D) => void]> = [

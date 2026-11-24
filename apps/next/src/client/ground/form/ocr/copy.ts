@@ -1,5 +1,3 @@
-// EN and RU wording for the rail ticket OCR panel. Sentence case; the status of a file is one line of text.
-
 import type { CountForms } from '../../../../lib/format'
 import type { RowStatus } from './model'
 
@@ -94,7 +92,7 @@ export const T = {
 const status: Record<RowStatus, Pair> = {
   waiting: p('Waiting', 'Ожидает'),
   reading: p('Reading…', 'Читаем…'),
-  found: p('Found', 'Найдено'), // replaced by the counted form
+  found: p('Found', 'Найдено'),
   none: p('No trains found', 'Поездов не найдено'),
   'too-large': p('Too large (max 10 MB)', 'Слишком большой (не более 10 МБ)'),
   unsupported: p('Unsupported type', 'Тип не поддерживается'),

@@ -256,7 +256,6 @@ it('reads the shown places again when the board changes between pages', async ()
     ok: true,
     json: () => Promise.resolve({ entries, total, updatedAt: null }),
   })
-  // Page two arrives after #20 left: its total moved, so the client re-reads from the top instead of appending.
   const fetchMock = vi
     .fn()
     .mockResolvedValueOnce(reply(ranks(1, 50), 60))
@@ -338,7 +337,6 @@ it('drops a Show all read that lands after the board was switched', async () => 
   render(board(data))
   await user.click(screen.getByRole('button', { name: 'Show all' }))
   await user.click(screen.getByRole('link', { name: /^Distance/ }))
-  // The new board offers its own Show all at once, not a spinner left over from Flights.
   expect(screen.getByRole('button', { name: 'Show all' })).toBeEnabled()
   land({
     ok: true,
@@ -379,7 +377,6 @@ it.each(['success', 'failure'])(
     )
     await waitFor(() => expect(screen.getByRole('link', { name: '@user50' })).toBeInTheDocument())
     expect(screen.getByRole('button', { name: 'Show more' })).toHaveAttribute('aria-busy', 'true')
-    // The active read still blocks another click after the obsolete read finalizes.
     await user.click(screen.getByRole('button', { name: 'Show more' }))
     expect(lands).toHaveLength(3)
     expect(screen.queryByText('Couldn’t load more places. Try again.')).toBeNull()

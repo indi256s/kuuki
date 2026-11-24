@@ -20,7 +20,6 @@ import { trackPrivateOperation } from '../../activity'
 import { createManualPlace, searchPlaces } from '../api'
 import { newId } from './model'
 
-/** Region and country (and a manual marker), so two places with one name are never alike on screen. */
 export function placeDetail(
   place: GroundPlaceSnapshot | GroundPlaceOption,
   locale: Locale,
@@ -56,14 +55,12 @@ export function PlacePicker({
   hint?: string
   disabled?: boolean
   inputRef?: Ref<HTMLInputElement>
-  /** Opens the search with this text typed in; the owner still picks the place. See AsyncCombobox. */
   prefill?: { text: string; nonce: number }
 }) {
   const ru = locale === 'ru'
   const country = useMemo(() => countryNamer(locale), [locale])
   const [manual, setManual] = useState<string | null>(null)
   const [announce, setAnnounce] = useState('')
-  // Closing the manual form removes the button that held focus; the field takes it back without opening the list.
   const [refocus, setRefocus] = useState(0)
   const search = (query: string, signal: AbortSignal) => searchPlaces(query, locale, { signal })
   return (
@@ -139,7 +136,6 @@ function parseCoordinate(value: string, limit: number): number | null | 'invalid
   return Math.abs(n) <= limit ? n : 'invalid'
 }
 
-/** Name and country are required; coordinates are optional but come as a pair. The id makes a retry idempotent. */
 export function ManualPlaceForm({
   locale,
   initialName,

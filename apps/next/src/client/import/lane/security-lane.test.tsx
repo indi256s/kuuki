@@ -49,10 +49,8 @@ describe('SecurityLane', () => {
     try {
       const { rerender } = render(<SecurityLane model={rejected('a')} />)
       expect(animate).not.toHaveBeenCalled()
-      // Both copies of the tray move together.
       rerender(<SecurityLane model={rejected('a', 'b')} />)
       expect(animate).toHaveBeenCalledTimes(2)
-      // Only the latest rejection is drawn: with b removed, a is drawn again and stays put.
       rerender(<SecurityLane model={rejected('a')} />)
       expect(animate).toHaveBeenCalledTimes(2)
       rerender(<SecurityLane model={rejected('a', 'c')} />)

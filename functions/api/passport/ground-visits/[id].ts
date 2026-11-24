@@ -1,5 +1,3 @@
-// PATCH /api/passport/ground-visits/:id edits one ground visit's year, note or way; DELETE removes it (own only).
-
 import { runHandler, json, readJson, HttpError } from '../../_lib/http'
 import { requireUser, requireCsrf, type RequestData } from '../../_lib/auth'
 import { toGroundVisit, type GroundVisitRow } from '../../_lib/passportDtos'
@@ -11,7 +9,6 @@ const EDITABLE = ['visitYear', 'note', 'entryMethod', 'mode'] as const
 export const onRequestPatch: PagesFunction<Env, string, RequestData> = (context) =>
   updateGroundVisitRequest(context.request, context.env, context.data, context.params.id as string)
 
-/** Fields left out of the body keep their stored value; the merged row is validated as a whole. */
 export function updateGroundVisitRequest(
   request: Request,
   env: Env,
@@ -41,7 +38,6 @@ export function updateGroundVisitRequest(
     for (const key of EDITABLE) if (Object.hasOwn(body, key)) merged[key] = body[key]
     const fields = parseGroundVisitFields(merged)
 
-    // Compare-and-set on the row as read: a concurrent edit must not be overwritten by fields this body left out.
     const [result] = await env.DB.batch([
       env.DB.prepare(
         `UPDATE ground_visits SET visit_year = ?, note = ?, entry_method = ?, mode = ?
@@ -87,7 +83,6 @@ export function updateGroundVisitRequest(
 export const onRequestDelete: PagesFunction<Env, string, RequestData> = (context) =>
   deleteGroundVisitRequest(context.request, context.env, context.data, context.params.id as string)
 
-/** Request/Response entry keeps compatibility transport separate from domain writes. */
 export function deleteGroundVisitRequest(
   request: Request,
   env: Env,

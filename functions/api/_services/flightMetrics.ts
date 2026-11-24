@@ -31,7 +31,6 @@ export interface ExplicitInstants {
   arrivalUtc: string
 }
 
-/** Minutes between explicit instants, or null when they are unusable as a measured duration. */
 export function explicitDuration(explicit: ExplicitInstants | null | undefined): number | null {
   if (!explicit) return null
   const departure = Date.parse(explicit.departureUtc)
@@ -66,7 +65,6 @@ function coordinates(row: Reference | undefined): LatLon | null {
   return { lat: row.latitude, lon: row.longitude }
 }
 
-/** Same pure timezone/time resolution for current writes and historical backfill. */
 export function resolveFlightTimes(
   input: {
     date: string
@@ -98,7 +96,6 @@ export function resolveFlightTimes(
     arrivalUtc: null,
     durationMinutes: null,
   }
-  // Historical rows may contain malformed dates/times; never turn those into measured samples.
   try {
     validateFlightInput(
       { date: input.date, departure_time: input.departureTime, arrival_time: input.arrivalTime },
@@ -112,9 +109,7 @@ export function resolveFlightTimes(
       destTz,
       existingDurationMinutes: null,
     })
-  } catch {
-    /* invalid historical times have no measured duration */
-  }
+  } catch {}
   return { originTz, destTz, ...times }
 }
 
@@ -133,10 +128,6 @@ export async function resolveFlightMetrics(
     clientDistanceKm?: number | null
     timesFromSchedule?: boolean
     excludeFlightId?: number
-    /**
-     * Server-validated instants (ADR 0008). They replace wall-clock inference when both parse and give a positive
-     * duration within the clamp; anything else falls back to inference. Never taken from a request body.
-     */
     explicit?: ExplicitInstants | null
   },
 ): Promise<FlightMetrics> {

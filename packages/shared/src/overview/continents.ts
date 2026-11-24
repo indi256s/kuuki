@@ -48,7 +48,6 @@ const DIRECT: Record<string, ContinentId> = {
 const finite = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value)
 
-/** Continent of one airport, or null when the reference data cannot place it. Splits transcontinental countries by coordinates. */
 export function continentOf(refs: Refs, code: string): ContinentId | null {
   const airport = refs.airports[code]
   const country = airport?.country

@@ -1,5 +1,3 @@
-// Clears the legacy session cookie and the CSRF cookie on a response Headers object.
-
 import { SESSION_COOKIE, CSRF_COOKIE, clearCookie } from './cookies'
 
 export function clearSessionCookies(headers: Headers): void {

@@ -1,4 +1,3 @@
-/** Read-only migration admission check. This program never opens a D1 connection. */
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'

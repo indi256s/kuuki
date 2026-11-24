@@ -1,7 +1,3 @@
-// Atoll module: a reef ring seen from low over the water (the Great Blue Hole). The box is the
-// ring's outer ellipse. From outside in: a broken surf line on the reef crest, a paper band of
-// shallows with a few fine ripples, and the deep hole as a solid fill. Water hatching stops
-// outside the crest through the occluder.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, fill, hline, occlude, quad, stroke, toneFill } from '../grid'
 import { type KitModule, nums, num } from './util'
@@ -22,21 +18,18 @@ export const atoll: KitModule = ([x, y, w, h], p) => {
   const out: SvgNode[] = []
   const outer = ellipse(cx, cy, rx, ry)
   out.push(occlude(outer))
-  // Reef crest: broken arcs of surf, heavier on the lit upper edge.
   const arcs = Math.max(6, Math.round(num(p, 'arcs', 16)))
   for (let i = 0; i < arcs; i++) {
     const t0 = i / arcs + rand() * 0.012
     const t1 = (i + 0.72) / arcs
     out.push(stroke(i % 3 === 0 ? 'line' : 'hair', ellipse(cx, cy, rx, ry, 64, t0, t1)))
   }
-  // Inner crest edge (where the reef drops to the shallows).
   const shallowK = 0.78
   for (let i = 0; i < arcs; i++) {
     const t0 = (i + 0.3) / arcs
     const t1 = (i + 0.9) / arcs
     out.push(stroke('hair', ellipse(cx, cy, rx * shallowK, ry * shallowK, 64, t0, t1)))
   }
-  // Shallows: ripples on the near and far sides of the band.
   for (const k of [0.88, 0.84]) {
     for (const [a, b] of [
       [0.02, 0.2],
@@ -47,10 +40,8 @@ export const atoll: KitModule = ([x, y, w, h], p) => {
       out.push(stroke('fine', ellipse(cx, cy, rx * k, ry * k, 48, a + rand() * 0.03, b)))
     }
   }
-  // Deep hole.
   const hole = ellipse(cx, cy, rx * holeFrac, ry * holeFrac)
   out.push(occlude(hole), fill(hole))
-  // Optional cay: [centre x, base y, width, height] in grid units, a low sand mound on the water.
   const cay = nums(p, 'cay', [])
   if (cay.length === 4) {
     const [kx, ky, kw, kh] = cay

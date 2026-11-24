@@ -1,5 +1,3 @@
-// Build-time hot-air balloon artwork. Shares the airliner's pinned anatomy kit, surface renderer, material ramps and
-// serializer, and the car's ground camera, so it drifts across the same lane as the road vehicles.
 import { closed, ringsOfPath, roundedUV, type Draw } from '../airliner/draw'
 import {
   LaneScene,
@@ -36,7 +34,6 @@ import {
   uAtHeight,
 } from './model'
 
-/** Turns a surface's normal outward from an axis point (or inward when asked), judged at one probe. */
 function oriented(s: Surface, u: number, v: number, centre: V3 | 'axis', inward = false): Surface {
   const p = s.at(u, v)
   if (centre === 'axis') centre = [CX, 0, p[2]]
@@ -48,14 +45,12 @@ function oriented(s: Surface, u: number, v: number, centre: V3 | 'axis', inward 
 const sample = (n: number, f: (t: number) => V3) =>
   Array.from({ length: n + 1 }, (_, i) => f(i / n))
 
-/** Items painted in the wicker ramp (the metal tones, warmed and lifted in the dark theme). */
 const wicker = new WeakSet<Item>()
 
 export function balloon(d: Draw): Item[] {
   const { cam, G, P, solid, kitSolid, seam } = d
   const V = cam.V
   const out: Item[] = []
-  // A view-facing horizontal direction decides the gore layout and which half of a loop is the far one.
   const hv = Math.atan2(V[1], V[0])
   phase.value = hv - Math.PI / GORES
   const depth = (p: V3) => (p[0] - CX) * V[0] + p[1] * V[1]
@@ -76,7 +71,6 @@ export function balloon(d: Draw): Item[] {
   const ball = (c: V3, r: number, mat: Mat = 'metal'): Item =>
     kitSolid(G.sphereOf(c, r, P, { steps: 24 }), mat, [], 0.3)
 
-  // ------------------------------------------------------------------ the layout of the rigging
   const pole = (sx: number, sy: number) => [sx * 1.12, sy * 0.68] as const
   const corners = [
     [1, 1],
@@ -108,7 +102,6 @@ export function balloon(d: Draw): Item[] {
     nearCables: Item[] = []
   for (let i = 0; i < GORES; i++) cable(i, depth(hemPoint(i)) > 0 ? nearCables : far)
 
-  // ------------------------------------------------------------------ behind the envelope: far poles and frame
   const poleList = [
     [1, 1],
     [-1, 1],
@@ -122,7 +115,6 @@ export function balloon(d: Draw): Item[] {
   for (const [a, b] of frameEdges) if (depth(add(a, b)) <= 0) far.push(rod(a, b, 0.04))
   out.push(...far)
 
-  // ------------------------------------------------------------------ the envelope
   const env = oriented(envelope, 0.5, 0.3, 'axis')
   const base = solid(env, 'body', [], 0)
   out.push(base)
@@ -130,7 +122,6 @@ export function balloon(d: Draw): Item[] {
     out.push(solid({ ...gore(i, i + 1), flip: env.flip }, 'livery', [], 0))
   }
   const withFlip = (s: Surface): Surface => ({ ...s, flip: env.flip })
-  // Vertical load tapes on every seam; horizontal tapes at three heights, over the gores.
   const tw = 0.003
   for (let i = 0; i < GORES; i++) {
     const s = withFlip(gore(i - tw * GORES, i + tw * GORES))
@@ -158,7 +149,6 @@ export function balloon(d: Draw): Item[] {
   }
   out.push({ kind: 'lines', lines: { runs: closed(base.outline), ink: 'line', width: 0.75 } })
 
-  // Crown: a metal ring holding the parachute vent, a cloth disc with its closing line.
   {
     const F = G.frameAlong(W(0, 0, CROWN_Z - 0.02), [0, 0, 1])
     out.push(
@@ -171,7 +161,6 @@ export function balloon(d: Draw): Item[] {
     })
   }
 
-  // Skirt: a dark Nomex band under the mouth, with a thimble where each load tape ends.
   {
     const s = oriented(skirt, 0.5, 0.3, 'axis')
     const sk = solid(s, 'metal', [seam(s, 160, (t) => [0.0, t], 'seam', 0.2)], 0.6)
@@ -183,7 +172,6 @@ export function balloon(d: Draw): Item[] {
     }
   }
 
-  // ------------------------------------------------------------------ the burner frame, burners and hoses
   const burners: Item[] = []
   for (const sx of [1, -1]) {
     const o = W(sx * 0.5, 0, FRAME_Z + 0.03)
@@ -217,11 +205,9 @@ export function balloon(d: Draw): Item[] {
     burners.push(kitSolid(G.disc(0.1, 0.8, 0.04, F, P, { steps: 16 }), 'metal', [], 0.4))
     runs(front, 'line', 0.85, burners)
     runs(front, 'faint', 0.42, burners)
-    // Blast valve: a short lever across the stem with a knob on its end.
     const vb = ax(0.15)
     burners.push(rod(add(vb, [0, -0.1, 0]), add(vb, [0, 0.12, 0]), 0.022))
     burners.push(ball(add(vb, [0, 0.14, 0]), 0.04))
-    // The head: a cup with the dark jet bore on top.
     burners.push(kitSolid(G.disc(0.74, 0.92, 0.17, F, P, { steps: 28 }), 'metal', [], 0.4))
     burners.push(kitSolid(G.disc(0.915, 0.93, 0.125, F, P, { steps: 24 }), 'void', [], 0.2))
   }
@@ -237,7 +223,6 @@ export function balloon(d: Draw): Item[] {
     )
   }
 
-  // ------------------------------------------------------------------ the basket
   const basket: Item[] = []
   const inner = oriented(basketInner, 0.5, 0.3, 'axis', true)
   basket.push(solid(inner, 'rubber', [], 0.5))
@@ -267,14 +252,12 @@ export function balloon(d: Draw): Item[] {
     tanks.push(kitSolid(G.ringBand(1.89, 2.07, 0.12, 0.14, F, P, { steps: 24 }), 'rubber', [], 0.3))
     tanks.push(kitSolid(G.disc(1.93, 2.01, 0.045, F, P, { steps: 16 }), 'metal', [], 0.3))
   }
-  // Rim: the far half goes behind the tanks, the near half in front of them.
   const rimSeg = (t0: number, t1: number): Surface => ({
     at: rimAt(t0, t1),
     u: Math.max(12, Math.ceil((t1 - t0) * 260)),
     v: 20,
     closed: true,
   })
-  // Split the loop where its depth crosses zero: start at the far-to-near crossing.
   const dz = (t: number) => depth(rimAt(0, 1)(t, 0))
   let t0 = 0
   for (let i = 0; i < 400; i++) {
@@ -296,7 +279,6 @@ export function balloon(d: Draw): Item[] {
     const s = rimSeg(a, b)
     const mid = rimAt(a, b)(0.5, 0)
     const cen = rimAt(a, b)(0.5, 0.5)
-    // v = 0 is the tube's outermost point: its outward normal points from the tube centre to it.
     const n = normalAt({ ...s, flip: false }, 0.5, 0)
     return { ...s, flip: dot(n, sub(mid, cen)) < 0 }
   }
@@ -312,20 +294,17 @@ export function balloon(d: Draw): Item[] {
     ...basketOuter(u0, u1, v0, v1),
     flip: outer.flip,
   })
-  // Suede: runner at the foot, a trim under the rim, and straps up the corners.
   front.push(solid(sub1(0, 0.09), 'rubber', [], 0.3))
   front.push(solid(sub1(0.82, 1), 'rubber', [], 0.3))
   for (let k = 0; k < 4; k++) {
     const t = cornerT(BASKET.a, BASKET.b, BASKET.r, k)
     front.push(solid(sub1(0.08, 0.84, t - 0.012, t + 0.012), 'rubber', [], 0.2))
   }
-  // Rope handles: two cut-outs in the wall under the rim, edged in rope.
   for (const x of [0.75, -0.75]) {
     const v = nearT(BASKET.a + BASKET.flare * 0.8, BASKET.b + BASKET.flare * 0.8, BASKET.r, x)
     const rings = d.patch(outer, roundedUV(0.7, v, 0.05, 0.022, 0.9, 5), 0.02)
     if (rings.length) front.push({ kind: 'fill', rings, mat: 'void', edge: 'line', width: 0.4 })
   }
-  // Weave: a basket-weave check, each cell one short rod lying up or across, alternating.
   const rows = 8,
     cols = 44
   const rowU = (r: number) => 0.08 + (0.78 * r) / rows
@@ -345,7 +324,6 @@ export function balloon(d: Draw): Item[] {
     }
   runs(weave, 'seam', 0.16, front)
   front.push(solid(nearRim, 'livery', [], 0.5))
-  // Drop line: a coil of rope hanging on the near wall.
   {
     const a = BASKET.a + BASKET.flare * 0.6,
       b = BASKET.b + BASKET.flare * 0.6
@@ -364,10 +342,8 @@ export function balloon(d: Draw): Item[] {
       front,
     )
   }
-  // Near poles stand inside the rim, so the wall and rim cover their feet; the frame's near edge is above them all.
   const nearRig: Item[] = nearPoles.map(([a, b]) => rod(a, b, 0.045))
   for (const [a, b] of frameEdges) if (depth(add(a, b)) > 0) nearRig.push(rod(a, b, 0.04))
-  // Karabiners where the flying wires meet the frame.
   for (const c of corners) nearRig.push(ball(c, 0.075))
 
   out.push(...burners)
@@ -378,13 +354,10 @@ export function balloon(d: Draw): Item[] {
 
 export async function buildBalloon(unit = 112) {
   const kit = await loadKit()
-  // The ground camera, as the car derives it; the scale makes the envelope's width the lane unit on screen.
   const probe = new LaneScene(1)
   const h1 = Math.hypot(probe.project(lane([1, 0, 0]))[0], probe.project(lane([0, 1, 0]))[0])
   const { cam, draw, place } = laneCamera(kit, unit / WIDTH / h1)
   const items = balloon(draw)
-  // The envelope's cloth and the basket's wicker have their own ramps (BALLOON_CSS), so both stay bright in the dark
-  // theme; the serializer writes the aircraft ramps, which are renamed per item.
   const parts = items.map((it) => {
     const s = serialize([it], place, 1)
     return {
@@ -411,7 +384,6 @@ export async function buildBalloon(unit = 112) {
   }
 }
 
-/** The cloth ramp: the aircraft body ramp in light, and a bright cream in dark so the envelope reads against the dark page. */
 export const BALLOON_CSS = `.lane-vehicle{--ac4:var(--ab4);--ac3:var(--ab3);--ac2:var(--ab2);--ac1:var(--ab1);--ac0:var(--ab0);--acp:var(--ab2);
   --aw4:var(--am4);--aw3:var(--am3);--aw2:var(--am2);--aw1:var(--am1);--aw0:var(--am0);--awp:var(--amp)}
 :root[data-theme='dark'] .lane-vehicle{

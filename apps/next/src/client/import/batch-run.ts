@@ -1,6 +1,3 @@
-// One server batch as seen by this tab: submit, resume from a batch id, watch while recognition runs, and keep per-row
-// updates. Free of React, so the import runs provider can keep a run alive across routes and the hook can read it with
-// `useSyncExternalStore`. The snapshot is the only authority; nothing here is written to browser storage.
 import { watchBatch } from './batch-watcher'
 import { connectEvents } from './import-events'
 import { classifyBatchFailure, classifyRequestFailure, type Failure } from './import-errors'
@@ -32,14 +29,9 @@ export const defaultBatchApi: BatchApi = {
 
 export type Phase = 'idle' | 'starting' | 'processing' | 'ready' | 'failed' | 'cancelled'
 
-/** The server code is always present here, so the classifier always answers. */
 const batchFailure = (code: string, retryAfter: string | null): Failure =>
   classifyBatchFailure(code || 'INTERNAL', retryAfter)!
 
-/**
- * Rows were kept although recognition stopped early: shown under an explicit "partial" heading. A cancel keeps the rows
- * found before it (ADR 0001 section 9); an interruption carries what the server reported.
- */
 export type Stopped = { why: 'cancelled' } | { why: 'interrupted'; failure: Failure }
 
 interface Held {
@@ -47,7 +39,6 @@ interface Held {
   drafts: Draft[]
 }
 
-/** One variant per server outcome; the cause of a failure exists exactly when the run failed or was interrupted. */
 export type BatchState = Held &
   (
     | { phase: 'idle' | 'starting' | 'processing' | 'cancelled' }
@@ -58,7 +49,6 @@ export type BatchState = Held &
 export const stoppedOf = (state: BatchState): Stopped | null =>
   state.phase === 'ready' ? state.stopped : null
 
-/** The reason the run failed or was interrupted, if it was. */
 export const failureOf = (state: BatchState): Failure | null =>
   state.phase === 'failed'
     ? state.failure
@@ -66,7 +56,6 @@ export const failureOf = (state: BatchState): Failure | null =>
       ? state.stopped.failure
       : null
 
-/** What the member gave us, for naming the run before the first snapshot arrives. */
 export interface RunSource {
   type: 'file' | 'text'
   label: string | null
@@ -92,7 +81,6 @@ export function fromSnapshot({ batch, drafts }: Snapshot): BatchState {
         drafts,
         failure: batchFailure(batch.errorCode ?? 'INTERNAL', batch.retryAfter),
       }
-    // Cancelling stops extraction but keeps the rows already found (ADR 0001 section 9): they stay reachable as a stopped review.
     case 'cancelled':
       return drafts.length > 0
         ? { phase: 'ready', batch, drafts, stopped: { why: 'cancelled' } }
@@ -117,22 +105,14 @@ export const isReading = (phase: Phase) => phase === 'starting' || phase === 'pr
 export interface BatchRun {
   subscribe: (listener: () => void) => () => void
   getState: () => BatchState
-  /** The batch this run follows; set as soon as the server names it, before its first snapshot. */
   batchId: () => string | null
   source: () => RunSource | null
-  /** Called with the id of every batch a submission is accepted as. */
   onBatchId: (listener: (id: string) => void) => () => void
-  /** Follow the run's batch if it is still being read and nothing follows it. Safe to call again after `dispose`. */
   open: () => void
   start: (source: ImportSource, operationId: string) => Promise<void>
-  /**
-   * Re-read the stored snapshot (after a confirm, a conflict or a lost response). `expected` is the batch the caller saw;
-   * a reload asked for an older batch answers null instead of reading the current one.
-   */
   reload: (expected?: string | null) => Promise<Snapshot | null>
   setDraft: (next: Draft) => void
   reset: () => void
-  /** Stop following the batch and drop an unanswered submission. The state is kept, and `open` resumes. */
   dispose: () => void
 }
 
@@ -223,7 +203,6 @@ export function createBatchRun(
       try {
         const answer = await api.submit(input, operationId, own.signal)
         if (own.signal.aborted) return
-        // A 202 names the batch to watch; an answer read inside the request is already its snapshot.
         const id = 'batchId' in answer ? answer.batchId : answer.batch.id
         activeBatchId = id
         idListeners.forEach((listener) => listener(id))

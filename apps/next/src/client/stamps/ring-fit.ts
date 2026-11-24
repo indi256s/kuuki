@@ -1,6 +1,3 @@
-// Advance table of the UI face (Commissioner SemiBold, em fractions measured from public/fonts/Commissioner-SemiBold.woff2).
-// Only the live ISO3 code of the fallback tier and the dev sheet read it; the ring text is baked at generation time
-// (lib/stamp-art/ring-bake.ts).
 const ADVANCE: Record<string, number> = {
   ' ': 0.191,
   "'": 0.218,
@@ -75,9 +72,7 @@ const UNKNOWN = 0.7
 const advance = (ch: string): number => {
   const direct = ADVANCE[ch]
   if (direct !== undefined) return direct
-  // Accented capitals use their base letter's advance.
   return ADVANCE[ch.normalize('NFD')[0]] ?? UNKNOWN
 }
 
-/** Sum of glyph advances in em. */
 export const emWidth = (text: string): number => [...text].reduce((s, ch) => s + advance(ch), 0)

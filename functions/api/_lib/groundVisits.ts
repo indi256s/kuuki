@@ -1,4 +1,3 @@
-// Editable fields of a manual visit, validated the same way for create and edit.
 import { isUuid } from '../../../packages/shared/src/groundTravel'
 import type { EntryMethod, GroundVisitMode } from '../../../packages/shared/src/types'
 import { HttpError } from './http'
@@ -10,7 +9,6 @@ export type GroundVisitFields = {
   mode: GroundVisitMode
 }
 
-/** A visit id the browser chose so a retried create can be recognised: absent, or a lowercase UUID like every stored id. */
 export function parseVisitId(value: unknown): string | null {
   if (value == null) return null
   if (!isUuid(value) || value !== value.toLowerCase())
@@ -18,7 +16,6 @@ export function parseVisitId(value: unknown): string | null {
   return value
 }
 
-/** Validates the editable fields of a ground visit; a way (`mode`) is only for a land visit. Shared by POST and PATCH. */
 export function parseGroundVisitFields(fields: Record<string, unknown>): GroundVisitFields {
   const note = fields.note ?? null
   if (note != null && (typeof note !== 'string' || note.length > 200))

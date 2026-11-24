@@ -1,4 +1,3 @@
-/* Flat atlas of the Passport. Tokens only; the map canvas colors and labels are resolved from the same tokens in map.tsx. */
 .passport-atlas {
   display: grid;
   gap: var(--space-4);
@@ -55,7 +54,6 @@
   font-size: 0.9rem;
   font-weight: 600;
 }
-/* The fill legend: same buckets and tokens as the map paint (map.tsx). */
 .passport-atlas-legend {
   display: flex;
   flex-wrap: wrap;
@@ -87,7 +85,6 @@
   background: var(--accent-tint);
   border: 1.5px dashed var(--accent-text);
 }
-/* Compact: wrapped chips in a short scroll box; each button keeps a 44px target. */
 .passport-atlas-list {
   display: flex;
   flex-wrap: wrap;
@@ -104,11 +101,9 @@
   padding: var(--space-1) var(--space-2);
 }
 
-/* ---------- Phones: travel-region pages (pager.tsx) ---------- */
 .passport-atlas[data-paged] {
   gap: 0;
 }
-/* The map is the page's hero: edge to edge, a portrait frame, never taller than most of the screen. */
 .passport-atlas[data-paged] .passport-atlas-map {
   margin-inline: calc(-1 * var(--page-gutter));
 }
@@ -118,7 +113,6 @@
   max-height: 62dvh;
   border-radius: 0;
 }
-/* At a page's frame the page keeps vertical drags, the pager takes sideways ones and MapLibre keeps the pinch. */
 .passport-atlas-canvas[data-pager='frame'] :is(.maplibregl-canvas-container, .maplibregl-canvas) {
   touch-action: pan-y !important;
 }
@@ -140,7 +134,6 @@
   font-weight: 500;
   white-space: nowrap;
   box-shadow: 0 4px 14px rgb(0 0 0 / 22%);
-  /* Rises in when a pinch leaves the frame and sinks back out the same way when it returns. */
   transition:
     opacity var(--dur-fast) var(--ease-out),
     translate var(--dur-fast) var(--ease-out),
@@ -158,7 +151,6 @@
   scale: 0.97;
 }
 
-/* The region strip: one row that scrolls sideways, faded only on an edge that can still scroll. */
 .passport-atlas-strip {
   margin-inline: calc(-1 * var(--page-gutter));
   overflow-x: auto;
@@ -192,7 +184,6 @@
   padding: var(--space-2) var(--page-gutter);
   list-style: none;
 }
-/* The selection is one tint under the tabs that slides between them with the camera, clipped to the tab it covers. */
 .passport-atlas-strip-thumb {
   position: absolute;
   inset: 0;
@@ -222,7 +213,6 @@
     color var(--dur-fast) var(--ease-out),
     scale var(--dur-press) var(--ease-out);
 }
-/* Colour only: a heavier weight would widen the tab under the sliding selection. */
 .passport-atlas-strip button[aria-current='true'] {
   color: var(--accent-on-tint);
 }
@@ -231,12 +221,11 @@
 }
 .passport-atlas-strip-count {
   font-family: var(--font-mono);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   font-variant-numeric: tabular-nums;
 }
 
-/* The page's list, in the page's own scroll. A new page slides in a little from the side the map turned to. */
 .passport-atlas[data-paged] .passport-atlas-countries {
   padding-block-start: var(--space-3);
 }
@@ -252,7 +241,6 @@
     opacity: 0;
     translate: calc(var(--turn) * 16px) 0;
   }
-  /* The cover's rows swap in place when the pages switch between regions and years. */
   .passport-atlas-page[data-turn='0'] .passport-atlas-rows {
     opacity: 0;
   }
@@ -269,14 +257,14 @@
 }
 .passport-atlas-title {
   margin: 0;
-  font-size: 20px;
-  line-height: 28px;
+  font-size: 1.25rem;
+  line-height: 1.75rem;
   font-weight: 600;
   letter-spacing: -0.01em;
 }
 .passport-atlas-total {
   color: var(--text-muted);
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .passport-atlas[data-paged] .passport-atlas-legend {
   margin-block-end: var(--space-2);
@@ -315,7 +303,7 @@
 }
 .passport-atlas-row-meta {
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-variant-numeric: tabular-nums;
 }
 .passport-atlas-row-inks {

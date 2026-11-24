@@ -9,13 +9,10 @@ export type FieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'aria-inval
   label: ReactNode
   hint?: ReactNode
   error?: ReactNode
-  /** Marks optional fields instead of starring required ones, e.g. «необязательно». */
   optionalLabel?: ReactNode
-  /** `below` puts the hint under the control, so a hint that changes while typing never moves the field. */
   hintPosition?: 'above' | 'below'
 }
 
-// forwardRef + prop pass-through, so `<Field {...register('name')} />` works with react-hook-form.
 export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
   {
     label,
@@ -59,7 +56,6 @@ export const Field = forwardRef<HTMLInputElement, FieldProps>(function Field(
         aria-describedby={describedIds}
       />
       {hint && hintPosition === 'below' ? hintLine : null}
-      {/* The line is always rendered so an error appearing does not move anything below it. */}
       <p id={errorId} className="ui-field-error" role={hasError ? 'alert' : undefined}>
         {hasError ? (
           <>

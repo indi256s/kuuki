@@ -23,7 +23,6 @@ const render = (ui: ReactElement) => baseRender(<ToastProvider>{ui}</ToastProvid
 
 describe('AvatarMenu', () => {
   beforeEach(() => {
-    // jsdom has no layout: without a real box the trigger counts as scrolled out of view and `hideWhenDetached` hides the menu.
     vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue(
       new DOMRect(100, 100, 40, 40),
     )

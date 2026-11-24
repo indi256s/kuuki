@@ -2,22 +2,16 @@ import { X, Y, Zd, flat, flatText, onPlan } from './flat'
 import { Scene, labelSize, type IsoFigureData, type P3, type Pt } from './scene'
 
 export type Shed = {
-  /** Identifier-safe (letters, digits, hyphen): it names the shed's parts and its `--lit-<key>` variable. */
   key: string
-  /** Painted over the door, as given: the caller localizes and upper-cases. */
   name: string
-  /** Share of flights, 0–1. */
   share: number
 }
 
-/** Floor area per unit of share, so the approved 59 / 31 / 10 split draws 60 / 44 / 24 wide. */
 const AREA_PER_SHARE = 6305,
   GAP = 8,
   G = 2,
-  /** Narrowest shed drawn: a share this small is printed as "<N%" instead of drawing a lie. */
   MIN_W = 6
 
-/** Plan and height of the shed that carries `share` of the flights: floor area proportional to the share, almost square, the roof rising with the span. Widths are whole even units; `floor` marks a shed held at the minimum width, whose true share is smaller than it looks. */
 export function shedSize(share: number) {
   const area = Math.max(0, share) * AREA_PER_SHARE,
     raw = 2 * Math.round((Math.sqrt(area + 1) - 1) / 2),
@@ -25,11 +19,6 @@ export function shedSize(share: number) {
   return { w, d: w + 2, h: Math.round(13 + ((w - 24) * 17) / 36), floor: raw <= MIN_W }
 }
 
-/**
- * Makers: arched hangars on an apron, floor area by share of flights; the lit one takes its maker colour on doors, name and stand marking.
- * `sheds` run largest first (one to three).
- * Geometry never depends on `lit`. Every shed draws its lighting twice, as sibling parts `shed-<key>-unlit` and `shed-<key>-lit`, layered by an inline opacity that reads `var(--lit-<key>, 0|1)`, the fallback being `lit`. A caller moves the light with a CSS opacity transition and either a new `lit` or `--lit-<key>` on the svg or a parent; no geometry is rebuilt. Nothing moves.
- */
 export function hangars(
   k: number,
   {
@@ -65,7 +54,6 @@ export function hangars(
     'none',
   )
   s.rbox(PX0, 0, 0, end + 26, PY1, G, 3, { top: 'front' })
-  // Expansion joints in the gaps between sheds, and the painted guide line: both run edge to edge of the apron plate.
   for (const { x0 } of placed.slice(1))
     s.line(
       [
@@ -84,7 +72,6 @@ export function hangars(
     1,
     '4 3',
   )
-  // Corner screws, each with its slot.
   for (const [sx, sy] of [
     [PX0 + 2.2, 2.2],
     [PX1 - 2.2, 2.2],
@@ -101,7 +88,6 @@ export function hangars(
       0.5,
     )
   }
-  // Tie-down rings along the front of the apron, between the guide line and the plate's edge.
   for (let rx = PX0 + 8; rx < PX1 - 6; rx += 16) {
     s.poly(s.circle([rx, TAXI + 4.4, G], X, Y, 0, 0, 1.1, 12), 'shade', 'crease', undefined, 0.8)
     s.poly(s.circle([rx, TAXI + 4.4, G], X, Y, 0, 0, 0.4, 8), 'detail', 'none')
@@ -115,10 +101,8 @@ export function hangars(
         const a = (j / 24) * to
         return [cx + (w / 2 - inset) * Math.cos(a), G + wall + (h - wall - inset) * Math.sin(a)]
       })
-    // Height of the roof arch above the plan at `u` from the shed's centre line.
     const archZ = (u: number) =>
       G + wall + (h - wall) * Math.sqrt(Math.max(0, 1 - ((2 * u) / w) ** 2))
-    // Contact shadow, then the shed.
     s.poly(
       flat(
         [
@@ -133,7 +117,6 @@ export function hangars(
       'none',
     )
     s.prism([[x0 + w, G], ...arc(0), [x0, G]], y0, d)
-    // The wall meets the roof along an eave crease; the ribs start on it and run up over the roof to its far silhouette.
     s.line(
       [
         [x0 + w, y0, G + wall],
@@ -150,7 +133,6 @@ export function hangars(
         'detail',
         0.6,
       )
-    // The personnel door in the side wall near the front, and the windows between it and the back.
     const pdh = Math.min(wall * 0.8, 5.5),
       pdw = pdh * 0.7,
       pdy = FY - 4 - pdw,
@@ -193,7 +175,6 @@ export function hangars(
         'none',
       )
     }
-    // Ridge vent along the crown: a base and a wider cap.
     if (w >= 14) {
       const vy = y0 + 5,
         vd = d - 10
@@ -210,7 +191,6 @@ export function hangars(
       'detail',
       0.6,
     )
-    // Doors: four leaves under a track, the name on a plate above it. The plate keeps its text at the 6 px floor, so it takes the room it needs or the shed goes without a name (its share stays on the apron).
     const wanted = Math.min(Math.max(3.8, w / 9.5), (w * 0.8) / (Math.max(1, name.length) * 0.62)),
       size = labelSize(wanted, s.k),
       tw = Math.max(1, name.length) * 0.64 * size + 2.4,
@@ -230,7 +210,6 @@ export function hangars(
     const ss = Math.max(5, w / 7),
       standAt = FY + 6 + ss * 0.6,
       label = floor ? `<${shareLabel(0.01)}` : shareLabel(share)
-    // The rail over the door and the stand's lead-in lines read the same lit or not.
     s.line(
       front([
         [x0 + w * 0.08, doorZ + 1.2],
@@ -239,7 +218,6 @@ export function hangars(
       'line',
       0.9,
     )
-    // Door track on the apron: two rails with sleepers between them, running a little past the walls.
     for (const ry of [FY + 0.6, FY + 2.4])
       s.box(x0 - 2, ry, G, w + 4, 0.8, 0.5, { top: 'top', front: 'front', side: 'side' })
     s.segs(
@@ -266,7 +244,6 @@ export function hangars(
       'detail',
       0.9,
     )
-    // The lighting: door, its seams, the name plate, and the share on the stand.
     const lighting = (hot: boolean) => {
       if (hot) s.glow(4, () => s.poly(door, 'accent', 'none'))
       s.poly(door, hot ? 'accent' : 'glass', hot ? 'accent' : 'line')
@@ -310,12 +287,10 @@ export function hangars(
     }
     const on = `var(--lit-${key}, ${lit === key ? 1 : 0})`
     s.group(`shed-${key}-unlit`, () => lighting(false), { vars: { opacity: `calc(1 - ${on})` } })
-    // A shed is a maker, so its lit parts take that maker's colour (the chart's), not the accent.
     s.group(`shed-${key}-lit`, () => lighting(true), {
       vars: { opacity: on, '--figure-live-fill': `var(--cat-maker-${key})` },
     })
   }
-  // Two light poles on the apron's flanks, each with a shadow thrown toward the front.
   for (const px of [PX0 + 4, PX1 - 4]) {
     const py = FY + 10
     s.poly(

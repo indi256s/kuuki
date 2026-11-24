@@ -1,9 +1,3 @@
-/**
- * Renders every engraved recipe in apps/next/src/lib/stamp-art/recipes to
- * apps/next/public/stamps/{iso2}.svg, the baked ring text of every country to ring/{iso2}.svg, the five
- * per-shape impression textures, and removes stale files.
- * Run: pnpm generate:stamps
- */
 import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'

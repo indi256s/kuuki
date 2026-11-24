@@ -1,18 +1,13 @@
 import { Scene, type P3, type Pt } from './scene'
 
-// A boarding pass in plan: L long (x), B wide (y), T thick; the stub is the last STUB units, past a perforation.
 const L = 112,
   B = 44,
   T = 2.4,
   STUB = 30
-/** Passes in the stack; the repeat share of them carry a red stub. */
 export const PASSES = 8
-/** How far the top pass slides out on hover, in iso units along its length. */
 const SLIDE = 14
-/** A dealt-away pass travels this far along its length and this high as it leaves (passes.css); the travel is outside the bounds, so the box never changes. */
 const LEAVE = 40,
   LEAVE_Z = 12
-// Passes under the top one fan out past its stub end, FAN further each, so every stub shows as a step; each also lies a little askew (a turn in degrees and a sideways shift), fixed so the stack never reshuffles.
 const FAN = 3.4
 const SKEW: readonly [number, number][] = [
   [-1.5, 1],
@@ -24,15 +19,6 @@ const SKEW: readonly [number, number][] = [
   [-0.5, -1],
 ]
 
-/**
- * Routes: a stack of PASSES boarding passes. `repeatShare` of them (from the top down) are repeats: their stub is red, which shows on each pass's edge; the rest are plain new routes.
- * Any share above 0 shows at least one red stub and any share below 1 leaves at least one plain pass, so the stack never lies at the edges.
- * `topRepeat` says whether the route on the top pass is itself a repeat (default: any repeat exists); only then is the top stub lit, the one lit part. Red stubs below take a subdued accent, unlit.
- * At section size the top pass reads `route` (for example "ROV ↔ VKO").
- * `leaving` draws the pass a deal takes off the top, over the top pass and in the same place, with its own print.
- * Parts: `supporting-pass` (subdued repeat stubs), `top-pass` (carries --slide-x/--slide-y for the hover slide and --rise-x/--rise-y, the
- * offset back to the pass under it, for a deal), `leaving-pass` (carries --leave-x/--leave-y; hidden unless a deal animates it).
- */
 export function passStack(
   repeatShare: number,
   route: string,
@@ -47,10 +33,8 @@ export function passStack(
         ? 0
         : Math.max(1, Math.min(repeatShare >= 1 ? n : n - 1, Math.round(repeatShare * n))),
     top = topRepeat ?? repeats > 0,
-    // Red stubs under the top pass: the stack's count, less the top pass when that one is a repeat.
     lower = Math.max(0, Math.min(n - 1, repeats - (top && repeats > 0 ? 1 : 0)))
   const isRepeat = (i: number) => (i === n - 1 ? top : i >= n - 1 - lower)
-  // Contact shadow, a little larger than the stack.
   s.poly(
     [
       [-4, -4, 0],
@@ -62,7 +46,6 @@ export function passStack(
     'none',
   )
   const centre: Pt = [L / 2, B / 2]
-  /** A pass turned by `deg` about its centre and shifted by (dx, dy), its top at z; returns its plan → 3D mapper. */
   const card = (deg: number, dx: number, dy: number, z: number, repeat: boolean) => {
     const a = (deg * Math.PI) / 180,
       c = Math.cos(a),
@@ -78,7 +61,6 @@ export function passStack(
       [L, B],
       [0, B],
     ]
-    // Edges facing the viewer (outward normal with nx + ny > 0): the x-facing ones in shade.
     corners.forEach(([u0, v0], i) => {
       const [u1, v1] = corners[(i + 1) % 4]
       const p0 = at(u0, v0),
@@ -87,7 +69,6 @@ export function passStack(
         ny = p0[0] - p1[0]
       if (nx + ny <= 0) return
       s.poly([p0, p1, at(u1, v1, z - T), at(u0, v0, z - T)], nx > ny ? 'side' : 'front')
-      // A repeat's stub is red right through, so its edge shows red where the stub runs.
       if (!repeat) return
       const from = Math.max(Math.min(u0, u1), L - STUB),
         to = Math.max(u0, u1)
@@ -114,18 +95,15 @@ export function passStack(
     })
   }
 
-  /** The top pass at rest with its print: stub, barcode and body. */
   const printed = (repeat: boolean, print: string) => {
     const at = card(0, 0, 0, n * T, repeat)
     const U: P3 = [1, 0, 0],
       V: P3 = [0, 1, 0]
-    // The stub past a perforated tear line: lit when the top route is a repeat.
     const stub = [at(L - STUB, 0), at(L, 0), at(L, B), at(L - STUB, B)]
     if (repeat) s.lit(stub, 3.5)
     const holes: P3[][] = []
     for (let v = 3; v < B - 1; v += 4) holes.push(s.circle(at(L - STUB, v), U, V, 0, 0, 0.6, 6))
     for (const hole of holes) s.poly(hole, 'line', 'none')
-    // A barcode on the stub, bars of two widths.
     const bars: P3[][] = [],
       thick: P3[][] = []
     for (let i = 0; i < 9; i++) {
@@ -134,7 +112,6 @@ export function passStack(
     }
     s.segs(bars, repeat ? 'on-accent' : 'line', 0.8)
     s.segs(thick, repeat ? 'on-accent' : 'line', 1.6)
-    // The body: airline mark, the route with a plane glyph, FROM / TO fields and seat, gate and class boxes. Small labels are printed rules.
     s.poly([at(4, 3), at(16, 3), at(16, 8), at(4, 8)], 'detail', 'none')
     s.segs(
       [
@@ -170,7 +147,6 @@ export function passStack(
     if (k >= 0.9 && print)
       s.text(print, at(22, 19.5), U, V, { size: 8, weight: 700, mono: true, fill: 'ink' })
     else s.segs([[at(22, 16), at(58, 16)]], 'line', 1.6)
-    // FROM and TO: a tiny label rule over a longer value rule each.
     s.segs(
       [
         [at(8, 25), at(15, 25)],
@@ -187,7 +163,6 @@ export function passStack(
       'line',
       1.4,
     )
-    // Seat, gate and class boxes, each printed with a label rule and a value rule.
     for (const [l, r] of [
       [8, 26],
       [30, 48],

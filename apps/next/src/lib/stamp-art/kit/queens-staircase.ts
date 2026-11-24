@@ -1,7 +1,3 @@
-// Bahamas: the Queen's Staircase in Nassau, a flight of steps cut through a gorge in the limestone.
-// Two rock walls rise towards the cutting (left wall lit with strata, right wall shaded with
-// fall-line hatching) and frame a stepped path that narrows upwards to a notch of sky. The box is
-// the whole cutting; the bottom is the foot of the steps.
 import { type Pt, type SvgNode, body, hline, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
 
@@ -11,7 +7,7 @@ export const queensStaircase: KitModule = ([x, y, w, h], p) => {
   const gapTop = w * num(p, 'gapTop', 0.1)
   const gapBot = w * num(p, 'gapBot', 0.4)
   const pathTop = y + h * 0.3
-  const half = (t: number) => (gapTop + (gapBot - gapTop) * t) / 2 // t: 0 top, 1 bottom
+  const half = (t: number) => (gapTop + (gapBot - gapTop) * t) / 2
   const out: SvgNode[] = []
   const edge = (side: -1 | 1): Pt[] => {
     const pts: Pt[] = []
@@ -21,7 +17,6 @@ export const queensStaircase: KitModule = ([x, y, w, h], p) => {
     }
     return pts
   }
-  // Crag tops step down and outwards from the cutting.
   const tops = (side: -1 | 1): Pt[] => {
     const gx = cx + side * (gapTop / 2 + 2)
     const far = side < 0 ? x : x + w
@@ -37,7 +32,6 @@ export const queensStaircase: KitModule = ([x, y, w, h], p) => {
   }
   const left: Pt[] = [...tops(-1), [x, y + h], ...edge(-1).reverse(), [cx - gapTop / 2, pathTop]]
   const right: Pt[] = [...tops(1), [x + w, y + h], ...edge(1).reverse(), [cx + gapTop / 2, pathTop]]
-  // Close the notch between the crags.
   left.unshift([cx - gapTop / 2, pathTop])
   right.unshift([cx + gapTop / 2, pathTop])
   out.push(...body(left, 'line'), ...body(right, 'line'))
@@ -58,7 +52,6 @@ export const queensStaircase: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // The flight: treads across the path, risers at the edges.
   for (let i = 0; i < steps; i++) {
     const sy = pathTop + ((y + h - pathTop) * (i + 1)) / steps
     const hw = half((i + 1) / steps)

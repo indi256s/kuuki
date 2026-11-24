@@ -14,7 +14,6 @@ type HistoryState = {
   updating: boolean
 }
 
-/** One owner/scope generation owns every page; stale cursors restart instead of mixing snapshots. */
 export function useAirportHistory(
   ownerId: string,
   iata: string,

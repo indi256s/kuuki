@@ -2,7 +2,6 @@
 .flight-calendar {
   position: relative;
   display: grid;
-  /* Stretched by a taller row neighbour, the field keeps its label and input at content height. */
   align-content: start;
   gap: var(--space-2);
   min-width: 0;
@@ -20,7 +19,7 @@
 .flight-combobox small,
 .flight-calendar small {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .flight-combobox p[role='alert'],
 .flight-calendar p[role='alert'] {
@@ -44,14 +43,14 @@
 .flight-search-popover p,
 .flight-search-sheet p {
   margin: var(--space-2);
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-muted);
 }
 .flight-search-empty p {
   margin: 0;
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
 }
 .flight-combobox ul,
 .flight-search-sheet ul {
@@ -88,7 +87,7 @@
 .flight-choice-code {
   flex: none;
   font-family: var(--font-mono);
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--text-muted);
 }
 .flight-combobox mark,
@@ -96,7 +95,6 @@
   background: var(--surface-inset);
   color: var(--info-text);
 }
-/* Codes stay muted mono even when they match; only names take the match colour. */
 .flight-choice-code mark {
   background: none;
   color: inherit;
@@ -130,7 +128,6 @@
   color: var(--text);
   cursor: pointer;
 }
-/* Free Arc calendar: quiet header, round transparent days, the selected day an accent disc and today a dot under its number. */
 .flight-calendar-popover {
   width: min(100%, 344px);
   min-width: 280px;
@@ -147,6 +144,7 @@
   border: 0;
   box-shadow: none;
   background: transparent;
+  transition: none;
 }
 .flight-calendar-heading {
   display: grid;
@@ -155,7 +153,6 @@
   margin-block-end: var(--space-2);
   padding-inline-start: var(--space-2);
 }
-/* Old and new titles share one cell while they cross. */
 .flight-calendar-title > [aria-hidden] {
   display: grid;
 }
@@ -195,10 +192,9 @@
 }
 .flight-calendar-grid small[role='columnheader'] {
   color: var(--text-muted);
-  font-size: 12px;
-  line-height: 24px;
+  font-size: 0.75rem;
+  line-height: 1.5rem;
 }
-/* Months sit on one strip inside a clipped window; every pane has six weeks, so the height never changes. */
 .flight-calendar-viewport {
   display: grid;
   overflow: hidden;
@@ -226,7 +222,7 @@
   background: transparent;
   color: var(--text);
   font: inherit;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
@@ -258,6 +254,15 @@
 }
 .ui-dialog.flight-add-dialog {
   width: min(560px, calc(100vw - 32px));
+}
+.ui-dialog.flight-add-dialog .flight-search-popover {
+  position: static;
+}
+.ui-dialog.flight-add-dialog:has(.flight-search-popover) {
+  max-height: calc(100dvh - 48px);
+}
+.ui-dialog.flight-add-dialog .flight-search-popover.route-picker {
+  max-height: max(300px, calc(100dvh - 410px));
 }
 .flight-full-sheet.ui-sheet[data-side='bottom'] {
   height: calc(100dvh - var(--sheet-kb));
@@ -343,13 +348,11 @@
   .flight-full-sheet .ui-panel-footer .ui-button-wrap .ui-button {
     width: 100%;
   }
-  /* Field width, not wider: the field can sit 16px from the screen edge, so any bleed pushes the month buttons off screen. */
   .flight-calendar-popover {
     min-width: 0;
     padding-inline: var(--space-2);
   }
 }
-/* Free Arc calendar/search presentation, retaining local typed input and mobile Sheet behavior. */
 .flight-combobox > label,
 .flight-calendar > label {
   font-weight: 600;
@@ -371,7 +374,6 @@
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
-/* The month strip clips its overflow, so a day's ring sits inside the cell; neutral, so it reads on the accent disc too. */
 .flight-calendar .flight-calendar-grid button:focus-visible {
   outline-color: var(--text);
   outline-offset: -2px;
@@ -379,6 +381,27 @@
 .flight-search-popover,
 .flight-calendar-popover {
   border: 1px solid var(--hairline);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .flight-search-popover,
+  .flight-calendar-popover {
+    transition:
+      opacity var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out);
+  }
+  .flight-search-popover {
+    transform-origin: 50% 0;
+  }
+  .flight-calendar-popover {
+    transform-origin: 100% 0;
+  }
+  @starting-style {
+    .flight-search-popover,
+    .flight-calendar-popover {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+  }
 }
 .flight-date-input > button {
   display: grid;
@@ -427,7 +450,6 @@
   }
 }
 
-/* Inline actions inside a search list ("Retry", "Add a place manually"): a text button at the 44px target. */
 .flight-combobox-action {
   min-height: 44px;
   margin: 0 var(--space-2);
@@ -450,13 +472,11 @@
     background: var(--hover-surface);
   }
 }
-/* A result kept on screen while the next query loads: visible, not choosable. */
 .flight-combobox li[aria-disabled='true'],
 .flight-search-sheet li[aria-disabled='true'] {
   cursor: default;
 }
 
-/* Neutral input focus stays distinct from the danger border and the selected accent. */
 .flight-combobox input:focus-visible,
 .flight-calendar input:focus-visible,
 .flight-search-input input:focus-visible {

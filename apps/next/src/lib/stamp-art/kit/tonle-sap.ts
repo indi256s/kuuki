@@ -1,7 +1,3 @@
-// Tonle Sap floating-season village (Cambodia): front-gabled timber houses on very tall posts, the
-// gable end faces us with a steep roof, a ladder climbs from the water to the deck and long boats
-// with a raised prow lie below. Back houses are smaller and sit higher up the water. The box is the
-// whole village; its bottom is the waterline.
 import { mulberry32 } from '../hash'
 import {
   type Pt,
@@ -25,7 +21,6 @@ function house(cx: number, base: number, s: number, rand: () => number, ladder: 
   const wallW = 27 * s
   const deck = base - postH
   const wallTop = deck - wallH
-  // Posts with a lean and two crossing braces.
   const posts = 3
   for (let i = 0; i < posts; i++) {
     const px = cx - wallW / 2 + 1 + ((wallW - 2) * i) / (posts - 1)
@@ -46,7 +41,6 @@ function house(cx: number, base: number, s: number, rand: () => number, ladder: 
       [cx - wallW / 2 + 1, deck + postH * 0.6],
     ]),
   )
-  // Ladder from the deck edge down to the water.
   if (ladder !== 0) {
     const lx = cx + (ladder * wallW) / 2
     const lx2 = lx + ladder * postH * 0.28
@@ -66,7 +60,6 @@ function house(cx: number, base: number, s: number, rand: () => number, ladder: 
       out.push(hline('fine', rx, rx + ladder * 2.4, deck + postH * t))
     }
   }
-  // Deck, wall with door and window, then the steep gable roof with eaves overhang.
   out.push(...body(rectPts(cx - wallW / 2 - 2, deck - 1.8, wallW + 4, 2.2), 'hair'))
   out.push(...body(rectPts(cx - wallW / 2, wallTop, wallW, wallH - 1.8), 'line'))
   out.push(fill(rectPts(cx - 1.8 * s, wallTop + 3.2 * s, 3.6 * s, wallH - 1.8 - 3.2 * s)))
@@ -79,7 +72,6 @@ function house(cx: number, base: number, s: number, rand: () => number, ladder: 
     [cx + rw / 2, wallTop + 1],
   ]
   out.push(...body(roof, 'line'))
-  // Plank courses inside the gable end; the right half sits in shade.
   out.push(
     ...hatch(
       [
@@ -105,7 +97,6 @@ function house(cx: number, base: number, s: number, rand: () => number, ladder: 
     ),
   )
   out.push(hline('bold', cx - rw / 2 - 1, cx + rw / 2 + 1, wallTop + 1))
-  // Crossed finials at the apex.
   out.push(
     stroke('hair', [
       [cx - 2.4, wallTop - roofH - 3.4],
@@ -146,10 +137,8 @@ export const tonleSap: KitModule = ([x, y, w, h], p) => {
   const rand = mulberry32(Math.round(num(p, 'seed', 6)))
   const base = y + h
   const out: SvgNode[] = []
-  // Back houses first, smaller and higher up the water.
   out.push(...house(x + w * 0.14, base - h * 0.06, 1.15, rand, 1))
   out.push(...house(x + w * 0.86, base - h * 0.08, 1.1, rand, -1))
-  // Centre house in front, with its ladder on the left.
   out.push(...house(x + w * 0.5, base, 1.7, rand, -1))
   out.push(...boat(x + w * 0.62, base + 0.6, w * 0.34))
   out.push(...boat(x + w * 0.02, base + 0.6, w * 0.26))

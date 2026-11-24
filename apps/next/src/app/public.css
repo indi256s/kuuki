@@ -11,7 +11,7 @@
 .field-help {
   font-family: var(--font-mono);
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .profile-actions {
   display: flex;
@@ -72,8 +72,63 @@
   text-decoration: none;
   font-weight: 500;
 }
+@media (max-width: 700px) {
+  .guest-actions {
+    gap: 8px;
+  }
+  .guest-actions nav a[href='/signup'] {
+    display: none;
+  }
+}
 @media (hover: hover) and (pointer: fine) {
   .guest-actions nav a:hover {
     background: var(--surface-inset);
+  }
+}
+.edge-card {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: min(440px, 100%);
+  margin: var(--space-8) auto 0;
+  padding: 40px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+.edge-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.edge-heading h1 {
+  margin: 0;
+  font: 600 1.875rem/2.25rem var(--font-sans);
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.edge-heading p {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5rem;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+.edge-card > .ui-button {
+  width: 100%;
+  min-height: 44px;
+}
+@media (max-width: 700px) {
+  .edge-card {
+    margin-top: 0;
+    padding: 28px 20px;
+  }
+  .edge-heading h1 {
+    font-size: 1.75rem;
+    line-height: 2.125rem;
+  }
+  .edge-card > .ui-button {
+    min-height: 48px;
+    font-size: 1rem;
   }
 }

@@ -1,7 +1,3 @@
-// Rock texture, the shared answer to "uniform vertical lines read as drapes": a lit rock mass is
-// paper with short uneven horizontal strata dashes and a few fracture ticks, and T4 hatching sits
-// on the shaded side only, behind a slanted terminator. `rockMass` is the helper every waterfall
-// profile and the Diosso gorge use; `rockStrataB` exposes it as a kit module (a lone outcrop).
 import { mulberry32 } from '../hash'
 import { pointInPoly } from '../geom'
 import {
@@ -17,7 +13,6 @@ import {
 import { canopyNodes } from './mass-b'
 import { type KitModule, num } from './util'
 
-/** Sutherland-Hodgman against the half-plane f(p) >= 0, f linear. */
 export function clipPoly(poly: Pt[], f: (p: Pt) => number): Pt[] {
   const out: Pt[] = []
   for (let i = 0; i < poly.length; i++) {
@@ -34,7 +29,6 @@ export function clipPoly(poly: Pt[], f: (p: Pt) => number): Pt[] {
   return out
 }
 
-/** Long, gently wavering horizontal strata with a few breaks, plus diagonal fracture ticks. */
 export function strata(
   poly: Pt[],
   rand: () => number,
@@ -80,7 +74,6 @@ export function strata(
   return out
 }
 
-/** Subdivides each edge and nudges the new points, so rock edges are not ruler-straight. */
 export function rough(poly: Pt[], rand: () => number, amp = 1, step = 6): Pt[] {
   const out: Pt[] = []
   for (let i = 0; i < poly.length; i++) {
@@ -101,30 +94,20 @@ export function rough(poly: Pt[], rand: () => number, amp = 1, step = 6): Pt[] {
 }
 
 export type RockOpts = {
-  /** Top silhouette drawn as a `line` stroke (the lit ridge). */
   ridge?: Pt[]
-  /** Fraction of the width where the shade begins (0 = all T4, 1 = all lit). */
   shade?: number
-  /** Shade on the right (light from the left) or the left. */
   side?: 'right' | 'left'
-  /** Terminator slant in units of x per unit of y. */
   slant?: number
   strataGap?: number
   cracks?: number
-  /** Skip the occlusion (when the caller already erased the backdrop). */
   keep?: boolean
-  /** Gap of the T4 hatching (default 2.4; narrow pillars use 2.0 to read near solid). */
   darkGap?: number
-  /** Keep the polygon edges as given (default: roughened). */
   smooth?: boolean
-  /** Add long horizontal strata over the fracture hatching (small masses only: both together make a lattice). */
   strata?: boolean
-  /** Gap and angle of the diagonal fracture hatching on the lit side. */
   fracture?: number
   angle?: number
 }
 
-/** A rock mass: erases what is behind, strata on the lit side, T4 on the shaded side. */
 export function rockMass(poly0: Pt[], rand: () => number, o: RockOpts = {}): SvgNode[] {
   const poly = o.smooth ? poly0 : rough(poly0, rand, 0.9, 7)
   const [x0, y0, x1, y1] = ptsBounds(poly)
@@ -138,8 +121,6 @@ export function rockMass(poly0: Pt[], rand: () => number, o: RockOpts = {}): Svg
   const out: SvgNode[] = []
   if (!o.keep) out.push(occlude(poly))
   if (lit.length > 2) {
-    // Fine diagonal fracture hatching (the T2 distance tone, opened up) sets lit rock apart from
-    // the horizontal sky, with sparse long strata on top.
     if (o.fracture !== 0)
       out.push(...toneFill(lit, 'T2', { gap: o.fracture ?? 4.8, angle: o.angle ?? -58 }))
     if (o.strata)
@@ -150,7 +131,6 @@ export function rockMass(poly0: Pt[], rand: () => number, o: RockOpts = {}): Svg
   return out
 }
 
-/** A lone outcrop: lumpy lit rock with strata, shaded right side, ridge in `line`. */
 export const rockStrataB: KitModule = ([x, y, w, h], p) => {
   const rand = mulberry32(Math.round(num(p, 'seed', 3)))
   const ridge: Pt[] = []
@@ -165,11 +145,6 @@ export const rockStrataB: KitModule = ([x, y, w, h], p) => {
   return rockMass(poly, rand, { ridge, shade: num(p, 'shade', 0.6), cracks: 3 })
 }
 
-/**
- * A dry gorge: two benched cliff walls of red earth with horizontal strata, fluted pinnacles
- * standing on them, low scrub (T3-style hatched crowns) on the tops, and a dry floor between.
- * Lit sides are paper with strata only, T4 on the shaded side. The box bottom is the floor.
- */
 export const gorgePinnaclesB: KitModule = ([x, y, w, h], p) => {
   const rand = mulberry32(Math.round(num(p, 'seed', 5)))
   const base = y + h
@@ -188,7 +163,6 @@ export const gorgePinnaclesB: KitModule = ([x, y, w, h], p) => {
       const yk = base - (base - top) * t ** 0.92
       const inL = ww * 0.3 * t ** 1.1 + (rand() - 0.5) * 1.6
       const inR = ww * 0.3 * t ** 1.1 + (rand() - 0.5) * 1.6
-      // A ledge: the wall steps out below each stratum, then back in.
       left.push([x0 + inL - 1.4, yk + 3.2], [x0 + inL, yk + 0.6])
       right.push([x0 + ww - inR + 1.4, yk + 3.2], [x0 + ww - inR, yk + 0.6])
     }
@@ -251,7 +225,6 @@ export const gorgePinnaclesB: KitModule = ([x, y, w, h], p) => {
   tower(0.6, 0.15, 0.74, 0.62)
   tower(0.73, 0.17, 0.9, 0.64)
   tower(0.86, 0.12, 0.64, 0.62)
-  // Scrub along the bench tops and a few bushes on the dry floor.
   void bl
   void br
   for (const u of [0.36, 0.5, 0.58])

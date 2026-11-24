@@ -1,6 +1,3 @@
-// Castle family (lane C): a crenellated curtain wall following a sloping top line, square and
-// round towers standing on it, an arched gate, a hatched hillside below and optional red roofs
-// peeping over the wall. Used for the Alhambra (ES) and Dubrovnik's walls (HR).
 import { mulberry32 } from '../hash'
 import {
   type Pt,
@@ -37,7 +34,6 @@ export const castle: KitModule = ([x, y, w, h], p) => {
   const x0 = x + num(p, 'from', 0) * w
   const x1 = x + num(p, 'to', 1) * w
   const topAt = (px: number) => lerpLine(top, px)
-  // hillside under the wall
   if (bool(p, 'hill', true)) {
     const slope: Pt[] = [...top.map(([px, py]): Pt => [px, py + wallH]), [x + w, y + h], [x, y + h]]
     out.push(
@@ -49,7 +45,6 @@ export const castle: KitModule = ([x, y, w, h], p) => {
       }),
     )
   }
-  // roofs behind the wall
   const roofs = num(p, 'roofs', 0)
   if (roofs > 0) {
     const rand = mulberry32(Math.round(num(p, 'seed', 5)))
@@ -68,7 +63,6 @@ export const castle: KitModule = ([x, y, w, h], p) => {
       rx += rw + 0.8
     }
   }
-  // wall: lit band with a merlon top edge
   const period = 5
   const mh = 2.2
   const edge: Pt[] = []
@@ -97,7 +91,6 @@ export const castle: KitModule = ([x, y, w, h], p) => {
       [x1, topAt(x1) + 2.4],
     ]),
   )
-  // towers
   for (const t of towers) {
     const tx = x + t.fx * w - t.w / 2
     const yTop = topAt(tx + t.w / 2) - t.up
@@ -145,7 +138,6 @@ export const castle: KitModule = ([x, y, w, h], p) => {
     if (yBot - yTop > 30)
       out.push(fill(rectPts(tx + t.w * (t.round ? 0.28 : 0.35), yTop + 18, 2, 5)))
   }
-  // gate
   if (typeof p.gate === 'number') {
     const gx = x + p.gate * w
     const gh = wallH * 0.95

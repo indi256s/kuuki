@@ -7,7 +7,6 @@ import type { OverviewFilter, OverviewPayload } from '@kuuki/shared/overview/mod
 import fixture from '../../../../../../../packages/shared/src/overview/__fixtures__/n10.json'
 import { Section } from './section'
 
-// Queries scoped to the card's bands: whole-card role queries walk every Details node and are slow in jsdom.
 const stage = () => within(document.querySelector('.ov3-card-chart') as HTMLElement)
 const top = () => within(document.querySelector('.ov3-card-top') as HTMLElement)
 
@@ -46,7 +45,6 @@ const open = (name: string) => {
 }
 const hero = (view: { container: HTMLElement }) =>
   view.container.querySelector('.ov3-card-value-text')
-// Ten flights, one a month through 2020, plus two more Marches: March is the busiest month and 2020 the busiest year.
 function marches() {
   const payload = structuredClone(fixture) as OverviewPayload
   const march = payload.rows[2]
@@ -91,11 +89,9 @@ it('daily activity uses actual weighted leap-day evidence, applies an exact day,
   expect(screen.getByText('Monthly data only.')).toBeInTheDocument()
 })
 
-// It renders two full-year grids in two languages: about 1s locally and 2.6s on Workers Builds, which once took 5.8s.
 it('names the daily scale and the monthly base in both languages, and tells a known zero from a day with no data', () => {
   vi.stubGlobal('IntersectionObserver', undefined)
   const payload = structuredClone(fixture) as OverviewPayload
-  // The journal starts mid-January, so the first days of the year fall before it.
   payload.rows[0].date = '2020-01-10'
   admit(payload)
   const view = render(<Section span="full" />)
@@ -105,7 +101,7 @@ it('names the daily scale and the monthly base in both languages, and tells a kn
   for (const label of ['0', '1', '2', '3', '4+'])
     expect(screen.getAllByText(label).length).toBeGreaterThan(0)
   expect(screen.getByText('No data (before the journal or after today)')).toBeInTheDocument()
-  expect(screen.getByText(/^Share of busiest month: \d+ flights?$/)).toBeInTheDocument()
+  expect(screen.getByText(/^Share of your record month: \d+ flights?$/)).toBeInTheDocument()
   const calendar = screen.getByRole('group', { name: /^Completed flights by day/ })
   const days = [...calendar.querySelectorAll('[data-kc-key]')]
   const before = days[0].getAttribute('aria-label')!
@@ -114,14 +110,13 @@ it('names the daily scale and the monthly base in both languages, and tells a kn
   context.current = { ...context.current, locale: 'ru' }
   view.rerender(<Section span="full" />)
   expect(screen.getByText('Завершённых перелётов в день')).toBeInTheDocument()
-  expect(screen.getByText(/^Доля от самого активного месяца: \d+ перелёт/)).toBeInTheDocument()
+  expect(screen.getByText(/^Доля от вашего рекордного месяца: \d+ перелёт/)).toBeInTheDocument()
 }, 15_000)
 
 it('never reads a missing monthly measurement as zero: unmeasured and future months say no data, empty months stay 0', () => {
   vi.stubGlobal('IntersectionObserver', undefined)
   const payload = structuredClone(fixture) as OverviewPayload
   payload.generatedAt = '2020-06-15T00:00:00.000Z'
-  // January has a flight without a distance; March has no flights at all; July onwards is still ahead.
   payload.rows[0].distanceKm = null
   payload.rows[2].date = '2020-02-20'
   admit(payload)
@@ -131,17 +126,17 @@ it('never reads a missing monthly measurement as zero: unmeasured and future mon
   const grid = screen.getByRole('group', { name: 'Year by month' })
   const label = (key: string) =>
     grid.querySelector(`[data-kc-key="${key}"]`)?.getAttribute('aria-label')
-  expect(label('2020-01')).toContain('No data')
-  expect(label('2020-03')).toMatch(/ 0$/)
-  expect(label('2020-02')).toMatch(/13.766$/)
+  expect(label('2020-01')).toBe('January 2020 · No data')
+  expect(label('2020-03')).toBe('March 2020 · 0 km')
+  expect(label('2020-02')).toMatch(/^February 2020 · 13.766 km$/)
   const table = [...document.querySelectorAll('table')].find(
     (candidate) => candidate.caption?.textContent === 'Year by month',
   )!
   const row = (key: string) =>
     [...table.querySelectorAll('tr')].find((tr) => tr.cells[0]?.textContent === key)!
-  expect(row('2020-01')).toHaveTextContent('No data')
-  expect(row('2020-03')).toHaveTextContent(/0$/)
-  expect(row('2020-12')).toHaveTextContent('No data')
+  expect(row('January 2020')).toHaveTextContent('No data')
+  expect(row('March 2020')).toHaveTextContent(/0$/)
+  expect(row('December 2020')).toHaveTextContent('No data')
   expect(screen.getAllByText('No data').length).toBeGreaterThan(0)
 })
 
@@ -188,16 +183,15 @@ it('shows the empty state when the filter leaves too few months, and clears the 
   expect(clear).toHaveBeenCalled()
 })
 
-// The desktop matrix is a stage: picking an exact month must inspect before filtering.
 it('History selects a dated month for the hero and stamper and filters only through the explicit action', () => {
   vi.stubGlobal('IntersectionObserver', undefined)
   const setPeriod = admit(marches())
   const view = render(<Section span="full" />)
   expect(stage().getByRole('radio', { name: 'History' })).toHaveAttribute('aria-checked', 'true')
   expect(hero(view)).toHaveTextContent('March 2022')
-  fireEvent.click(stage().getByRole('button', { name: /^2021-03 ·/ }))
+  fireEvent.click(stage().getByRole('button', { name: /^March 2021 · \d+ flights?$/ }))
   expect(hero(view)).toHaveTextContent('March 2021')
-  expect(stage().getByRole('button', { name: /^2021-03 ·/ })).toHaveAttribute(
+  expect(stage().getByRole('button', { name: /^March 2021 · \d+ flights?$/ })).toHaveAttribute(
     'aria-current',
     'true',
   )

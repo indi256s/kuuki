@@ -1,6 +1,3 @@
-// GET /api/profiles/check-username?username= — availability check for the authenticated user,
-// excluding their own row. A username that fails the address pattern is reported invalid.
-
 import { runHandler, json } from '../_lib/http'
 import { requireUser } from '../_lib/auth'
 import type { RequestData } from '../_lib/auth'

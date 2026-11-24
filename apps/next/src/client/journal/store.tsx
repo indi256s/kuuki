@@ -1,29 +1,6 @@
 'use client'
 
 import { useLocale } from '../preferences'
-/**
- * The Journal's in-memory store (spec "Data and state", D4). One provider per page owns the payload, the view state
- * the URL mirrors, row selection and optimistically hidden rows. Not shared with the Overview.
- *
- * `useJournalStore()` returns:
- * - `payload`: the whole `JournalPayload` (TanStack Query `['journal', ownerId]`, seeded by the server page).
- * - `view`: `JournalViewState` (filters, sort, open flight, review mode). Initialised from the server's raw query, so
- *   the first render already matches the URL.
- * - `selection`: memoised `selectJournal` over the payload minus hidden rows, with the deferred search text.
- * - `setFilters(patch)`, `resetFilters()`, `setSort(sort)`: update state at once and `history.replaceState`. Never push,
- *   never move focus.
- * - `openFlight(id, { review })`: from closed pushes one history entry; while open replaces it. `closeSheet()` steps
- *   Back over the entry it pushed (keeping the current filters), otherwise replaces. Browser Back closes the sheet.
- * - `selected` (all ticked ids), `selectedVisible` (ticked ids among `selection.matching`, in ledger order; act on
- *   these), `toggle(id)`, `selectAll(ids)`, `clear()`. Ticks survive filter changes; hidden ids can't be ticked.
- * - `hidden`, `hide(ids)`, `unhide(ids)`: rows a deferred delete has taken out of the ledger until it commits or undoes.
- * - `refresh()` (refetch the payload), `isFetching`, `isError` (a background refresh failed; rows stay), `online`.
- * - `applyFlight(flight, refs?)`: puts a server-confirmed flight (a PATCH answer in the payload's shape) into the cached payload at once,
- *   keeping the date DESC, id DESC order, and adds any missing reference names. A flight the payload does not hold is ignored. Callers
- *   still `refresh()` so firsts, connections and refs are recomputed by the server.
- *
- * `useJournalSelection()` is a shortcut for `useJournalStore().selection`.
- */
 import {
   createContext,
   useCallback,
@@ -74,7 +51,6 @@ export type JournalStore = {
   setSort: (sort: JournalSort) => void
   openFlight: (id: number | null, opts?: { review?: boolean }) => void
   closeSheet: () => void
-  /** Filled by the open flight's edit form: `openFlight` asks it before a dirty edit would be dropped. */
   leaveGuard: RefObject<CloseGuard | null>
   selected: ReadonlySet<number>
   selectedVisible: number[]
@@ -92,10 +68,7 @@ export type JournalStore = {
 }
 
 const JOURNAL_PATH = '/journal'
-/** Marks a history entry this store pushed for the sheet; its value is the id of the entry it was pushed from, so
- * closing it can step Back instead of adding history, and only a return to that exact entry keeps the current filters. */
 const SHEET_ENTRY = 'kuukiJournalSheet'
-/** Identifies each history entry the store writes, so a traversal can tell the sheet's parent from any other entry. */
 const ENTRY_KEY = 'kuukiJournalEntry'
 const ARRIVAL_HASH = /^#arrival-/
 const NEXT_HISTORY_KEYS = new Set(['__NA', '_N', '__PRIVATE_NEXTJS_INTERNALS_TREE'])
@@ -121,8 +94,6 @@ const closed = (view: JournalViewState): JournalViewState => ({
 })
 const journalKey = (ownerId: string) => ['journal', ownerId] as const
 
-/** The app's own keys in `history.state`. Next's patched history copies its internals back in, and only syncs
- * `useSearchParams` when the state passed in does not already carry them. */
 function ownHistoryState(extra?: Record<string, unknown>): Record<string, unknown> {
   const state: Record<string, unknown> = {}
   const current: unknown = window.history.state
@@ -147,7 +118,6 @@ function normalizeFilters(filters: JournalFilters): JournalFilters {
   return out
 }
 
-/** A newer server payload replaces the cached one; an older one (a late or cached page render) never does. */
 const isNewer = (candidate: JournalPayload, current: JournalPayload | undefined) =>
   !current ||
   (candidate.revision >= current.revision &&
@@ -208,7 +178,6 @@ function Store({ ownerId, locale: initialLocale, initial, initialQuery, children
       try {
         return await readJournal(signal)
       } catch (error) {
-        // Keep this owner's rows until the identity check navigates away; required reads still reject.
         if (error instanceof ApiError && error.code === 'OWNER_CHANGED')
           return queryClient.getQueryData<JournalPayload>(journalKey(ownerId)) ?? initial
         throw error
@@ -222,7 +191,6 @@ function Store({ ownerId, locale: initialLocale, initial, initialQuery, children
   })
   const payload = list.data
 
-  // A later server render (router.refresh, freshness) brings a new `initial`; adopt it only when it is newer than the cache.
   useEffect(() => {
     const key = journalKey(ownerId)
     if (!isNewer(initial, queryClient.getQueryData<JournalPayload>(key))) return
@@ -246,7 +214,6 @@ function Store({ ownerId, locale: initialLocale, initial, initialQuery, children
       }
       if (!online || !onlineManager.isOnline())
         throw new Error('Cannot refresh the Journal while offline')
-      // Query cancellation may resolve with reverted cached data. Reconciliation requires the actual owner-bound read.
       const controller = new AbortController()
       requiredReads.current.add(controller)
       try {
@@ -306,10 +273,8 @@ function Store({ ownerId, locale: initialLocale, initial, initialQuery, children
     }
   }, [queryClient, ownerId, refresh])
 
-  // View state. `viewRef` is the latest committed view, so handlers that run between renders build on it.
   const [view, setView] = useState(() => parseJournalUrl(initialQuery))
   const viewRef = useRef(view)
-  /** When the current history entry is one this store pushed for the sheet: the id of the entry it was pushed from. */
   const sheetParent = useRef<string | null>(null)
 
   const writeUrl = useCallback((next: JournalViewState, mode: 'push' | 'replace') => {
@@ -320,7 +285,6 @@ function Store({ ownerId, locale: initialLocale, initial, initialQuery, children
     const currentEntry = historyValue(ENTRY_KEY)
     let parent: string | null
     if (mode === 'push') {
-      // Name the entry the sheet is pushed from (lazily, so a plain visit never rewrites its URL).
       parent = currentEntry ?? newEntryId()
       if (!currentEntry) {
         try {
@@ -329,9 +293,7 @@ function Store({ ownerId, locale: initialLocale, initial, initialQuery, children
             '',
             window.location.href,
           )
-        } catch {
-          /* throttled: Back then adopts the parent's URL */
-        }
+        } catch {}
       }
       state[ENTRY_KEY] = newEntryId()
     } else {
@@ -347,9 +309,7 @@ function Store({ ownerId, locale: initialLocale, initial, initialQuery, children
         parent !== historyValue(SHEET_ENTRY)
       )
         window.history.replaceState(state, '', url)
-    } catch {
-      // Browsers throttle history writes (Safari: 100 per 30 s). The view state stays right; the next write catches the URL up.
-    }
+    } catch {}
     sheetParent.current = parent
   }, [])
 
@@ -362,8 +322,6 @@ function Store({ ownerId, locale: initialLocale, initial, initialQuery, children
     [writeUrl],
   )
 
-  // Canonicalise on mount: legacy aliases and `#arrival-<id>` (the server never sees the hash) become the current form.
-  // A later server render (a shell link to a legacy `/journal?queue=awaiting`) only rewrites the URL to the current view.
   const mounted = useRef(false)
   useEffect(() => {
     if (window.location.pathname !== JOURNAL_PATH) return
@@ -376,20 +334,16 @@ function Store({ ownerId, locale: initialLocale, initial, initialQuery, children
     sheetParent.current = isOpen(fromLocation) ? historyValue(SHEET_ENTRY) : null
     if (journalSearch(fromLocation) !== journalSearch(viewRef.current)) {
       viewRef.current = fromLocation
-      // The location hash cannot be read during the server render.
       setView(fromLocation)
     }
     writeUrl(viewRef.current, 'replace')
   }, [writeUrl, initialQuery])
 
-  // Back/Forward and shell links to /journal replace the view from their URL.
   const leaveGuard = useRef<CloseGuard | null>(null)
   useEffect(() => {
-    // A dirty edit on the open flight asks before Back or Forward replaces or closes it; Discard re-runs the traversal.
     const stopGuarding = guardTraversals((_from, rerun) => {
       const current = viewRef.current
       if (current.flight === null) return false
-      // Another page closes the flight as surely as a journal URL without one.
       const next =
         window.location.pathname === JOURNAL_PATH
           ? parseJournalUrl(window.location.search, window.location.hash)
@@ -403,8 +357,6 @@ function Store({ ownerId, locale: initialLocale, initial, initialQuery, children
       let next = parseJournalUrl(window.location.search, window.location.hash)
       sheetParent.current = isOpen(next) ? historyValue(SHEET_ENTRY) : null
       if (parent && !isOpen(next) && historyValue(ENTRY_KEY) === parent) {
-        // Back from the sheet's entry to the entry it was pushed from only closes it: filters changed while it was open
-        // stay. Any other traversal (Forward, or Back past a different entry) adopts that entry's own URL.
         next = closed(viewRef.current)
         viewRef.current = next
         setView(next)
@@ -417,7 +369,6 @@ function Store({ ownerId, locale: initialLocale, initial, initialQuery, children
     const follow = (event: Event) => {
       const url = new URL((event as CustomEvent<string>).detail, window.location.href)
       if (url.pathname !== JOURNAL_PATH) return
-      // The link's own navigation writes the URL; only the view follows it here.
       const next = parseJournalUrl(url.search, url.hash)
       sheetParent.current = null
       viewRef.current = next
@@ -451,7 +402,6 @@ function Store({ ownerId, locale: initialLocale, initial, initialQuery, children
     const current = viewRef.current
     if (!isOpen(current)) return
     if (sheetParent.current !== null) {
-      // Step Back over the entry the sheet pushed; `traverse` then keeps the current filters on the entry below.
       viewRef.current = closed(current)
       setView(viewRef.current)
       window.history.back()
@@ -461,7 +411,6 @@ function Store({ ownerId, locale: initialLocale, initial, initialQuery, children
   }, [commit])
   const openFlight = useCallback(
     (id: number | null, opts?: { review?: boolean }) => {
-      // Read at call time: a Discard answered later shows what the view needs then.
       const show = () => {
         const current = viewRef.current
         const next: JournalViewState = { ...current, flight: id, review: !!opts?.review }
@@ -472,7 +421,6 @@ function Store({ ownerId, locale: initialLocale, initial, initialQuery, children
       const current = viewRef.current
       const next: JournalViewState = { ...current, flight: id, review: !!opts?.review }
       const changes = next.flight !== current.flight || next.review !== current.review
-      // A dirty edit on the open flight asks before another flight (or nothing) replaces it.
       if (
         changes &&
         current.flight !== null &&
@@ -484,7 +432,6 @@ function Store({ ownerId, locale: initialLocale, initial, initialQuery, children
     [commit, closeSheet],
   )
 
-  // Selection and optimistically hidden rows.
   const [selected, setSelected] = useState<ReadonlySet<number>>(() => new Set())
   const [hidden, setHidden] = useState<ReadonlySet<number>>(() => new Set())
   const hiddenRef = useRef(hidden)
@@ -521,7 +468,6 @@ function Store({ ownerId, locale: initialLocale, initial, initialQuery, children
     setHidden(next)
   }, [])
 
-  // Derived list. Search text is deferred so typing stays responsive; facets apply at once.
   const searchText = useDeferredValue(view.filters.q)
   const matchSearch = useMemo(() => {
     if (!searchText.trim()) return undefined
@@ -538,7 +484,6 @@ function Store({ ownerId, locale: initialLocale, initial, initialQuery, children
         : payload,
     [payload, hidden],
   )
-  // Facets keyed by value without `q`, so a keystroke does not rerun the selection with the old search before the deferred one.
   const facetKey = JSON.stringify({ filters: { ...view.filters, q: '' }, sort: view.sort })
   const facets = useMemo(
     () => JSON.parse(facetKey) as { filters: JournalFilters; sort: JournalSort },

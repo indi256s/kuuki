@@ -1,4 +1,3 @@
-// ADR 0001 A1/A2 (T07): the additive lifecycle migration, its adapters and invariant checks.
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -26,7 +25,6 @@ const AIRPORTS: Array<[string, string, string]> = [
   ['CDG', 'FR', 'Paris'],
 ]
 
-/** Old-shape rows written at 0005: flights, consistent published visits, stats, badges and passport evidence. */
 async function seedPreLifecycle(db: D1Database) {
   const flight = (
     id: number,
@@ -70,16 +68,16 @@ async function seedPreLifecycle(db: D1Database) {
     flight(10, U1, '2024-01-01', 'TBS', 'IST', 0),
     flight(11, U1, '2024-01-02', 'IST', 'JFK', 0),
     flight(12, U1, '2024-06-01', 'JFK', 'LHR', 0),
-    flight(13, U1, '2025-01-01', 'LHR', 'TBS', 1), // overdue upcoming
-    flight(14, U1, '2030-01-01', 'TBS', 'CDG', 1), // future upcoming
+    flight(13, U1, '2025-01-01', 'LHR', 'TBS', 1),
+    flight(14, U1, '2030-01-01', 'TBS', 'CDG', 1),
     flight(20, U2, '2024-03-03', 'CDG', 'LHR', 0),
     flight(25, U1, '2024-02-02', 'TBS', 'IST', 0),
-    db.prepare('DELETE FROM flights WHERE id = 25'), // sqlite_sequence stays at 25
+    db.prepare('DELETE FROM flights WHERE id = 25'),
     visit(U1, 'TBS', 'GE', 'Tbilisi', '2024-01-01', '2024-01-01', 1),
     visit(U1, 'IST', 'TR', 'Istanbul', '2024-01-01', '2024-01-02', 2),
     visit(U1, 'JFK', 'US', 'New York', '2024-01-02', '2024-06-01', 2),
     visit(U1, 'LHR', 'GB', 'London', '2024-06-01', '2024-06-01', 1),
-    visit(U1, 'CDG', 'FR', 'Paris', '2019-05-01', '2019-06-01', 2), // legacy-only airport
+    visit(U1, 'CDG', 'FR', 'Paris', '2019-05-01', '2019-06-01', 2),
     visit(U2, 'CDG', 'FR', 'Paris', '2024-03-03', '2024-03-03', 1),
     visit(U2, 'LHR', 'GB', 'London', '2024-03-03', '2024-03-03', 1),
     db
@@ -335,7 +333,6 @@ describe('0006 upgrade from 0005 with historical rows (A2)', () => {
         await db.prepare("SELECT name FROM sqlite_master WHERE name = '_m0006_assert'").first(),
       ).toBeNull()
 
-      // No table rebuild: a new row continues the AUTOINCREMENT sequence, never reusing deleted id 25.
       const [, inserted] = await oldCreate(
         db,
         U1,
@@ -357,7 +354,6 @@ describe('0006 upgrade from 0005 with historical rows (A2)', () => {
       const seeded = await evidence(db)
       const visits = (await db.prepare(PRESERVED.visits).all()).results
       const badges = (await db.prepare(PRESERVED.user_badges).all()).results
-      // Run the current repair only after its later schema dependencies are in place.
       await applyMigrationAtomically(db, '0011_ground_travel.sql')
       await applyMigrationAtomically(db, '0018_ground_visit_mode.sql')
       await applyMigrationAtomically(db, '0019_manual_air_visits.sql')
@@ -542,7 +538,7 @@ describe('D1 trigger semantics (A1)', () => {
             .bind(U2),
           db.prepare(
             "UPDATE flights SET lifecycle_state = 'logged', is_upcoming = 0 WHERE id = 14",
-          ), // no provenance
+          ),
         ]),
       ).rejects.toThrow(/LIFECYCLE_INVARIANT/)
       expect(
@@ -558,8 +554,6 @@ describe('D1 trigger semantics (A1)', () => {
     const { db, dispose } = await databaseThrough()
     try {
       await seedPreLifecycle(db)
-      // Old create chain: the adapter's nested UPDATE neither breaks the changes() chain nor
-      // last_insert_rowid(), and the old build's `created` read (statement 0, the ledger) is exact.
       const [ledger, insert, link] = await oldCreate(
         db,
         U2,
@@ -574,8 +568,6 @@ describe('D1 trigger semantics (A1)', () => {
         .first<{ flight_id: number }>()
       expect(receipt?.flight_id).toBe(insert.meta.last_row_id)
       expect((await lifecycleOf(db, receipt!.flight_id))?.lifecycle_state).toBe('upcoming')
-      // D1 meta.changes is a total_changes() delta (ADR §1): it includes the adapter's nested write.
-      // Old readers only test `> 0`, log it, or read the trigger-free ledger statement.
       expect(insert.meta.changes).toBe(2)
 
       await oldCreate(
@@ -589,8 +581,8 @@ describe('D1 trigger semantics (A1)', () => {
         db.prepare(OLD_SYNC).bind(U2, '2031-12-31'),
         db.prepare('SELECT changes() AS n'),
       ])
-      expect(direct.results).toEqual([{ n: 2 }]) // two direct changes
-      expect(sync.meta.changes).toBe(4) // plus two adapter writes
+      expect(direct.results).toEqual([{ n: 2 }])
+      expect(sync.meta.changes).toBe(4)
 
       await oldCreate(
         db,
@@ -611,11 +603,9 @@ describe('D1 trigger semantics (A1)', () => {
           .bind(U1, '2031-12-31', JSON.stringify(due.results.map((row) => row.id))),
         db.prepare('SELECT changes() AS n'),
       ])
-      expect(cronDirect.results).toEqual([{ n: 3 }]) // 13, 14 and the new row
+      expect(cronDirect.results).toEqual([{ n: 3 }])
       expect(cron.meta.changes).toBe(6)
 
-      // A lifecycle-aware write fires only the check triggers, which never write: meta.changes is exact.
-      // The target must match the WHERE set, so assert the precondition first (the cron moved 13 and 14 out of it).
       const [, upcomingInsert] = await oldCreate(
         db,
         U1,
@@ -632,13 +622,13 @@ describe('D1 trigger semantics (A1)', () => {
         )
         .bind(upcomingId)
         .run()
-      expect(aware.meta.changes).toBe(1) // the one direct row; no adapter write is added
+      expect(aware.meta.changes).toBe(1)
       const missed = await db
         .prepare(
           "UPDATE flights SET flight_number = 'AW2' WHERE id = 13 AND lifecycle_state = 'upcoming'",
         )
         .run()
-      expect(missed.meta.changes).toBe(0) // a row outside the set matches nothing
+      expect(missed.meta.changes).toBe(0)
       const [flagged, flaggedDirect] = await db.batch([
         db.prepare("UPDATE flights SET flight_number = 'X1' WHERE user_id = ?").bind(U1),
         db.prepare('SELECT changes() AS n'),
@@ -650,7 +640,7 @@ describe('D1 trigger semantics (A1)', () => {
           .bind(U1)
           .first<{ n: number }>())!.n,
       )
-      expect(flagged.meta.changes).toBe(flaggedRows) // an edit of a column no adapter watches adds no adapter writes
+      expect(flagged.meta.changes).toBe(flaggedRows)
     } finally {
       await dispose()
     }
@@ -745,7 +735,6 @@ describe('pre-lifecycle writers after 0006 (A2, §1 adapters)', () => {
         auto_confirm_after: '2026-12-09T00:00:00.000Z',
       })
 
-      // An awaiting flight with a captured zone is shifted by the whole-day difference, keeping its zone.
       await db
         .prepare(`UPDATE flights SET lifecycle_state = 'awaiting', is_upcoming = 0, lifecycle_timezone = 'Asia/Tbilisi',
         awaiting_after = '2025-01-01T20:00:00.000Z', auto_confirm_after = '2025-01-08T20:00:00.000Z' WHERE id = 13`)
@@ -775,7 +764,7 @@ describe('pre-lifecycle writers after 0006 (A2, §1 adapters)', () => {
         auto_confirm_after: '2030-03-18T00:00:00.000Z',
       })
 
-      await db.prepare(OLD_SYNC).bind(U1, today).run() // 13 → awaiting
+      await db.prepare(OLD_SYNC).bind(U1, today).run()
       await oldEdit(db, 13, { date: '2026-09-30' }, today)
       expect(await lifecycleOf(db, 13)).toMatchObject({
         lifecycle_state: 'awaiting',
@@ -822,15 +811,15 @@ describe('pre-lifecycle writers after 0006 (A2, §1 adapters)', () => {
         'f1',
         { date: '2026-11-10', origin: 'TBS', destination: 'IST' },
         1,
-      ) // D0
+      )
       const id = created.meta.last_row_id as number
       await db
         .prepare(`UPDATE flights SET lifecycle_state = 'logged', confirmation_source = 'user', confirmed_at = '2026-11-12T08:00:00.000Z',
         is_upcoming = 0 WHERE id = ?`)
         .bind(id)
-        .run() // a confirm (T09) keeps the D0 deadlines
-      await db.prepare("UPDATE flights SET date = '2026-09-01' WHERE id = ?").bind(id).run() // lifecycle-aware logged re-date to D1
-      await oldEdit(db, id, { date: '2027-02-20' }, today) // old re-date to future D2
+        .run()
+      await db.prepare("UPDATE flights SET date = '2026-09-01' WHERE id = ?").bind(id).run()
+      await oldEdit(db, id, { date: '2027-02-20' }, today)
       expect(await lifecycleOf(db, id)).toMatchObject({
         lifecycle_state: 'upcoming',
         confirmation_source: null,
@@ -856,7 +845,6 @@ describe('pre-lifecycle writers after 0006 (A2, §1 adapters)', () => {
           )
           .run()
         const edit = await oldEdit(db, 11, { date: '2027-01-15', destination: 'CDG' }, today)
-        // Old route+date edit: 1 direct row plus adapter writes (observed 3 in Miniflare; the order only changes who fires first).
         expect(edit.meta.changes).toBeGreaterThan(1)
         expect(edit.meta.changes).toBeLessThanOrEqual(3)
         expect(await lifecycleOf(db, 11)).toMatchObject({
@@ -872,7 +860,6 @@ describe('pre-lifecycle writers after 0006 (A2, §1 adapters)', () => {
           awaiting_after: '2027-01-16T00:00:00.000Z',
           auto_confirm_after: '2027-01-23T00:00:00.000Z',
         })
-        // The same adapters run for the other old writers in this order too.
         await db.prepare(OLD_SYNC).bind(U1, today).run()
         expect((await lifecycleOf(db, 13))?.lifecycle_state).toBe('awaiting')
       } finally {
@@ -892,24 +879,24 @@ describe('pre-lifecycle writers after 0006 (A2, §1 adapters)', () => {
           )
           .bind(U2)
           .run()
-      await expect(insert('upcoming', '', '')).rejects.toThrow(/LIFECYCLE_INVARIANT/) // no deadlines
-      await expect(insert('logged', '', '')).rejects.toThrow(/LIFECYCLE_INVARIANT/) // no provenance
+      await expect(insert('upcoming', '', '')).rejects.toThrow(/LIFECYCLE_INVARIANT/)
+      await expect(insert('logged', '', '')).rejects.toThrow(/LIFECYCLE_INVARIANT/)
       await expect(insert('logged', ',confirmation_source', ",'save'")).rejects.toThrow(
         /LIFECYCLE_INVARIANT/,
-      ) // save without confirmed_at
+      )
       await expect(
         insert(
           'logged',
           ',confirmation_source,confirmed_at,arrival_transit_leg_id',
           ",'save','2026-01-01T00:00:00.000Z',12",
         ),
-      ).rejects.toThrow(/LIFECYCLE_INVARIANT/) // leg without transit
+      ).rejects.toThrow(/LIFECYCLE_INVARIANT/)
       await expect(
         insert('logged', ',confirmation_source,confirmed_at', ",'save','2026-01-01T00:00:00.000Z'"),
       ).resolves.toBeTruthy()
       await expect(
         db.prepare("UPDATE flights SET lifecycle_state = 'awaiting' WHERE id = 14").run(),
-      ).rejects.toThrow(/LIFECYCLE_INVARIANT/) // flag disagrees
+      ).rejects.toThrow(/LIFECYCLE_INVARIANT/)
       await expect(
         db.prepare("UPDATE flights SET lifecycle_state = 'draft' WHERE id = 14").run(),
       ).rejects.toThrow()

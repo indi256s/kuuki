@@ -1,4 +1,3 @@
-// Shared fixture for the T08 country-evidence tests: a user, a few airports and directly inserted lifecycle rows.
 import { createApiDatabase } from './harness'
 import { dirtyUserStatement, repairUserDerivedState } from '../api/_services/derivedState'
 
@@ -26,7 +25,6 @@ export interface FixtureFlight {
   arr?: string | null
   transit?: 0 | 1 | null
   leg?: number | null
-  /** Stored deadlines and zone of an upcoming or awaiting flight (defaults: long past). */
   awaitingAfter?: string
   autoAfter?: string
   tz?: string
@@ -89,7 +87,6 @@ export async function accountWith(
   return { db, dispose }
 }
 
-/** What every canonical mutation does (dirty mark), then the repair publishes. */
 export async function publish(db: D1Database) {
   await dirtyUserStatement(db, USER.id).run()
   return repairUserDerivedState(db, USER.id)

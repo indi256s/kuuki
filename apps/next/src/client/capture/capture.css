@@ -19,9 +19,7 @@
   gap: 7px;
   min-width: 0;
 }
-.capture-grid input,
-.capture-manage input,
-.capture-manage select {
+.capture-grid input {
   width: 100%;
   min-height: 44px;
   border: 1px solid var(--control-border);
@@ -51,41 +49,6 @@
   padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
   background: var(--surface);
 }
-.capture-manage {
-  display: grid;
-  gap: 18px;
-  max-width: 800px;
-  margin-top: 32px;
-}
-.capture-manage label {
-  display: grid;
-  gap: 6px;
-}
-.capture-outcomes {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 8px;
-}
-.capture-outcomes p {
-  margin: 4px 0 0;
-}
-.capture-manage fieldset {
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-sm);
-  padding: 16px;
-}
-.capture-manage fieldset label {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  padding: 6px 0;
-}
-.capture-manage fieldset input {
-  width: auto;
-  min-height: auto;
-}
 @media (max-width: 700px) {
   .capture-card {
     margin: 20px -8px;
@@ -110,7 +73,6 @@
   }
 }
 
-/* ---------- Manual flight entry (Paper "Manual flight entry", board 04) ---------- */
 .flight-editor :is(.route-fieldset, .date-tiles, .flight-times) {
   min-width: 0;
   margin: 0;
@@ -121,8 +83,8 @@
 .flight-times > legend {
   padding: 0;
   margin-block-end: var(--space-2);
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
   font-weight: 500;
   color: var(--text);
 }
@@ -136,8 +98,8 @@
 .flight-restored p,
 .flight-storage-note {
   margin: 0;
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
   color: var(--text-muted);
 }
 .flight-route {
@@ -145,7 +107,6 @@
   gap: var(--space-3);
 }
 
-/* Route card: two airport rows on a decorative dotted spine (a route marker, not a row divider). */
 .route-group {
   position: relative;
 }
@@ -211,28 +172,28 @@
   min-width: 0;
 }
 .route-city {
-  font-size: 16px;
-  line-height: 22px;
+  font-size: 1rem;
+  line-height: 1.375rem;
   font-weight: 500;
   overflow-wrap: anywhere;
 }
 .route-airport {
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
   color: var(--text-muted);
   overflow-wrap: anywhere;
 }
 .route-code {
   flex: none;
   font-family: var(--font-mono);
-  font-size: 15px;
-  line-height: 18px;
+  font-size: 0.9375rem;
+  line-height: 1.125rem;
 }
 .route-empty {
   flex: 1;
   min-width: 0;
-  font-size: 16px;
-  line-height: 22px;
+  font-size: 1rem;
+  line-height: 1.375rem;
   color: var(--text-muted);
 }
 .route-swap {
@@ -267,7 +228,7 @@
   align-items: flex-start;
   gap: var(--space-2);
   margin: var(--space-2) 0 0;
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--danger-text);
 }
 .route-error svg {
@@ -296,7 +257,7 @@
   background: var(--surface-inset);
 }
 .route-picker-ends small {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-muted);
 }
 .route-picker-ends span {
@@ -312,7 +273,6 @@
   max-height: 420px;
 }
 
-/* Route shortcuts: 40px inset chips; the block stays in place after use so nothing below shifts. */
 .route-shortcuts {
   display: grid;
   gap: var(--space-2);
@@ -330,7 +290,7 @@
   border-radius: 999px;
   background: var(--surface-inset);
   color: var(--text);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   box-shadow: none;
 }
@@ -341,17 +301,16 @@
 }
 .route-shortcut-codes {
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 400;
 }
 .route-shortcut-caption {
   margin: 0;
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
   color: var(--text-muted);
 }
 
-/* Date tiles: native radios on an inset track. Solid accent stays reserved for Save. */
 .date-tiles-track {
   display: flex;
   gap: var(--space-1);
@@ -385,14 +344,14 @@
   cursor: pointer;
 }
 .date-tile-title {
-  font-size: 15px;
-  line-height: 20px;
+  font-size: 0.9375rem;
+  line-height: 1.25rem;
   font-weight: 600;
 }
 .date-tile-date {
   font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 0.75rem;
+  line-height: 1rem;
   color: var(--text-muted);
   white-space: nowrap;
 }
@@ -418,7 +377,6 @@
   margin-block-start: var(--space-4);
 }
 
-/* Optional details: fields, then times as one leg. */
 .flight-details {
   display: grid;
   gap: var(--space-6);
@@ -433,7 +391,7 @@
   flex: 1 1 0;
 }
 .flight-times .flight-field > label {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 400;
   color: var(--text-muted);
 }
@@ -442,7 +400,7 @@
   display: grid;
   place-items: center;
   height: 48px;
-  font-size: 16px;
+  font-size: 1rem;
   color: var(--text-muted);
 }
 .flight-time-input {
@@ -452,7 +410,7 @@
   min-height: 48px;
   border-radius: var(--radius-sm);
   font-family: var(--font-mono);
-  font-size: 16px;
+  font-size: 1rem;
 }
 .flight-time-input:has(.flight-next-day) input {
   padding-inline-end: 44px;
@@ -467,17 +425,16 @@
   background: var(--accent-tint);
   color: var(--accent-on-tint);
   font-family: var(--font-mono);
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 0.75rem;
+  line-height: 1rem;
   pointer-events: none;
 }
 .flight-times-duration {
   margin: var(--space-2) 0 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-muted);
 }
 
-/* Save notices sit in the footer directly above their actions: icon, status title, muted detail. No box, no rail. */
 .flight-footer-block {
   flex: 1 1 100%;
   display: grid;
@@ -526,15 +483,15 @@
   text-wrap: pretty;
 }
 .flight-notice-title {
-  font-size: 15px;
-  line-height: 20px;
+  font-size: 0.9375rem;
+  line-height: 1.25rem;
   font-weight: 500;
   color: var(--notice-text);
 }
 .flight-notice-detail {
   margin-top: var(--space-1);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   color: var(--text-muted);
 }
 @media (max-width: 700px) {

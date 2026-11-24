@@ -1,6 +1,3 @@
-// Passport reads (ADR 0001 §4). The list reads only the published country evidence; the detail adds the
-// contributing flights and legacy sources from the same pure policy (`countryContributions`), so Passport,
-// Overview and `user_stats` cannot disagree about which countries a flight supports.
 import { assertRows } from '../_lib/d1'
 import {
   railRouteLabel,
@@ -49,11 +46,9 @@ export type GroundVisit = {
   visit_year: number | null
   entry_method: string | null
   linked_flight_id: number | null
-  /** The way of a land visit (rail or road); owner presentation only. */
   mode: 'rail' | 'road' | null
 }
 
-/** The owner's hidden country codes, sorted. Presentation only: nothing derived reads them. */
 export async function readHiddenCountries(db: D1Database, userId: string) {
   const result = await db
     .prepare(
@@ -65,14 +60,6 @@ export async function readHiddenCountries(db: D1Database, userId: string) {
   return result.results.map((row) => row.country_code)
 }
 
-/**
- * The passport collection. `pressedCountryCount` counts pressed countries including claims and ground visits;
- * `pendingCountryCount` counts awaiting-only countries, which stay unpressed; hidden countries (presentation only)
- * leave `countries`, `pendingCountryCount`, `regions` and `visibleCountryCount` but stay in `pressedCountryCount`; `flightCountryCount` is the
- * `user_stats.countries_count` meaning (flights and legacy evidence, no claims or ground visits), which is
- * what the leaderboard `countries` category ranks. Overview passes `applyHidden: false`: hiding is a Passport presentation choice. One owner-scoped batch supplies every collection and the
- * revision metadata, shared by `GET /api/passport/countries` and the Next server read.
- */
 export function passportRead(
   db: D1Database,
   userId: string,
@@ -104,8 +91,6 @@ export function passportRead(
         'SELECT revision, published_revision, evidence_revision, last_error FROM user_derived_state WHERE user_id = ?',
       )
       .bind(userId),
-    // Passport presentation only (Overview skips both): hidden codes, and which ground modes confirmed each country,
-    // so the Trains / Road trips filters can tell rail from road (the evidence row keeps one journey count).
     ...(applyHidden
       ? [
           db
@@ -134,8 +119,6 @@ export function passportRead(
       const pressedCodes = new Set(
         rows.filter((row) => row.status === 'pressed').map((row) => row.country_code),
       )
-      // A stored preference counts only while its country is pressed: when the last support goes, or the country
-      // falls back to pending, it is neither a hidden stamp nor kept out of the pending block.
       const hidden = applyHidden
         ? (results[5].results as Array<{ country_code: string }>)
             .map((row) => row.country_code)
@@ -236,7 +219,6 @@ type DetailEntry =
       mode: string | null
     }
 
-/** Count stays along the recorded itinerary, rather than airport movements or archived counters. */
 function countryStays(
   flights: EvidenceFlight[],
   contributions: CountryContribution[],
@@ -258,8 +240,6 @@ function countryStays(
     !instant(a) || !instant(b) || instant(a) === instant(b)
   const legs: Array<{ flight: EvidenceFlight; origin: boolean; destination: boolean }> = []
   for (const flight of ordered) {
-    // Merge consecutive copies, including a copy enriched with times. An intervening leg
-    // preserves a real second entry on the same day, even when its times are unknown.
     const prior = legs.at(-1)
     const duplicate =
       prior &&
@@ -286,7 +266,6 @@ function countryStays(
     const { flight } = leg
     for (const endpoint of ['origin', 'destination'] as const) {
       const country = endpoint === 'origin' ? flight.origin_country : flight.destination_country
-      // An unresolved airport is no evidence that the traveler left the last known country.
       if (country === null) continue
       if (country !== location) {
         location = country
@@ -301,7 +280,6 @@ function countryStays(
   return visits
 }
 
-/** One country: status from the published row, and every contributing entry from the shared policy. */
 export async function readCountryDetail(db: D1Database, userId: string, countryCode: string) {
   const statements = [
     evidenceFlightsStatement(db, userId),
@@ -335,8 +313,6 @@ export async function readCountryDetail(db: D1Database, userId: string, countryC
         'SELECT revision, published_revision, evidence_revision, last_error FROM user_derived_state WHERE user_id = ?',
       )
       .bind(userId),
-    // Journey contributions: the owner's live completed journeys that confirmed this country, with the
-    // place snapshots their route label is built from (same batch, one consistent snapshot).
     db
       .prepare(
         `SELECT j.id, j.mode, j.title, j.start_date, j.end_date FROM ground_journeys j
@@ -423,7 +399,6 @@ export async function readCountryDetail(db: D1Database, userId: string, countryC
         : 0,
     )
 
-  // Per airport: flight endpoints, max-merged with an archived counter exactly as the visit aggregate does.
   const airports = new Map<string, { city: string; visitCount: number; flights: number }>()
   for (const row of contributing) {
     const current = airports.get(row.airport) ?? { city: row.city ?? '', visitCount: 0, flights: 0 }

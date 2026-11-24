@@ -14,7 +14,6 @@ export interface CountriesValue {
   noCountries: boolean
 }
 
-/** The checklist state after one change. "None of these" and any country exclude each other. */
 export function toggleCountry(value: CountriesValue, code: string, on: boolean): CountriesValue {
   const without = value.countries.filter((entry) => entry !== code)
   return { countries: on ? [...without, code] : without, noCountries: false }
@@ -40,7 +39,6 @@ export function CountriesFieldset({
 }: {
   value: CountriesValue
   onChange: (value: CountriesValue) => void
-  /** Countries of the chosen route places, offered as suggestions; none of them is ticked for the member. */
   routeCodes: readonly string[]
   locale: Locale
   error?: string
@@ -103,7 +101,6 @@ export function CountriesFieldset({
                 onClick={() => {
                   onChange(addSuggested(value, routeCodes))
                   setStatus(ru ? 'Предложенные страны отмечены' : 'Suggested countries ticked')
-                  // The button leaves with its job done; focus stays in this group.
                   routeHeadRef.current?.focus()
                 }}
               >
@@ -146,7 +143,6 @@ export function CountriesFieldset({
                     onChange(toggleCountry(value, code, true))
                     setQuery('')
                     setStatus(ru ? `Добавлено: ${name(code)}` : `${name(code)} added`)
-                    // The result list leaves with the query; focus goes back to the field it came from.
                     searchRef.current?.focus()
                   }}
                 >

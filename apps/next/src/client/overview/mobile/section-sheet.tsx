@@ -43,7 +43,6 @@ export function SectionSheet({
     order,
     onNavigate,
   })
-  // Heading, labels and pager follow the chapter a release would land on; the menu acts on the open one.
   const index = shown ? order.indexOf(shown) : -1
   const entry = openId && shown && index >= 0 ? SECTIONS[shown] : null
   const openIndex = openId ? order.indexOf(openId) : -1
@@ -163,7 +162,6 @@ export function SectionSheet({
             />
           </div>
           <SheetFilterRow />
-          {/* Every chapter is a snap slide; only the open one and its neighbours render content, the rest keep their width. */}
           <div ref={track} className="ov3-sheet-track">
             {order.map((id, at) => {
               const { Section } = SECTIONS[id]
@@ -192,11 +190,6 @@ export function SectionSheet({
   )
 }
 
-/**
- * The filter row in the sheet's chrome: always 44px, so a filter turning on moves nothing. Scope is global, so it does not follow the
- * slides. Unfiltered it is one "All flights" chip that opens the picker; filtered it lists the applied facets as the page's filter bar
- * does. Facets that do not fit scroll sideways (the bar collapses them into "+N"; a 44px row has no second line to measure).
- */
 function SheetFilterRow() {
   const { locale, isCurrent } = useOverview()
   const facets = useAppliedFacets()

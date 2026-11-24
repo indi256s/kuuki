@@ -1,6 +1,3 @@
-// Smooth granite boulders heaped on a beach (Anse Source d'Argent): each boulder is a rounded
-// dome with a flat footing, shaded by arcs that hug its lower-right edge. `boulders` lists
-// [x fraction, width fraction, height fraction, seed] from back to front; the box bottom is the sand.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, fill, hline, occlude, stroke, hatchPoly } from '../grid'
 import { type KitModule, nums } from './util'
@@ -36,7 +33,6 @@ export const bouldersB: KitModule = ([x, y, w, h], p) => {
     out.push(occlude(body, { halo: 1.8 }))
     const shade: Pt[] = [...pts.filter(([px]) => px >= cx), [cx + a, base], [cx, base]]
     out.push(...hatchPoly(shade, { angle: 90, gap: 2.4, weight: 'hair' }))
-    // A crack on the lit side and a shadow wedge at the footing.
     const crackX = cx - a * 0.25
     out.push(
       stroke('fine', [

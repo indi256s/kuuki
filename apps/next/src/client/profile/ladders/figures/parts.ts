@@ -1,11 +1,5 @@
 import { hull, type P3, type Paint, type Pt, type Scene } from '../../../overview/iso/scene'
 
-// Turned and lofted parts for the ladder figures, built on the app Scene's public API.
-// The Scene camera looks from +x +y +z, so a face is visible when its normal has a positive component along (1, 1, 1).
-// Faces shade from one light so curved parts match the Scene's boxes: tops `top`, +y faces `front`, +x faces `side`.
-
-// ---------------------------------------------------------------- vectors
-
 export const add = (a: P3, b: P3): P3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]]
 export const sub = (a: P3, b: P3): P3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
 export const mul = (a: P3, k: number): P3 => [a[0] * k, a[1] * k, a[2] * k]
@@ -21,27 +15,21 @@ export const unit = (a: P3): P3 => {
   return l > 1e-9 ? mul(a, 1 / l) : [0, 0, 0]
 }
 export const mix = (a: P3, b: P3, t: number): P3 => add(a, mul(sub(b, a), t))
-/** a + u·U + v·V + w·W */
 export const comb = (o: P3, ...terms: [number, P3][]): P3 =>
   terms.reduce<P3>((p, [k, v]) => add(p, mul(v, k)), o)
 
-/** Towards the viewer. */
 export const VIEW = unit([1, 1, 1])
-/** Towards the light: brightest on tops, then +y faces, then +x faces, as the Scene's boxes are painted. */
 export const LIGHT = unit([0.15, 0.45, 0.88])
 const B_SIDE = LIGHT[0],
   B_FRONT = LIGHT[1],
   B_TOP = LIGHT[2]
 
-/** Whether a face with outward normal `n` faces the viewer. */
 export const facing = (n: P3) => dot(n, VIEW) > 1e-6
 
-/** Three paints from dark to light: a material's tone ramp. */
 export type Ramp = { dark: Paint; mid: Paint; light: Paint }
 export const GREY: Ramp = { dark: 'side', mid: 'front', light: 'top' }
 export const ACCENT: Ramp = { dark: 'accent-side', mid: 'accent', light: 'accent' }
 
-/** The flat tone of a face with outward normal `n`, picked from `ramp` by how much light it catches. */
 export function toneOf(n: P3, ramp: Ramp = GREY): Paint {
   const b = dot(unit(n), LIGHT)
   return b >= (B_FRONT + B_TOP) / 2
@@ -51,12 +39,8 @@ export function toneOf(n: P3, ramp: Ramp = GREY): Paint {
       : ramp.dark
 }
 
-// ---------------------------------------------------------------- frames and profiles
-
-/** A local frame: `a` is the axis, `u` the 0° direction round it, `v` the 90° direction. */
 export type Frame = { o: P3; a: P3; u: P3; v: P3 }
 
-/** A frame along `axis` with its 90° direction as close to `up` as the axis allows (world z by default; world y for an upright axis). */
 export function frameAlong(o: P3, axis: P3, up: P3 = [0, 0, 1]): Frame {
   const a = unit(axis)
   let v = sub(up, mul(a, dot(up, a)))
@@ -65,10 +49,6 @@ export function frameAlong(o: P3, axis: P3, up: P3 = [0, 0, 1]): Frame {
   return { o, a, u: unit(cross(v, a)), v }
 }
 
-/**
- * A smooth curve through a table of rows `[s, ...values]` (s ascending): monotone cubic (Fritsch–Carlson), so it never overshoots between rows and its slope is continuous, which keeps lathe shading free of steps at the rows.
- * Returns the values at `s`, clamped to the table's ends.
- */
 export function spline(rows: readonly (readonly number[])[]): (s: number) => number[] {
   const n = rows.length,
     m = rows[0].length - 1
@@ -110,48 +90,27 @@ export function spline(rows: readonly (readonly number[])[]): (s: number) => num
   }
 }
 
-// ---------------------------------------------------------------- lathe
-
-/**
- * One cross-section of a turned or lofted body: half-width `r` along u, half-height `rz` along v (defaults to r), centre lifted `lift` along v.
- * Optional: `rzDown`, the half-height below the centre when it differs from `rz` (a canopy that sits on a deck), and `n`, a superellipse
- * exponent (2 is the ellipse; higher squares the section off: upright flanks with rounded shoulders).
- */
 export type Section = { r: number; rz?: number; lift?: number; rzDown?: number; n?: number }
 
 export type LatheOpts = {
-  /** Segments along the axis (more for long curved bodies). */
   steps?: number
-  /** Points round each ring. */
   ring?: number
   ramp?: Ramp
   line?: Paint
   crease?: Paint
-  /** Silhouette width in px. */
   width?: number
-  /** Smooth tone layers over the base (hero only: thumbs are line-only). */
   shade?: boolean
-  /** Draw the end discs that face the viewer (default true). */
   caps?: boolean
-  /** A translucent paint laid over the whole body after shading (rubber, a dark finish). */
   tint?: Paint
 }
 
-/** A drawn body of revolution: points and lines on its skin, for windows, doors, seams and anything that sits on it. */
 export type Body = {
-  /** Point on the skin at station `s`, angle `deg` (0 = u, 90 = v), `lift` off the skin. */
   at(s: number, deg: number, lift?: number): P3
-  /** Outward unit normal at (s, deg). */
   normal(s: number, deg: number): P3
-  /** The section at `s`. */
   section(s: number): { r: number; rz: number; lift: number }
-  /** The visible angular range [lo, hi] in degrees at `s` (the limbs), or null when the ring is edge-on or hidden. */
   limbs(s: number): [number, number] | null
-  /** A ring seam across the visible half at `s`, ending on the limbs. */
   seam(s: number, paint?: Paint, width?: number): void
-  /** A line along the skin at angle `deg` from s0 to s1. */
   along(deg: number, s0: number, s1: number, paint?: Paint, width?: number): void
-  /** A closed patch on the skin through (s, deg) corners, each edge followed along the skin. */
   patch(
     corners: readonly (readonly [number, number])[],
     fill: Paint,
@@ -162,10 +121,6 @@ export type Body = {
 
 export const D2R = Math.PI / 180
 
-/**
- * A body turned (or lofted, with elliptic sections) along the frame's axis from s0 to s1.
- * Drawn as: the silhouette (each segment's convex hull, stroked at twice the width and then filled over as one area, so only the outer half of the stroke shows and internal joins vanish), smooth tone layers (nested regions of equal light, each adding one step of the next tone), the end disc that faces the viewer, and its crease.
- */
 export function lathe(
   s: Scene,
   F: Frame,
@@ -185,7 +140,6 @@ export function lathe(
     const rz = q.rz ?? q.r
     return { r: q.r, rz, lift: q.lift ?? 0, rzDown: q.rzDown ?? rz, n: q.n ?? 2 }
   }
-  /** Sections that are not plain ellipses take the numeric path for points and normals. */
   const plain = (g: ReturnType<typeof geo>) => g.n === 2 && g.rzDown === g.rz
   const se = (c: number, n: number) => (n === 2 ? c : Math.sign(c) * Math.pow(Math.abs(c), 2 / n))
   const h = Math.max(1e-4, (s1 - s0) * 1e-4)
@@ -206,7 +160,6 @@ export function lathe(
       [g.lift + ((sn >= 0 ? g.rz : g.rzDown) + lift) * se(sn, g.n), F.v],
     )
   }
-  /** Outward normal by finite differences, for sections that are not plain ellipses. */
   const numericNormal = (t: number, th: number): P3 => {
     const e = 1e-3,
       dt = Math.max(1e-4, (s1 - s0) * 1e-4)
@@ -215,7 +168,6 @@ export function lathe(
     const ds = sub(p(t + dt, th), p(t - dt, th))
     let n = cross(ds, da)
     if (len(n) < 1e-12) return unit(mul(F.a, t > (s0 + s1) / 2 ? 1 : -1))
-    // Outward: away from the section's centre.
     const g = geo(t)
     const c = comb(F.o, [t, F.a], [g.lift, F.v])
     if (dot(n, sub(p(t, th), c)) < 0) n = mul(n, -1)
@@ -229,16 +181,13 @@ export function lathe(
       sn = Math.sin(th)
     const na = -(d.r * g.rz * c * c + g.r * sn * (d.lift + d.rz * sn))
     const n = comb([0, 0, 0], [na, F.a], [g.rz * c, F.u], [g.r * sn, F.v])
-    // A pointed tip has no section: its normal is the axis.
     return len(n) > 1e-9 ? unit(n) : unit(mul(F.a, t > (s0 + s1) / 2 ? 1 : -1))
   }
   const normal = (t: number, deg: number) => normalRad(t, deg * D2R)
 
-  // Fine angular samples for limbs, seams and tone regions.
   const FM = 96
   const COS = Array.from({ length: FM }, (_, j) => Math.cos((j / FM) * 2 * Math.PI)),
     SIN = Array.from({ length: FM }, (_, j) => Math.sin((j / FM) * 2 * Math.PI))
-  /** The arc (radians, lo < hi) where f(j) > 0 over the FM samples round the ring, refined by linear interpolation; null when none is, the whole ring when all are. */
   const arcOf = (f: (j: number) => number): [number, number] | null => {
     const v = new Float64Array(FM)
     let pos = 0
@@ -256,7 +205,6 @@ export function lathe(
     }
     return [root(start - 1), root(end)]
   }
-  /** How much each of the FM normals round the ring at s faces the viewer (g) and the light (b). The section and its slope are read once per ring. */
   const ringSamples = (t: number) => {
     const q = geo(t),
       d = deriv(t)
@@ -289,7 +237,6 @@ export function lathe(
     const { g } = ringSamples(t)
     return arcOf((j) => g[j])
   }
-  // A fit probe (Scene measuring for fitBox) only needs bounds: tone layers sit inside the silhouette, so they are skipped. Scene.str returns '' only while measuring.
   const probing = s.str([[0, 0]]) === ''
 
   const ts = Array.from({ length: steps + 1 }, (_, i) => s0 + ((s1 - s0) * i) / steps)
@@ -298,7 +245,6 @@ export function lathe(
   const hulls: Pt[][] = []
   for (let i = 0; i < steps; i++) hulls.push(hull([...rings[i], ...rings[i + 1]]))
 
-  // Silhouette: the strokes first, then the fill covers their inner halves and every internal join.
   for (const hp of hulls) s.poly2(hp, 'none', line, 2 * width)
   s.area(hulls, ramp.dark)
 
@@ -314,7 +260,6 @@ export function lathe(
     const samples = fs.map(ringSamples)
     for (const [thr, paint, op] of levels) {
       const arcs = samples.map(({ g, b }) => arcOf((j) => Math.min(g[j], b[j] - thr)))
-      // Each contiguous run of stations with a lit arc is one region.
       let i = 0
       while (i < fs.length) {
         if (!arcs[i]) {
@@ -341,7 +286,6 @@ export function lathe(
   }
   if (o.tint) s.area(hulls, o.tint)
 
-  // End discs that face the viewer, with a crease where they meet the visible skin.
   if (o.caps ?? true)
     for (const [t, dir] of [
       [s0, -1],
@@ -400,7 +344,6 @@ export function lathe(
   }
 }
 
-/** A straight round rod from `a` to `b` (struts, axles, legs), shaded like any lathe. */
 export function tube(s: Scene, a: P3, b: P3, r: number, o: LatheOpts = {}) {
   return lathe(s, frameAlong(a, sub(b, a)), () => ({ r }), 0, len(sub(b, a)), {
     steps: 1,
@@ -409,13 +352,11 @@ export function tube(s: Scene, a: P3, b: P3, r: number, o: LatheOpts = {}) {
   })
 }
 
-/** A short disc (washer, hub, flange) centred on `c` along `axis`, `t` thick. */
 export function disc(s: Scene, c: P3, axis: P3, r: number, t: number, o: LatheOpts = {}) {
   const F = frameAlong(c, axis)
   return lathe(s, F, () => ({ r }), -t / 2, t / 2, { steps: 1, ...o })
 }
 
-/** A circle of `n` points on the plane through `c` with normal `n`. */
 export function circleOn(c: P3, n: P3, r: number, count = 12): P3[] {
   const F = frameAlong(c, n)
   return Array.from({ length: count }, (_, i) => {
@@ -424,16 +365,11 @@ export function circleOn(c: P3, n: P3, r: number, count = 12): P3[] {
   })
 }
 
-/** A screw head or rivet: a dot, with a ring round it when `ring` is set; on the face through `c` with normal `n`. */
 export function screw(s: Scene, c: P3, n: P3, r: number, o: { ring?: number; paint?: Paint } = {}) {
   if (o.ring) s.poly(circleOn(c, n, o.ring, 12), 'none', 'crease', undefined, 0.5)
   s.poly(circleOn(c, n, r, 8), o.paint ?? 'line', 'none')
 }
 
-/**
- * A wheel on an axle along `axis` (unit), centred on `c`: a rubber tyre with rounded shoulders, a hub with lug dots on the face that looks at the viewer.
- * `hero` adds the hub detail; a thumb keeps the tyre and its rim line.
- */
 export function wheel(s: Scene, c: P3, axis: P3, r: number, w: number, hero: boolean) {
   const sh = w * 0.42
   const F = frameAlong(c, axis)
@@ -448,7 +384,6 @@ export function wheel(s: Scene, c: P3, axis: P3, r: number, w: number, hero: boo
     w / 2,
     { steps: hero ? 6 : 2, ring: hero ? 28 : 16, shade: hero, tint: hero ? 'shade' : undefined },
   )
-  // The face towards the viewer carries the hub.
   const face = dot(F.a, VIEW) > 0 ? 1 : -1
   const fc = add(c, mul(F.a, (face * w) / 2))
   const n = mul(F.a, face)
@@ -471,33 +406,22 @@ export function wheel(s: Scene, c: P3, axis: P3, r: number, w: number, hero: boo
   }
 }
 
-// ---------------------------------------------------------------- lifting surfaces
-
-/** One chordwise station of a lifting surface: leading and trailing edge points on the chord line, and the section's thickness. */
 export type FoilStation = { le: P3; te: P3; t: number }
 
 export type FoilOpts = {
-  /** The side the upper skin faces (world z for wings, +y for a fin). */
   up?: P3
   ramp?: Ramp
   line?: Paint
   crease?: Paint
   width?: number
-  /** Strips round the leading-edge nose. */
   nose?: number
 }
 
 export type Foil = {
-  /** A point on the upper skin at station index `i` (fractional between stations), chord fraction `f` (0 = LE, 1 = TE). */
   top(i: number, f: number): P3
-  /** A line on the upper skin from (i0, f0) to (i1, f1), straight across stations. */
   line(i0: number, f0: number, i1: number, f1: number, paint?: Paint, width?: number): void
 }
 
-/**
- * A wing, tailplane or fin through two or more stations: a rounded leading edge (nose strips shaded by their facing), an upper skin that thins to a sharp trailing edge, end caps where a station faces the viewer, and one clean silhouette.
- * Stations run from root to tip (or tip to tip); the upper skin faces `up`.
- */
 export function foil(s: Scene, st: readonly FoilStation[], o: FoilOpts = {}): Foil {
   const up = o.up ?? [0, 0, 1],
     ramp = o.ramp ?? GREY,
@@ -512,7 +436,6 @@ export function foil(s: Scene, st: readonly FoilStation[], o: FoilOpts = {}): Fo
     const C = add(le, mul(c, rho))
     return { le, te, c, n, rho, C }
   })
-  // Section outline, from the TE over the top, round the nose and back under to the TE.
   const nosePt = (i: number, phi: number) => {
     const f = frames[i]
     return comb(f.C, [-f.rho * Math.cos(phi), f.c], [f.rho * Math.sin(phi), f.n])
@@ -529,7 +452,6 @@ export function foil(s: Scene, st: readonly FoilStation[], o: FoilOpts = {}): Fo
   const section = (i: number) => [teTop(i), ...phis.map((p) => nosePt(i, p)), teBot(i)]
   const secs = st.map((_, i) => section(i))
 
-  // Silhouette: every panel between two stations is convex.
   const hulls: Pt[][] = []
   for (let i = 0; i < st.length - 1; i++) hulls.push(hull(s.pp([...secs[i], ...secs[i + 1]])))
   for (const hp of hulls) s.poly2(hp, 'none', line, 2 * width)
@@ -540,10 +462,8 @@ export function foil(s: Scene, st: readonly FoilStation[], o: FoilOpts = {}): Fo
     if (!facing(n)) return
     s.poly([...idx.map(a), ...[...idx].reverse().map(b)], toneOf(n, ramp), 'none')
   }
-  // Mean span direction, for normals of the strips and the caps.
   const span = unit(sub(st[st.length - 1].le, st[0].le))
   const mid = frames[Math.floor((st.length - 1) / 2)]
-  // Lower skin (when it faces the viewer), trailing edge, nose strips, upper skin.
   quadStrip((i) => nosePt(i, -Math.PI / 2), teBot, mul(mid.n, -1))
   quadStrip(teTop, teBot, mid.c)
   for (let k = NB - 1; k >= 0; k--) {
@@ -562,7 +482,6 @@ export function foil(s: Scene, st: readonly FoilStation[], o: FoilOpts = {}): Fo
       crease,
       0.6 * width,
     )
-  // End caps.
   for (const [i, dir] of [
     [0, -1],
     [st.length - 1, 1],
@@ -584,13 +503,6 @@ export function foil(s: Scene, st: readonly FoilStation[], o: FoilOpts = {}): Fo
   }
 }
 
-// ---------------------------------------------------------------- dials, knurls and cables
-
-/**
- * Radial ticks on the plane through `c` spanned by unit `U` and `V`: `count` steps over `span` radians from `from` (measured from U towards V).
- * Each tick is rooted on radius `r` and runs towards the centre by its length (a negative length grows outward); every `every`-th tick is major.
- * Returns the segments so the caller picks paints: `s.segs(t.minor, …)`, `s.segs(t.major, …)`.
- */
 export function radialTicks(
   c: P3,
   U: P3,
@@ -616,7 +528,6 @@ export function radialTicks(
   return { minor, major }
 }
 
-/** Knurl lines along a turned body from station `s0` to `s1` (put seams there so they end on something): `count` round the full turn, only those on the visible half and `margin` degrees clear of its limbs. */
 export function knurl(
   b: Body,
   s0: number,
@@ -633,10 +544,6 @@ export function knurl(
     b.along(a, s0, s1, paint, width)
 }
 
-/**
- * A round flexible part (a cable, a hose) of radius `r` through `path`, a polyline already sampled finely along a smooth curve.
- * Drawn like a lathe's silhouette (stroked hulls of consecutive rings, filled over as one area, so no joins show) with a light stripe along the side that faces the light. No end discs: start and end it inside or under the parts it joins.
- */
 export function pipe(
   s: Scene,
   path: readonly P3[],
@@ -677,12 +584,6 @@ export function pipe(
   s.poly([...side(-1), ...side(1).reverse()], o.light ?? 'top', 'none')
 }
 
-// ---------------------------------------------------------------- bars
-
-/**
- * A straight bar of rectangular section from `a` to `b` (ladder rails, legs, braces): `w` across the frame's u, `d` across its v (v as close to `up` as the axis allows).
- * Drawn like the Scene's boxes: each face that looks at the viewer in its own tone, creases between them, then one silhouette.
- */
 export function beam(
   s: Scene,
   a: P3,
@@ -713,15 +614,6 @@ export function beam(
   s.poly2(hull(s.pp(corners)), 'none', o.line ?? 'line', width)
 }
 
-// ---------------------------------------------------------------- stamps
-
-/**
- * Draws `draw` once and returns a stamp that repeats it moved by (x, y) on the floor, for many identical parts (posts, bollards).
- * The projection is linear, so a moved copy is the same drawing shifted on screen: the stamp records the Scene calls `draw` makes on a
- * scratch Scene at the same scale and replays them through `s` with every point moved, so bounds, shadows and fit probes work as if
- * each copy were drawn from scratch, at a fraction of the cost. `draw` may use poly, poly2, area, line and segs (everything the turned
- * parts above use), not glow, group or text.
- */
 export function stamp(s: Scene, draw: (r: Scene) => void): (x: number, y: number) => void {
   type Op = (dx: number, dy: number, v: Pt) => void
   const ops: Op[] = []
@@ -771,10 +663,8 @@ export function stamp(s: Scene, draw: (r: Scene) => void): (x: number, y: number
   }
 }
 
-/** A stable 0–1 jitter for an index. */
 export const hash = (n: number) => ((((n + 1) * 2654435761) >>> 0) % 1000) / 1000
 
-/** Keeps the part of a polygon where f(p) ≥ 0, for a linear f (one Sutherland–Hodgman pass). */
 export function cutBy(poly: readonly Pt[], f: (p: Pt) => number): Pt[] {
   const out: Pt[] = []
   poly.forEach((p, i) => {
@@ -790,7 +680,6 @@ export function cutBy(poly: readonly Pt[], f: (p: Pt) => number): Pt[] {
   return out
 }
 
-/** Clips a polygon to a convex one in screen space. */
 export function clipTo(subject: readonly Pt[], clip: readonly Pt[]): Pt[] {
   let area = 0
   for (let i = 0; i < clip.length; i++) {

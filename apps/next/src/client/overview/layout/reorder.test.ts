@@ -19,7 +19,6 @@ it('targets either card in a grid row by horizontal position, retaining vertical
 })
 
 it("drops into the lane under the pointer and the slot among that lane's cards", () => {
-  // Left lane holds a (0-300) and c (316-500); right lane holds b (0-100) and d (116-400). The dragged card is excluded.
   const rects = [
     { id: 'a', top: 0, bottom: 300, left: 0, right: 600 },
     { id: 'b', top: 0, bottom: 100, left: 616, right: 1216 },

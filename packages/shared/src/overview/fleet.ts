@@ -8,7 +8,6 @@ export interface ShareRow {
 }
 export interface Fleet {
   topType: { icao: string; share: number } | null
-  /** Top exact ICAO types, ranked by flight count; separate from family totals. */
   topTypes: ShareRow[]
   byBodyType: ShareRow[]
   byManufacturer: ShareRow[]

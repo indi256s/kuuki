@@ -1,6 +1,3 @@
-// Latte stones of the Marianas: pairs of squared stone pillars (haligi), each capped with a
-// hemispherical cup (tasa) set flat side up, standing on bare ground. The box is the group; the
-// bottom is the ground. `count` pillars stand side by side, alternating in height.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, hline, occlude, quad, stroke, toneFill, vline } from '../grid'
 import { type KitModule, num } from './util'
@@ -26,12 +23,10 @@ function one(
     [cx + pw / 2, base],
   ]
   out.push(...body(pillar, 'line'))
-  // Shaded right face.
   const sx = cx + pw * 0.14
   const shade: Pt[] = [[sx, base], [sx + lean * 0.8, pillarTop], pillar[2], pillar[3]]
   out.push(...toneFill(shade, 'T4', { gap: 2.4, inset: 0.2 }))
   out.push(vline('hair', sx, pillarTop + 1, base - 1))
-  // Weathering ticks on the lit face.
   for (const f of [0.3, 0.55, 0.78]) {
     const yy = pillarTop + (base - pillarTop) * f
     const x0 = cx - pw * 0.36 + lean * (1 - f) + rand()
@@ -42,7 +37,6 @@ function one(
       ]),
     )
   }
-  // Cup: flat top, rounded sides curving in to the pillar head.
   const tl: Pt = [cx - capW / 2 + lean, topY]
   const tr: Pt = [cx + capW / 2 + lean, topY]
   const left = quad(
@@ -59,7 +53,6 @@ function one(
   )
   const cup: Pt[] = [...left, ...right]
   out.push(...body(cup, 'line'))
-  // Shaded right half of the cup.
   const cs = cx + capW * 0.16 + lean
   const cupShade = [
     [cs, topY + 1] as Pt,

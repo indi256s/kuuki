@@ -1,6 +1,3 @@
-// Ngalawa: a slim Comorian dugout with an outrigger float carried on two curved arms and a tall
-// triangular sail on a raked mast. Bow to the right; the box bottom is the waterline, the float
-// rides just in front of it.
 import { type Pt, type SvgNode, hline, occlude, quad, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
 
@@ -13,7 +10,6 @@ export const ngalawa: KitModule = ([x, y, w, h], p) => {
   const rim = quad([x0, rimY - 4], [(x0 + x1) / 2, rimY + 2], [x1, rimY - 6], 16)
   const keel = quad([x1 - 3, base + 0.5], [(x0 + x1) / 2, base + 3.4], [x0 + 3, base + 0.5], 16)
   const hull: Pt[] = [...rim, ...keel]
-  // Sail first (behind the hull): triangle between mast, boom and a curved leech.
   const mx = x + w * num(p, 'mast', 0.5)
   const top: Pt = [mx - w * 0.07, y + 1]
   const tack: Pt = [mx + 1, rimY - 1]
@@ -38,13 +34,11 @@ export const ngalawa: KitModule = ([x, y, w, h], p) => {
   )
   out.push(stroke('line', [...leech, tack], true))
   out.push(stroke('bold', [[mx + 1, rimY], top]), stroke('bold', [clew, [mx + 1, rimY - 1]]))
-  // Hull.
   out.push(
     occlude(hull, { halo: 1.2 }),
     ...toneFill(hull, 'T4', { angle: 90, gap: 2.4, weight: 'hair', inset: 0.3 }),
   )
   out.push(stroke('line', hull, true), stroke('bold', rim))
-  // Outrigger: float and two curved arms.
   const fy = base + 7.5
   const f0 = x + w * 0.18,
     f1 = x + w * 0.78
@@ -69,7 +63,6 @@ export const ngalawa: KitModule = ([x, y, w, h], p) => {
       [x0 + (x1 - x0) * 0.66 + 4, base - 4],
     ]),
   )
-  // Water: broken glints, closing in towards the bottom.
   for (const [dy, a, b] of [
     [12.5, 0.04, 0.3],
     [14.2, 0.55, 0.95],

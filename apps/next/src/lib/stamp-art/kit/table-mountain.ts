@@ -1,12 +1,7 @@
-// Table Mountain seen from Table Bay: Devil's Peak on the left, the dead-flat table with its sheer
-// banded cliff in the middle, Lion's Head and Signal Hill falling to the sea on the right. The box
-// is the whole range, its bottom the foot of the slopes. Cliff: horizontal strata in broken runs plus
-// vertical gullies, the right third in shade. Slopes and talus: hatching along the fall line.
 import { mulberry32 } from '../hash'
 import { type Pt, type StrokeNode, type SvgNode, occlude, quad, stroke } from '../grid'
 import { type KitModule, num } from './util'
 
-// Silhouette as [x fraction, y fraction from the top], left foot to right foot.
 const SIL: Pt[] = [
   [0.0, 1.0],
   [0.015, 0.93],
@@ -60,7 +55,6 @@ export const tableMountain: KitModule = ([x, y, w, h], p) => {
   const base = y + h
   const at = ([fx, fy]: Pt): Pt => [x + w * fx, y + h * fy]
   const coarse = SIL.map(at)
-  // Skyline with small kinks on the peaks only; the table top stays dead flat.
   const sky: Pt[] = []
   for (let i = 0; i + 1 < coarse.length - 1; i++) {
     const a = coarse[i],
@@ -85,8 +79,6 @@ export const tableMountain: KitModule = ([x, y, w, h], p) => {
     topY + cliffDepth + Math.sin(px * 0.17) * 1.0 + Math.sin(px * 0.06) * 1.2
   const strokes: StrokeNode[] = []
 
-  // Cliff: buttresses. Each has a lit left part (a few fine runs) and a shaded right part (vertical
-  // hair lines); the shaded share grows toward the right end of the mountain.
   let bx = tableL + 1
   while (bx < tableR - 2) {
     const bw = 6 + rand() * 6
@@ -111,7 +103,6 @@ export const tableMountain: KitModule = ([x, y, w, h], p) => {
     )
     bx = ex + 1.6 + rand() * 1.4
   }
-  // Strata: two broken fine bands across the face.
   for (const f of [0.38, 0.7]) {
     let cx = tableL + 1
     const yy = topY + cliffDepth * f
@@ -127,7 +118,6 @@ export const tableMountain: KitModule = ([x, y, w, h], p) => {
     }
   }
 
-  // Slopes under the cliff: fall lines fanning out from the cliff base to the foot.
   const axis = x + w * 0.51
   let k = 0
   for (let px = x + w * 0.17; px < x + w * 0.84; px += 2.4, k++) {
@@ -144,7 +134,6 @@ export const tableMountain: KitModule = ([x, y, w, h], p) => {
     )
   }
 
-  // Peaks and ridges: fall lines from the skyline to the foot, dense on the shaded (right) side.
   const peakAxis = (axisFrac: number, from: number, to: number) => {
     const ax = x + w * axisFrac
     let n = 0
@@ -167,7 +156,6 @@ export const tableMountain: KitModule = ([x, y, w, h], p) => {
   peakAxis(0.902, 0.84, 0.995)
 
   out.push(...strokes)
-  // Tablecloth: a scalloped cloud spilling over the right lip, erasing sky and cliff under it.
   if (p.cloud !== false) {
     const c0 = x + w * num(p, 'cloudFrom', 0.52),
       c1 = tableR + 1
@@ -197,7 +185,6 @@ export const tableMountain: KitModule = ([x, y, w, h], p) => {
     out.push(occlude(cloud))
     out.push(stroke('hair', upper), stroke('hair', lower))
   }
-  // Contour: the skyline in `line`, the flat top in bold, the cliff foot in line.
   out.push(stroke('line', sky))
   out.push(
     stroke('bold', [

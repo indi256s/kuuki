@@ -1,5 +1,3 @@
-// Albania: Berat. A hill carrying stacked rows of pale houses with close grids of tall windows,
-// each row overlapping the one behind it. The box top is the hill crest (the citadel goes on top).
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, occlude, rectPts, stroke } from '../grid'
 import { type KitModule, num, pairs } from './util'

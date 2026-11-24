@@ -8,7 +8,6 @@ const css = readFileSync(
   'utf8',
 ).replace(/\/\*[\s\S]*?\*\//g, '')
 
-/** `--stamp-ink-*` declarations of the rule whose selector is exactly `selector`. */
 function inkTokens(selector: string): Record<string, string> {
   const out: Record<string, string> = {}
   for (const [, raw, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {

@@ -1,6 +1,5 @@
 import type { Pt, Rings } from './surface'
 
-/** The fields of a SCHEMA.md record the drawing reads. */
 export type AircraftGeometry = {
   icao: string
   name: string
@@ -80,9 +79,7 @@ export type AircraftGeometry = {
   }[]
 }
 
-/** What a part is made of: each has its own tone ramp in the lane CSS. */
 export type Mat = 'body' | 'livery' | 'rubber' | 'metal' | 'void' | 'glass'
-/** Line inks: the silhouette, seams on a surface, and the faintest panel lines. */
 export type Ink = 'line' | 'seam' | 'faint'
 export type Lines = { runs: Pt[][]; ink: Ink; width: number }
 export type Item =

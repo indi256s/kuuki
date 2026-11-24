@@ -1,5 +1,3 @@
-// Local production Worker only. Start pnpm next:preview after pnpm next:build.
-// node scripts/performance-audit.mjs before [5000] [existing-agent-browser-session]
 import { execFileSync } from 'node:child_process'
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { gzipSync } from 'node:zlib'
@@ -43,8 +41,6 @@ const seed = `async () => {
   return { count };
 }`
 
-// Browser clocks exclude CLI/process overhead. Two frames give a paint opportunity,
-// not proof of GPU completion. Synthetic events are complemented by real-key journeys.
 const init = `(() => {
   performance.setResourceTimingBufferSize(10000);
   const p = window.__kuukiPerf = { longtasks: [], lcp: null, cls: 0, samples: [] };
@@ -145,7 +141,6 @@ for (const route of process.env.KUUKI_PERF_PAGES_ONLY === '1'
   for (let iteration = 0; iteration < 3; iteration++) {
     const coldSession = `${session}-cold-${route}-${iteration}`
     browser(['open', 'about:blank', '--init-script', initPath], undefined, coldSession)
-    // State replay visits stored origins and warms shared chunks. Set cookies only.
     for (const cookie of cookies)
       browser(
         [
@@ -213,7 +208,6 @@ evaluate('__kuukiPerf.samples = []')
 save()
 if (process.env.KUUKI_PERF_PAGES_ONLY === '1') process.exit(0)
 
-// Each filter is applied through its real UI handler and checked against the owned API.
 for (const [key, value] of [
   ['q', 'Tbilisi'],
   ['year', '2025'],

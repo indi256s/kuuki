@@ -1,6 +1,3 @@
-// Inline, offline preview of the exact production car builder at lane size and 4x in both themes.
-// Writes the original showcase under .scratch/car-anatomy and the vehicle-fill review pages under
-// .scratch/vehicle-fill/car (desktop lane size, 64 px phone size, 4x close-up).
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { buildCar } from './car'
 import { AIRCRAFT_CSS } from '../airliner/svg'
@@ -15,7 +12,6 @@ async function main() {
 body{margin:0;background:var(--background);color:var(--text);font:14px system-ui}main{padding:24px;max-width:1000px;margin:auto}svg{display:block;height:auto;max-width:100%}.row{display:flex;flex-wrap:wrap;align-items:center;gap:20px;margin:24px 0}.hero{padding:28px 0}h1{font-size:20px;font-weight:500}p{color:var(--text-muted)}${extra}</style><svg style="display:none" aria-hidden="true"><symbol id="coupe" viewBox="${vb.join(' ')}">${car.body}</symbol></svg><main>${body}</main></html>`
   const art = (width: number, color = colors[0]) =>
     `<svg class="lane-vehicle" style="width:${width}px;--lane-livery:${color}" viewBox="${vb.join(' ')}" aria-hidden="true"><g stroke-linejoin="round" stroke-linecap="round"><use href="#coupe" x="${vb[0]}" y="${vb[1]}" width="${vb[2]}" height="${vb[3]}"/></g></svg>`
-  // A cropped window of the art (fractions of the viewBox), enlarged: wheels, nose and tail up close.
   const crop = (f: [number, number, number, number], width: number, color = colors[0]) => {
     const [x, y, w, h] = [
       vb[0] + f[0] * vb[2],
@@ -37,7 +33,6 @@ body{margin:0;background:var(--background);color:var(--text);font:14px system-ui
         `<h1>993-inspired coupé</h1><div class="hero">${art(896)}</div><p>112px · desktop</p><div class="row">${colors.map((c) => art(vb[2], c)).join('')}</div><p>64px · phone</p><div class="row">${colors.map((c) => art((vb[2] * 64) / 112, c)).join('')}</div>`,
       ),
     )
-    // Review page: lane size (1x of the 112 px unit), phone size (64 px long) and a 4x close-up.
     writeFileSync(
       `${review}/${theme}.html`,
       page(

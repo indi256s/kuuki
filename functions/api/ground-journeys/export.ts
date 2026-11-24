@@ -1,7 +1,3 @@
-// GET /api/ground-journeys/export — the owner's versioned JSON export of rail/road journeys and manual places.
-// Live journeys only (plans and cancellations included); receipts, tombstones, internal user ids and the shared
-// city catalog never leave the database. No reverse import is promised.
-
 import { runHandler, json } from '../_lib/http'
 import { requireUser, type RequestData } from '../_lib/auth'
 import { assertRows } from '../_lib/d1'
@@ -59,7 +55,6 @@ interface ManualPlaceRow {
   created_at: string
 }
 
-/** Stored snapshot JSON as written; a malformed legacy value exports as null rather than failing the file. */
 function snapshotOf(raw: string): unknown {
   try {
     return JSON.parse(raw)
@@ -74,7 +69,6 @@ function groupBy<T extends { journey_id: string }>(rows: T[]): Map<string, T[]> 
   return grouped
 }
 
-/** One D1 batch, so every table is read from the same snapshot. */
 export async function readGroundJourneysExport(db: D1Database, userId: string, now = new Date()) {
   const live = `j.user_id = ? AND j.deleted_at IS NULL`
   const statements = [

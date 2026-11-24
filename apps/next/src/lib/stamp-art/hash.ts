@@ -1,4 +1,3 @@
-/** FNV-1a 32-bit with a final avalanche, so near-identical keys (`GE`, `GF`) spread apart. */
 export function hash32(key: string): number {
   let h = 0x811c9dc5
   for (let i = 0; i < key.length; i++) {
@@ -13,7 +12,6 @@ export function hash32(key: string): number {
   return h >>> 0
 }
 
-/** Deterministic PRNG (mulberry32) returning floats in [0, 1). */
 export function mulberry32(seed: number): () => number {
   let a = seed >>> 0
   return () => {

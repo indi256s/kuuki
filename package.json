@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
-    "lint": "turbo lint && pnpm lint:server",
+    "lint": "turbo lint && pnpm lint:server && pnpm lint:comments",
     "lint:server": "oxlint -c .oxlintrc.json --deny-warnings functions packages workers",
+    "lint:comments": "node scripts/comments.mjs check",
+    "comments:ratchet": "node scripts/comments.mjs ratchet",
     "typecheck": "turbo typecheck",
     "typecheck:api": "tsc --noEmit -p functions/tsconfig.json",
     "typecheck:scripts": "tsc --noEmit -p scripts/tsconfig.sbd1.json",

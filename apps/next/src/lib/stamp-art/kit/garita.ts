@@ -1,8 +1,3 @@
-// El Morro (San Juan), close up: a tall bastion corner in front of the sea. A lit left face and a
-// shaded right face meet at a vertical edge; a cordon and a flat parapet band run along both, and
-// a big domed sentry box (garita) on corbels overhangs the corner. A small garita closes the right
-// wall. The foot is a sea-cut rock band hatched along the fall line. The box is wall plus rock;
-// its bottom is the bottom of the rock.
 import { type Pt, type SvgNode, body, fill, occlude, rectPts, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
 
@@ -50,7 +45,6 @@ export const garita: KitModule = ([x, y, w, h], p) => {
   const endL = x + batter * 0.35
   const endR = right - batter * 0.35
 
-  // Sea-cut rock band under the walls: ragged top edge, fall-line hatching.
   const rock: Pt[] = [[x, bottom]]
   for (let i = 0; i <= 24; i++) {
     const u = i / 24
@@ -60,7 +54,6 @@ export const garita: KitModule = ([x, y, w, h], p) => {
   out.push(occlude(rock, { halo: 1 }), ...toneFill(rock, 'T4', { angle: 70, gap: [2.6, 2.6] }))
   out.push(stroke('hair', rock.slice(1, -1)))
 
-  // Faces: nearly flat tops, a slight fall away from the salient.
   const lTop = wallTop + dipL
   const rTop = wallTop + dipR
   const left: Pt[] = [
@@ -83,7 +76,6 @@ export const garita: KitModule = ([x, y, w, h], p) => {
     [sx, base],
   ]
   out.push(...toneFill(shade, 'T4', { inset: 0.5, gap: [4, 4], weight: 'fine' }))
-  // Parapet band and cordon on both faces.
   out.push(
     stroke('bold', [
       [endL, lTop],
@@ -96,14 +88,12 @@ export const garita: KitModule = ([x, y, w, h], p) => {
       [endR, rTop + par],
     ]),
   )
-  // Embrasure slots in the parapet band of the lit face.
   for (let i = 0; i < 3; i++) {
     const u = (i + 0.5) / 3.2
     const ex = lerp(endL, topX - 14 * scale * 0.4, u)
     const et = lerp(lTop, wallTop, (ex - endL) / (topX - endL))
     out.push(fill(rectPts(ex - 1.6, et + 1.6, 3.2, par - 3)))
   }
-  // Masonry courses and the battered foot on the lit face.
   for (const f of [0.35, 0.6, 0.82]) {
     const ya = lerp(lTop + par, base, f)
     const yb = lerp(wallTop + par, base, f)
@@ -121,7 +111,6 @@ export const garita: KitModule = ([x, y, w, h], p) => {
     ]),
   )
 
-  // Sentry boxes: the big one on the salient, a small one at the end of the right wall.
   out.push(...garitaBox(topX, wallTop + 1.5, scale))
   out.push(...garitaBox(endR - 9, rTop + 1.5, scale * 0.45))
   return out

@@ -66,7 +66,6 @@ describe('laneModel', () => {
       entry('a', 'failed', { problem: 'size' }),
       entry('b', 'failed', { problem: 'type' }),
     ])
-    // One tray per place: the later rejection.
     expect(trays).toEqual([
       { id: 'b', slot: 'mouth', index: 0, cargo: 'document', stubs: 0, rejected: 'type' },
     ])

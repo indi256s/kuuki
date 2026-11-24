@@ -1,6 +1,3 @@
-// Pure model of the rail ticket OCR panel: file admission, the per-file row states, editable candidate previews
-// and the hand-off to LegDraft. No DOM, no network. Nothing here invents a year, a place or a country.
-
 import { isIsoDate } from '@kuuki/shared/groundTravel'
 import { IMPORT_MAX_FILE_BYTES } from '@kuuki/shared/constants'
 import type {
@@ -25,7 +22,6 @@ const MIME_BY_EXTENSION: Record<string, string> = {
 }
 const SUPPORTED = new Set(Object.values(MIME_BY_EXTENSION))
 
-/** Why a file is refused before any request. The server re-checks the real signature either way. */
 export function precheckFile(file: {
   name: string
   type: string
@@ -33,22 +29,14 @@ export function precheckFile(file: {
 }): 'unsupported' | 'too-large' | null {
   const extension = file.name.split('.').pop()?.toLowerCase() ?? ''
   const type = file.type.toLowerCase()
-  // A declared type that is present and supported wins; an empty one falls back to the extension.
   const supported = type ? SUPPORTED.has(type) : extension in MIME_BY_EXTENSION
   if (!supported) return 'unsupported'
   return file.size > IMPORT_MAX_FILE_BYTES ? 'too-large' : null
 }
 
-// ---------------------------------------------------------------------------
-// Editable previews
-// ---------------------------------------------------------------------------
-
-/** A date as the ticket printed it: whole, partial (month and day only), or absent. */
 export interface PreviewDate {
-  /** `YYYY-MM-DD` when the ticket stated a year, or once the owner typed one for a partial date. */
   value: string
   partial: { month: number; day: number } | null
-  /** What the owner typed for a partial date's missing year. */
   year: string
 }
 
@@ -56,7 +44,6 @@ export interface Preview {
   id: string
   fromStation: string
   toStation: string
-  /** Cities as printed: shown beside the stations, never turned into a chosen place. */
   fromCity: string
   toCity: string
   trainNumber: string
@@ -68,7 +55,6 @@ export interface Preview {
   uncertain: readonly RailCandidateField[]
   cancelled: boolean
   otherPassenger: boolean
-  /** Part of the next add or replace. Cancelled and other-passenger tickets start unticked. */
   include: boolean
   added: boolean
 }
@@ -86,7 +72,6 @@ export function previewFromCandidate(candidate: RailTicketCandidate): Preview {
   const flagged = candidate.cancelled === true || candidate.otherPassenger === true
   return {
     id: newId(),
-    // A city is not a station: the station stays empty when the ticket printed none.
     fromStation: candidate.fromStation ?? '',
     toStation: candidate.toStation ?? '',
     fromCity,
@@ -105,7 +90,6 @@ export function previewFromCandidate(candidate: RailTicketCandidate): Preview {
   }
 }
 
-/** The date to put in the form: the stated or completed ISO date, or '' while a partial date has no valid year. */
 export function resolveDate(date: PreviewDate): string {
   if (!date.partial) return date.value
   const year = date.year.trim()
@@ -114,19 +98,12 @@ export function resolveDate(date: PreviewDate): string {
   return isIsoDate(iso) ? iso : ''
 }
 
-/** A partial date whose year is still missing or does not make a real day. */
 export const dateNeedsYear = (date: PreviewDate): boolean =>
   date.partial !== null && resolveDate(date) === ''
 
-/** Fields shown with "Check this": what the model marked unclear. A partial date is flagged by its own year prompt. */
 export const isUncertain = (preview: Preview, field: RailCandidateField): boolean =>
   preview.uncertain.includes(field)
 
-/**
- * The leg a preview becomes. With `base` (Replace this leg) the old leg is the starting point: its id, places and
- * typed duration stay, and only the fields the preview states overwrite. Without it the leg is new. Printed
- * cities travel as hints for the place pickers while the leg has no place; they are never turned into a place.
- */
 export function legFromPreview(preview: Preview, base: LegDraft = emptyLeg()): LegDraft {
   const stated = (value: string, old: string) => value.trim() || old
   const city = (printed: string, place: LegDraft['from'], old: string | undefined) =>
@@ -146,22 +123,13 @@ export function legFromPreview(preview: Preview, base: LegDraft = emptyLeg()): L
   }
 }
 
-// ---------------------------------------------------------------------------
-// Possible repeats
-// ---------------------------------------------------------------------------
-
 type RepeatKey = Pick<LegDraft, 'trainNumber' | 'departureDate' | 'fromStation' | 'toStation'>
 const norm = (value: string) => value.trim().toLocaleLowerCase()
 function repeatKey(leg: RepeatKey): string | null {
-  // Without both stations nothing distinguishes two tickets, so nothing is called a repeat.
   if (norm(leg.fromStation) === '' || norm(leg.toStation) === '') return null
   return [leg.trainNumber, leg.departureDate, leg.fromStation, leg.toStation].map(norm).join('|')
 }
 
-/**
- * Ids of previews that look like a leg already in the form or an earlier preview (same train number, date and
- * stations). Marked, never removed: a repeat of one ticket and two similar tickets are the owner's call.
- */
 export function findRepeats(
   previews: readonly Preview[],
   formLegs: readonly RepeatKey[],
@@ -181,10 +149,6 @@ export function findRepeats(
   return repeats
 }
 
-// ---------------------------------------------------------------------------
-// Rows
-// ---------------------------------------------------------------------------
-
 export type RowStatus =
   | 'waiting'
   | 'reading'
@@ -198,19 +162,16 @@ export type RowStatus =
 
 export interface OcrRow {
   id: string
-  /** Null for a row restored from the draft: only its previews survive a reload, never the file. */
   file: File | null
   fileName: string
   fileSize: number | null
   status: RowStatus
   previews: Preview[]
-  /** Counts attempts so an answer to an older attempt (before Stop or Retry) is recognised and dropped. */
   attempt: number
 }
 
 export const isSettled = (status: RowStatus): boolean =>
   status !== 'waiting' && status !== 'reading'
-/** Refused before any request; only Remove helps. */
 export const isRefused = (status: RowStatus): boolean =>
   status === 'too-large' || status === 'unsupported'
 export const canRetry = (status: RowStatus): boolean =>
@@ -229,7 +190,6 @@ export function newRow(file: File): OcrRow {
   }
 }
 
-/** A row rebuilt from the draft: already read, nothing to retry. */
 export const rowFromStored = (stored: StoredOcrRow): OcrRow => ({
   id: stored.id,
   file: null,
@@ -240,7 +200,6 @@ export const rowFromStored = (stored: StoredOcrRow): OcrRow => ({
   attempt: 0,
 })
 
-/** What the draft keeps: rows with previews not yet added, nothing but the editable preview fields. */
 export function unaddedRows(rows: readonly OcrRow[]): StoredOcrRow[] {
   const kept: StoredOcrRow[] = []
   for (const row of rows) {
@@ -251,7 +210,6 @@ export function unaddedRows(rows: readonly OcrRow[]): StoredOcrRow[] {
   return kept
 }
 
-/** How a failed request maps to a row status. */
 export function statusForFailure(error: unknown): RowStatus {
   const failure = error as { status?: unknown; code?: unknown } | null
   const status = typeof failure?.status === 'number' ? failure.status : 0
@@ -263,7 +221,6 @@ export function statusForFailure(error: unknown): RowStatus {
   return 'failed'
 }
 
-/** Stop: nothing new starts and whatever is running is let go. Rows that already have an answer stay. */
 export const stopRows = (rows: readonly OcrRow[]): OcrRow[] =>
   rows.map((row) =>
     row.status === 'waiting' || row.status === 'reading'
@@ -271,7 +228,6 @@ export const stopRows = (rows: readonly OcrRow[]): OcrRow[] =>
       : row,
   )
 
-/** Starts a row's request. Returns null when the row is not waiting any more. */
 export function startRow(rows: readonly OcrRow[], id: string): OcrRow[] | null {
   const row = rows.find((item) => item.id === id)
   if (!row || row.status !== 'waiting') return null
@@ -280,7 +236,6 @@ export function startRow(rows: readonly OcrRow[], id: string): OcrRow[] | null {
   )
 }
 
-/** Applies an answer only if the row is still reading that exact attempt. */
 export function settleRow(
   rows: readonly OcrRow[],
   id: string,
@@ -296,7 +251,6 @@ export function settleRow(
   })
 }
 
-/** Back to waiting for another request, keeping the file and dropping any earlier previews. */
 export const retryRow = (rows: readonly OcrRow[], id: string): OcrRow[] =>
   rows.map((row) =>
     row.id === id && canRetry(row.status)
@@ -329,7 +283,6 @@ export function patchPreview(
   )
 }
 
-/** Previews in the order the files were chosen, then in the order each file listed them. */
 export const allPreviews = (rows: readonly OcrRow[]): Preview[] =>
   rows.flatMap((row) => row.previews)
 

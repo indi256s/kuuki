@@ -1,7 +1,6 @@
 import type { Box, Pt, SvgNode, Weight } from '../grid'
 
 export type Params = Record<string, unknown>
-/** A kit module: pure function from a box and parameters to nodes. Ground is the bottom of the box. */
 export type KitModule = (box: Box, params: Params) => SvgNode[]
 
 export const num = (p: Params, key: string, fallback: number): number => {
@@ -35,7 +34,6 @@ export const pairs = (p: Params, key: string, fallback: Pt[]): Pt[] => {
     : fallback
 }
 
-/** x on the polyline `edge` (sorted by y ascending) at height y. */
 export function xAtY(edge: Pt[], y: number): number {
   for (let i = 0; i + 1 < edge.length; i++) {
     const a = edge[i],

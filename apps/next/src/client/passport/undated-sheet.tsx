@@ -1,6 +1,4 @@
 'use client'
-// The round-up: ground visits without a year, each set on a year drum. The list is a snapshot taken on open, so a row
-// whose year was just set stays under the finger and shows it; the page refreshes once, when the sheet closes.
 
 import { useMemo, useRef, useState } from 'react'
 import { ApiError, getAuthGeneration } from '@kuuki/client/apiClient'
@@ -15,7 +13,6 @@ import './passport.css'
 
 export type UndatedVisit = PassportData['groundVisits'][number]
 
-/** The owner's ground visits that carry no year, whatever their way; hidden countries are out of the passport, so out of here. */
 export function undatedOf(visits: readonly UndatedVisit[], hidden: readonly string[] = []) {
   const out = new Set(hidden)
   return visits.filter((visit) => visit.visit_year === null && !out.has(visit.country_code))
@@ -30,7 +27,6 @@ const UNDATED_FORMS: CountForms = {
     other: '{count} визита без года',
   },
 }
-/** «3 визита без года», the label of the entry that opens the round-up. */
 export const undatedLabel = (locale: Locale, count: number) =>
   formatCount(locale, count, UNDATED_FORMS)
 
@@ -61,10 +57,8 @@ export function UndatedSheet({
   locale: Locale
   mobile: boolean
   ownerId: string
-  /** The undated visits as the page has them now; the sheet keeps the ones it saw on open. */
   visits: readonly UndatedVisit[]
   name: (code: string) => string
-  /** Something was written (or found changed): refetch the passport. Called once, on close. */
   onChanged: () => Promise<void> | void
   onCloseAutoFocus?: (event: Event) => void
 }) {
@@ -75,7 +69,6 @@ export function UndatedSheet({
   const [editing, setEditing] = useState<string | null>(null)
   const [instant, setInstant] = useState(false)
   const dirty = useRef(false)
-  // Per row: writes run one after another, and only the latest edit may speak for the row when one fails.
   const queues = useRef(new Map<string, Promise<void>>())
   const edits = useRef(new Map<string, number>())
   const buttons = useRef(new Map<string, HTMLButtonElement>())
@@ -120,9 +113,7 @@ export function UndatedSheet({
       } catch (error) {
         if (controller.signal.aborted || auth !== getAuthGeneration()) return
         const conflict = error instanceof ApiError && error.status === 409
-        // A conflict means the row changed elsewhere: the list refreshes on close either way.
         if (conflict) dirty.current = true
-        // A newer edit of this row owns what it shows; an older failure must not overwrite it.
         if (edits.current.get(id) !== generation) return
         setYears((current) => ({ ...current, [id]: before }))
         setNotes((current) => ({ ...current, [id]: conflict ? CONFLICT[locale] : FAILED[locale] }))
@@ -136,7 +127,6 @@ export function UndatedSheet({
 
   function changeOpen(next: boolean) {
     if (!next) {
-      // Closed with a year still saving: refresh once every write has settled, not before.
       const pending = [...queues.current.values()]
       queues.current.clear()
       void Promise.allSettled(pending).then(() => {
@@ -156,7 +146,6 @@ export function UndatedSheet({
       className="passport-sheet-panel"
       title={TITLE[locale]}
       closeLabel={locale === 'ru' ? 'Закрыть' : 'Close'}
-      // Escape closes the drum first; the sheet needs a second press.
       onEscapeKeyDown={(event) => {
         if (editing) event.preventDefault()
       }}

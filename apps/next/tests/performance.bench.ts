@@ -79,9 +79,7 @@ async function uniqueJsGzip(urls: Set<string>): Promise<number> {
     if (!file.startsWith(`${assets}${path.sep}`)) continue
     try {
       bytes += gzipSync(await readFile(file)).byteLength
-    } catch {
-      /* external or runtime-generated URL */
-    }
+    } catch {}
   }
   return bytes
 }
@@ -240,9 +238,7 @@ async function navigate(
       const length = Number(response.headers()['content-length'])
       if (Number.isFinite(length)) responseBytes += length
       if (address.pathname === url && responseMs === null) responseMs = performance.now() - started
-    } catch {
-      /* response completed after navigation */
-    }
+    } catch {}
   }
   page.on('request', onRequest)
   page.on('response', onResponse)
@@ -250,8 +246,6 @@ async function navigate(
     await page.goto(url, { waitUntil: 'domcontentloaded' })
     await ready(page, route, count)
     const readyMs = performance.now() - started
-    // Include scripts requested before readiness; this is the loaded JS closure,
-    // not every chunk present in the build output.
     const after = (await cdp.send('Performance.getMetrics')).metrics
     samples.push({
       route,
@@ -280,8 +274,6 @@ async function navigate(
   }
 }
 function projection(count: number, baseline: RouteProjection): RouteProjection {
-  // Many unique valid three-letter route keys, using coordinates around the
-  // globe. This is renderer load only: it does not imply such airport rows exist.
   const code = (n: number) =>
     Array.from({ length: 3 }, (_, i) =>
       String.fromCharCode(65 + (Math.floor(n / 26 ** i) % 26)),
@@ -395,7 +387,6 @@ test('local production read and map measurements', async ({ browser, baseURL }) 
     const setMenuTheme = async (target: typeof page, name: string) => {
       await target.getByRole('button', { name: 'Account menu' }).click()
       await target.getByRole('menuitemradio', { name }).click()
-      // A tray pick keeps the account menu open.
       await target.keyboard.press('Escape')
     }
     for (const count of [50, 500, 5000]) {

@@ -1,7 +1,3 @@
-// Sydney Harbour Bridge: one steel through-arch spanning the box, the deck hung inside it, a
-// battered stone pylon at each end and low approach spans on masonry piers. The box is the whole
-// bridge; its bottom is the water. The arch is a lattice truss (fine zig-zag) between a top and a
-// bottom chord, deepest at the springings and slim at the crown.
 import {
   type Pt,
   type SvgNode,
@@ -26,7 +22,6 @@ export const harbourBridge: KitModule = ([x, y, w, h], p) => {
   const span = x1 - x0
   const out: SvgNode[] = []
   const t = (i: number, n: number) => i / n
-  // Chords: parabolas between the springings and the crown.
   const topAt = (u: number) => {
     const k = 1 - Math.pow(2 * u - 1, 2)
     return y + h * 0.5 - k * h * 0.5
@@ -44,7 +39,6 @@ export const harbourBridge: KitModule = ([x, y, w, h], p) => {
     botPts.push([x0 + u * span, botAt(u)])
   }
 
-  // Approach spans: dark girder band under the deck and short masonry piers down to the water.
   for (const [a, b] of [
     [x, x0],
     [x1, x + w],
@@ -56,7 +50,6 @@ export const harbourBridge: KitModule = ([x, y, w, h], p) => {
       out.push(...body(rectPts(lo + len * f, deckY + 4, 3, water - deckY - 4), 'hair'))
   }
 
-  // The arch as a closed polygon, paper-filled with a lattice drawn inside.
   const arch: Pt[] = [...topPts, ...botPts.slice().reverse()]
   out.push(occlude(arch, { halo: 1.5 }))
   const lattice: SvgNode[] = []
@@ -72,7 +65,6 @@ export const harbourBridge: KitModule = ([x, y, w, h], p) => {
   out.push(stroke('line', topPts), stroke('line', botPts))
   out.push(stroke('line', [topPts[0], botPts[0]]), stroke('line', [topPts[N], botPts[N]]))
 
-  // Deck line with hangers from the bottom chord down to it where the chord rides above the deck.
   out.push(
     stroke('bold', [
       [x, deckY],
@@ -84,7 +76,6 @@ export const harbourBridge: KitModule = ([x, y, w, h], p) => {
     if (hy < deckY - 4) out.push(vline('fine', hx, hy, deckY))
   }
 
-  // Pylons: battered stone blocks with a cornice and a crenellated lookout, shaded on the right.
   for (const px of [x0, x1]) {
     const bx = px - pylonW / 2
     const poly: Pt[] = [

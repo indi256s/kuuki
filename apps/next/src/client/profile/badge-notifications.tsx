@@ -12,11 +12,9 @@ import { unseenBadges } from './unseen'
 import { useToast } from '../ui/toast'
 import type { Locale } from '../../lib/format'
 
-/** Announces newly earned achievements in the shell's toast region, one line per ladder. */
 export function BadgeNotifications({ ownerId }: { ownerId: string; locale: Locale }) {
   const { show, dismiss } = useToast()
   const announce = useEffectEvent((badges: EarnedBadge[], shown: Set<number>) => {
-    // One line per ladder: a batch that climbs several rungs names only the highest.
     const description = (locale: Locale) =>
       toTiles(badges)
         .map((tile) =>
@@ -61,7 +59,6 @@ export function BadgeNotifications({ ownerId }: { ownerId: string; locale: Local
             badges.some((item) => item.user_id !== ownerId)
           )
             return
-          // Hidden rows (legacy, cities) never toast.
           const result = unseenBadges(ownerId, visibleBadges(badges), notificationStorage())
           if (!result.badges.length) return
           announce(result.badges, shown)
@@ -73,7 +70,6 @@ export function BadgeNotifications({ ownerId }: { ownerId: string; locale: Local
     window.addEventListener(LIFECYCLE_CHANGED_EVENT, load)
     window.addEventListener('focus', load)
     window.addEventListener('kuuki:identity-reset', clear)
-    // Badges can publish after the mutation; bounded account reads do not infer awards from flights.
     const interval = window.setInterval(load, 60_000)
     return () => {
       clear()

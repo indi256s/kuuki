@@ -1,11 +1,3 @@
-// One parametric waterfall for every falls stamp. Falling water is bare paper with a few fine
-// vertical lines in its shaded third, the lip is a bold edge, and the rock on either side is wet
-// T4 so the white reads. Spray is a ragged T1 horizontal-hatch fade (never puffs), the pool is the
-// T3 ground with paper foam ticks. Rock is lit strata with T4 on the shaded side only.
-//
-// Params: `profile` (ribbon, curtain, horseshoe, two-step, cleft, cascade), `lipY` and `drop` as
-// fractions of the box height, `width` (ribbon/cleft, fraction of box width or units), `mist`
-// (fraction of box height), `seed`. The box bottom is the foot of the falls (the horizon).
 import { mulberry32 } from '../hash'
 import {
   type Box,
@@ -23,7 +15,6 @@ import { type RockOpts, rockMass as rockMassBase } from './rock-b'
 import { type KitModule, type Params, num, str } from './util'
 
 type Rand = () => number
-/** rockMass with the recipe's fracture-hatch gap applied (lit rock density). */
 const withRock =
   (p: Params) =>
   (poly: Pt[], rand: Rand, o: RockOpts = {}) =>
@@ -31,7 +22,6 @@ const withRock =
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 const lerpPt = (a: Pt, b: Pt, t: number): Pt => [lerp(a[0], b[0], t), lerp(a[1], b[1], t)]
 
-/** A falling sheet between a top polyline (the lip) and a bottom polyline, both left to right. */
 function sheet(
   top0: Pt[],
   bot: Pt[],
@@ -80,7 +70,6 @@ function sheet(
   return out
 }
 
-/** Edges of a stream of varying half-width along a path; `a` is the lower-left side. */
 function streamEdges(path: (t: number) => Pt, halfW: (t: number) => number, n = 14) {
   const a: Pt[] = [],
     b: Pt[] = []
@@ -92,7 +81,6 @@ function streamEdges(path: (t: number) => Pt, halfW: (t: number) => number, n = 
     const dx = c2[0] - c1[0],
       dy = c2[1] - c1[1]
     const len = Math.hypot(dx, dy) || 1
-    // (-dy, dx) points to the right of travel on a y-down screen when travelling down: screen left.
     const nx = -dy / len,
       ny = dx / len
     const hw = halfW(t)
@@ -102,7 +90,6 @@ function streamEdges(path: (t: number) => Pt, halfW: (t: number) => number, n = 
   return { a, b }
 }
 
-/** Draws a stream between two edge polylines: wet T4 flanks, paper body, shaded streaks, bold lip. */
 function stream(a: Pt[], b: Pt[], rand: Rand, o: { wet?: number; marks?: number } = {}): SvgNode[] {
   const out: SvgNode[] = []
   const n = a.length - 1
@@ -131,7 +118,6 @@ function stream(a: Pt[], b: Pt[], rand: Rand, o: { wet?: number; marks?: number 
   return out
 }
 
-/** Spray: horizontal fine rows widest at the foot, a ragged top, thinning upward. */
 function mist(x0: number, x1: number, base: number, h: number, rand: Rand): SvgNode[] {
   if (h < 2) return []
   const w = x1 - x0
@@ -170,7 +156,6 @@ function mist(x0: number, x1: number, base: number, h: number, rand: Rand): SvgN
   return out
 }
 
-/** Small ragged foam lenses with a dark ripple edge in the plunge pool. */
 function foam(cx: number, half: number, y: number, rand: Rand): SvgNode[] {
   const out: SvgNode[] = []
   for (let row = 0; row < 2; row++)
@@ -191,7 +176,6 @@ function foam(cx: number, half: number, y: number, rand: Rand): SvgNode[] {
   return out
 }
 
-/** Canopy chunks along a ridge so the forest follows a sloping skyline. */
 function canopyOn(ridge: Pt[], h: number, rand: Rand, from = 0, to = Infinity): SvgNode[] {
   const out: SvgNode[] = []
   const x0 = Math.max(from, ridge[0][0]),
@@ -222,8 +206,6 @@ function ridgeLine(
   }
   return out
 }
-
-// ---- profiles ---------------------------------------------------------------------------------
 
 function curtain([x, y, w, h]: Box, p: Params, rand: Rand, horseshoe: boolean): SvgNode[] {
   const rockMass = withRock(p)
@@ -273,7 +255,6 @@ function curtain([x, y, w, h]: Box, p: Params, rand: Rand, horseshoe: boolean): 
   const sprayX: [number, number] | null = sprayCfg
     ? [x + w * (sprayCfg[0] - sprayCfg[1] / 2), x + w * (sprayCfg[0] + sprayCfg[1] / 2)]
     : null
-  // End walls: tall rock that steps down toward the falls (the amphitheatre when the walls are wide).
   const walls: { poly: Pt[]; ridge: Pt[]; shade: number }[] = []
   const rimL = lipAt(x0) - ledge
   const rimR = lipAt(x1) - ledge
@@ -296,7 +277,6 @@ function curtain([x, y, w, h]: Box, p: Params, rand: Rand, horseshoe: boolean): 
   }
   for (const wl of walls)
     out.push(...rockMass(wl.poly, rand, { ridge: wl.ridge, shade: wl.shade, angle: -58 }))
-  // The dark rock face behind the water: the sheets are cut out of it, so the white reads.
   const chJit = chans.map(() => [(rand() - 0.5) * 2 * lipJit, (rand() - 0.5) * 2 * lipJit] as const)
   if (wallOn) {
     const wa = recess > 0 ? chans[0][0] - recess : x0
@@ -306,17 +286,14 @@ function curtain([x, y, w, h]: Box, p: Params, rand: Rand, horseshoe: boolean): 
     const wp: Pt[] = [...wTop, ...wBot]
     out.push(occlude(wp), ...toneFill(wp, 'T4', { gap: 2.1 }))
   }
-  // Rim ledge above the lips.
   const ledgeRidge = ridgeLine(x0, x1, (xx) => lipAt(xx) - ledge, rand, 0.6)
   const ledgePoly: Pt[] = [...ledgeRidge, ...ridgeLine(x1, x0, lipAt, rand, 0)]
   out.push(...rockMass(ledgePoly, rand, { ridge: ledgeRidge, shade: 0.75, strata: true }))
-  // Buttresses between the sheets.
   bts.forEach(([a, b], i) => {
     if (wallOn && islets <= 0) return
     void i
     const botY = lipAt((a + b) / 2) + ribLen * (footAt((a + b) / 2) - lipAt((a + b) / 2))
     const mx = (a + b) / 2
-    // Teeth: rock hanging from the rim, tapering to a point (ribLen < 1) or running to the foot.
     const poly: Pt[] =
       ribLen < 1 || p.taper !== undefined
         ? [
@@ -346,7 +323,6 @@ function curtain([x, y, w, h]: Box, p: Params, rand: Rand, horseshoe: boolean): 
       out.push(...canopyNodes(a - 3, b + 3, top + 1, islets, rand, { crowns: 1 }))
     }
   })
-  // Forest on the rim and on the end walls.
   if (canopyH > 0) {
     const pieces: Pt[][] = [
       ledgeRidge,
@@ -387,7 +363,6 @@ function curtain([x, y, w, h]: Box, p: Params, rand: Rand, horseshoe: boolean): 
         ),
       )
     }
-    // Short, uneven wet ledges interrupt the lip, never dividing the whole drop into teeth.
     bts.forEach(([a, b], i) => {
       const yy = lipAt((a + b) / 2),
         depth = h * (0.06 + (0.1 * ((i * 7) % 5)) / 4)
@@ -440,7 +415,6 @@ function curtain([x, y, w, h]: Box, p: Params, rand: Rand, horseshoe: boolean): 
         )
     })
   }
-  // A T5 gorge cut in front of the foot hides the plunge (Victoria Falls).
   const gorge = num(p, 'gorge', 0)
   if (gorge > 0) {
     const gy = footAt(x + w / 2)
@@ -489,7 +463,6 @@ function ribbon([x, y, w, h]: Box, p: Params, rand: Rand): SvgNode[] {
   ])
   const ridge = pts.slice(1, -1)
   out.push(...rockMass(pts, rand, { ridge, shade: 0.5, slant: 0.1, cracks: 5 }))
-  // Scrub on the summit rim.
   out.push(...canopyNodes(X(0.42), X(0.9), Y(0.13), num(p, 'scrub', 5), rand))
   const cx = X(axis)
   const yTop = Y(lipV),
@@ -514,7 +487,6 @@ function ribbon([x, y, w, h]: Box, p: Params, rand: Rand): SvgNode[] {
       { lobes: 4 },
     ),
   )
-  // Forest apron at the foot of the talus.
   out.push(...canopyNodes(X(0.3), X(0.98), y + h, num(p, 'apron', 9), rand))
   return out
 }
@@ -536,7 +508,6 @@ function cleft([x, y, w, h]: Box, p: Params, rand: Rand): SvgNode[] {
   const halfW = (t: number) => gap / 2 + 11 * t
   const N = 14
   const { a: lower, b: upper } = streamEdges(center, halfW, N)
-  // Rock above and right of the jet.
   const ridgeU = ridgeLine(
     gx + gap / 2 + 1,
     X(1),
@@ -550,7 +521,6 @@ function cleft([x, y, w, h]: Box, p: Params, rand: Rand): SvgNode[] {
     ...[...upper].reverse(),
   ]
   out.push(...rockMass(upperPoly, rand, { ridge: ridgeU, shade: 0.55, cracks: 3, slant: 0.2 }))
-  // Rock below and left of the jet.
   const ridgeL = ridgeLine(
     x,
     gx - gap / 2 - 1,
@@ -564,7 +534,6 @@ function cleft([x, y, w, h]: Box, p: Params, rand: Rand): SvgNode[] {
     out.push(...canopyOn(ridgeU, num(p, 'canopy', 8), rand, gx + 14))
   }
   out.push(...stream(lower, upper, rand, { wet: 4.5, marks: 8 }))
-  // Spray where the jet lands.
   const fc = center(1)
   out.push(
     ...plumeNodes(fc[0] - 17, fc[0] + 19, foot + 1, num(p, 'mist', 0.34) * h, rand, { lobes: 5 }),
@@ -585,7 +554,6 @@ function cascade([x, y, w, h]: Box, p: Params, rand: Rand): SvgNode[] {
     edgeBot = num(p, 'edgeBot', 0.07)
   const edgeAt = (v: number) => lerp(edgeTop, edgeBot, (v - lip0) / (lip0 + stepV * steps - lip0))
   const canopyH = num(p, 'canopy', 10)
-  // Banks: lit left bank, dark right bank, both slanting outward toward the foot.
   const vFoot = lip0 + stepV * steps
   const bankL: Pt[] = [
     ...ridgeLine(x, X(edgeTop), (xx) => lerp(Y(0.3), Y(0.2), (xx - x) / (X(edgeTop) - x)), rand),
@@ -609,7 +577,6 @@ function cascade([x, y, w, h]: Box, p: Params, rand: Rand): SvgNode[] {
   const ridgeR = bankR.slice(0, -3)
   out.push(...rockMass(bankR, rand, { ridge: ridgeR, shade: 0.1, cracks: 2 }))
   if (canopyH > 0) out.push(...canopyOn(ridgeL, canopyH, rand), ...canopyOn(ridgeR, canopyH, rand))
-  // Tiers.
   for (let i = 0; i < steps; i++) {
     const v0 = lip0 + stepV * i,
       v1 = lip0 + stepV * (i + 1)
@@ -625,7 +592,6 @@ function cascade([x, y, w, h]: Box, p: Params, rand: Rand): SvgNode[] {
       bot.push([lerp(a1, b1, u), Y(v1) - 1.2 + 1.2 * Math.sin(u * 7 + i)])
     }
     out.push(...sheet(top, bot, rand, { wet: 3, streaks: 0.75 }))
-    // Dark rock humps standing on the next lip.
     if (i < steps - 1) {
       const humps = 2 + Math.round(rand())
       for (let k = 0; k < humps; k++) {
@@ -665,7 +631,6 @@ function twoStep([x, y, w, h]: Box, p: Params, rand: Rand): SvgNode[] {
   const slope = num(p, 'slope', 0.13)
   const lowV = lip1 + step1 + slope * 0.9
   const footV = num(p, 'drop', 0.62) + lip1
-  // Upper step: a stream sliding diagonally down the basalt ledge; lower step: an upright sheet.
   const pathU = (t: number): Pt => [
     lerp(X(0.62), X(0.34), t),
     lerp(Y(lip1), Y(lowV - 0.02), t) + 3 * Math.sin(t * 3),
@@ -715,7 +680,6 @@ function twoStep([x, y, w, h]: Box, p: Params, rand: Rand): SvgNode[] {
   )
   out.push(...stream(eU.a, eU.b, rand, { wet: 3.5, marks: 5 }))
   out.push(...sheet(loTop, loBot, rand, { wet: 3.5 }))
-  // The crevice: a T5 slot at right angles to the lower fall.
   const cTop = Y(footV)
   const slot: Pt[] = [[X(0.3), cTop - 0.5]]
   for (let xx = X(0.3); xx <= X(0.96); xx += 4) slot.push([xx, cTop - 0.5 + (rand() - 0.5) * 1.6])

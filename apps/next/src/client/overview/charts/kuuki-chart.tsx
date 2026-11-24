@@ -22,41 +22,30 @@ import './chart-theme.css'
 
 export type ChartPoint<T> = { key: string; datum: T; label: string }
 export type TipAction = { label: string; run: () => void }
-/** `width` and `height` are the SVG's coordinate size, equal to CSS pixels (1 unit = 1px). `available` is the measured host width. */
 export type ChartSize = { width: number; height: number; available: number }
 export type KuukiChartProps<T> = {
   points: readonly ChartPoint<T>[]
-  /** A function receives the SVG width, for charts whose height follows their width. */
   height: number | ((width: number) => number)
   ariaLabel: string
   ariaDescription?: string
   palette?: ChartPalette
   inView: boolean
   onPick?: (point: ChartPoint<T>) => void
-  /** Points the page is already filtered by: they carry `aria-pressed` and a standing outline (the filter chips live in the toolbar). */
   applied?: (point: ChartPoint<T>) => boolean
-  /** The chapter's current reading: `data-picked` and `aria-current`, separate from `applied` (a filter) and from the tooltip subject. Enter then reads as "selects". */
   selected?: (point: ChartPoint<T>) => boolean
-  /** A touch tap calls `onPick` instead of pinning the tooltip; long-press, the context menu and Shift+F10 still pin it with its actions. */
   tapPicks?: boolean
   tip?: (points: readonly ChartPoint<T>[]) => ReactNode
   actions?: (point: ChartPoint<T>) => readonly TipAction[]
-  /** Semantic data for screen readers. Stage charts leave it to the card, outside their fixed stage. */
   table?: ChartTable
-  /** Count-driven charts: the SVG's natural width for the measured host width (left-aligned, scrolls when wider). Default fills the host. */
   fit?: (available: number) => number
-  /** With `fit`: when the chart is wider than its host, open scrolled to the far end (the latest data). */
   scrollEnd?: boolean
-  /** Legacy fixed coordinate system, scaled to the host width. Prefer the pixel-sized default. */
   viewBox?: string
-  /** Keys the arrow keys stop on, when the drawn marks are finer than what a reader steps through (Fleet's ridge samples: one stop per family). Default: every point. */
   keyStops?: readonly string[]
   children: (mark: (point: ChartPoint<T>) => SVGProps<SVGGElement>, size: ChartSize) => ReactNode
 }
 
 type Selection = { key: string; pinned: boolean; left: number; top: number }
 
-/** Shared interaction/table host for the locally adapted Arc SVG charts. Geometry stays with each chart, drawn in CSS pixels from `size`. */
 export function KuukiChart<T>({
   points,
   height,
@@ -94,7 +83,6 @@ export function KuukiChart<T>({
   const width = wanted !== undefined && Number.isFinite(wanted) && wanted > 0 ? wanted : available
   const svgHeight = typeof height === 'function' ? height(width) : height
   const size: ChartSize = { width, height: svgHeight, available }
-  // Geometry must not glide while the host is being resized: hold transitions until the width settles.
   const [seen, setSeen] = useState(available),
     [resizing, setResizing] = useState(false)
   if (seen !== available) {
@@ -110,13 +98,11 @@ export function KuukiChart<T>({
   const pointer = useRef('mouse')
   const [active, setActive] = useState<string | null>(null)
   const [picked, setSelection] = useState<Selection | null>(null)
-  // A selection whose point left the data (filter change) reads as dismissed.
   const selection = picked && points.some((item) => item.key === picked.key) ? picked : null
   const point = selection && points.find((item) => item.key === selection.key)
   const stops = keyStops ? points.filter((item) => keyStops.includes(item.key)) : points
   const activeKey = points.some((item) => item.key === active) ? active : stops[0]?.key
   const selectedKey = selection?.key
-  // The tooltip portals into the dialog that holds the mark (so it stays above a sheet), else the body; chosen when a mark is shown.
   const [portalOwner, setPortalOwner] = useState<Element | null>(null)
   const nativePopover =
     typeof HTMLElement !== 'undefined' && typeof HTMLElement.prototype.showPopover === 'function'
@@ -210,7 +196,6 @@ export function KuukiChart<T>({
       .join(' '),
     'data-chart-key': item.key,
     'data-kc-key': item.key,
-    // Hover, focus and pin only describe the tooltip's subject; none of them filters, recolors or hides data.
     'data-selected': selection?.key === item.key ? 'true' : undefined,
     'data-pinned': selection?.pinned && selection.key === item.key ? 'true' : undefined,
     'data-filtered': applied?.(item) ? 'true' : undefined,
@@ -257,7 +242,6 @@ export function KuukiChart<T>({
   })
   const fixed = !viewBox && fit !== undefined
   const scrolls = fixed && width > available + 0.5
-  // Content beyond the right edge shows as a fade (CSS) until the reader reaches the end.
   const [more, setMore] = useState(false)
   useLayoutEffect(() => {
     const node = root.current
@@ -305,7 +289,6 @@ export function KuukiChart<T>({
           }
           const back = event.key === 'ArrowLeft' || event.key === 'ArrowUp'
           const at = stops.findIndex((item) => item.key === activeKey)
-          // From a hovered mark that is not a stop, the arrows go to the nearest stop on that side.
           const passed = stops.filter(
             (item) => points.indexOf(item) < points.findIndex((point) => point.key === activeKey),
           ).length
@@ -328,7 +311,6 @@ export function KuukiChart<T>({
         {ariaDescription ? <desc id={`${id}-description`}>{ariaDescription}</desc> : null}
         {children(mark, size)}
       </svg>
-      {/* The keys are otherwise undiscoverable: one point is a tab stop and the others are reached with arrows. */}
       <span id={`${id}-keys`} className="sr-only">
         {t(
           onPick && (selected || tapPicks)

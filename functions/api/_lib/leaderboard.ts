@@ -1,9 +1,3 @@
-// leaderboard_cache row + DTO. metadata is JSON-as-TEXT ({username, display_name, avatar_url, avatar_face, aircraft, vehicle});
-// flatten it onto the entry (the frontend reads these flat). user_id is kept so the client can
-// highlight the current user; the cache only contains public, opted-in users (see refreshLeaderboards
-// for the sky and ground gates), so exposing it here is not a privacy leak. Used by both the leaderboard list
-// and the per-user rankings (me/rankings + public profile rankings).
-
 import { SKY_CATEGORIES } from '../../../packages/shared/src/leaderboard'
 
 export {
@@ -26,20 +20,13 @@ export interface LeaderboardCacheRow {
   updated_at: string
 }
 
-/** Sky participation needs this many flights; ground needs this many completed rail and road journeys together. */
 export const SKY_MIN_FLIGHTS = 5
 export const GROUND_MIN_JOURNEYS = 3
 
-/** The calendar-year period a rebuild at `now` computes besides `all` (UTC). */
 export const currentPeriod = (now: Date) => String(now.getUTCFullYear())
 
-/** `category IN (…sky…)` for readers that predate ground categories (profile gates keep sky only). */
 export const SKY_CATEGORY_SQL = `(${SKY_CATEGORIES.map((c) => `'${c}'`).join(', ')})`
 
-// Eligibility gate shared by every leaderboard read/rebuild: a user whose derived state is stale
-// (revision != published_revision) is hidden until repair publishes it. Users with no
-// user_derived_state row are eligible. Use as `${derivedStateJoin('lc')} ... WHERE ... AND ${PUBLISHED_DERIVED_STATE}`;
-// the join always aliases the table as `ds`.
 export const derivedStateJoin = (userAlias: string) =>
   `LEFT JOIN user_derived_state ds ON ds.user_id = ${userAlias}.user_id`
 export const PUBLISHED_DERIVED_STATE = '(ds.user_id IS NULL OR ds.revision = ds.published_revision)'
@@ -71,9 +58,7 @@ export function toLeaderboardEntry(row: LeaderboardCacheRow) {
     display_name: meta.display_name ?? null,
     avatar_url: meta.avatar_url ?? null,
     avatar_face: meta.avatar_face ?? null,
-    /** Sky rows only; null on ground rows and on rows written before the lanes. */
     aircraft: meta.aircraft?.trim().toUpperCase() || null,
-    /** Ground Countries rows only: the mode the member covered more kilometres by in the period. */
     vehicle:
       meta.vehicle === 'rail' || meta.vehicle === 'road' ? (meta.vehicle as 'rail' | 'road') : null,
   }

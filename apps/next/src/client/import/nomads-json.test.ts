@@ -70,6 +70,24 @@ it('retains unknown countries and rejects invalid dates, oversized exports and l
   ])
     expect(() => nomadsToText(input)).toThrow()
 })
+
+it('retains review candidates when a split stay resumes on the day another stay starts', () => {
+  const trips = [
+    stay('Phoenix', '2026-01-01', '2026-03-06'),
+    stay('Boston', '2026-03-06', '2026-03-13'),
+    stay('Phoenix', '2026-03-13', '2026-06-09'),
+    stay('Chicago', '2026-03-13', '2026-03-20'),
+    stay('Denver', '2026-03-20'),
+  ]
+  const result = nomadsToText(JSON.stringify({ trips }))
+  expect(result.skipped).toBe(1)
+  expect(result.content).toContain('2026-03-13 | Boston, US → Chicago, US')
+  expect(result.content).toContain('2026-03-20 | Chicago, US → Denver, US')
+  const flights = parseStructuredText(result.content)!.flights
+  expect(flights).toHaveLength(3)
+  expect(flights.every((flight) => !rowOf(flight).selected)).toBe(true)
+  expect(nomadsToText(JSON.stringify({ trips: [...trips].reverse() }))).toEqual(result)
+})
 it('does not invent flights for an empty export or a single stay', () => {
   expect(nomadsToText('{"trips":[]}').content).toBe('')
   expect(nomadsToText(JSON.stringify({ trips: [stay('Boston', '2026-01-01')] })).content).toBe('')

@@ -1,5 +1,3 @@
-// ADR 0001 A1 (T07): the real `wrangler d1 migrations apply --local` path, including its statement
-// splitting of CREATE TRIGGER ... BEGIN ... END; bodies. Local Miniflare state only; no remote D1.
 import { execFile } from 'node:child_process'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -54,7 +52,6 @@ it('applies every migration, including trigger bodies, through wrangler d1 migra
   const results = (
     JSON.parse(executed.stdout) as Array<{ results: Array<Record<string, unknown>> }>
   ).map((entry) => entry.results)
-  // The adapter trigger (whole body, not a split fragment) ran for an old-style insert.
   expect(results[2]).toEqual([
     {
       lifecycle_state: 'upcoming',

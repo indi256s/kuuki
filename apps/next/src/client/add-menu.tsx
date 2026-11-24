@@ -7,7 +7,6 @@ import { AddActions } from './add-actions'
 import { ChevronIcon } from './ui/icon-morph'
 import { Menu } from './ui/menu'
 
-/** Desktop capture entry: one "Add" button opening the flight and ground rows (and the review queue when it has items). */
 export function AddMenu({ locale: initialLocale = 'en' }: { locale?: 'en' | 'ru' }) {
   const locale = useLocale(initialLocale)
   const ru = locale === 'ru'

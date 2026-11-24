@@ -2,7 +2,6 @@ import { expect, it } from 'vitest'
 import type { VisitPoint } from '../model'
 import { atlasPages } from './pages'
 
-// Year pages put each country on the year it first joined the passport, oldest first, with undated countries last.
 it('splits the countries by the year each first joined the passport', () => {
   const firsts: Record<string, VisitPoint | null> = {
     JP: { year: 2019, date: '2019-04-02' },

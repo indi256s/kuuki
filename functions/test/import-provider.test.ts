@@ -36,7 +36,6 @@ function context(path: string, body: BodyInit, userId = 'u1') {
   } as never
 }
 
-/** The extraction every import path runs (inline job and the import Durable Object). */
 const extract = (source: Partial<ParseRequest>) =>
   extractFlights({ GEMINI_API_KEY: 'test' } as Env, validateImportSource(source))
 
@@ -352,7 +351,6 @@ it('parses grounded fenced JSON and maps cumulative citations to the evidence wh
           groundingChunks: [1, 2].map((id) => ({
             web: { uri: `https://example.test/flight-${id}`, title: `Flight ${id}` },
           })),
-          // Real Search responses can omit startIndex and end the support before the sentence's period.
           groundingSupports: rows.map((row, index) => ({
             segment: { endIndex: text.indexOf(row.evidence) + row.evidence.length - 1 },
             groundingChunkIndices: [index],

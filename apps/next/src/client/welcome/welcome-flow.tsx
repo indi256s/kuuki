@@ -18,10 +18,8 @@ import {
   type WelcomeStep,
 } from './types'
 
-/** The reveal's passport counts only flights already flown; a booked one has no stamp yet. */
 const flownOf = (flights: FactFlight[]) => foundOf(flights.filter((flight) => !flight.upcoming))
 
-/** A step change, or opening and closing the one-flight form, is a move worth morphing. */
 const moves = (from: Place, to: Place) => from.step !== to.step || from.manual !== to.manual
 
 const directionOf = (from: Place, to: Place): MorphDirection =>
@@ -40,7 +38,6 @@ export const welcomeUrl = ({ step, batch, manual }: Place) => {
   return `/welcome/${step}${search ? `?${search}` : ''}`
 }
 
-/** The step a `/welcome/*` URL names, or null outside onboarding. */
 export function placeOf(location: Pick<Location, 'pathname' | 'search'>): Place | null {
   const match = /^\/welcome\/([a-z]+)\/?$/.exec(location.pathname)
   const step = match?.[1] as WelcomeStep | undefined
@@ -49,11 +46,6 @@ export function placeOf(location: Pick<Location, 'pathname' | 'search'>): Place 
   return { step, batch: query.get('batch'), manual: query.get('manual') === '1' }
 }
 
-/**
- * Onboarding inside the auth card: name → flights → review → ready. Each step has its own URL, pushed with
- * `history.pushState` so the card (and this component) stay mounted; Back replays the step from `popstate`.
- * The brand side follows through `onPassport`. `onFinish` records onboarding as done and dissolves the card.
- */
 export function WelcomeFlow({
   init,
   locale,
@@ -70,7 +62,6 @@ export function WelcomeFlow({
     batch: init.batch,
     manual: init.manual,
   })
-  // No direction on the first render: a reload or resume shows its step in place, without sliding it in.
   const [direction, setDirection] = useState<MorphDirection | null>(null)
   const [name, setName] = useState(init.displayName)
   const [address, setAddress] = useState(init.username)
@@ -81,7 +72,6 @@ export function WelcomeFlow({
     init.saved ? { flights: init.saved, leftOut: 0 } : null,
   )
   const [reading, setReading] = useState(false)
-  // Review was entered straight from a finished read in this session. Not in the URL: a reload or Back is not fresh.
   const [fresh, setFresh] = useState(false)
   const heading = useRef<HTMLHeadingElement>(null)
   const entered = useRef(false)
@@ -97,8 +87,6 @@ export function WelcomeFlow({
     }
     const previous = reported.current
     reported.current = preview
-    // The parent owns the passport geometry. Publish step changes before the morph's new snapshot, and scope the
-    // phone's same-step bench reveal to that same machinery without starting a transition inside a step morph.
     const resize =
       previous?.step === 'flights' &&
       preview.step === 'flights' &&
@@ -112,13 +100,11 @@ export function WelcomeFlow({
     }
     if (resize) morph('layout', publish)
     else publish()
-    // A step change or a newer import update may arrive before the browser runs the snapshot callback.
     return () => {
       current = false
     }
   }, [name, found, place.step, reading, onPassport])
 
-  // Focus the step's heading whenever a step is entered, but not on the first render of a reload.
   useEffect(() => {
     if (entered.current) heading.current?.focus()
     entered.current = true
@@ -127,7 +113,6 @@ export function WelcomeFlow({
   useEffect(() => {
     const onPop = () => {
       const next = placeOf(window.location)
-      // Back past the name step lands on the entry URL: the account exists, so never show the create step again.
       if (!next)
         return window.location.replace(welcomeUrl({ step: 'name', batch: null, manual: false }))
       const way = directionOf(place, next)
@@ -143,7 +128,6 @@ export function WelcomeFlow({
     return () => window.removeEventListener('popstate', onPop)
   }, [place])
 
-  /** Moves to a place; a new step (or the one-flight form) morphs the card, a URL-only change applies in place. */
   const go = (next: Place, how: 'push' | 'replace' = 'push', alongside?: () => void) => {
     const url = welcomeUrl(next)
     const way = directionOf(place, next)

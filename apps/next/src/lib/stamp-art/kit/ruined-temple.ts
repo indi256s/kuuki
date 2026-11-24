@@ -1,6 +1,3 @@
-// Ruined Doric temple front (Parthenon type): a stepped stylobate, a row of fluted columns of
-// uneven height (some broken), a collapsed stretch of entablature and a pediment with a gap in it.
-// The box is the whole front; the stylobate steps sit at its foot, the pediment at the top.
 import { type Pt, type SvgNode, body, hline, rectPts, vline } from '../grid'
 import { type KitModule, num, nums } from './util'
 
@@ -13,7 +10,6 @@ export const ruinedTemple: KitModule = ([x, y, w, h], p) => {
   const colTop = y + pedH + entH
   const colBot = base - stepH
   const out: SvgNode[] = []
-  // Stylobate: three steps, each narrower than the one below.
   for (let s = 0; s < 3; s++) {
     out.push(
       ...body(rectPts(x + s * 1.6, base - (stepH * (s + 1)) / 3, w - s * 3.2, stepH / 3), 'hair'),
@@ -21,7 +17,6 @@ export const ruinedTemple: KitModule = ([x, y, w, h], p) => {
   }
   const pitch = (w - 6) / count
   const colW = pitch * num(p, 'colW', 0.5)
-  // broken[i]: fraction of the full shaft height that is left standing (1 = intact).
   const broken = nums(p, 'broken', [])
   const gapFrom = num(p, 'gapFrom', 4.2),
     gapTo = num(p, 'gapTo', 5.4)
@@ -48,7 +43,6 @@ export const ruinedTemple: KitModule = ([x, y, w, h], p) => {
     out.push(vline('fine', cx - colW * 0.12, top + 3, colBot - 1))
     if (frac === 1) out.push(hline('line', cx - colW * 0.75, cx + colW * 0.75, top))
   }
-  // Entablature: continuous bar with one fallen block (indices gapFrom..gapTo).
   const ex0 = x + 1,
     ex1 = x + w - 1
   const gx0 = x + 3 + pitch * gapFrom,
@@ -70,7 +64,6 @@ export const ruinedTemple: KitModule = ([x, y, w, h], p) => {
     if (tx > gx0 - 1 && tx < gx1 + 1) continue
     out.push(vline('fine', tx, entY + 2, colTop - 1.2))
   }
-  // Pediment: one triangle whose apex has fallen away (a notch in the raking cornice).
   const apexX = x + w / 2 + num(p, 'notchX', 6),
     apexY = y
   const ped: Pt[] = [
@@ -85,7 +78,6 @@ export const ruinedTemple: KitModule = ([x, y, w, h], p) => {
     [ex1, entY],
   ]
   out.push(...body(ped, 'line'))
-  // Tympanum: fine lines under the surviving slopes.
   for (let tx = ex0 + 4; tx < ex1 - 3; tx += 5) {
     const top = yOnPoly(ped, tx) + 3
     if (entY - top > 3) out.push(vline('fine', tx, top, entY - 1.5))
@@ -93,7 +85,6 @@ export const ruinedTemple: KitModule = ([x, y, w, h], p) => {
   return out
 }
 
-/** Top edge of a polyline sorted by x ascending (pediment slope), linear between vertices. */
 function yOnPoly(pts: Pt[], px: number): number {
   for (let i = 0; i + 1 < pts.length; i++) {
     const a = pts[i],

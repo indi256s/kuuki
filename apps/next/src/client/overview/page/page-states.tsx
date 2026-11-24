@@ -2,17 +2,26 @@
 
 import Link from 'next/link'
 import { Button } from '../../ui/button'
+import { IsoFigure } from '../iso/iso-figure'
+import { spike } from '../iso/spike'
 import { Narrator } from '../narrator/narrator'
 import { useOverview } from '../store/overview-context'
 import { isAviationFacetNote } from '../store/scope-state'
 import { S, t } from '../copy'
 import { useAppliedFacets } from '../filters/use-applied-facets'
 
+const SPIKE = spike(0.65, { stubs: 3 })
+
 export function FirstRun() {
   const { locale } = useOverview()
   return (
-    <div className="ov3-first-run">
-      <h2>{t(S.emptyTitle, locale)}</h2>
+    <section className="ov3-first-run" aria-labelledby="ov3-first-run-title">
+      <div className="ov3-first-run-heading">
+        <h2 id="ov3-first-run-title">{t(S.emptyTitle, locale)}</h2>
+        <span className="ov3-first-run-drawing" aria-hidden="true">
+          <IsoFigure figure={SPIKE} />
+        </span>
+      </div>
       <Narrator slot="firstRun" />
       <div className="ov3-first-run-actions">
         <Link className="ui-button" data-variant="primary" href="/import">
@@ -22,14 +31,13 @@ export function FirstRun() {
           {t(S.add, locale)}
         </Link>
       </div>
-    </div>
+    </section>
   )
 }
 export function ZeroResult() {
   const { actions, locale, scope, filter } = useOverview()
   const ground = scope?.figures.scope === 'ground'
   const facets = useAppliedFacets()
-  // Name what is filtering, so an empty result reads as these conditions, not as an empty journal.
   const conditions = [
     ...(scope?.figures.scope === 'flights'
       ? [t(S.scopeFlights, locale)]

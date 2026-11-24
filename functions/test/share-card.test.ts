@@ -17,7 +17,6 @@ import { apiContext } from './harness'
 import { overviewAccount, USER } from './overview-fixture'
 import { dirtyUserStatement, repairUserDerivedState } from '../api/_services/derivedState'
 
-// Node tests use the package's Node adapter; local workerd proves its Worker adapter separately.
 vi.mock('@cf-wasm/og/workerd', async () => import('@cf-wasm/og/node'))
 afterEach(() => vi.restoreAllMocks())
 
@@ -197,9 +196,6 @@ it.each([
   expect(db.batch).not.toHaveBeenCalled()
 })
 
-// --- Theme snapshot: decode the real PNG and sample pixels -------------------------------------------------------------
-
-/** Minimal 8-bit, non-interlaced RGB/RGBA PNG decoder (zlib inflate plus the five scanline filters). */
 function decodePng(bytes: Uint8Array) {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
   const idat: Uint8Array[] = []
@@ -213,7 +209,7 @@ function decodePng(bytes: Uint8Array) {
     if (type === 'IHDR') {
       width = view.getUint32(at + 8)
       height = view.getUint32(at + 12)
-      expect([data[8], data[12]]).toEqual([8, 0]) // 8-bit, not interlaced
+      expect([data[8], data[12]]).toEqual([8, 0])
       channels = data[9] === 6 ? 4 : 3
       expect([2, 6]).toContain(data[9])
     }
@@ -249,14 +245,11 @@ function decodePng(bytes: Uint8Array) {
 }
 
 const hex = (color: string) => [1, 3, 5].map((at) => parseInt(color.slice(at, at + 2), 16))
-/** Sampled pixel within 2 per channel of the palette hex (the rasteriser may round). */
 function expectPixel(png: ReturnType<typeof decodePng>, x: number, y: number, color: string) {
   const got = png.rgb(x, y)
   hex(color).forEach((channel, i) => expect(Math.abs(got[i] - channel)).toBeLessThanOrEqual(2))
 }
 
-// Four 08:10 departures and two 20:10 ones: hour 8 is the peak, hour 20 the runner-up, hour 3 is empty. The chart
-// is drawn 1:1 at y=88 below the four figure rows; bar x = 40 + hour * 556/24, top = 98, baseline = 365.
 const BARS = { peak: [236, 300], other: [514, 340], empty: [120, 300] } as const
 const clockFlights = Array.from({ length: 6 }, (_, i) => ({
   id: i + 1,
@@ -293,11 +286,8 @@ it.each(['shu', 'asagi'] as AccentKey[])(
         expectPixel(png, 0, 0, surfaces.background)
         expectPixel(png, 1199, 1499, surfaces.background)
         expectPixel(png, ...BARS.peak, markPeak)
-        // Every other hour is the live `--mark-rest`.
         expectPixel(png, ...BARS.other, markRest)
-        // An hour without flights draws no bar: its column is still the card background.
         expectPixel(png, ...BARS.empty, surfaces.background)
-        // The figure rows are text in the snapshot's text color (glyph stems reach full coverage).
         const target = hex(surfaces.text)
         let nearest = Infinity
         for (let y = 0; y < 80; y++)

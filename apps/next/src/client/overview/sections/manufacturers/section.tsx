@@ -17,7 +17,6 @@ export const makerName = (key: MakerKey, locale: 'en' | 'ru') =>
       ? copy(locale, 'Unknown', 'Неизвестно')
       : MAKER_NAMES[key]
 
-/** Details of the Aircraft card: every manufacturer with its flights, distance and time, and the review of flights still missing an aircraft. A manufacturer toggles its filter. */
 export function ManufacturersDetails() {
   const { scope, locale, actions, isCurrent } = useOverview()
   if (!scope || scope.makers.status !== 'ready') return null

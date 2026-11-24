@@ -1,31 +1,16 @@
-// Dune module (b): each dune is an asymmetric body, a long gentle windward slope rising to a
-// knife-edge crest and a steep slip face falling away. The crest is one crisp line, the windward
-// slope is bare paper with fine ripple lines near its foot (T1), the slip face is a hatched wedge
-// that hangs from the crest (T4, vertical), and the troughs between dunes take horizontal hair
-// lines (T3). Dunes paint back to front, each erasing what lies behind it, and contrast fades with
-// distance: the farthest dunes use fine diagonal or vertical lines and a lighter crest, so no
-// crest ever curls like a wave.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, hatchPoly, occlude, stroke } from '../grid'
 import { type KitModule, num } from './util'
 
 type Ridge = {
-  /** Crest x and foot (trough) y as fractions of the box, height as a fraction of the box height. */
   px: number
   foot: number
   h: number
-  /** Windward and slip lengths as fractions of the box width. */
   lw: number
   ls: number
-  /** 1 when the dune stands in water: the floor becomes T1 with reflections. */
   wet: boolean
 }
 
-/**
- * `ridges` is a list of [px, foot, h, lw, ls, wet?] back to front. `slip` is how far down the base
- * the shade wedge reaches (0.25 default), `seed` varies the windward undulation. `depth` limits
- * the floor hatching below the last foot.
- */
 function ridgesOf(p: Record<string, unknown>): Ridge[] {
   const raw = Array.isArray(p.ridges) ? p.ridges : []
   return raw
@@ -46,7 +31,6 @@ export const dunesB: KitModule = ([x, y, w, h], p) => {
   const out: SvgNode[] = []
   const firstFoot = ridges.length ? y + h * Math.min(...ridges.map((r) => r.foot)) : y
   ridges.forEach((r, i) => {
-    // 0 for the farthest dune, 1 for the nearest.
     const t = ridges.length > 1 ? i / (ridges.length - 1) : 1
     const yb = y + h * r.foot
     const H = h * r.h
@@ -69,14 +53,12 @@ export const dunesB: KitModule = ([x, y, w, h], p) => {
       const v = (px - xp) / ls
       return yb - H * Math.pow(1 - v, 1.7)
     }
-    // Silhouette across the whole box: flat at the foot outside the dune.
     const sil: Pt[] = []
     for (let px = left; px <= right; px += 1.5) sil.push([px, ySil(px)])
     sil.push([right, ySil(right)])
     const hull: Pt[] = [...sil, [right, bottom + 2], [left, bottom + 2]]
     out.push(occlude(hull, { halo: 2.4 }))
 
-    // Floor: T3 lines (T1 glints with reflection for a dune in water), full width below the foot.
     const floor: Pt[] = [
       [left, yb],
       [right, yb],
@@ -104,7 +86,6 @@ export const dunesB: KitModule = ([x, y, w, h], p) => {
       )
     }
 
-    // Terminator: the crest seen obliquely, an S-curve from the crest down to the base of the slip.
     const qx = xp + ls * q
     const term: Pt[] = []
     const steps = 14
@@ -118,7 +99,6 @@ export const dunesB: KitModule = ([x, y, w, h], p) => {
     slip.push([xr, yb])
     const wedge: Pt[] = [...slip, [qx, yb], ...term.slice().reverse()]
 
-    // Windward ripples: fine horizontal lines near the foot only, the crest stays paper.
     if (t >= 0.34) {
       const top = yb - H * 0.55
       const lit: Pt[] = [
@@ -130,7 +110,6 @@ export const dunesB: KitModule = ([x, y, w, h], p) => {
       out.push(...hatchPoly(lit, { angle: 0, gap: 4.4, weight: 'fine', phase: 0.35 }))
     }
 
-    // Slip face: vertical T4 for near dunes, fine diagonals for the far shore (T2).
     out.push(
       ...hatchPoly(wedge, {
         angle: t < 0.34 ? -58 : 90,
@@ -140,7 +119,6 @@ export const dunesB: KitModule = ([x, y, w, h], p) => {
       }),
     )
 
-    // The crest: one knife-edge line, lighter far away. A hairline marks the terminator.
     const crest = sil.filter(([px]) => px >= xl && px <= xr)
     out.push(stroke(t < 0.34 ? 'hair' : 'line', [[xl, yb], ...crest, [xr, yb]]))
     if (t >= 0.34) out.push(stroke('fine', term))

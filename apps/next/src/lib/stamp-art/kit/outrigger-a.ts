@@ -1,6 +1,3 @@
-// Outrigger canoe on flat water (lane A, `-a` until consolidated): a slender dark hull with upswept
-// ends, a float (ama) lying in front of it on two curved booms (iako), and an optional crab-claw
-// sail on a short mast. The box holds the whole craft; its bottom is the waterline.
 import { type Pt, type SvgNode, body, fill, hline, occlude, quad, stroke, toneFill } from '../grid'
 import { type KitModule, bool } from './util'
 
@@ -10,7 +7,6 @@ export const outriggerA: KitModule = ([x, y, w, h], p) => {
   const hullTop = base - h * 0.34
   const x0 = x + w * 0.04,
     x1 = x + w * 0.96
-  // Hull: lit gunwale curve over a hatched flank.
   const rim = quad([x0, hullTop - 5], [(x0 + x1) / 2, hullTop + 3.4], [x1, hullTop - 7], 18)
   const keel = quad(
     [x1 - 1.4, hullTop - 7 + 7],
@@ -21,7 +17,6 @@ export const outriggerA: KitModule = ([x, y, w, h], p) => {
   const hull: Pt[] = [...rim, ...keel]
   const sail = bool(p, 'sail', true)
   if (sail) {
-    // Crab-claw sail: two curved spars forming a V, lit sail between them.
     const mx = x + w * 0.56
     const my = rim[Math.round(rim.length * 0.56)][1]
     const tip: Pt = [mx - w * 0.24, y + 1]
@@ -41,7 +36,6 @@ export const outriggerA: KitModule = ([x, y, w, h], p) => {
   out.push(occlude(hull, { halo: 1.2 }))
   out.push(...toneFill(hull, 'T4', { angle: 90, gap: 3, weight: 'hair', inset: 0.3 }))
   out.push(stroke('line', hull, true), stroke('bold', rim))
-  // Booms and float, in front of the hull and a little below it.
   const amaY = base - 2.2
   const ax0 = x + w * 0.14,
     ax1 = x + w * 0.8

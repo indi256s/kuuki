@@ -102,7 +102,6 @@ export function SettingsForm({
   locale: Locale
   counts?: SettingsCounts | null
   hasPassword?: boolean | null
-  /** Country codes a visitor would see under each publication scope; null when the read failed. */
   previews?: PublicationPreviews | null
 }) {
   const locale = useLocale(initialLocale)
@@ -140,7 +139,6 @@ export function SettingsForm({
     setMessage(null)
     setError(null)
   }
-  // The accent saves on its own, like theme and language: it is not part of the dirty form or its payload.
   const { save: saveAccent, failed: accentError } = useAccentSave(profile.theme_color)
   const [keyboardText, setKeyboardText] = useState(false)
   const host = useSyncExternalStore(subscribeNothing, readHost, serverHost)
@@ -178,7 +176,6 @@ export function SettingsForm({
             state: reply?.valid === false ? 'invalid' : reply?.available ? 'ok' : 'taken',
           })
       } catch {
-        // The server is authoritative on save; an unreachable check must not block the member.
         if (!controller.signal.aborted) setCheck({ value: candidate, state: 'ok' })
       }
     }, 300)
@@ -203,13 +200,10 @@ export function SettingsForm({
       const sentUsername = username !== baseline.username ? username : null
       const payload = {
         ...fields,
-        // Without a chosen address the server derives one from the name on the first save.
         ...(sentUsername ? { username: sentUsername } : {}),
-        // An unchanged name stays out: a name saved before the 40-character limit must not block other edits.
         ...(display_name !== baseline.display_name
           ? { display_name: normalizeName(display_name) || null }
           : {}),
-        // Widening or narrowing publication is sent only when the member changed it.
         ...(passport_publication !== baseline.passport_publication ? { passport_publication } : {}),
         bio: draft.bio.trim() || null,
         home_airport: draft.home_airport.trim() || null,
@@ -359,7 +353,6 @@ export function SettingsForm({
   const previewAdded = previews
     ? byName(previews.all.filter((code) => !previews.flights.includes(code)))
     : []
-  // Arc form/textarea composition (uiarc.dev, MIT; docs/research/2026-10-08-arc-source-inventory.md); the existing guard and save authority own changes.
   return (
     <div className="settings-page settings-editor">
       <header className="settings-heading mobile-sr-only">
@@ -582,8 +575,8 @@ export function SettingsForm({
                     {previewAdded.length
                       ? `${formatCount(locale, previewAdded.length, addsForms)} ${previewAdded.join(', ')}.`
                       : text(
-                          'Nothing would be added: your public passport already has every confirmed country.',
-                          'Ничего не добавится: в публичном паспорте уже есть все подтверждённые страны.',
+                          'Nothing to add now: every confirmed country is already public. New ones will be published as you confirm them.',
+                          'Сейчас добавлять нечего: все подтверждённые страны уже публичны. Новые будут публиковаться по мере подтверждения.',
                         )}
                   </p>
                   <div className="settings-actions">
@@ -596,7 +589,9 @@ export function SettingsForm({
                         setProposing(false)
                       }}
                     >
-                      {formatCount(locale, previewAll.length, publishForms)}
+                      {previewAdded.length
+                        ? formatCount(locale, previewAll.length, publishForms)
+                        : text('Turn on', 'Включить')}
                     </Button>
                     <Button type="button" disabled={busy} onClick={() => setProposing(false)}>
                       {text('Cancel', 'Отмена')}
@@ -726,7 +721,13 @@ export function SettingsForm({
           <Button
             variant="danger"
             disabled={busy}
-            onClick={() => guard.request(() => setDeleteOpen(true))}
+            onClick={() =>
+              guard.request(() => {
+                setMessage(null)
+                setError(null)
+                setDeleteOpen(true)
+              })
+            }
           >
             {text('Delete account', 'Удалить аккаунт')}
           </Button>

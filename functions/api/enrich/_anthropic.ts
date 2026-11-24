@@ -7,7 +7,6 @@ import { normalizeAircraftEvidence, parseAircraftResults, type ProviderAircraft 
 import { buildBatchPrompt, safeUrl, type FlightToEnrich } from './_shared'
 
 export const ANTHROPIC_ENRICH_MODEL = 'claude-haiku-5-5'
-// Both Messages calls must finish before the existing 40s web client deadline.
 export const ANTHROPIC_ENRICH_DEADLINE_MS = 35_000
 export interface AircraftUsage {
   inputTokens: number
@@ -35,7 +34,6 @@ interface Packet {
   text: string
 }
 
-/** Only tool-attested cited excerpts cross into the extraction request. */
 function sourcePackets(content: ObjectValue[]): Packet[] {
   const search = new Map<string, string>()
   const documents: Array<{ url: string; text: string; title: string }> = []
@@ -87,8 +85,6 @@ function sourcePackets(content: ObjectValue[]): Packet[] {
           String(citation?.type),
         )
       ) {
-        // Returned multi-fetch document ordering is not guaranteed by the API contract.
-        // Bind the literal excerpt to exactly one returned document URL, never its title.
         const matches = documents.filter((doc) => doc.text.includes(text))
         if (new Set(matches.map((doc) => doc.url)).size === 1) {
           url = matches[0].url
@@ -132,7 +128,6 @@ const tokenMatch = (text: string, value: string) =>
   new RegExp(`(^|[^A-Z0-9])${escapeRegex(value)}(?=$|[^A-Z0-9])`, 'i').exec(text)
 const token = (text: string, value: string) => tokenMatch(text, value) != null
 
-// Exact model names and explicitly labeled ICAO codes identify aircraft, not flights.
 const aircraftPatterns = aircraftData.map((aircraft) => ({
   icao: aircraft.icao.toUpperCase(),
   pattern: new RegExp(
@@ -141,7 +136,6 @@ const aircraftPatterns = aircraftData.map((aircraft) => ({
   ),
 }))
 
-/** The extractor cannot copy requested identity into an unrelated cited excerpt. */
 function quoteSupports(row: ProviderAircraft, flight: FlightToEnrich, quote: string): boolean {
   const dates = new Set(quote.match(/\b\d{4}-\d{2}-\d{2}\b/g) ?? [])
   const months = [
@@ -225,7 +219,6 @@ function quoteSupports(row: ProviderAircraft, flight: FlightToEnrich, quote: str
   return false
 }
 
-/** Bounded candidate research. No retries, continuations, source admission or journal writes. */
 export async function lookupAnthropicAircraft(
   apiKey: string,
   model: string,
@@ -358,7 +351,6 @@ This is tool-free extraction. Each result must additionally include source_ids (
           quoteSupports(row, flight, quote)
             ? packets.filter((p) => ids.includes(p.id))
             : []
-        // Keep the literal supporting excerpt, not the extractor's invented prose.
         return normalizeAircraftEvidence(
           {
             ...row,

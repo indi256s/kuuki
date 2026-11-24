@@ -12,7 +12,6 @@ import './globe.css'
 export type GlobeCardProps = {
   locale: Locale
   legendLabel: string
-  /** The same globe component receives fullscreen to configure its future scroll zoom. */
   children: (mode: { fullscreen: boolean; active: boolean }) => ReactNode
   onFullscreenChange?: (open: boolean) => void
   topLeft?: ReactNode | ((fullscreen: boolean) => ReactNode)

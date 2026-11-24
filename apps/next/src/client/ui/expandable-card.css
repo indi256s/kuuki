@@ -1,4 +1,3 @@
-/* Arc-derived expandable card. Layout switches once; content fades without a delay. */
 .ui-xcard {
   display: flex;
   flex-direction: column;
@@ -60,17 +59,17 @@
 .ui-xcard-title {
   display: block;
   overflow: hidden;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
-  line-height: 20px;
+  line-height: 1.25rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .ui-xcard-description {
   display: block;
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
   font-variant-numeric: tabular-nums;
 }
 .ui-xcard-roll {

@@ -7,9 +7,6 @@ import '../../ui/ui.css'
 import './page.css'
 import './overview-skeleton.css'
 
-// Static placeholders in the page's own bands: the filter row, the figures and the globe at their final boxes, then the country row,
-// so the page lands without moving. A booked flight adds its strip above the figures, which the route cannot know yet.
-// The h1 is real so RouteFocus has a heading to land on; loading has no motion.
 export function OverviewSkeleton({ locale: initialLocale }: { locale: Locale }) {
   const locale = useLocale(initialLocale)
   return (

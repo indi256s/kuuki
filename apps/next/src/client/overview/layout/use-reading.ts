@@ -12,18 +12,12 @@ type State<K> = {
   restored: string | null
 }
 
-/**
- * The reading a chapter's hero and figure share: the headline until the member picks another. It goes back to the headline,
- * without animating, when the chapter stops being the open one, when the headline changes, when the filter changes and when
- * the reading is no longer one of `keys`. A new pick replaces the reading; nothing queues.
- */
 export function useReading<K extends string>(
   keys: readonly K[],
   headline: K | null,
   initial?: { key: K | null; token: string },
 ) {
   const { active } = useChapter()
-  // Compared by value: the filter object can be rebuilt without changing (a prefs refresh).
   const filter = JSON.stringify(useOverview().filter)
   const fresh = (): State<K> => ({
     reading: headline,
@@ -56,10 +50,8 @@ export function useReading<K extends string>(
   return {
     reading: current.reading,
     isHeadline: current.reading === headline,
-    /** True only after a pick since mount or the last reset; the hero rolls its value then and not before. */
     picked: current.picked,
     pick: (key: K) => setState((old) => ({ ...old, reading: key, picked: true })),
-    /** Steps through `keys` in order and wraps: the figure button. */
     next: () =>
       setState((old) => {
         const at = old.reading === null ? -1 : keys.indexOf(old.reading)

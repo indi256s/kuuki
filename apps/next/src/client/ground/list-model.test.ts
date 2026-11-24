@@ -20,14 +20,14 @@ describe('ground list ordering and grouping', () => {
   it('puts plans first (upcoming, past-dated newest first, undated), then history newest first, undated last', () => {
     const visible = visibleJourneys(journeys, null, TODAY)
     expect(ids(visible)).toEqual([
-      uuid(4), // today stays among the upcoming plans
+      uuid(4),
       uuid(3),
-      uuid(5), // past-dated plans, newest date first
+      uuid(5),
       uuid(8),
-      uuid(6), // undated plan
-      uuid(7), // history, newest first
+      uuid(6),
+      uuid(7),
       uuid(1),
-      uuid(2), // undated history last
+      uuid(2),
     ])
   })
 

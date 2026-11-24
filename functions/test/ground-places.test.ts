@@ -16,7 +16,6 @@ const owner = { id: 'places-owner', email: 'owner@example.test' }
 const other = { id: 'places-other', email: 'other@example.test' }
 const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`
 
-// Statements in the fixture are one per line; comment lines are documentation.
 const fixture = readFileSync(join(ROOT, 'db/seed/ground_places_fixture.sql'), 'utf8')
   .split('\n')
   .filter((line) => line && !line.startsWith('--'))
@@ -246,7 +245,7 @@ describe('catalog search', () => {
       await post(db, { ...batumi, id: uuid(4), name: 'Paris private', countryCode: 'FR' }, other)
       const found = await results(db, 'paris')
       expect(found.map((p) => `${p.source}:${p.id}`)).toEqual([
-        `manual:${uuid(3)}`, // exact name, manual first
+        `manual:${uuid(3)}`,
         'geonames:2988507',
         'geonames:4717560',
         'geonames:4647963',

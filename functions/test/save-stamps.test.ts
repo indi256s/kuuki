@@ -1,7 +1,3 @@
-// ADR 0001 §5 "Newly stamped" for saves (T15 review I1): single create, bulk create and draft conversion return
-// `newly_stamped_countries`, the operation-owned pressed-country difference that confirmation already reports.
-// A list on fresh results once publication is ready and the before-set was known; null on replay, pending
-// publication or an unknown before-set; [] for a known empty result (a future save presses nothing).
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { apiContext, count, csrfRequest } from './harness'
 import { hasSql, instrumentDb } from './db-hooks'
@@ -109,7 +105,6 @@ describe('single create', () => {
       newly_stamped_countries: ['GB', 'US'],
     })
     expect(await pressed()).toEqual(['GB', 'US'])
-    // GB is already pressed: only Türkiye is new.
     const second = await create({ date: '2026-03-12', origin: 'LHR', destination: 'IST' })
     expect(second.body.newly_stamped_countries).toEqual(['TR'])
     expect(await pressed()).toEqual(['GB', 'TR', 'US'])
@@ -150,7 +145,6 @@ describe('single create', () => {
   it('returns null when the before-set is unknown (the account was not published before the save)', async () => {
     clock()
     expect((await create(FUTURE)).body.derived_state).toBe('ready')
-    // An earlier mutation whose publication never ran: the published pressed set is not trustworthy.
     await db
       .prepare('UPDATE user_derived_state SET revision = revision + 1 WHERE user_id = ?')
       .bind(USER.id)
@@ -163,7 +157,6 @@ describe('single create', () => {
   it('does not attribute a concurrent unrelated claim to the save', async () => {
     clock()
     const { db: tracked, hooks } = instrumentDb(db)
-    // A claim lands after the save committed and before its repair published.
     hooks.afterBatch(hasSql('INSERT INTO flight_idempotency'), async () => {
       await db.batch([
         db
@@ -179,7 +172,7 @@ describe('single create', () => {
       derived_state: 'ready',
       newly_stamped_countries: ['GB', 'US'],
     })
-    expect(await pressed()).toEqual(['GB', 'JP', 'US']) // pressed, just not by this save
+    expect(await pressed()).toEqual(['GB', 'JP', 'US'])
   })
 })
 

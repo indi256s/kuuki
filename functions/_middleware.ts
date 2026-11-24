@@ -1,6 +1,3 @@
-// Resolves the Better Auth session for /api/* requests and attaches the user to context.data,
-// so handlers read context.data.user. Non-/api requests pass straight through.
-
 import { parseCookies, SESSION_COOKIE, CSRF_COOKIE, clearCookie } from './api/_lib/cookies'
 import { gateRequest } from './api/_lib/workerBoundary'
 import type { RequestData } from './api/_lib/auth'
@@ -26,7 +23,6 @@ async function handleRequest(
   if (!url.pathname.startsWith('/api/') || !env.DB) {
     return next()
   }
-  // Recovery and OAuth own the authentication transition; never refresh an old identity here.
   if (
     url.pathname === '/api/auth/password-reset/request' ||
     url.pathname === '/api/auth/password-reset/complete' ||
@@ -38,7 +34,6 @@ async function handleRequest(
 
   if (hasBetterAuthCookie(request)) {
     return runHandler(async () => {
-      // Session replacement routes own cookie writes and must not renew an old identity.
       if (
         [
           '/api/auth/signin',
@@ -84,7 +79,6 @@ async function handleRequest(
 export const onRequest: PagesFunction<Env, string, RequestData> = (context) =>
   runApiRequest(context.request, context.env, context.data, () => context.next())
 
-/** Shared transport boundary; Next and Pages call it with real request arguments. */
 export async function runApiRequest(
   request: Request,
   env: Env,

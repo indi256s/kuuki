@@ -1,4 +1,3 @@
-/* Arc-derived filter toolbar and chip group. Tokens only; chip surfaces come from .ui-chip in ui.css. */
 .ui-filter-toolbar {
   display: flex;
   flex-wrap: wrap;

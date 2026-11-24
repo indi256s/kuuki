@@ -4,7 +4,6 @@ import type { Pt } from './grid'
 import { impressionGapPolys } from './impression'
 import { RING_CAP } from './frame'
 
-/** Dense sample of a ring path's text band: baseline points offset 0..cap toward the glyph tops. */
 function band(path: RingPath): Pt[] {
   const pts: Pt[] = []
   const tokens = path.d.match(/[MLHA][^MLHAZ]*/g) ?? []
@@ -24,7 +23,6 @@ function band(path: RingPath): Pt[] {
       for (let i = 0; i <= 120; i++) {
         const a = Math.PI + (top ? 1 : -1) * (i / 120) * Math.PI
         const p: Pt = [cx + rx * Math.cos(a), cur[1] + ry * Math.sin(a)]
-        // Tangent of the travel direction; glyph tops point to the left of it.
         const t: Pt = [-rx * Math.sin(a) * (top ? 1 : -1), ry * Math.cos(a) * (top ? 1 : -1)]
         const len = Math.hypot(t[0], t[1])
         base.push({ p, up: [t[1] / len, -t[0] / len] })

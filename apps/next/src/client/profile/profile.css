@@ -1,6 +1,3 @@
-/* Passport blocks: avatar, headline numbers, badge cabinet, ranks, join card and closed covers (spec .scratch/profile-redesign,
-   boards 21.x). Arc avatar and badge composition (MIT; ../ui/ARC-LICENSE.txt); Facehash and journal-derived values stay authoritative. */
-
 .profile-avatar {
   display: block;
   border-radius: var(--radius-full);
@@ -29,9 +26,9 @@
   border-radius: var(--radius-sm);
   background: var(--surface-inset);
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
-  line-height: 18px;
+  line-height: 1.125rem;
   text-decoration: none;
   flex-shrink: 0;
   transition:
@@ -60,7 +57,6 @@
   animation: profile-rise var(--dur-base) var(--ease-out) both;
   animation-delay: calc(60ms + var(--block-i, 0) * 60ms);
 }
-/* Member Passport and its visitor preview stay readable immediately on every visit. */
 .passport-page:is([data-mode='owner'], [data-mode='preview']) .profile-block {
   animation: none;
 }
@@ -73,14 +69,14 @@
 }
 .profile-block-head h2 {
   margin: 0;
-  font-size: 22px;
-  line-height: 28px;
+  font-size: 1.375rem;
+  line-height: 1.75rem;
   letter-spacing: -0.02em;
 }
 .profile-block-aside {
   margin: 0;
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 0.875rem;
+  line-height: 1.125rem;
   color: var(--text-muted);
 }
 .profile-inline-link {
@@ -88,7 +84,7 @@
   align-items: center;
   min-block-size: 44px;
   margin-block: -13px;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
 }
 .profile-quiet {
@@ -97,7 +93,6 @@
   text-wrap: pretty;
 }
 
-/* Headline numbers: Commissioner with tabular figures (Paper Mono splits "412,580" at the comma). */
 .profile-numbers {
   gap: var(--space-8);
 }
@@ -105,6 +100,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  container-type: inline-size;
 }
 .profile-distance p {
   margin: 0;
@@ -116,21 +112,21 @@
   column-gap: var(--space-3);
 }
 .profile-distance-value > span:first-child {
-  font-size: 80px;
-  line-height: 84px;
+  font-size: min(5rem, 18cqi);
+  line-height: 1.05;
   font-weight: 600;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 .profile-distance-unit {
-  font-size: 20px;
-  line-height: 26px;
+  font-size: 1.25rem;
+  line-height: 1.625rem;
   font-weight: 500;
   color: var(--text-muted);
 }
 .profile-earth {
-  font-size: 15px;
-  line-height: 18px;
+  font-size: 0.9375rem;
+  line-height: 1.125rem;
   color: var(--text-muted);
 }
 .profile-totals {
@@ -146,19 +142,18 @@
 }
 .profile-totals dd {
   margin: 0;
-  font-size: 36px;
-  line-height: 44px;
+  font-size: 2.25rem;
+  line-height: 2.75rem;
   font-weight: 600;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 .profile-totals dt {
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 0.875rem;
+  line-height: 1.125rem;
   color: var(--text-muted);
 }
 
-/* Badge cabinet: earned only. */
 .profile-badges {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -199,18 +194,17 @@
   outline-offset: 2px;
 }
 .profile-badge strong {
-  font-size: 16px;
-  line-height: 20px;
+  font-size: 1rem;
+  line-height: 1.25rem;
   font-weight: 600;
   text-wrap: balance;
 }
 .profile-badge small {
   margin-block-start: -6px;
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 0.875rem;
+  line-height: 1.125rem;
   color: var(--text-muted);
 }
-/* The 72px mark holds the ladder's 56px line-only thumb (ladders.css), or the Founding crew stub. */
 .profile-badge-mark {
   --ladder-bg: var(--surface-inset);
   position: relative;
@@ -222,8 +216,6 @@
   background: var(--surface-inset);
   box-shadow: inset 0 1px 0 var(--surface-highlight);
 }
-/* Unboxing (owner): the badge presses into its slot and the ink settles; the New tag is pinned to the corner,
-   out of flow, so the grid never moves when it clears. */
 .profile-badges [data-fresh] .profile-badge-mark {
   box-shadow: 0 0 0 2px var(--accent);
   animation: badge-press var(--dur-sheet) var(--ease-out) both;
@@ -244,8 +236,8 @@
   border-radius: var(--radius-full);
   background: var(--accent);
   color: var(--accent-foreground);
-  font-size: 11px;
-  line-height: 14px;
+  font-size: 0.6875rem;
+  line-height: 0.875rem;
   font-weight: 700;
   letter-spacing: 0.04em;
 }
@@ -278,7 +270,6 @@
   font-weight: 600;
   cursor: pointer;
 }
-/* Ladder sheet: hero figure on its stage, Normal then Sarcastic, the earned date, then the rung strip. Space groups, no rules. */
 .ladder-stage {
   --ladder-bg: var(--surface);
   display: grid;
@@ -311,13 +302,28 @@
   border-radius: 16px;
   background: var(--surface-inset);
 }
+.ladder-strip[data-fade-end] {
+  mask-image: linear-gradient(to right, #000 calc(100% - 40px), transparent);
+}
+.ladder-strip[data-fade-start] {
+  mask-image: linear-gradient(to left, #000 calc(100% - 40px), transparent);
+}
+.ladder-strip[data-fade-start][data-fade-end] {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 40px,
+    #000 calc(100% - 40px),
+    transparent
+  );
+}
 .ladder-slot {
   display: flex;
   flex: none;
   flex-direction: column;
   align-items: center;
   gap: var(--space-1);
-  min-inline-size: 64px;
+  min-inline-size: 88px;
   scroll-snap-align: start;
   text-align: center;
 }
@@ -326,29 +332,28 @@
 }
 .ladder-slot-name {
   max-inline-size: 96px;
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 0.75rem;
+  line-height: 1rem;
   color: var(--text-muted);
 }
 .ladder-slot[data-state='next'] .ladder-slot-name {
   max-inline-size: none;
 }
 .ladder-slot-togo {
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 0.75rem;
+  line-height: 1rem;
   font-weight: 600;
   text-wrap: balance;
 }
 .ladder-top {
   margin-block-start: var(--space-3);
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 .profile-badge-earned {
   color: var(--text-muted);
 }
 
-/* Ranks: gate signs, static. Light hangs ink signs; dark raises slabs. */
 .profile-gates {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
@@ -369,8 +374,8 @@
 }
 .profile-join h2 {
   margin: 0;
-  font-size: 24px;
-  line-height: 30px;
+  font-size: 1.5rem;
+  line-height: 1.875rem;
   letter-spacing: -0.02em;
   text-wrap: balance;
 }
@@ -383,7 +388,6 @@
   align-self: flex-start;
 }
 
-/* Closed covers: private (accent) and not found (neutral). Spine on the left. */
 .profile-closed {
   display: flex;
   flex-direction: column;
@@ -415,8 +419,8 @@
   --cover-ink: var(--background);
 }
 .profile-cover-title {
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 0.75rem;
+  line-height: 1rem;
   font-weight: 500;
   letter-spacing: 0.2em;
 }
@@ -437,16 +441,16 @@
   fill: var(--cover-fill);
 }
 .profile-cover-kana {
-  font: 500 44px/52px var(--font-kana);
+  font: 500 2.75rem/3.25rem var(--font-kana);
 }
 .profile-cover-foot {
-  font: 12px/16px var(--font-mono);
+  font: 0.75rem/1rem var(--font-mono);
   letter-spacing: 0.2em;
 }
 .profile-closed h1 {
   margin: 0 0 var(--space-2);
-  font-size: 22px;
-  line-height: 28px;
+  font-size: 1.375rem;
+  line-height: 1.75rem;
 }
 .profile-closed p {
   margin: 0 0 var(--space-6);
@@ -462,7 +466,6 @@
   text-decoration: none;
 }
 
-/* Quiet entrance: the page's blocks rise in turn, 60ms apart. No scroll reveals, no count-ups. */
 @keyframes profile-rise {
   from {
     opacity: 0;
@@ -486,7 +489,6 @@
   }
 }
 
-/* Tablet. */
 @media (max-width: 1023px) {
   .profile-badges {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -496,15 +498,14 @@
   }
 }
 
-/* Mobile. */
 @media (max-width: 700px) {
   .profile-distance-value > span:first-child {
-    font-size: 56px;
-    line-height: 62px;
+    font-size: min(3.5rem, 18cqi);
+    line-height: 1.1071;
   }
   .profile-distance-unit {
-    font-size: 18px;
-    line-height: 22px;
+    font-size: 1.125rem;
+    line-height: 1.375rem;
   }
   .profile-numbers {
     gap: 28px;
@@ -513,8 +514,8 @@
     gap: var(--space-4) var(--space-6);
   }
   .profile-totals dd {
-    font-size: 28px;
-    line-height: 34px;
+    font-size: 1.75rem;
+    line-height: 2.125rem;
   }
   .profile-badges {
     gap: var(--space-5) 0;
@@ -563,8 +564,6 @@
     opacity: 1;
   }
 }
-/* Generated avatar: ink eyes on a tint of the same ink. Each character keeps a resting pose; a fine pointer meets
-   its gaze, and the account trigger glances down at the boarding pass while the menu is open. */
 .avatar-face {
   display: grid;
   place-items: center;
@@ -574,7 +573,6 @@
   background: color-mix(in oklab, var(--avatar-ink) var(--avatar-tint, 16%), var(--surface));
   color: var(--avatar-ink);
 }
-/* Dark inks are pale, so the paper needs more of them to read as tinted. */
 :root[data-theme='dark'] .avatar-face {
   --avatar-tint: 26%;
 }
@@ -613,18 +611,15 @@
   rotate: none;
 }
 @media (prefers-reduced-motion: no-preference) {
-  /* Crossed eyes do not blink. */
   .avatar-face:not([data-face='jetlag']) svg > g {
     animation: var(--avatar-idle, avatar-blink) 9s linear var(--avatar-blink-delay, 0s) infinite;
   }
-  /* The face on the pass and a newly picked face in Settings blink once as they appear; listed last, it overrides the idle blink while it runs. */
   .account-who .avatar-face:not([data-face='jetlag']) svg > g,
   .settings-avatar .profile-avatar .avatar-face:not([data-face='jetlag']) svg > g {
     animation:
       var(--avatar-idle, avatar-blink) 9s linear var(--avatar-blink-delay, 0s) infinite,
       avatar-hello 260ms var(--ease-in-out) 180ms backwards;
   }
-  /* The picker's faces hold still; the preview beside them carries the motion. */
   .settings-face .avatar-face[data-face] svg > g {
     animation: none;
   }
@@ -639,7 +634,6 @@
     scale: 1 0.1;
   }
 }
-/* Sleepy lids stay down a beat longer. */
 @keyframes avatar-doze {
   0%,
   94%,

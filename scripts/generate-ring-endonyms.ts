@@ -1,10 +1,3 @@
-/**
- * Resolves the ring text of every country: the name in its own script (top ring) and the English name (bottom
- * ring), into apps/next/src/lib/stamp-art/ring-endonyms.json. Derived from Intl (language by likely subtags,
- * name by Intl.DisplayNames in that language), then corrected by ring-endonyms.overrides.json. The resolved
- * table is committed so the stamp output never depends on the ICU build that runs the generator.
- * Run: pnpm generate:ring-endonyms
- */
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -27,7 +20,6 @@ const overrides = JSON.parse(
   readFileSync(join(DIR, 'ring-endonyms.overrides.json'), 'utf8'),
 ) as Record<string, Override>
 
-/** CLDR spellings that read badly on a ring: dashes, parenthesised qualifiers. */
 const tidy = (s: string) => s.replace(/\s+-\s+/g, ' ').replace(/\s*\([^)]*\)\s*$/, '')
 
 const SCRIPTS = [
@@ -54,7 +46,6 @@ const SCRIPTS = [
   'Tibetan',
 ] as const
 
-/** Script of the first letter, by Unicode property. */
 function scriptOf(text: string): string {
   for (const ch of text) {
     for (const s of SCRIPTS) {

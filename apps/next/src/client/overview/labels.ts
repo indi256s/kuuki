@@ -11,7 +11,6 @@ export interface OverviewLabels {
 
 const airlineNames = new Map(airlines.filter((row) => row.iata).map((row) => [row.iata, row.name]))
 
-// Airport and aircraft labels travel with the summary. The offline capture catalogs belong to the editor.
 export function referenceLabels(
   locale: Locale,
   refs: OverviewPayload['refs'] | undefined,

@@ -1,8 +1,3 @@
-// POST /api/flights/bulk — create up to FLIGHT_BULK_CREATE_MAX flights, each under its own idempotency key.
-// Items validate independently; accepted flights and their receipts commit in one D1 batch with one
-// dirty mark, then derived state is repaired once. Results are positional: created / replayed / error.
-// The work lives in `_services/flightCreate.ts`, shared with import draft conversion.
-
 import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireUser, requireCsrf, type RequestData } from '../_lib/auth'
 import { FLIGHT_BULK_CREATE_MAX } from '../../../packages/shared/src/flightValidation'
@@ -12,7 +7,6 @@ import { bulkCreate } from '../_services/flightCreate'
 export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) =>
   bulkCreateRequest(context.request, context.env, context.data)
 
-/** Actual Request/Response domain entry, shared by the Pages compatibility transport. */
 export function bulkCreateRequest(
   request: Request,
   env: Env,
@@ -22,7 +16,6 @@ export function bulkCreateRequest(
     requireCsrf(request)
     const user = requireUser(data)
 
-    // A full legitimate item is under 1 KB, so 64 KB covers FLIGHT_BULK_CREATE_MAX with room to spare.
     const { body, timezone } = takeRequestTimezone(
       await readJson<{ items?: unknown }>(request, { maxBytes: 64 * 1024 }),
     )

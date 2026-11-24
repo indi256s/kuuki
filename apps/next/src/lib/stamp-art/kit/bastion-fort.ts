@@ -1,7 +1,3 @@
-// Hill fortress of stepped bastions (Castillo San Felipe type). The box is hill plus fort; the hill
-// takes the bottom `hill` fraction and rises to the right. Three battered terraces step up, their
-// faces alternating lit and shaded bastion panels, with a sentry box (garita) on each salient and
-// a squat watch tower at the top. Fall-line hatching covers the hill.
 import {
   type Pt,
   type SvgNode,
@@ -22,7 +18,6 @@ export const bastionFort: KitModule = ([x, y, w, h], p) => {
   const fortBase = baseY - hillH
   const tierH = (fortBase - y) / (tiers + 0.35)
   const out: SvgNode[] = []
-  // Hill: a long slope from the left foot up to the fort, a shorter fall on the right.
   const hill: Pt[] = [
     [x, baseY],
     [x, baseY - hillH * 0.3],
@@ -48,7 +43,6 @@ export const bastionFort: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // Terraces from the bottom up: widths shrink, each shifted right toward the summit.
   for (let t = 0; t < tiers; t++) {
     const tw = w * (num(p, 'width', 0.64) - t * 0.06)
     const tx = x + w * (0.03 + t * num(p, 'shift', 0.15))
@@ -57,8 +51,6 @@ export const bastionFort: KitModule = ([x, y, w, h], p) => {
     const batter = num(p, 'batter', 2.2)
     const pairs = Math.max(2, Math.round(tw / 20))
     const pw = tw / pairs
-    // Each pair is a wide lit curtain face and a narrower shaded bastion face; the top edge dips
-    // at every salient so the wall reads as a zig-zag in plan.
     const poly: Pt[] = [[tx - batter, yb]]
     for (let k = 0; k < pairs; k++) {
       poly.push(
@@ -92,7 +84,6 @@ export const bastionFort: KitModule = ([x, y, w, h], p) => {
       }
     }
     if (t === tiers - 1) {
-      // Squat watch tower at the summit.
       const tx0 = tx + tw * 0.62
       const tw0 = Math.min(11, tw * 0.2)
       out.push(...body(rectPts(tx0, yt - tierH * 0.55, tw0, tierH * 0.55 + 1), 'line'))

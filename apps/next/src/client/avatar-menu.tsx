@@ -35,7 +35,6 @@ export function AvatarMenu({
   displayName?: string | null
   isPublic: boolean
   profileAccent?: string | null
-  /** The flight total, printed as the passport's document number on the stub. */
   flights?: number | null
   userAnalytics?: boolean
   locale?: 'en' | 'ru'
@@ -45,7 +44,6 @@ export function AvatarMenu({
   const ru = appearance.locale === 'ru'
   const text = (en: string, ruText: string) => (ru ? ruText : en)
   const [publicProfile, setPublicProfile] = useState(isPublic)
-  // The server value wins again after router.refresh() re-renders the shell.
   const [serverPublic, setServerPublic] = useState(isPublic)
   if (serverPublic !== isPublic) {
     setServerPublic(isPublic)
@@ -60,7 +58,6 @@ export function AvatarMenu({
       mounted.current = false
     }
   }, [])
-  // The tray shows this device's accent, which is not the one on screen while an owner's profile page is open.
   const [accent, setDeviceAccent] = useState<Accent>('shu')
   useEffect(() => {
     const read = () => setDeviceAccent(deviceAccent())
@@ -138,7 +135,6 @@ export function AvatarMenu({
         </button>
       }
     >
-      {/* The stub takes this device's accent, as the tray does, not an owner page's. */}
       <div
         className="account-stub"
         style={{ '--stub-accent': `var(--swatch-${accent})` } as CSSProperties}

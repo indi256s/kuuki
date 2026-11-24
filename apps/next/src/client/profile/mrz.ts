@@ -2,7 +2,6 @@ import { transliterate } from '@kuuki/shared/address'
 
 const LENGTH = 30
 
-/** A–Z only; Cyrillic goes through the ICAO 9303 table, accents are stripped, everything else is a filler. */
 function mrzText(value: string) {
   return transliterate(value)
     .normalize('NFKD')
@@ -15,13 +14,8 @@ function mrzText(value: string) {
 const pad = (value: string) => value.padEnd(LENGTH, '<').slice(0, LENGTH)
 const count = (value: number, max: number) => String(Math.min(Math.max(0, Math.round(value)), max))
 
-/** The data page's document number, "0142": the public flight total the MRZ prints as `0142FL`. */
 export const documentNumber = (flights: number) => count(flights, 9999).padStart(4, '0')
 
-/**
- * The holder page's machine-readable zone, decorative (`aria-hidden`): `P<KUU<SURNAME<<GIVEN` and
- * `HANDLE<<0142FL<31CC<<<<<YYMM`, both 30 characters. Figures are the same public totals the page prints.
- */
 export function mrzLines({
   name,
   handle,

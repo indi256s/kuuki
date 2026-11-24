@@ -1,8 +1,6 @@
-// Cookie parsing/serialization for the session + CSRF cookies.
-
 export const SESSION_COOKIE = 'kuuki_session'
 export const CSRF_COOKIE = 'kuuki_csrf'
-export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30 // 30 days
+export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30
 
 export function parseCookies(header: string | null): Record<string, string> {
   const out: Record<string, string> = {}
@@ -18,7 +16,7 @@ export function parseCookies(header: string | null): Record<string, string> {
 }
 
 export interface CookieOptions {
-  maxAge?: number // seconds
+  maxAge?: number
   httpOnly?: boolean
   secure?: boolean
   sameSite?: 'Lax' | 'Strict' | 'None'
@@ -36,7 +34,6 @@ export function serializeCookie(name: string, value: string, opts: CookieOptions
   return cookie
 }
 
-/** Build the Set-Cookie value that clears a cookie. */
 export function clearCookie(name: string, opts: CookieOptions = {}): string {
   return serializeCookie(name, '', { ...opts, maxAge: 0 })
 }

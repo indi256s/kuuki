@@ -23,7 +23,6 @@ const mocks = vi.hoisted(() => ({
 }))
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mocks.push, refresh: vi.fn(), replace: vi.fn() }),
-  // Next keeps useSearchParams in sync with native history; the stand-in does the same.
   useSearchParams: () => {
     const [, tick] = useReducer((count: number) => count + 1, 0)
     useEffect(() => {
@@ -48,7 +47,6 @@ vi.mock('../write-feedback', () => ({
 }))
 vi.mock('../ui/use-mobile', () => ({ useMobile: () => false }))
 vi.mock('../profile/avatar', () => ({ ProfileAvatar: () => <span aria-hidden="true" /> }))
-// The atlas belongs to W3; the stand-in keeps the filtered set visible to these tests.
 vi.mock('./atlas', () => ({
   PassportAtlas: ({
     entries,
@@ -60,7 +58,6 @@ vi.mock('./atlas', () => ({
     quickVisit?: { peelable: (code: string) => boolean } | null
   }) => (
     <>
-      {/* Which probe countries would lift as a sticker; absent when stickers are off. */}
       {quickVisit ? (
         <p aria-label="Sticker stand-in">
           {['NO', 'PT', 'DE', 'IT', 'XX'].filter((code) => quickVisit.peelable(code)).join(' ')}
@@ -84,7 +81,6 @@ const { PassportPage } = await import('./passport-page')
 const { PrimaryNav } = await import('../nav')
 const { ToastProvider } = await import('../ui/toast')
 
-// The page lives in the member shell, whose ToastProvider carries the hide notice.
 const render = (ui: ReactElement) => renderBare(ui, { wrapper: ToastProvider })
 
 const row = (code: string, region: string, over: Record<string, unknown> = {}) => ({
@@ -127,7 +123,6 @@ const owned = {
     pendingRow('PT'),
     pendingRow('GR'),
   ],
-  // Three visible pressed countries plus the two hidden ones.
   pressedCountryCount: 5,
   visibleCountryCount: 3,
   pendingCountryCount: 2,
@@ -282,7 +277,6 @@ describe('owner, visitor and preview', () => {
     const norway = screen.getByRole('button', { name: /^Norway/ })
     expect(norway).toHaveTextContent('March 2026')
     expect(norway).toHaveTextContent('Flights, Trains')
-    // Search and Cards/Map sit beside Filters, and Sources live in the Filters popover for the owner.
     await userEvent.click(within(toolbar()).getByRole('button', { name: 'Filters' }))
     expect(screen.getByRole('group', { name: 'Sources' })).toBeVisible()
     expect(screen.getByRole('checkbox', { name: 'Road trips' })).toBeVisible()
@@ -317,7 +311,6 @@ describe('owner, visitor and preview', () => {
       expect(screen.queryByText('Only you see this')).not.toBeInTheDocument()
       expect(screen.queryByText(/Awaiting confirmation/)).not.toBeInTheDocument()
       expect(view.container.textContent).not.toMatch(/2026|2025|Trains|hidden/i)
-      // A visitor has no Sources group.
       await userEvent.click(within(toolbar()).getByRole('button', { name: 'Filters' }))
       expect(screen.getByRole('group', { name: 'Region' })).toBeVisible()
       expect(screen.queryByRole('group', { name: 'Sources' })).not.toBeInTheDocument()
@@ -376,7 +369,6 @@ describe('totals and found', () => {
   it('states the factual total with the hidden count beside it for the owner', () => {
     render(<PassportPage {...ownerProps()} />)
     expect(screen.getByText('Visited 5 countries · 2 hidden')).toBeVisible()
-    // Cards and counts of the collection refer to the visible set.
     expect(
       within(screen.getByRole('list', { name: 'Stamps' })).getAllByRole('button'),
     ).toHaveLength(3)
@@ -453,7 +445,6 @@ describe('atlas stickers', () => {
   it("lift only unrecorded catalog countries on the owner's unfiltered map", () => {
     nativeReplace(null, '', '/passport?view=map')
     render(<PassportPage {...ownerProps()} />)
-    // NO is pressed, PT pending, DE hidden, XX is not in the catalog.
     expect(stickers()).toHaveTextContent(/^IT$/)
   })
 
@@ -494,7 +485,6 @@ describe('search with no match', () => {
     await user.type(screen.getByRole('searchbox', { name: 'Search the passport' }), 'Iceland')
     expect(screen.getByText('Iceland is not in this passport.')).toBeVisible()
     expect(screen.queryByRole('button', { name: /^Add/ })).not.toBeInTheDocument()
-    // The toolbar and the empty state both offer the way back.
     await user.click(screen.getAllByRole('button', { name: 'Reset' })[0])
     expect(screen.getByRole('list', { name: 'Stamps' })).toBeVisible()
   })
@@ -525,6 +515,8 @@ describe('states', () => {
     expect(screen.getByRole('heading', { name: '246 countries are waiting for you' })).toBeVisible()
     expect(screen.getByRole('button', { name: 'Add country' })).toBeVisible()
     expect(screen.getByRole('link', { name: 'Import flights' })).toBeVisible()
+    expect(screen.getByRole('list', { name: 'Atlas stand-in' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Sticker stand-in')).toHaveTextContent('NO PT DE IT')
   })
 
   it('points a pending-only passport at the pending block instead of calling it empty', async () => {
@@ -935,7 +927,6 @@ describe('round-up of visits without a year', () => {
     const user = userEvent.setup()
     mocks.patch.mockResolvedValue({})
     const props = withVisits([visit('g1', 'NO'), visit('g2', 'JP')])
-    // The refetch keeps both rows undated: the server has not seen the year in this stand-in.
     mocks.get.mockResolvedValue(props.data)
     render(<PassportPage {...props} />)
     await user.click(screen.getByRole('button', { name: '2 visits without a year' }))
@@ -949,7 +940,6 @@ describe('round-up of visits without a year', () => {
     expect(mocks.patch).toHaveBeenCalledExactlyOnceWith('/api/passport/ground-visits/g1', {
       visitYear: thisYear,
     })
-    // The row stays and shows its year; nothing is refetched while the sheet is open.
     expect(
       within(sheet).getByRole('button', { name: `Year of visit: Norway, ${thisYear}` }),
     ).toHaveTextContent(String(thisYear))
@@ -959,7 +949,6 @@ describe('round-up of visits without a year', () => {
     await settle()
     expect(mocks.get).toHaveBeenCalledOnce()
     expect(mocks.get).toHaveBeenCalledWith('/api/passport/countries', undefined, expect.anything())
-    // Focus returns to the entry.
     expect(screen.getByRole('button', { name: '2 visits without a year' })).toHaveFocus()
   })
 

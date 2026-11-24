@@ -341,7 +341,6 @@ it('line geometry spaces actual UTC dates and renders a finite zero-valued area 
   const positions = [...container.querySelectorAll('g')].map((point) =>
     Number(point.querySelector('circle')!.getAttribute('cx')),
   )
-  // One day must occupy one tenth of the full ten-day interval, rather than index spacing.
   expect(positions[1] - positions[0]).toBeCloseTo((positions[2] - positions[0]) / 10)
   expect(positions[2]).toBeGreaterThan(positions[1])
   expect(container.querySelector('path[stroke]')).not.toHaveAttribute('d', '')

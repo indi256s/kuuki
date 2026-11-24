@@ -1,4 +1,3 @@
-// Roof modules: hip, gable, curved-eave, pagoda-tier, stilts.
 import {
   type Pt,
   type SvgNode,
@@ -15,7 +14,6 @@ import {
 } from '../grid'
 import { type KitModule, bool, num, nums, weight } from './util'
 
-/** Hipped roof in elevation: trapezoid with a ridge, eave line and roof courses. */
 export const hip: KitModule = ([x, y, w, h], p) => {
   const ridge = w * num(p, 'ridge', 0.25)
   const lines = Math.round(num(p, 'lines', 3))
@@ -39,7 +37,6 @@ export const hip: KitModule = ([x, y, w, h], p) => {
     const half = (ridge + (w - ridge) * t) / 2
     out.push(hline('hair', cx - half + 1.5, cx + half - 1.5, yy))
   }
-  // Shaded right slope.
   if (bool(p, 'shade', true)) {
     for (let t = 0.2; t < 0.9; t += 0.1) {
       const yy = y + h * t
@@ -58,10 +55,6 @@ export const hip: KitModule = ([x, y, w, h], p) => {
   return out
 }
 
-/**
- * Gable end of a steep roof: double barge board, plank hatch inside, eave line. With `wallH` the
- * box also holds the wall under the eave (planks, central opening).
- */
 export const gable: KitModule = ([x, y, w, h], p) => {
   const wallFrac = num(p, 'wallH', 0)
   const roofH = h * (1 - wallFrac)
@@ -111,13 +104,9 @@ export const gable: KitModule = ([x, y, w, h], p) => {
   return out
 }
 
-/**
- * Roof with upturned corners seen from the front. The ridge is a short flat line; each side sweeps
- * down in a concave curve and lifts at the tip; the eave band has a thick lower edge.
- */
 export const curvedEave: KitModule = ([x, y, w, h], p) => {
   const ridge = w * num(p, 'ridge', 0.36)
-  const lift = num(p, 'lift', 0.3) // how far the tips sit above the eave line (fraction of h)
+  const lift = num(p, 'lift', 0.3)
   const thick = h * num(p, 'thick', 0.2)
   const rows = Math.round(num(p, 'rows', 3))
   const cx = x + w / 2
@@ -125,14 +114,12 @@ export const curvedEave: KitModule = ([x, y, w, h], p) => {
   const eY = y + h
   const rl: Pt = [cx - ridge / 2, y]
   const rr: Pt = [cx + ridge / 2, y]
-  // Left top edge, ridge to tip.
   const leftTop = quad(rl, [x + w * 0.2, y + h * 0.6], [x, tipY], 12)
   const leftBottom = quad([x, tipY + 1], [x + w * 0.1, eY], [x + w * 0.3, eY], 8)
   const rightTop = leftTop.map(([px, py]) => [2 * cx - px, py] as Pt)
   const rightBottom = leftBottom.map(([px, py]) => [2 * cx - px, py] as Pt)
   const poly: Pt[] = [...leftTop, ...leftBottom, ...rightBottom.reverse(), ...rightTop.reverse()]
   const out: SvgNode[] = body(poly, weight(p, 'weight', 'line'))
-  // Eave band: the thick lower edge.
   out.push(
     stroke('line', [
       [x + w * 0.1 + 1, eY - thick - (leftBottom[2][1] - eY) * 0],
@@ -147,14 +134,12 @@ export const curvedEave: KitModule = ([x, y, w, h], p) => {
       [x + w * 0.7, eY],
     ]),
   )
-  // Tile courses between the ridge and the eave band.
   for (let i = 1; i <= rows; i++) {
     const t = i / (rows + 1)
     const yy = y + (h - thick) * t
     const half = ridge / 2 + (w / 2 - ridge / 2) * Math.pow(t, 1.4) * 0.9
     out.push(hline('hair', cx - half, cx + half, yy))
   }
-  // Ridge cap.
   out.push(stroke('bold', [rl, rr]))
   if (bool(p, 'finials', false)) {
     for (const s of [-1, 1]) {
@@ -171,13 +156,6 @@ export const curvedEave: KitModule = ([x, y, w, h], p) => {
   return out
 }
 
-/**
- * A castle keep: a stack of lit walls, each under a thin T4 hip-roof band whose tips lift `lift`
- * units. The box is the widest roof (tier 1) by the whole stack height. `widths` are the wall widths
- * bottom to top relative to tier 1 (1, .86, .72, .6, .46), `chidori` lists tiers (0-based) that get
- * a triangular gable on their roof, `kara` tiers that get a curved gable, `nubs` adds the small
- * ridge ornaments on the top roof. Tiers share the height in proportion to `heights`.
- */
 export const pagodaTier: KitModule = ([x, y, w, h], p) => {
   const widths = nums(p, 'widths', [1, 0.86, 0.72, 0.6, 0.46])
   const heights = nums(
@@ -199,7 +177,6 @@ export const pagodaTier: KitModule = ([x, y, w, h], p) => {
   const cx = x + w / 2
   const unit = h / heights.reduce((a, b) => a + b, 0)
   const out: SvgNode[] = []
-  // Gables sit on the roofs but rise in front of the wall above, so they are drawn last.
   const front: SvgNode[] = []
   let yb = y + h
   widths.forEach((rel, i) => {
@@ -208,14 +185,13 @@ export const pagodaTier: KitModule = ([x, y, w, h], p) => {
     const roofH = tierH - wallH
     const ww = (w / roofOver) * rel
     const rw = ww * roofOver
-    const yw = yb - wallH // eave line, top of the wall
+    const yw = yb - wallH
     out.push(...body(rectPts(cx - ww / 2, yw, ww, wallH), 'line'))
     const wn = windows[i % windows.length]
     for (let k = 0; k < wn; k++) {
       const wx = cx - ww / 2 + (ww * (k + 1)) / (wn + 1)
       out.push(fill(rectPts(wx - 1.1, yb - wallH * 0.74, 2.2, Math.min(3.4, wallH * 0.46))))
     }
-    // Roof band: thin, tips lifted, T4.
     const band: Pt[] = [
       [cx - rw / 2, yw - lift],
       [cx - rw * 0.35, yw - roofH],
@@ -272,7 +248,6 @@ export const pagodaTier: KitModule = ([x, y, w, h], p) => {
   return [...out, ...front]
 }
 
-/** Posts on footings under a floor beam, with cross beams and braces. */
 export const stilts: KitModule = ([x, y, w, h], p) => {
   const count = Math.max(2, Math.round(num(p, 'count', 4)))
   const postW = num(p, 'postW', 4.4)
@@ -282,7 +257,6 @@ export const stilts: KitModule = ([x, y, w, h], p) => {
     { length: count },
     (_, i) => x + postW / 2 + ((w - postW) * i) / (count - 1),
   )
-  // Footings and posts.
   for (const px of xs) {
     out.push(...body(rectPts(px - postW / 2, y, postW, h), 'line'))
     out.push(
@@ -297,7 +271,6 @@ export const stilts: KitModule = ([x, y, w, h], p) => {
       ),
     )
   }
-  // Cross beam and braces.
   const beamY = y + h * num(p, 'beam', 0.5)
   out.push(...body(rectPts(xs[0], beamY, xs[xs.length - 1] - xs[0], 3), 'line'))
   if (braces) {
@@ -310,7 +283,6 @@ export const stilts: KitModule = ([x, y, w, h], p) => {
       )
     }
   }
-  // Floor beam.
   out.push(
     stroke('bold', [
       [x - 1.5, y],

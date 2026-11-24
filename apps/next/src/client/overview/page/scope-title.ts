@@ -7,7 +7,6 @@ import { S, t } from '../copy'
 
 export type ScopeLabels = OverviewLabels
 const monthFormats: Partial<Record<Locale, Intl.DateTimeFormat>> = {}
-/** Standalone month name for 1–12: "March" / «март». */
 export function monthName(locale: Locale, month: number): string {
   const date = new Date(Date.UTC(2001, month - 1, 1))
   return Number.isInteger(month) && month >= 1 && month <= 12
@@ -17,7 +16,6 @@ export function monthName(locale: Locale, month: number): string {
       })).format(date)
     : String(month)
 }
-// Facets without reference entities use the canonical domain ids, with paired display copy.
 const VALUES: Partial<Record<FacetKey, Record<string, { en: string; ru: string }>>> = {
   regions: REGION_LABELS,
   alliances: {

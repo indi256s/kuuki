@@ -57,7 +57,6 @@ const empty = {
   arrival: '',
 }
 type Values = typeof empty
-/** Unfinished manual entry, kept per account until saved, discarded or cleared on sign-out. */
 const UNFINISHED = 'unfinished'
 function readUnfinished(ownerId: string, key: string): Values | null {
   const stored = readCapturePreference<Partial<Values> | null>(ownerId, key, null)
@@ -99,10 +98,9 @@ export function FlightForm({
   ownerId: string
   locale: Locale
   editId?: number
-  /** Optional manual air visit being detailed; its draft and retry receipt stay isolated from other captures. */
   passportVisitId?: string
   initialEditing?: boolean
-  /** Opens Optional details and focuses this field once the flight has loaded. */ focusField?: 'aircraft'
+  focusField?: 'aircraft'
   surface?: FlightSurface
   onCancel?: () => void
   onOpenJournal?: () => void
@@ -111,10 +109,6 @@ export function FlightForm({
     flight: Flight & DerivedAck,
     publication: 'idle' | 'ready' | 'pending' | 'delayed',
   ) => void
-  /**
-   * A confirmed new flight. The owner closes the form and reports the save, so the form does not show its saved state or
-   * track totals publication; it calls this once per canonical acknowledgement.
-   */
   onCreated?: (
     flight: Flight & DerivedAck,
     route: Pick<Values, 'date' | 'origin' | 'destination'>,
@@ -143,7 +137,6 @@ export function FlightForm({
     setRecents((previous) => ({ ...previous, [kind]: next }))
     writeCapturePreference(ownerId, kind, next)
   }
-  // Offline never disables typing: only save and delete are blocked, each with its own visible reason.
   const saveReason = !online
     ? ru
       ? 'Нет сети. Подключитесь, чтобы сохранить.'
@@ -196,7 +189,6 @@ export function FlightForm({
   useEffect(() => {
     if (saved) savedHeading.current?.focus()
   }, [saved])
-  // A new entry restores unfinished input; the previous flight's layout never decides a fresh entry's layout.
   const [restored, setRestored] = useState(() =>
     editId ? null : readUnfinished(ownerId, unfinishedKey),
   )
@@ -230,7 +222,6 @@ export function FlightForm({
   const { date, origin, destination } = values
   const { field: from } = useController({ name: 'origin', control })
   const { field: to } = useController({ name: 'destination', control })
-  // Keep unfinished input across dismissal and reload. A failed write is said out loud; the input stays usable here.
   const [storageFailed, setStorageFailed] = useState(false)
   const savedOnce = useRef(false)
   useEffect(() => {
@@ -254,7 +245,6 @@ export function FlightForm({
     setErrorCause(null)
     requestAnimationFrame(() => setFocus('origin'))
   }
-  // Route shortcuts from the latest flight dated today or earlier; nothing is applied until the member picks one.
   const [last, setLast] = useState<{
     flight: Flight
     returnLogged: boolean
@@ -285,9 +275,7 @@ export function FlightForm({
             : null,
         )
       })
-      .catch(() => {
-        /* Shortcuts are optional; the route card still works. */
-      })
+      .catch(() => {})
     return () => {
       controller.abort()
       release()
@@ -429,7 +417,6 @@ export function FlightForm({
       setRecents((previous) => ({ ...previous, airports: nextRecents }))
       writeCapturePreference(ownerId, 'airports', nextRecents)
       if (!flight) {
-        // Confirmed: the unfinished entry is done. An uncertain save never reaches here, so its input stays.
         savedOnce.current = true
         removeCapturePreference(ownerId, unfinishedKey)
         if (onCreated) {
@@ -447,7 +434,6 @@ export function FlightForm({
       router.refresh()
     } catch (cause) {
       if (current(generation, controller)) {
-        // createFlight freed the receipt of a refused first attempt; the corrected details are a new operation.
         if (!flight && !original && isFlightValidationRefusal(cause))
           setOperationId(rotateFlightOperationId(operationScope))
         setFocusBlockedSave(true)
@@ -496,7 +482,6 @@ export function FlightForm({
   const fieldError = (name: keyof Values) =>
     formState.errors[name] ? validationMessages[name] : undefined
   const invalid = (issues: typeof formState.errors) => {
-    // Focus the first invalid field in the order it appears on screen.
     const field =
       (
         [
@@ -751,7 +736,6 @@ export function FlightForm({
     shouldDirty: true,
     shouldValidate: formState.isSubmitted,
   }
-  // Times as one leg: Departs → Arrives, a "+1" on a next-day arrival, and the duration under the row.
   const leg = legSummary(
     /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : localDay(0),
     values.departure,
@@ -892,7 +876,6 @@ export function FlightForm({
       {ru ? 'Сохранить перелёт' : 'Save flight'}
     </Button>
   )
-  // Save notices sit in the footer directly above the actions they lead to; nothing comes between them.
   const footer = receipt ? (
     <div className="flight-footer-block" role="alert">
       {notice(

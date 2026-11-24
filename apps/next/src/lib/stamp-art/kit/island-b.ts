@@ -1,6 +1,3 @@
-// A low island on a flat waterline: a dark hump of fine vertical hatching under a clump of palms,
-// optionally with a quay (a jetty on posts). The box bottom is the waterline; `palms` lists
-// [x fraction, tree height fraction of the box, lean]. Water hatching is stopped by the hump.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, hline, quad, rectPts, stroke, vline } from '../grid'
 import { type KitModule, bool, num } from './util'
@@ -12,7 +9,6 @@ export const islandB: KitModule = ([x, y, w, h], p) => {
   const hump = num(p, 'hump', 0.16) * h
   const palms = (Array.isArray(p.palms) ? p.palms : []) as [number, number, number][]
   const out: SvgNode[] = []
-  // Palms first so the island body overlaps their feet. Entries are [x fraction, height, lean].
   for (const [f, th, lean] of palms) {
     const tw = th * 0.95
     out.push(
@@ -28,7 +24,6 @@ export const islandB: KitModule = ([x, y, w, h], p) => {
   const top = quad([x, base], [x + w * 0.5, base - hump * 2], [x + w, base], 18)
   const pts: Pt[] = [...top, [x + w, base + 1.6], [x, base + 1.6]]
   out.push(...body(pts, 'line'))
-  // Grass hatching on the lower flank only: the crown stays lit paper.
   for (let hx = x + 1.2; hx < x + w - 0.6; hx += 3.4) {
     const t = (hx - x) / w
     const len = (base + 1.4 - topAt(t)) * (0.22 + rand() * 0.2)

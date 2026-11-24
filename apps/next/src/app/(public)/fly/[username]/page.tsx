@@ -19,7 +19,6 @@ export async function ProfileData({ username }: { username: string }) {
     getRequestLocale(),
   ])
   const state = profileViewState(data?.profile, viewer?.id)
-  // A private owner has no public page to read: show what a visitor would see if it were published.
   if (state.kind === 'owner' && state.visibility === 'private') redirect('/passport?as=visitor')
   if (!data || state.kind === 'not-found' || state.kind === 'closed')
     return (
@@ -34,7 +33,6 @@ export async function ProfileData({ username }: { username: string }) {
     <PassportPage
       mode="visitor"
       locale={locale}
-      // Only allowlisted identity fields enter the client island.
       profile={{
         id: profile.id,
         username: profile.username,

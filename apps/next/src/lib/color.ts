@@ -1,7 +1,4 @@
-// Pure sRGB / OKLCH helpers shared by stamp ink and the token contrast test.
-// Math follows CSS Color 4 (OKLab via Björn Ottosson's matrices, WCAG 2.x contrast).
-
-export type Rgb = [number, number, number] // 0..1 sRGB, gamma-encoded
+export type Rgb = [number, number, number]
 export type Oklch = { l: number; c: number; h: number }
 
 export function parseHex(hex: string): Rgb | null {
@@ -55,7 +52,6 @@ function oklchToLinear({ l, c, h }: Oklch): Rgb {
 
 const inGamut = (rgb: Rgb) => rgb.every((v) => v >= -1e-6 && v <= 1 + 1e-6)
 
-/** Converts to gamma-encoded sRGB, reducing chroma (keeping L and hue) until it fits the gamut. */
 export function oklchToRgb(color: Oklch): Rgb {
   let lo = 0,
     hi = color.c
@@ -82,7 +78,6 @@ export function contrast(a: Rgb, b: Rgb): number {
   return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05)
 }
 
-/** `color-mix(in oklch, a p%, b)`: p is the share of `a` (0..1); hue takes the shorter arc. */
 export function mixOklch(a: Oklch, b: Oklch, p: number): Oklch {
   const hueA = a.c < 1e-4 ? b.h : a.h,
     hueB = b.c < 1e-4 ? a.h : b.h

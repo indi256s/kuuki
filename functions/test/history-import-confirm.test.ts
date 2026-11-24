@@ -1,5 +1,3 @@
-// ADR 0008 confirmation: answers and group answers, explicit clock times, the receipt, atomic creates, re-import
-// matching, and the privacy of the source cells. Real route handlers over local D1.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   allRows,
@@ -49,7 +47,6 @@ const rowSql = (ordinal: number, runId: string) =>
     .bind(runId, ordinal)
     .first<any>()
 
-/** Answer the four shared questions, settle the DST fold and drop the empty record, then confirm everything. */
 async function reviewFixture(runId: string) {
   let revision = (await getPage(db, runId)).body.run.revision
   for (const [group, answer] of [
@@ -104,7 +101,6 @@ describe('the observed fixture end to end', () => {
 
     const flights = await flightsOf()
     expect(flights).toHaveLength(9)
-    // Date line: Tokyo departure 2026-03-11 00:30 JST lands in Honolulu the previous UTC day.
     const dateLine = flights.find((flight) => flight.origin === 'HND')
     expect(dateLine).toMatchObject({
       destination: 'HNL',
@@ -114,7 +110,6 @@ describe('the observed fixture end to end', () => {
       utc_explicit: 1,
     })
     expect(flights.find((flight) => flight.origin === 'FRA')).toMatchObject({ destination: 'BOS' })
-    // The settled fold: 01:30 EDT is 05:30Z and 02:40 EST is 07:40Z.
     expect(
       flights.find((flight) => flight.origin === 'JFK' && flight.destination === 'BOS'),
     ).toMatchObject({
@@ -122,7 +117,6 @@ describe('the observed fixture end to end', () => {
       arrival_utc: '2026-11-01T07:40:00.000Z',
       duration_minutes: 130,
     })
-    // A record without clock times infers nothing explicit.
     expect(flights.find((flight) => flight.origin === 'SVO')).toMatchObject({ utc_explicit: 0 })
 
     const cancelled = (await snapshot(db, runId)).find((row) => row.ordinal === 2)!
@@ -249,7 +243,6 @@ describe('matching against earlier imports and the journal', () => {
     clock(daysAfter(38, IMPORT_AT))
     const second = await uploadCsv(db, fixtureCsv())
     const rows = await snapshot(db, second.runId)
-    // Ten committed records are exact repeats; the empty record was never committed and stays an error.
     expect(rows.filter((row) => row.finding?.kind === 'previous_import')).toHaveLength(10)
     expect(rows.find((row) => row.ordinal === 9)).toMatchObject({ state: 'error' })
     await confirmAllReady(db, second.runId)
@@ -375,7 +368,6 @@ describe('matching against earlier imports and the journal', () => {
     const row = (await snapshot(db, second.runId)).find((entry) => entry.ordinal === 1)!
     expect(row).toMatchObject({ state: 'ready', action: 'create' })
 
-    // A manual flight lands on that date and route before the owner confirms.
     const manual = await createFlight(db, { date: '2026-06-01', origin: 'JFK', destination: 'LHR' })
     expect(manual.status, JSON.stringify(manual.body)).toBe(201)
     const attempt = await postConfirm(db, second.runId, [

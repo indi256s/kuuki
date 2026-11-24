@@ -12,7 +12,6 @@ function subscribe(notify: () => void) {
     window.removeEventListener('kuuki:appearance', notify)
   }
 }
-/** Height-based sizing preserves the prepared orthographic metres per pixel at every aspect ratio. */
 export function AirportPreview({
   entry,
   className,

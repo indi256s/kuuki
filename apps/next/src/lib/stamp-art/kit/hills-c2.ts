@@ -1,6 +1,3 @@
-// Lane C round 2 hill and shore monuments: Samuel's Fortress over Lake Ohrid (MK), a wooden Ohrid
-// boat, Gediminas Tower on its wooded hill (LT), Dubrovnik with Minčeta (HR), Guaita on Monte
-// Titano (SM) and the Valletta bastions (MT). Boxes: the bottom is the ground or waterline.
 import { mulberry32 } from '../hash'
 import {
   type Pt,
@@ -29,7 +26,6 @@ import {
   slit,
 } from './c2-parts'
 
-/** The part of a polygon between two x values. */
 function clipX(poly: Pt[], x0: number, x1: number): Pt[] {
   return clipPolyY(
     poly.map(([px, py]): Pt => [py, px]),
@@ -38,7 +34,6 @@ function clipX(poly: Pt[], x0: number, x1: number): Pt[] {
   ).map(([py, px]): Pt => [px, py])
 }
 
-/** Samuel's Fortress: crenellated walls and towers on a hill crest, old-town roofs descending to the lake. */
 export const samuelsFortress: KitModule = ([x, y, w, h]) => {
   const base = y + h
   const X = (f: number) => x + f * w
@@ -62,7 +57,6 @@ export const samuelsFortress: KitModule = ([x, y, w, h]) => {
   const out: SvgNode[] = []
   const hill: Pt[] = [...prof, [x, base]]
   out.push(...body(hill, 'line'))
-  // lit left slope in fine diagonals, shaded right flank in T4
   out.push(
     ...hatchPoly([...prof.filter(([px]) => px <= X(0.5)), [X(0.5), base], [x, base]], {
       angle: -58,
@@ -75,7 +69,6 @@ export const samuelsFortress: KitModule = ([x, y, w, h]) => {
       inset: 0.3,
     }),
   )
-  // old town roofs descending the right slope, two tiers
   const houses: [number, number][] = [
     [0.6, 0],
     [0.69, 0],
@@ -102,7 +95,6 @@ export const samuelsFortress: KitModule = ([x, y, w, h]) => {
     out.push(occlude(roof), fill(roof))
     out.push(slit(hx + hw / 2 - 0.9, hb - hh + 1.8, 1.8, 3))
   }
-  // the fortress: wall along the crest, a gate, three towers
   const crown = Y(0.38)
   const wx0 = X(0.2),
     wx1 = X(0.58)
@@ -126,7 +118,6 @@ export const samuelsFortress: KitModule = ([x, y, w, h]) => {
   return out
 }
 
-/** One long wooden Ohrid boat (plovka): a narrow hull with raised prow and stern. */
 export const ohridBoat: KitModule = ([x, y, w, h]) => {
   const base = y + h
   const hull: Pt[] = [
@@ -141,7 +132,6 @@ export const ohridBoat: KitModule = ([x, y, w, h]) => {
   ]
   const out: SvgNode[] = [occlude(hull, { halo: 0 })]
   out.push(fill(hull))
-  // awning pole and a short canopy line, plus the glint under the hull
   out.push(
     stroke('hair', [
       [x + w * 0.52, base - h * 0.44],
@@ -157,14 +147,12 @@ export const ohridBoat: KitModule = ([x, y, w, h]) => {
   return out
 }
 
-/** Gediminas Tower: an octagonal 3-storey brick tower with a stepped parapet on a wooded hill. */
 export const gediminas: KitModule = ([x, y, w, h]) => {
   const base = y + h
   const cx = x + w / 2
   const rand = mulberry32(5)
   const out: SvgNode[] = []
   const crown = base - 24
-  // wooded hill: a rounded mound with a flat crown, scalloped with tree crowns, vertical foliage hatch like the distant trees
   const mound: Pt[] = []
   for (let i = 0; i <= 20; i++) {
     const u = i / 10 - 1
@@ -173,7 +161,6 @@ export const gediminas: KitModule = ([x, y, w, h]) => {
     const f = a < k ? 0 : Math.pow((a - k) / (1 - k), 0.85)
     mound.push([cx + u * 52, crown + (base - crown) * f])
   }
-  // resample along the outline and bulge each span outward into a crown
   const rim: Pt[] = [mound[0]]
   for (let i = 0; i + 1 < mound.length; i++) {
     const [ax, ay] = mound[i],
@@ -197,7 +184,6 @@ export const gediminas: KitModule = ([x, y, w, h]) => {
   const poly: Pt[] = [...rim, [cx + 52, base], [cx - 52, base]]
   out.push(...body(rim, 'line'))
   out.push(...toneFill(poly, 'T4', { weight: 'fine', gap: 3, inset: 0.9 }))
-  // wall pieces either side of the tower and a low gate wall in front, on the crown
   out.push(
     ...body(
       [
@@ -216,7 +202,6 @@ export const gediminas: KitModule = ([x, y, w, h]) => {
   out.push(...body(rectPts(cx + 22, crown - 8, 22, 8.8), 'line'))
   out.push(...merlons(cx + 22, crown - 8, 22, 4, 2.4))
   out.push(slit(cx + 31, crown - 5, 2.2, 4))
-  // tower: three faces of an octagon, centre lit, left paper, right shaded
   const tw = 32
   const tx = cx - tw / 2
   const tTop = crown - 40
@@ -240,7 +225,6 @@ export const gediminas: KitModule = ([x, y, w, h]) => {
   out.push(...body(rectPts(cx - 22, crown - 6.4, 44, 7), 'line'))
   out.push(...merlons(cx - 22, crown - 6.4, 44, 8, 2.2))
   out.push(arch(cx - 2.6, crown - 5, 5.2, 5.8))
-  // stepped parapet on a corbelled crown
   out.push(course(tx - 2.4, tx + tw + 2.4, tTop, 'bold'))
   const pw = tw + 4.8
   for (let i = 0; i < 4; i++) {
@@ -265,7 +249,6 @@ export const gediminas: KitModule = ([x, y, w, h]) => {
   return out
 }
 
-/** Dubrovnik: Minčeta tower top left, walls descending to the sea around a dense block of tile roofs. */
 export const dubrovnik: KitModule = ([x, y, _w, h]) => {
   const base = y + h
   const out: SvgNode[] = []
@@ -275,7 +258,6 @@ export const dubrovnik: KitModule = ([x, y, _w, h]) => {
     [x + 82, base - 18],
     [x + 99, base - 5],
   ]
-  // the roof block: between the left wall, the descending wall and the sea wall, in banded T4 rows
   const blockPoly: Pt[] = [
     [x + 8, base - 42],
     ...wall.map(([px, py]): Pt => [px, py + 6]),
@@ -287,7 +269,6 @@ export const dubrovnik: KitModule = ([x, y, _w, h]) => {
     const strip = clipPolyY(blockPoly, ry, ry + 4.4)
     if (strip.length > 2) out.push(...toneFill(strip, 'T4', { inset: 0.3 + ((ry * 7) % 3) }))
   }
-  // descending wall: a lit band with merlons
   const lower: Pt[] = [...wall].reverse().map(([px, py]): Pt => [px, py + 7])
   out.push(...body([...wall, ...lower], 'line'))
   for (let i = 0; i + 1 < wall.length; i++) {
@@ -301,15 +282,12 @@ export const dubrovnik: KitModule = ([x, y, _w, h]) => {
       )
     }
   }
-  // left wall dropping to the shore and the sea wall along the foot
   out.push(...body(rectPts(x + 6, base - 42, 8, 40), 'line'))
   out.push(...body(rectPts(x + 6, base - 5, 95, 5), 'line'))
   out.push(course(x + 6, x + 101, base - 5, 'bold'))
-  // a small round tower on the descending wall
   out.push(...block(x + 64, base - 46, 10, 18, { shade: 0.42 }))
   out.push(...merlons(x + 64, base - 46, 10, 3, 2))
   out.push(course(x + 63, x + 75, base - 46, 'bold'))
-  // Minčeta: a fat round tower, projecting crown, small turret on top
   const mx = x + 24
   const mw = 34
   const mTop = base - 62
@@ -364,7 +342,6 @@ export const dubrovnik: KitModule = ([x, y, _w, h]) => {
   return out
 }
 
-/** Monte Titano: Guaita and its wall on the crest above a sheer T4 cliff, Cesta far along the ridge in T2. */
 export const guaita: KitModule = ([x, y, w, h]) => {
   const base = y + h
   const X = (f: number) => x + f * w
@@ -390,13 +367,11 @@ export const guaita: KitModule = ([x, y, w, h]) => {
     ] as Pt[]
   ).map(([fx, fy]) => [X(fx), Y(fy)])
   const out: SvgNode[] = []
-  // Cesta first, small and in T2, further along the ridge
   const cx2 = X(0.27)
   const cTop = Y(0.6) - 20
   out.push(...body(rectPts(cx2 - 5, cTop, 10, 20.4), 'hair'))
   out.push(...toneFill(rectPts(cx2 - 5, cTop, 10, 20.4), 'T2', { angle: -58, gap: 2.8 }))
   out.push(...merlons(cx2 - 5, cTop, 10, 3, 2))
-  // mountain
   out.push(...body(prof, 'line'))
   const crest = Y(0.42)
   out.push(
@@ -413,14 +388,12 @@ export const guaita: KitModule = ([x, y, w, h]) => {
       { gap: 2.6, inset: 0.3 },
     ),
   )
-  // cliff face: a few paper cracks in the T4
   for (const [fx, f0, f1] of [
     [0.7, 0.5, 0.72],
     [0.745, 0.55, 0.9],
     [0.66, 0.64, 0.86],
   ] as const)
     out.push(occlude(rectPts(X(fx), Y(f0), 1.2, Y(f1) - Y(f0))))
-  // Guaita: a squat tower and its wall
   const wx0 = X(0.46),
     wx1 = X(0.745)
   out.push(...body(rectPts(wx0, crest - 9, wx1 - wx0, 9.6), 'line'))
@@ -437,14 +410,12 @@ export const guaita: KitModule = ([x, y, w, h]) => {
   return out
 }
 
-/** Valletta: battered bastion walls from the water, the 7-arch Upper Barrakka arcade, a gardjola at the tip. */
 export const valletta: KitModule = ([x, y, w, h]) => {
   const base = y + h
   const out: SvgNode[] = []
   const tip = x + w - 38
   const wallTop = base - 41
   const cordon = base - 31
-  // battered slope under the cordon, flaring at the foot: lit on the left (fine), T4 on the right
   const batter: Pt[] = [
     [x, cordon + 4],
     [tip, cordon + 4],
@@ -455,7 +426,6 @@ export const valletta: KitModule = ([x, y, w, h]) => {
   const split = x + (tip - x) * 0.55
   out.push(...toneFill(clipX(batter, x, split), 'T4', { weight: 'fine', gap: 4.4, inset: 0.3 }))
   out.push(...toneFill(clipX(batter, split, tip + 6), 'T4', { gap: 3, inset: 0.3 }))
-  // the shaded return face of the bastion tip
   const side: Pt[] = [
     [tip, wallTop],
     [x + w - 6, wallTop + 3],
@@ -465,7 +435,6 @@ export const valletta: KitModule = ([x, y, w, h]) => {
   ]
   out.push(...body(side, 'line'))
   out.push(...toneFill(side, 'T4', { gap: 3.3, inset: 0.3 }))
-  // cordon: a white band across both faces
   const band: Pt[] = [
     [x, cordon],
     [tip, cordon],
@@ -476,11 +445,9 @@ export const valletta: KitModule = ([x, y, w, h]) => {
   ]
   out.push(...body(band, 'hair'))
   out.push(course(x, tip, cordon, 'bold'))
-  // lit curtain above the cordon
   out.push(...body(rectPts(x, wallTop, tip - x, cordon - wallTop), 'line'))
   out.push(...merlons(x, wallTop, 14, 3, 2.4))
   out.push(course(x, tip + 1, wallTop, 'bold'))
-  // the arcade, seven arches
   const ax0 = x + 16,
     aw = 91,
     aTop = wallTop - 27
@@ -490,7 +457,6 @@ export const valletta: KitModule = ([x, y, w, h]) => {
   const bay = aw / 7
   for (let i = 0; i < 7; i++) out.push(arch(ax0 + i * bay + 2.4, aTop + 8, bay - 4.8, 14))
   out.push(course(ax0, ax0 + aw, wallTop - 2.6, 'hair'))
-  // gardjola: a hexagonal sentry box on a corbel at the tip, in the foreground
   const gx = tip - 5
   const gw = 20
   const gTop = wallTop - 16

@@ -1,19 +1,3 @@
-// Generates the sign-in brand panel's Concorde: a 1:200 display model turning on its stand, drawn with the anatomy
-// skill's iso kit in its 3D ("turning groups") mode.
-//
-//   pnpm generate:concorde              writes the files below
-//   pnpm generate:concorde --preview    also writes .scratch/concorde/concorde.html (a standalone page for captures)
-//   pnpm generate:concorde --audit      runs the kit audit and the orbit audit (slow; add --quick to iterate)
-//
-// Outputs, all in apps/next/src/client/auth-card/concorde/:
-//   concorde.generated.ts    the static and live SVG markup and the turn data the runtime replays
-//   concorde.generated.css   the kit's figure CSS, scoped under .auth-concorde (colours come from concorde.css)
-//   turn.generated.js        the kit's turn runtime (MIT; the licence is in its header), with turn.generated.d.ts
-//   gl.generated.js          the kit's WebGL layer for the reheat flame (reheat.ts), with gl.generated.d.ts
-//
-// Setup and pinned anatomy kit provenance: scripts/concorde/README.md. World units are model millimetres. The airframe
-// comes from Concorde's published dimensions: 61.66 m long, 25.6 m span, 2.87 m fuselage, 358.25 m² ogee wing, two
-// twin Olympus 593 nacelles.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -33,19 +17,16 @@ const WIDTH = 420
 const HEIGHT = 400
 const AZIMUTH = 38
 const ELEVATION = 30
-/** The model's heading at turn 0, so the server-drawn first frame is a three-quarter view from ahead. */
 const REST = 250
 
-// ---------- Truth: Concorde, metres (x aft from the nose, y out from the centreline) ----------
-const M = 5 // 1:200, in mm per metre
+const M = 5
 const LENGTH = 61.66
 const SPAN = 25.6
-const PIVOT = 33 // the stand sits under the centre of gravity, about 53% of the length
-const R0 = (2.87 / 2) * M // fuselage radius
-const NOSE_END = 9 // the cockpit shoulder reaches the cabin diameter
-const BODY_END = 57 // the straight barrel ends under the rudder
+const PIVOT = 33
+const R0 = (2.87 / 2) * M
+const NOSE_END = 9
+const BODY_END = 57
 const TAIL_R = 0.42 * M
-// Ogee leading edge and a near-straight trailing edge, half span; the strips below give 354 m² against 358.25 m².
 const LE = [
   [1.3, 22.2],
   [3.0, 31.6],
@@ -61,29 +42,23 @@ const ELEVON = [
   [1.45, 3.0],
   [6.0, 9.2],
   [9.2, 12.5],
-] // inner, middle and outer elevons; hinge line 1.7 m ahead of the trailing edge
+]
 const FIN = { root: [45.5, 57.0], tip: [55.0, 58.6], h: 6.0, hinge: [54.2, 57.4], split: 3.0 }
-// Reheat: the Olympus 593's afterburner, lit for takeoff and the transonic push. Its visible flame runs about 9 m; the
-// figure draws it wider and brighter than that so it reads at the panel's 420 px, and 10.5 m long, the most the frame
-// holds side-on (the fit is set by the nose's sweep). `proxy` is the half-height of the clear prism that stands in for
-// each nacelle's pair of flames in the painter's order.
 const REHEAT = { len: 10.5, proxy: 0.68, proxyLen: 12 }
 const WINDOWS = { from: 13.4, to: 41.6, count: 26 }
-const ANTENNAS = [17.5, 31.0] // dorsal VHF blades
+const ANTENNAS = [17.5, 31.0]
 
-// ---------- Stand, model millimetres ----------
 const PLINTH = { x: -62, y: -62, w: 124, d: 124, r: 12 }
 const PLINTH_H = 15
 const FOOT_H = 3
 const PLATTER_R = 47
 const PLATTER_H = 3.2
 const STEM_R = 1.5
-const BELLY = 66 // fuselage bottom above the plinth top
+const BELLY = 66
 const CRADLE_H = 3
-const ZC = BELLY + R0 // fuselage axis
+const ZC = BELLY + R0
 const WING_TOP = ZC - 3.0
 const WING_BOT = WING_TOP - 1.6
-// The root face stands 0.12 mm off the barrel (inside the audit's 0.15 mm touch), so the pair has a clean separating plane at every angle.
 const ROOT_Y = Math.sqrt(R0 * R0 - (ZC - WING_TOP) ** 2) + 0.12
 
 const sweep = []
@@ -108,7 +83,6 @@ const L = (d, style) => k.lineSvg(d, style)
 const D = (points, style) => k.dotsSvg(points, style)
 const f = (n) => n.toFixed(3)
 
-// Body axes: x forward along the nose, y to starboard... turned by REST about the stand.
 const cb = Math.cos((REST * Math.PI) / 180)
 const sb = Math.sin((REST * Math.PI) / 180)
 const rz = ([x, y, z]) => [x * cb - y * sb, x * sb + y * cb, z]
@@ -121,7 +95,6 @@ const frameOf = (o, a, u) => {
   return { o: rz(o), a: axis, u: uu, v: G.cross3(axis, uu) }
 }
 const UP = { o: [0, 0, 0], a: [0, 0, 1], u: rz([1, 0, 0]), v: rz([0, 1, 0]) }
-// Along the fuselage: s is the station in mm from the nose, x points to −y, y up.
 const AFT = (z = ZC, y = 0) => frameOf([X(0), y, z], [-1, 0, 0], [0, -1, 0])
 
 const R = A.recorder(P)
@@ -137,7 +110,6 @@ const put = (item) =>
     ),
   })
 
-// ---------- Static stand: plinth on four feet, a degree ring round the platter, an engraved plate ----------
 function stand() {
   for (const [x, y] of k.corners(PLINTH, 14)) {
     const svg = S(k.cylinder(x, y, 6, -PLINTH_H - FOOT_H, FOOT_H, P, 28), { tone: 'lo' })
@@ -175,7 +147,6 @@ function stand() {
   plate()
 }
 
-/** The plate on the plinth's front face (+x), the one label in the drawing. */
 function plate() {
   const x = PLINTH.x + PLINTH.w
   const W = 46
@@ -191,7 +162,6 @@ function plate() {
   const body = S(k.extrude(ring, z0, H, P, { bevel: 0.25 }), { tone: 'hi' })
   const face = (yy, zz) => at([x + T, yy, zz])
   const screws = D([face(-W / 2 + 2.2, z0 + H / 2), face(W / 2 - 2.2, z0 + H / 2)], { size: 0.45 })
-  // Text space mapped onto the face: x runs along the plate (−y reads left to right from the viewer), y runs down.
   const base = z0 + H / 2 - 1.05
   const o = face(W / 2 - 4.6, base)
   const ux = face(W / 2 - 5.6, base)
@@ -209,7 +179,6 @@ function plate() {
   })
 }
 
-// ---------- The turning model ----------
 const T = turning(P, { recorder: R })
 const model = T.group('model', { turn: { pivot: [0, 0] } })
 const live = T.layer('model')
@@ -217,7 +186,6 @@ T.stack(['back', 'model', 'front'])
 const poses = () => Array.from({ length: 720 }, (_, i) => ({ model: i * 0.5 }))
 const H = { group: model, layer: live }
 
-// Platter, stem and cradle
 const platter = T.round({
   name: 'stand.platter',
   ...H,
@@ -281,8 +249,6 @@ T.prism({
   },
 })
 
-// Raised display-model nose: a fine radome, a fuller cockpit shoulder and six angular panes.
-// Stations and glazing proportions are estimated from the supplied Air France reference.
 const NOSE_L = NOSE_END * M
 const RHO = (R0 * R0 + NOSE_L * NOSE_L) / (2 * R0)
 const ogive = (s) => Math.sqrt(Math.max(0, RHO * RHO - (NOSE_L - s) ** 2)) + R0 - RHO
@@ -303,7 +269,6 @@ const nose = T.lathe({
   crease: 'faint',
   details: { seams: [3.8 * M, 7.7 * M] },
 })
-// Surface details share the nose's turning part, so the far-side glazing fades with its facing.
 function nosePanel(s, phi, polygon, glazed = true) {
   const radial = G.add3(G.mul3(noseF.u, Math.cos(phi)), G.mul3(noseF.v, Math.sin(phi)))
   const tangent = G.add3(G.mul3(noseF.u, -Math.sin(phi)), G.mul3(noseF.v, Math.cos(phi)))
@@ -319,7 +284,6 @@ function nosePanel(s, phi, polygon, glazed = true) {
 }
 for (const side of [-1, 1]) {
   const angle = (phi) => (side > 0 ? phi : Math.PI - phi)
-  // Swept windscreen, quarter light and longer side pane, separated by narrow mullions.
   nosePanel(5.1 * M, angle(1.22), [
     [-2.5, -1.0],
     [1.7, -1.2],
@@ -338,7 +302,6 @@ for (const side of [-1, 1]) {
     [1.7, 1.0],
     [-1.6, 1.2],
   ])
-  // The raised visor runs forward from the windscreen to the radome seam.
   nosePanel(
     4.35 * M,
     angle(1.02),
@@ -353,7 +316,6 @@ for (const side of [-1, 1]) {
 }
 T.round({ name: 'air.pitot', ...H, F: noseF, s0: -2.5, s1: NOSE_S0, r: 0.12, tone: 'mid' })
 
-// Barrel: cabin windows (the lit part, a row each side just above the axis) and frame seams at the door stations.
 const windows = []
 const phi = Math.asin(1.4 / R0)
 for (let i = 0; i < WINDOWS.count; i++) {
@@ -389,7 +351,6 @@ T.round({
   details: { seams: [59.4 * M] },
 })
 
-// Wing: the ogee planform cut into chordwise strips (each convex), with the elevon hinge lines on top.
 const strips = []
 for (const side of [-1, 1]) {
   for (let i = 0; i < LE.length - 1; i++) {
@@ -441,7 +402,6 @@ for (const { part, side, ya, yb } of strips) {
     })
 }
 
-// Nacelles: one twin-engine box under each wing, a pair of intakes in front, four nozzles behind.
 const EXIT = (NACELLE.x1 + NOZZLE.len) * M
 const reheat = { exits: [], plume: [], proxies: [] }
 for (const side of [-1, 1]) {
@@ -450,7 +410,6 @@ for (const side of [-1, 1]) {
   const y1 = NACELLE.y1 * M
   const zb = WING_BOT - NACELLE.h * M
   const c = 1.4
-  // Section in the AFT frame: x = −y, y = z.
   const xs = side > 0 ? [-y1, -y0] : [y0, y1]
   const polygon = [
     [xs[0], WING_BOT],
@@ -476,7 +435,6 @@ for (const side of [-1, 1]) {
   const zc = (WING_BOT + zb) / 2
   const wHalf = ((NACELLE.y1 - NACELLE.y0) / 2) * M
   const hHalf = (NACELLE.h * M) / 2
-  // The intake mouths on the front face, either side of the centre wall.
   const mouth = (u0, u1) =>
     `M${f(u0)} ${f(-hHalf + 1.6)}L${f(u1)} ${f(-hHalf + 1.6)}L${f(u1)} ${f(hHalf - 1.2)}L${f(u0)} ${f(hHalf - 1.2)}Z`
   const mouths = mouth(-wHalf + 1.1, -0.5) + mouth(0.5, wHalf - 1.1)
@@ -529,8 +487,6 @@ for (const side of [-1, 1]) {
     reheat.exits.push(rz([X(NACELLE.x1 + NOZZLE.len), y, zc]))
     reheat.plume.push(reheat.proxies.length)
   }
-  // The pair's reheat proxy: a stadium prism round both flames, 0.12 mm behind the nozzle exits (inside the audit's
-  // touch, with a clean separating plane). concorde.css hides it; reheat.ts masks the flames with the parts drawn after it.
   const half = NOZZLE.dy * M
   const rp = REHEAT.proxy * M
   const name = `air.plume.${tag}`
@@ -553,10 +509,9 @@ for (const side of [-1, 1]) {
   reheat.proxies.push(name)
 }
 
-// Fin and the two-piece rudder: thin plates standing on the barrel's top line (tangent contact).
 const FIN_T = 0.9
 const finF = frameOf([0, 0, ZC + R0], [0, 1, 0], [-1, 0, 0])
-const fx = (station) => (station - PIVOT) * M // finF.u is −x
+const fx = (station) => (station - PIVOT) * M
 const fz = (h) => h * M
 const hingeAt = (h) => FIN.hinge[0] + ((FIN.hinge[1] - FIN.hinge[0]) * h) / FIN.h
 const teAt = (h) => FIN.root[1] + ((FIN.tip[1] - FIN.root[1]) * h) / FIN.h
@@ -595,7 +550,6 @@ plateAt(
   FIN_T * 0.8,
   0.15,
 )
-// Dorsal antenna blades, standing on the barrel's top line like the fin.
 for (const [i, station] of ANTENNAS.entries())
   plateAt(
     `air.antenna.${i}`,
@@ -609,7 +563,6 @@ for (const [i, station] of ANTENNAS.entries())
     0,
   )
 
-// ---------- Build ----------
 stand()
 const out = T.build({ statics: R.items, poses, verify: false })
 A.settle(R, P)
@@ -639,23 +592,19 @@ if (argv.includes('--audit')) {
 const LABEL = 'A 1:200 Concorde display model turning slowly on its stand.'
 const back = k.figureSvg({ width: WIDTH, height: HEIGHT, label: LABEL, body: BACK })
 const front = `<svg xmlns="http://www.w3.org/2000/svg" class="iso-svg iso-layer" viewBox="0 0 ${WIDTH} ${HEIGHT}" aria-hidden="true">${layerOf('front').join('')}</svg>`
-// The reheat canvas sits over the live model, under the front layer.
 const liveSvg = `${out.layerSvg('model', { width: WIDTH, height: HEIGHT })}<canvas class="iso-layer cn-reheat" aria-hidden="true"></canvas>`
 const r3 = (v) => Math.round(v * 1e4) / 1e4
 const REHEAT_DATA = {
   view: [WIDTH, HEIGHT],
   camera: GL.glCamera(P),
-  // Rest-world points and direction in the `model` group: the nozzle exit centres and the aft axis.
   exits: reheat.exits.map((p) => p.map(r3)),
   axis: rz([-1, 0, 0]).map(r3),
   plume: reheat.plume,
   proxies: reheat.proxies,
-  // Model millimetres: the nozzle opening's radius and the drawn flame's length.
   r: NOZZLE.r1 * M - 0.6,
   len: REHEAT.len * M,
 }
 
-// ---------- CSS: the kit's rules scoped under .auth-concorde, keeping only those the figure can match ----------
 const SCOPE = '.auth-concorde'
 function rulesOf(css) {
   const rules = []
@@ -681,8 +630,6 @@ function scoped(selector) {
     })
     .join(',')
 }
-// Rules for parts the figure never has: metal materials, plates, legends and keys, wires, tubes, lit solids, flowing
-// and pulsing lines (with their keyframes), dashes, the plate figure's margin and the red, green and blue tones.
 const UNUSED =
   /data-mat|iso-(plate|legend|key|swatch|wire|figure|flow|pulse)|\.tb\b|tb-|data-(lit|flow|pulse|dotted|dashed)|"(red|green|blue)"/
 function scope(css) {
@@ -697,17 +644,14 @@ function scope(css) {
         const inner = scope(body)
         return inner ? [`${head}{${inner}}`] : []
       }
-      // The kit's palettes: concorde.css maps every --anatomy-* role onto Kuuki's iso tokens.
       if (/^\.iso(\[data-theme="(dark|light)"\])?$/.test(head)) return []
       return [`${scoped(head)}{${body}}`]
     })
     .join('\n')
 }
 const kitCss = readFileSync(join(KIT, 'iso.css'), 'utf8')
-// The stage keeps the viewBox's aspect, so concorde.css can size-contain it.
 const css = `/* Generated by scripts/generate-concorde.mjs from the anatomy kit's iso.css and TURN_CSS (MIT). Do not edit by hand. */\n${SCOPE}{aspect-ratio:${WIDTH}/${HEIGHT}}\n${scope(kitCss)}\n${scope(out.css)}\n`
 
-// ---------- Write ----------
 mkdirSync(OUT, { recursive: true })
 const header = `// Generated by scripts/generate-concorde.mjs (pnpm generate:concorde). Do not edit by hand.\n`
 writeFileSync(
@@ -780,7 +724,6 @@ console.log(
 
 if (argv.includes('--preview')) {
   const theme = argv.includes('--light') ? 'light' : 'dark'
-  // The app's reheat module, types stripped, with the kit's GL layer inlined in place of its imports.
   const ts = (await import('typescript')).default
   const reheatTs = readFileSync(
     new URL('../apps/next/src/client/auth-card/concorde/reheat.ts', import.meta.url),

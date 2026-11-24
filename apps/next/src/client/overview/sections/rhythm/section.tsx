@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { SECTION_GATES } from '@kuuki/shared/overview/goals'
-import { formatCount, type CountForms } from '../../../../lib/format'
+import { formatCount, formatMonthYear, type CountForms } from '../../../../lib/format'
 import { Button } from '../../../ui/button'
 import { SegmentedControl } from '../../../ui/segmented-control'
 import { StageColumns, type StageTick } from '../../charts/stage-columns'
@@ -35,10 +35,8 @@ const MONTHS: CountForms = {
 const pad = (month: number) => String(month).padStart(2, '0')
 const monthKey = (month: number) => `m${pad(month)}`
 const yearKey = (year: number) => `y${year}`
-// The stage's width on the sheet and on the desktop card; twelve columns fill it at these sizes, and more years squeeze the pitch.
 const AVAILABLE = { sheet: 342, full: 636 }
 const COLUMNS = { sheet: { barWidth: 20, pitch: 29 }, full: { barWidth: 40, pitch: 52 } }
-// The least a year label (four mono digits) needs between two ticks.
 const TICK_GAP = 34
 
 function columnsFor(count: number, span: Span) {
@@ -68,7 +66,6 @@ export function Section({ span }: { span: Span }) {
   const historyYears = showAll ? data?.years : data?.years.slice(0, 6)
   const cap = (text: string) => text.charAt(0).toLocaleUpperCase(locale) + text.slice(1)
 
-  // History reads dated months; seasonality combines calendar months; Years reads yearly totals.
   const rows: Row[] = !data
     ? []
     : history
@@ -90,7 +87,6 @@ export function Section({ span }: { span: Span }) {
             year: row.year,
           }))
   const filled = rows.filter((row) => row.flights > 0)
-  // The busiest month is the rhythm's own; the busiest year is the latest of any tie.
   const busiest = calendar
     ? data?.busiestMonthOfYear
       ? monthKey(data.busiestMonthOfYear.month)
@@ -187,8 +183,8 @@ export function Section({ span }: { span: Span }) {
     caption = r.isHeadline
       ? copy(
           locale,
-          'Busiest shown month · by flights',
-          'Самый активный месяц на графике · по перелётам',
+          'Record month on the chart · by flights',
+          'Рекордный месяц на графике · по перелётам',
         )
       : copy(locale, `${share} of shown flights`, `${share} перелётов на графике`)
   }
@@ -223,11 +219,11 @@ export function Section({ span }: { span: Span }) {
     ? [
         {
           value: busiestMonth ? monthName(locale, busiestMonth.month) : '—',
-          label: copy(locale, 'Busiest month', 'Самый активный месяц'),
+          label: copy(locale, 'Busiest month · all years', 'Самый активный месяц · все годы'),
         },
         {
           value: gap ? `${gap.months} ${copy(locale, 'mo', 'мес.')}` : '—',
-          label: `${copy(locale, 'Longest gap', 'Самый длинный перерыв')}${gap ? ` · ${gap.from}–${gap.to}` : ''}`,
+          label: `${copy(locale, 'Longest gap', 'Самый длинный перерыв')}${gap ? ` · ${formatMonthYear(locale, gap.from)} – ${formatMonthYear(locale, gap.to)}` : ''}`,
         },
       ]
     : []

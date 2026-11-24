@@ -16,7 +16,6 @@ const CITIES = {
   },
 }
 
-/** "of N segments": after «из» the Russian count takes the genitive, so 21 is «21 отрезка». */
 const SEGMENTS_OF = {
   en: { one: '{count} segment', other: '{count} segments' },
   ru: {
@@ -27,7 +26,6 @@ const SEGMENTS_OF = {
   },
 }
 
-/** Straight-line sums from the places chosen so far. Unknown is a sentence, never a zero or a partial total. */
 export function MetricsPreview({ state, locale }: { state: FormState; locale: Locale }) {
   const ru = locale === 'ru'
   const metrics = useMemo(() => {

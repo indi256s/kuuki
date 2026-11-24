@@ -1,7 +1,3 @@
-// Cappadocia fairy chimneys: a cluster of tall tuff cones whose skirts flare into the slope, some
-// capped with a dark boulder hat, others bare points. Each cone is lit on the left, shaded on the
-// right in fine vertical hatching, with a few erosion grooves and one or two cave doors. The box
-// bottom is the slope; the tallest cone takes the box height.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, hline, occlude, quad, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
@@ -38,7 +34,6 @@ function cone(c: Cone, x: number, base: number, w: number, h: number, rand: () =
   )
   const poly: Pt[] = [...left, ...right]
   const out: SvgNode[] = body(poly, 'line')
-  // Shaded right flank.
   const widthAt = (yy: number) => {
     const t = (base - yy) / (base - bodyTop)
     return wb * (1 - t) + wt * t
@@ -59,7 +54,6 @@ function cone(c: Cone, x: number, base: number, w: number, h: number, rand: () =
       inset: 0.5,
     }),
   )
-  // Erosion grooves on the lit side.
   for (const g of [-0.28, -0.1]) {
     const gy1 = base - 3
     const gy0 = bodyTop + (base - bodyTop) * (0.3 + rand() * 0.2)
@@ -84,7 +78,6 @@ function cone(c: Cone, x: number, base: number, w: number, h: number, rand: () =
     )
   }
   if (c.cap) {
-    // Boulder hat: wider than the neck, dark.
     const hw = Math.max(wt * 1.5, wb * 0.5)
     const hat: Pt[] = [
       ...quad([xc - hw / 2, top + capH], [xc - hw / 2 - 1, top - 1], [xc, top - 1.5], 10),
@@ -102,7 +95,6 @@ export const fairyChimney: KitModule = ([x, y, w, h], p) => {
   const base = y + h
   const out: SvgNode[] = []
   for (const c of CONES) out.push(...cone(c, x, base, w, h, rand))
-  // Foot of the slope: a tufa skirt that ties the cones together.
   const skirt: Pt[] = [
     [x + 4, base + 3],
     [x + 4, base - 3],

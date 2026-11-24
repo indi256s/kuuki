@@ -16,7 +16,6 @@ export function ReadyStep({
   onOpen,
 }: StepProps & {
   summary: SavedSummary
-  /** "Open my journal": records onboarding as done, then dissolves. Rejects when recording fails. */
   onOpen: () => Promise<void>
 }) {
   const t = (entry: { en: string; ru: string }) => entry[locale]
@@ -67,7 +66,6 @@ export function ReadyStep({
             {' →'}
           </span>
         </Button>
-        {/* Mobile only: on desktop the passport's own caption says it under the spread. */}
         <p className="ready-caption">{t(COPY.caption)}</p>
       </div>
     </div>

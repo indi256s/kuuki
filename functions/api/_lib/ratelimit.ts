@@ -1,13 +1,5 @@
-// Atomic D1 fixed-window counters for auth and paid import/enrichment routes.
-// All callers share the auth_rate_limits table, so each key starts with its route's prefix
-// (signin:, signup:, import-parse:, import-enrich:, ...).
-
 import { HttpError } from './http'
 
-/**
- * Increment a counter for `key` within a fixed window. The UPSERT is one SQLite
- * statement, so parallel requests cannot lose increments.
- */
 export async function rateLimit(
   db: D1Database,
   key: string,
@@ -30,10 +22,6 @@ export async function rateLimit(
   }
 }
 
-/**
- * Read-only check: true when the window for `key` is live and already holds `limit` hits, so the
- * next `rateLimit` call would be refused. Consumes nothing.
- */
 export async function rateLimitExhausted(
   db: D1Database,
   key: string,
@@ -47,7 +35,6 @@ export async function rateLimitExhausted(
   return (row?.count ?? 0) >= limit
 }
 
-/** Derive a client key from the request (Cloudflare-provided client IP). */
 export function clientIp(request: Request): string {
   return (
     request.headers.get('CF-Connecting-IP') ?? request.headers.get('X-Forwarded-For') ?? 'unknown'

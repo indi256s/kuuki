@@ -10,13 +10,10 @@ export type DisclosureProps = {
   defaultOpen?: boolean
   open?: boolean
   onOpenChange?: (open: boolean) => void
-  /** `row`: a full-width row with the chevron at the end. The default stays a fit-content trigger. */
   layout?: 'inline' | 'row'
-  /** One line under the summary on a `row`, shown only while closed (what is inside, or what was filled). */
   description?: ReactNode
 }
 
-/** Layout snaps before the content fades in. Collapsed content is inert and hidden. */
 export function Disclosure({
   summary,
   children,

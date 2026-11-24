@@ -1,6 +1,5 @@
 export const DAY_MS = 86_400_000
 
-/** Calendar days use UTC; setUTCFullYear avoids Date.UTC's 1900 offset for years 0–99. */
 export function dayToEpoch(day: string): number | null {
   if (!/^\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/.test(day)) return null
   const date = new Date(0)
@@ -16,7 +15,6 @@ export function epochToDay(epoch: number): string | null {
     : null
 }
 
-/** Legacy month bounds expand to whole months; exact bounds stay inclusive calendar days. */
 export function periodDays(period: {
   from: string
   to: string

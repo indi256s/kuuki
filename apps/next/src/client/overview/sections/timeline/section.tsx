@@ -31,10 +31,8 @@ import '../cookie.css'
 import '../../iso/tape.css'
 import './timeline.css'
 
-// Plot insets in CSS pixels shared by the line, its axis labels and the brush below it; the plot fills whatever width the card measures.
 const PLOT_LEFT = 55,
   PLOT_RIGHT = 12
-// Vertical layout in CSS pixels: a strip above the plot for lap labels, the plot, then the date axis. The svg height (plot plus axes) follows its width.
 const STRIP = 32,
   AXIS = 30
 const chartHeight = (width: number) => Math.round(Math.min(320, Math.max(180, width * 0.3)))
@@ -45,7 +43,6 @@ export function TimelineContent({ span }: { span: Span }) {
   const [cumulativeMetric, setCumulativeMetric] = useState<'km' | 'flights'>('km')
   const distanceKm = scope?.figures.distanceKm ?? 0
   const tapeLabel = formatDistanceKm(locale, distanceKm)
-  // The tag names the unit (the head already reads the total); the blade's length is the distance. The scale is fitted to the 300 x 160 stage at full length, so it doesn't change with the distance.
   const tapeUnit = copy(locale, 'km', 'км')
   const tapeK = useMemo(
     () =>
@@ -99,7 +96,6 @@ export function TimelineContent({ span }: { span: Span }) {
     x: dayToEpoch(row.date.length === 7 ? `${row.date}-01` : row.date)!,
     y: row[valueKey],
   }))
-  // Landmarks (equator laps, the Moon) only annotate distance. The reference line widens the scale only when it is within reach of the total.
   const total = valueKey === 'km' ? (linePoints.at(-1)?.y ?? 0) : 0
   const crossings = valueKey === 'km' ? lapCrossings(linePoints) : []
   const landmark = valueKey === 'km' ? nextLandmark(total) : null
@@ -292,7 +288,6 @@ function landmarkSentence(locale: 'en' | 'ru', total: number) {
     `${number(locale, total)} км. Экватор: ${lapText}×${moon ? `, до Луны${back ? ' и обратно' : ''} пройдено ${percentOf(moon.percent)}` : ''}.`,
   )
 }
-// The head's pointer to what comes next after the total; empty once the total is past every landmark.
 function headLandmark(locale: 'en' | 'ru', total: number) {
   const next = nextLandmark(total)
   if (!next) return ''
@@ -316,7 +311,6 @@ function referenceLabel(locale: 'en' | 'ru', landmark: Landmark, total: number) 
   if (landmark.kind === 'lap') return `${landmark.laps}× · ${done}`
   return `${landmark.kind === 'moon' ? copy(locale, 'Moon', 'Луна') : copy(locale, 'Moon and back', 'Луна и обратно')} · ${done}`
 }
-// Decorative marks drawn in the plot's own coordinates; the text note under the chart is the accessible version.
 function Landmarks({
   crossings,
   reference,
@@ -339,7 +333,6 @@ function Landmarks({
   const px = (epoch: number) => ((epoch - bounds[0]) / (bounds[1] - bounds[0] || 1)) * width
   const py = (value: number) => height - (value / yMax) * height
   const placed = crossings.map((row) => ({ lap: row.lap, x: px(row.x), y: py(row.y) }))
-  // Lap labels share one strip above the plot, so only their horizontal spacing matters; a dotted guide drops from each label to its notch.
   const shown = spreadLabels(
     placed.map((mark) => ({ x: mark.x, y: 0 })),
     LAP_LABEL_DX,
@@ -408,7 +401,6 @@ type ExactRangeProps = {
   active: boolean
   onChange: (range: { from: string; to: string } | null) => void
 }
-// The brush is the page's period control; typed dates live in the Overview filter panel.
 function ExactRange({ from, to, bounds, points, locale, active, onChange }: ExactRangeProps) {
   const [draft, setDraft] = useState({ from, to })
   const clamp = (value: number) => Math.max(bounds[0], Math.min(bounds[1], value))

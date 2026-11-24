@@ -1,6 +1,3 @@
-// Ha'amonga 'a Maui: two thick coral-limestone uprights with a heavy lintel laid across their
-// heads, seen three-quarter: lit front faces, shaded right sides, a lit top on the lintel. The box
-// is the whole gate; the bottom is the ground.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, hline, stroke, toneFill, vline } from '../grid'
 import { type KitModule, num } from './util'
@@ -30,7 +27,6 @@ export const haamonga: KitModule = ([x, y, w, h], p) => {
     out.push(...body(side, 'line'))
     out.push(...toneFill(side, 'T4', { gap: 2.2, inset: 0.2 }))
     out.push(...body(front, 'line'))
-    // Bedding lines and a few stone texture ticks on the lit front.
     for (const f of [0.34, 0.58, 0.8]) {
       const yy = top + (base - top) * f
       const x0 = ux + 3 + rand() * 3
@@ -49,7 +45,6 @@ export const haamonga: KitModule = ([x, y, w, h], p) => {
   const ux1 = x + upW + gap * 0.9
   upright(ux0)
   upright(ux1)
-  // Lintel: front face, top face and right end, overhanging both uprights.
   const lx0 = x - w * 0.02
   const lx1 = ux1 + upW + depth * 0.6 - 0.5
   const front: Pt[] = [

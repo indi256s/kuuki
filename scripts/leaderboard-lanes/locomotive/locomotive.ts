@@ -1,5 +1,3 @@
-// Build-time locomotive artwork. Shares the airliner's pinned anatomy kit, material ramps and SVG serializer, and the
-// car's way of deriving its camera from the lane scene, so the rails, wheel contacts and scale of the lane are kept.
 import type { Draw } from '../airliner/draw'
 import { loadKit } from '../airliner/kit'
 import { laneCamera } from '../lane-camera'
@@ -13,7 +11,6 @@ import { roof } from './roof'
 
 export function locomotive(d: Draw): Item[] {
   const c = makeCtx(d)
-  // Ground shadow.
   c.fill(
     [
       at(0.3, -HW + 0.2, 0.01),
@@ -23,8 +20,6 @@ export function locomotive(d: Draw): Item[] {
     ],
     'shadow',
   )
-  // Far to near: far bogies, the underframe, near bogies, the tail end (behind the shell), the shell and everything
-  // drawn on it, the nose end (in front of it), the roof.
   for (const b of BOGIES) bogie(c, b, -1)
   underframe(c)
   for (const b of BOGIES) bogie(c, b, 1)
@@ -41,8 +36,6 @@ export function locomotive(d: Draw): Item[] {
 
 export async function buildLocomotive(unit = 112) {
   const kit = await loadKit()
-  // The kit camera is derived from the lane's actual projection (see the car): the rails, the wheel contacts and the
-  // scale stay the lane's own.
   const { cam, draw, place } = laneCamera(kit, unit / LENGTH)
   const items = locomotive(draw)
   const built = serialize(items, place, 1)

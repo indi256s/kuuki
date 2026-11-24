@@ -112,7 +112,6 @@ describe('FlightsStep touch screenshot entry', () => {
         'data-variant',
         'primary',
       )
-      // One primary on touch: the prompt tray stays, its button steps down.
       expect(screen.getByRole('button', { name: 'Copy prompt' })).toHaveAttribute(
         'data-variant',
         'secondary',

@@ -1,4 +1,3 @@
-// Adapted from flightcn's generateArcGeometry, pinned at 5c9061ef36bb2cd3cfa9f11f6463419944566a9d.
 import greatCircle from '@turf/great-circle'
 import type { ProjectedRoute } from './types'
 
@@ -16,7 +15,6 @@ function valid(point: [number, number] | null): point is [number, number] {
   )
 }
 
-/** Great-circle line between the two ends of a directed route or an undirected pair; null when it is undefined. */
 export function routeGeometry(route: Pick<ProjectedRoute, 'from' | 'to'>): RouteGeometry | null {
   const { from, to } = route
   if (!valid(from) || !valid(to)) return null
@@ -26,7 +24,6 @@ export function routeGeometry(route: Pick<ProjectedRoute, 'from' | 'to'>): Route
     lat2 = (to[1] * Math.PI) / 180
   const dot =
     Math.sin(lat1) * Math.sin(lat2) + Math.cos(lat1) * Math.cos(lat2) * Math.cos(lon1 - lon2)
-  // A coincident route is a point; antipodes have no unique great circle.
   if (dot > 0.99999999 || dot < -0.99999999) return null
   try {
     const geometry = greatCircle(from, to, { npoints: 64 }).geometry
@@ -49,7 +46,6 @@ export function routeGeometry(route: Pick<ProjectedRoute, 'from' | 'to'>): Route
     }
     return { type: 'LineString', coordinates: geometry.coordinates as [number, number][] }
   } catch {
-    // Do not draw a misleading straight segment for undefined geometry.
     return null
   }
 }
@@ -84,7 +80,6 @@ export function wrappedBounds(
     maxLat = Math.max(maxLat, points[i][1])
   }
   const offset = (minLon + maxLon) / 2 > 180 ? -360 : 0
-  // Web Mercator ends at ±85.0511°: a polar great circle beyond it cannot be fitted, so clamp.
   const lat = (value: number) => Math.max(-MERCATOR_LAT, Math.min(MERCATOR_LAT, value))
   return [
     [minLon + offset, lat(minLat)],
@@ -94,13 +89,11 @@ export function wrappedBounds(
 
 const MERCATOR_LAT = 85
 
-/** Whole inhabited world for the first view: every longitude, without Antarctica's Mercator inflation. */
 export const WORLD_BOUNDS: [[number, number], [number, number]] = [
   [-180, -57],
   [180, 78],
 ]
 
-/** Initial geographic heading, clockwise from north, in degrees. */
 export function bearing(a: [number, number], b: [number, number]): number {
   const rad = Math.PI / 180
   const lat1 = a[1] * rad,

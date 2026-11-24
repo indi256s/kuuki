@@ -178,7 +178,6 @@ describe('ground journeys API', () => {
       )
       expect((await t.list('', other)).body.journeys).toEqual([])
       expect((await t.list()).body.journeys).toHaveLength(1)
-      // A foreign manual place is indistinguishable from a missing one.
       const foreign = { ...paris, source: 'manual', id: manualId, catalogVersion: null }
       const refused = await t.create({
         operationKey: key(),
@@ -304,7 +303,6 @@ describe('ground journeys API', () => {
       expect(cancelled.body.current.status).toBe('cancelled')
       expect((await t.list()).body.journeys).toEqual([])
       expect((await t.list('?status=cancelled')).body.journeys).toHaveLength(1)
-      // An illegal transition keeps its own error even with a fresh version.
       expect(
         (await t.patch(id, { action: 'cancel', operationKey: key(), expectedVersion: 2 })).body
           .code,
@@ -399,7 +397,6 @@ describe('ground journeys API', () => {
     const t = await setup()
     try {
       const id = await t.createPlanned()
-      // Another writer bumps the version after our classification would have passed.
       await t.db.prepare('UPDATE ground_journeys SET version = 2 WHERE id = ?').bind(id).run()
       const receipts = await count(t.db, 'ground_operation_receipts')
       const before = await t.revision()
@@ -519,7 +516,6 @@ describe('ground journeys API', () => {
         (await t.patch(id, { action: 'cancel', operationKey: key(), expectedVersion: 2 })).status,
       ).toBe(410)
       expect((await t.operation(operationKey)).body.status).toBe('saved')
-      // Another owner's id is refused too, without saying whose it is.
       const taken = await t.create(
         { operationKey: key(), journeyId: id, status: 'planned', journey: rail() },
         other,
@@ -621,7 +617,6 @@ describe('ground journeys API', () => {
   it('refuses an operation key that the receipt CHECK would count differently', async () => {
     const t = await setup()
     try {
-      // 8 emoji are 16 UTF-16 units but 8 characters; 4 emoji are 8 units and used to pass the length test.
       for (const operationKey of ['😀'.repeat(4), 'short', 'a'.repeat(129), 'has space 123']) {
         const refused = await t.create({
           operationKey,
@@ -641,7 +636,7 @@ describe('ground journeys API', () => {
   it('accepts the documented maximal road payload and counts characters, not UTF-16 units', async () => {
     const t = await setup()
     try {
-      const wide = (n: number) => '😀'.repeat(n) // 4 UTF-8 bytes, 2 UTF-16 units, 1 character
+      const wide = (n: number) => '😀'.repeat(n)
       const heavy = {
         ...paris,
         name: wide(200),
@@ -721,8 +716,6 @@ describe('ground journeys API', () => {
         ).results.map((row) => row.id)
       const ranOn = (action: string, body: Record<string, unknown>, bump: boolean) => {
         let armed = bump
-        // classify() passes with the current version; the competing write lands right before the mutation batch
-        // (the only batch of more than four statements), so only the CAS and the finalize CHECK can catch it.
         const racing = new Proxy(t.db, {
           get(target, prop) {
             const value = Reflect.get(target, prop, target)

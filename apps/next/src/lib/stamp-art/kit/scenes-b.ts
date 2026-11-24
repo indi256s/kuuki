@@ -118,7 +118,6 @@ export const thousandHillsB: KitModule = ([x, y, w, h]) => {
   return out
 }
 
-// Low motu seen from the lagoon: no aerial ring or closed ellipse.
 export const motuB: KitModule = ([x, y, w, h], p) => {
   const out: SvgNode[] = []
   const strip: Pt[] = [

@@ -1,8 +1,3 @@
-/**
- * Stamp check for the verify gate: regenerates every stamp file in memory and byte-compares it with
- * the committed one, then runs the geometric and raster lint on every engraved recipe.
- * Run: pnpm check:stamps
- */
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'

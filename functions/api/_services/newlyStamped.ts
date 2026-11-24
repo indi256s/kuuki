@@ -1,11 +1,3 @@
-// "Newly stamped" (ADR 0001 §5): the operation-owned pressed-country difference shared by confirmation, single
-// create, bulk create and draft conversion.
-//
-//   newly stamped = (pressed after publication - pressed before) ∩ countries the operation's own flights contribute
-//
-// The before-set is the published projection, trusted only while publication is current. The intersection keeps a
-// concurrent claim or another writer's flight from being credited to the operation. The result is null whenever it
-// cannot be told: unknown before-set, publication still pending, or nothing fresh (a replay).
 import {
   countryContributions,
   evidenceFlightsStatement,
@@ -20,7 +12,6 @@ import {
 import { STATE_SELECT } from './receipts'
 import { firstOf, rowsOf } from './stats'
 
-/** The published pressed set, in code order. Batch it with the readiness row: the set is trusted only when ready. */
 export const pressedCountriesStatement = (db: D1Database, userId: string) =>
   db
     .prepare(
@@ -28,10 +19,6 @@ export const pressedCountriesStatement = (db: D1Database, userId: string) =>
     )
     .bind(userId)
 
-/**
- * The before-set for a create, read just before its canonical batch. Null when the account's publication is not
- * current. An account with no derived-state row gets one first (as confirmation does), so a first save is known.
- */
 export async function readPressedBefore(db: D1Database, userId: string): Promise<string[] | null> {
   const [, state, pressed] = await db.batch([
     ensureDerivedStateRow(db, userId),
@@ -50,11 +37,9 @@ export type PublishedStamps =
       ready: true
       revision: number
       pendingCountryCount: number
-      /** Countries `flightIds` newly pressed against `before`; null when `before` is unknown. Sorted. */
       newlyStamped(flightIds: Iterable<number>): string[] | null
     }
 
-/** Reads the current publication once: readiness, the pressed/pending projection and every flight's contributions. */
 export async function readPublishedStamps(
   db: D1Database,
   userId: string,
@@ -74,7 +59,6 @@ export async function readPublishedStamps(
   const pressedNow = new Set(
     evidence.filter((row) => row.status === 'pressed').map((row) => row.country_code),
   )
-  // Only logged, non-suppressed endpoints press a country; awaiting ones are pending and upcoming ones contribute nothing.
   const logged = countryContributions(rowsOf<EvidenceFlight>(flightsRead)).contributions.filter(
     (entry) => entry.state === 'logged',
   )
@@ -94,11 +78,6 @@ export async function readPublishedStamps(
   }
 }
 
-/**
- * Per freshly created flight, for the create transports: its newly pressed countries, or null when that cannot be
- * told (unknown before-set, pending publication). A flight that is not logged presses nothing, so a save without a
- * logged flight needs no read and answers [] for each.
- */
 export async function stampsForCreated(
   db: D1Database,
   userId: string,

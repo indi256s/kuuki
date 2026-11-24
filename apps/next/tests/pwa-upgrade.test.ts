@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test'
 import { createServer } from 'node:http'
-// Reproduce the old root navigation fallback and its cache ownership without building a retired app.
 const oldHTML = `<!doctype html><html><body>Old shell<script src="/assets/old.js"></script>
 <script src="/registerSW.js"></script></body></html>`
 const oldWorker = `
@@ -81,7 +80,6 @@ test('installed root PWA reaches Next and retires its worker, preserving unrelat
     expect(oldFallback!.fromServiceWorker()).toBe(true)
     expect(await oldFallback!.text()).toContain('/assets/')
     stage = 'next'
-    // The cached old shell now fetches the deployed registration script, which updates and reloads it.
     await page.goto(`${origin}/`, { waitUntil: 'domcontentloaded' })
     await expect(page.locator('h1')).toBeVisible()
     await expect
@@ -89,7 +87,6 @@ test('installed root PWA reaches Next and retires its worker, preserving unrelat
         page.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).length),
       )
       .toBe(0)
-    // Unregistering leaves the current document controlled until its next navigation.
     await page.reload({ waitUntil: 'domcontentloaded' })
     await expect(page.locator('h1')).toBeVisible()
     expect(await page.evaluate(async () => caches.keys())).toEqual(['unrelated-user-cache'])

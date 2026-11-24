@@ -1,22 +1,15 @@
-// Test-only D1 instrumentation: records every statement's SQL and lets a test interleave a write between a
-// handler's read and its batch, which is how the concurrency races are exercised in-process.
-
 export interface DbHooks {
-  /** Every SQL string passed to `prepare`, in call order. */
   sql: string[]
-  /** Runs before the matching batch executes, with the SQL of each statement in it. Fires at most `times` times. */
   beforeBatch(
     match: (sql: string[]) => boolean,
     run: (sql: string[]) => Promise<void>,
     times?: number,
   ): void
-  /** Runs after the matching batch executed (committed), before the handler sees its results. */
   afterBatch(
     match: (sql: string[]) => boolean,
     run: (sql: string[]) => Promise<void>,
     times?: number,
   ): void
-  /** Makes the matching batch throw instead of executing. */
   failBatch(match: (sql: string[]) => boolean, times?: number): void
 }
 
@@ -27,7 +20,6 @@ type Rule = {
   left: number
 }
 
-/** Workerd hands out RPC stubs for statements, so the SQL is tracked by wrapping them and unwrapping inside `batch`. */
 class Tracked {
   constructor(
     readonly real: D1PreparedStatement,

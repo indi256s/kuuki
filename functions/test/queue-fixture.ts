@@ -1,4 +1,3 @@
-// Shared fixture and call helpers for the T09 queue, confirmation and transit-review tests.
 import { apiContext, csrfRequest } from './harness'
 import { accountWith, at, T0, USER, type FixtureFlight } from './country-fixture'
 import { onRequestGet as awaitingRoute } from '../api/me/awaiting'
@@ -7,13 +6,6 @@ import { onRequestGet as transitGet, onRequestPost as transitPost } from '../api
 
 export { USER }
 
-/**
- * u1's account (airports: TBS/KUT GE, IST/ADB TR, JFK US, LHR GB, DXB AE, BKK TH):
- *  1 awaiting TBS->IST, timed; 2 upcoming IST->JFK next day: a precise third-country connection, so flight 1 defaults to transit.
- *  3 awaiting LHR->DXB, no connection.            4 logged BKK->DXB: TH and AE are already pressed.
- *  5 upcoming TBS->LHR, unrelated.
- * Before any confirmation GE and GB are pending, TR is suppressed, TH and AE are pressed.
- */
 export const FLIGHTS: FixtureFlight[] = [
   {
     id: 1,
@@ -105,7 +97,6 @@ export async function postTransitReview(
   return { status: response.status, body: (await response.json()) as Record<string, any> }
 }
 
-/** Fresh per-flight tokens from the queue, keyed by flight id. */
 export async function tokens(db: D1Database, user: Who = USER): Promise<Record<number, string>> {
   const { body } = await getAwaiting(db, user)
   return Object.fromEntries(
@@ -116,7 +107,6 @@ export async function tokens(db: D1Database, user: Who = USER): Promise<Record<n
 let sequence = 0
 export const operationId = (label = 'op') => `${label}-${Date.now().toString(36)}-${++sequence}`
 
-/** Fresh transit-review tokens, keyed by flight id. */
 export async function reviewTokens(
   db: D1Database,
   user: Who = USER,

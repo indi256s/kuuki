@@ -1,7 +1,3 @@
-// An old olive tree: a gnarled twin trunk (T4 with paper highlights) splitting low, under a wide
-// low crown drawn as a hatched mass with no contour. The crown is lit paper with a leaf-tick top,
-// hatching thickens towards its underside, and a T4 band closes the underside. The box is the
-// whole tree: the crown takes the top 56% of the height, the trunk base sits on the box bottom.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, occlude, stroke, toneFill } from '../grid'
 import { type Blob, crownPoly, hatchMass } from './mass-b'
@@ -15,7 +11,6 @@ export const oliveB: KitModule = ([x, y, w, h], p) => {
   const cx = x + w / 2
   const out: SvgNode[] = []
 
-  // Crown: five wide overlapping lobes, flat underneath.
   const blobs: Blob[] = [
     [x + w * 0.2, crownBase - crownH * 0.34, w * 0.2, crownH * 0.4],
     [x + w * 0.38, crownBase - crownH * 0.52, w * 0.22, crownH * 0.52],
@@ -28,7 +23,6 @@ export const oliveB: KitModule = ([x, y, w, h], p) => {
     i === 0 || i === crown.length - 1 ? ([px, py + 2] as Pt) : ([px, py] as Pt),
   )
 
-  // Twin trunk, drawn first so the crown overlaps the tops of the limbs.
   const wob = (k: number) => (rand() - 0.5) * k
   const limb = (side: -1 | 1): { l: Pt[]; r: Pt[] } => {
     const l: Pt[] = [],
@@ -50,7 +44,6 @@ export const oliveB: KitModule = ([x, y, w, h], p) => {
   for (const t of [A, B]) {
     const poly: Pt[] = [...t.l, ...t.r.slice().reverse()]
     out.push(occlude(poly, { halo: 0.8 }))
-    // Shaded right two thirds, a paper highlight left; one gnarl crack on the lit part.
     const shade: Pt[] = [
       ...t.l.map(([px, py], i) => [px + (t.r[i][0] - px) * 0.38, py] as Pt),
       ...t.r.slice().reverse(),
@@ -59,7 +52,6 @@ export const oliveB: KitModule = ([x, y, w, h], p) => {
     out.push(stroke('line', t.l), stroke('line', t.r))
     out.push(stroke('fine', [t.l[3], [t.l[3][0] + 2.2, t.l[4][1] + 1], [t.l[4][0] + 2, t.l[5][1]]]))
   }
-  // Root flare and fork: the two limbs meet in a shared base.
   out.push(
     stroke('line', [
       [cx - 17, base],
@@ -73,7 +65,6 @@ export const oliveB: KitModule = ([x, y, w, h], p) => {
     ]),
   )
 
-  // Crown mass: hatching kept only where the shade field is high (lit upper left stays paper).
   out.push(occlude(under, { halo: 1.6 }))
   out.push(
     ...hatchMass(under, rand, {
@@ -85,7 +76,6 @@ export const oliveB: KitModule = ([x, y, w, h], p) => {
       wy: 0.7,
     }),
   )
-  // Leaf ticks along the top edge.
   for (let i = 3; i < crown.length - 3; i += 2) {
     const [px, py] = crown[i]
     const nx = px - cx
@@ -96,7 +86,6 @@ export const oliveB: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // T4 underside: a ragged dense band under the crown.
   const band: Pt[] = [
     ...Array.from({ length: 18 }, (_, i): Pt => [
       x + w * 0.06 + (w * 0.88 * i) / 17,

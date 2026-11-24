@@ -1,7 +1,3 @@
-// Quick preview of the lane airliners, inline (opens from disk): every type at the desktop and phone lane unit, and the
-// picked types at 4×, in both themes.
-//
-//   pnpm exec tsx scripts/leaderboard-lanes/airliner/preview.ts [A320 B738 …]
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { AIR_UNIT, buildAir } from './build'

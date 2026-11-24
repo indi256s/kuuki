@@ -16,7 +16,6 @@ export function Tile() {
   const rows = data ? makerRows(data).rows : []
   const plan = planSheds(rows, (key) => makerName(key, locale), locale)
   const top = rows.find((row) => row.key !== 'unknown')
-  // The hangars at rest with the headline maker lit; nothing moves in a tile.
   const lit = top && !plan.blank ? plan.shedOf(top.key) : null
   const figure = useFigure(
     'full',

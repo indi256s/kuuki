@@ -1,4 +1,3 @@
-// ADR 0001 §6 (T07): account deletion leaves no lifecycle receipts, drafts, batches or evidence rows.
 import { expect, it } from 'vitest'
 import { deleteUserCascade } from '../api/_lib/users'
 import { count, createApiDatabase } from './harness'
@@ -107,7 +106,6 @@ it('removes every lifecycle receipt, draft, batch and evidence row with the acco
 })
 
 it('deletes the new tables explicitly, children before parents and ahead of flights, in the one atomic batch', async () => {
-  // D1 always enforces ON DELETE CASCADE, so row counts cannot prove the explicit deletes: record the batch instead.
   const { db, dispose } = await createApiDatabase()
   try {
     await seedOwner(db, GONE)

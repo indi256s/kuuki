@@ -3,7 +3,6 @@ import { fixtureHeaders } from './helpers'
 
 const TAGLINES = ['Snap a boarding pass. We’ll figure it out.', 'Halfway to the Moon, apparently.']
 
-/** The card's key elements, located by role and accessible name. */
 function card(page: Page) {
   return {
     heading: page.getByRole('heading', { level: 1, name: 'Welcome to Kuuki', exact: true }),
@@ -17,7 +16,6 @@ function card(page: Page) {
   }
 }
 
-/** Continue spends `signin:<ip>` and every `create` answer also spends `signup:<ip>`, so each journey gets its own IP. */
 async function ownIp(page: Page, baseURL: string) {
   await page.setExtraHTTPHeaders({
     'CF-Connecting-IP': fixtureHeaders(baseURL)['CF-Connecting-IP'],
@@ -65,7 +63,6 @@ test('a failed Google callback offers a retry and an unlinked account offers ema
   ).toBeVisible()
 })
 
-/** The create step (board 1.2), located by role and accessible name. */
 function createStep(page: Page) {
   return {
     heading: page.getByRole('heading', { level: 1, name: 'Start your journal', exact: true }),
@@ -138,7 +135,6 @@ test('a wrong password keeps the email, shows the error with an icon and offers 
   await ownIp(page, baseURL!)
   await page.goto('/')
   const c = card(page)
-  // A migrated account with no usable password (RESET_REQUIRED) gets the same state as a wrong password.
   for (const email of ['a@example.test', 'ranked@example.test']) {
     await continueAs(page, email, 'wrong-password')
     const error = page
@@ -149,7 +145,7 @@ test('a wrong password keeps the email, shows the error with an icon and offers 
     await expect(error.locator('svg')).toBeVisible()
     await expect(c.email).toHaveValue(email)
     await expect(c.password).toHaveAttribute('aria-invalid', 'true')
-    await expect(c.heading).toBeFocused()
+    await expect(c.password).toBeFocused()
     await expect(
       page.getByRole('button', { name: 'Email me a link to get back in', exact: true }),
     ).toBeVisible()
@@ -190,7 +186,6 @@ test('an unknown email turns the card into the create step in place, and Create 
   await expect(card(page).cantSignIn).toHaveCount(0)
   await expect(card(page).tagline).toBeVisible()
   await expect(page.getByLabel('Confirm password')).toHaveCount(0)
-  // Enter on the focused Create account creates the journal.
   await page.keyboard.press('Enter')
   await page.waitForURL((url) => url.pathname === '/welcome/name')
   await expect(page.getByRole('heading', { name: 'What should we call you?' })).toBeVisible()

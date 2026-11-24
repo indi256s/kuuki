@@ -2,9 +2,6 @@ import type { SVGProps } from 'react'
 import type { ChartPoint } from './kuuki-chart'
 import { markerPath, type SlotMarker } from './comparison-slots'
 
-// Adapted from Arc Slope, MIT; license: ../../ui/ARC-LICENSE.txt; hashes: docs/research/2026-10-08-arc-source-inventory.md.
-// Upstream slope-chart.tsx SHA256: 84f25522305d5120df73b0455e95720b7588d4d29afe95c6f46caa969e3d7ae1.
-// Keep shared-column geometry and collision-spread labels; host owns selection, touch actions, tooltip and table. Counts use a caller-supplied zero-based domain.
 export type ArcSlopeRow<T> = {
   point: ChartPoint<T>
   label: string
@@ -12,7 +9,6 @@ export type ArcSlopeRow<T> = {
   end: number
   color: string
   dash?: string
-  /** With the dash, tells similar series apart without color. */
   marker?: SlotMarker
 }
 export type ArcSlopeProps<T> = {
@@ -60,7 +56,6 @@ function spread(wanted: number[], gap: number, low: number, high: number): numbe
   return out
 }
 
-/** Mount only with a known baseline and counts for the same stable identities in both periods. */
 export function ArcSlope<T>({
   rows,
   mark,

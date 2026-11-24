@@ -60,7 +60,6 @@ function fixture() {
 describe('OpenFlights catalog preservation', () => {
   it('admits regional airports beyond major hubs and retains existing manual airports', () => {
     const { data, run } = fixture()
-    // Real OpenFlights rows, kept inline because downloaded *.dat inputs are ignored.
     const raw = [
       '1132,"Luxor International Airport","Luxor","Egypt","LXR","HELX",25.671,32.7066,294,2,"U","Africa/Cairo","airport","OurAirports"',
       '1458,"Kos Airport","Kos","Greece","KGS","LGKO",36.79330062866211,27.091699600219727,412,2,"E","Europe/Athens","airport","OurAirports"',

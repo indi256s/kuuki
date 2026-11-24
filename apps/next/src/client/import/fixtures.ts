@@ -1,4 +1,3 @@
-// Test helpers shared by the import unit tests (not imported by product code).
 import type { Batch, Draft, Snapshot } from './import-types'
 
 export const draft = (over: Partial<Draft> & { id: string }): Draft => ({

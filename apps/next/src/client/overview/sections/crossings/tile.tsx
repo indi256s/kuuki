@@ -13,7 +13,6 @@ export function Tile({ span }: { span: TileSpan }) {
   const { scope, locale } = useOverview()
   const data = scope?.continents.status === 'ready' ? scope.continents.value : null
   const bits = (data?.rows ?? []).map((row) => (row.flights > 0 ? 1 : 0)).join('')
-  // The tray at rest: nothing lifted or lit, and no label (too small to read at tile size).
   const figure = useFigure(span, bits, (k) =>
     puzzle(k, {
       flown: Object.fromEntries(

@@ -25,7 +25,6 @@ type YearRow = { key: string; year: number; flights: number; newRoutes: number }
 const HEIGHT = 220,
   BAND_MIN = 52,
   BAND_MAX = 72
-// One band per year, like Crossings, with wider bands.
 
 function headline(
   locale: Locale,
@@ -119,7 +118,6 @@ function YearBars({
   )
 }
 
-/** The unit beside a count ("routes", "flights"), in the plural form the count takes. */
 const unitOf = (locale: Locale, n: number, set: typeof forms.routes) =>
   formatCount(locale, n, set).replace(number(locale, n), '').trim()
 
@@ -132,7 +130,6 @@ function Code({ children }: { children: string }) {
   return <span className="ov3-routes-code">{children}</span>
 }
 
-/** The per-year chart: flights and new routes by year. A year pick sets the page's period, as it always did. */
 function YearChart({ data }: { data: Routes }) {
   const { locale, actions, isCurrent } = useOverview()
   const points: ChartPoint<YearRow>[] = data.byYear

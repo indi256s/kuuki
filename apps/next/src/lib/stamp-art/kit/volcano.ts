@@ -1,7 +1,3 @@
-// Volcano module: a stratovolcano as the subject, drawn wide and low like a landform. Light falls
-// from the left, so the right flank is the shaded face. Below the snow line every hatch line runs
-// along the fall line (radiating from the summit); the shaded flank is denser and cross-hatched.
-// The snow cap stays paper under a jagged snow line with long white gullies reaching down.
 import { mulberry32 } from '../hash'
 import { clipStrokeOutside } from '../geom'
 import { type Pt, type SvgNode, occlude, quad, stroke, toneFill } from '../grid'
@@ -9,7 +5,6 @@ import { type KitModule, num, nums, str } from './util'
 
 type Edge = Pt[]
 
-/** Linear interpolation of x along an edge sorted by y ascending. */
 function edgeX(edge: Edge, y: number): number {
   for (let i = 0; i + 1 < edge.length; i++) {
     const a = edge[i],
@@ -20,10 +15,7 @@ function edgeX(edge: Edge, y: number): number {
   return edge[edge.length - 1][0]
 }
 
-/** A stratovolcano. The box ground is the base of the cone, the box top its summit. */
 export const volcano: KitModule = ([x, y, w, h], p) => {
-  // `cone` is the Fuji and Mayon shape; `massif` is a broad flat-topped dome (Kilimanjaro): a wide
-  // rim plateau with a shallow crater dip. Shield and plume profiles arrive with later waves.
   const profile = str(p, 'profile', ['cone', 'massif'] as const, 'cone')
   const rand = mulberry32(Math.round(num(p, 'seed', 21)))
   const base = y + h
@@ -31,7 +23,6 @@ export const volcano: KitModule = ([x, y, w, h], p) => {
   const cx = x + w * num(p, 'axis', 0.5) + (rand() - 0.5) * 1.4
   const half = w / 2
   const rim = num(p, 'summit', 10) / 2
-  // 0 = straight flanks, 1 = strongly concave: steep high up, almost flat at the foot.
   const m = Math.min(0.9, Math.max(0, num(p, 'concavity', 0.45)))
   const snowS = num(p, 'snow', 0.38)
   const gullyCount = Math.max(0, Math.round(num(p, 'gullies', 7)))
@@ -58,7 +49,6 @@ export const volcano: KitModule = ([x, y, w, h], p) => {
   const leftX = (yy: number) => edgeX(L, yy)
   const rightX = (yy: number) => edgeX(R, yy)
 
-  // Summit: short flat rim with three small crater notches.
   const s = rim
   const massifRim: Pt[] = [
     [cx - s, top + 0.6],
@@ -85,13 +75,11 @@ export const volcano: KitModule = ([x, y, w, h], p) => {
   const outline: Pt[] = [...L.slice().reverse(), ...rimLine, ...R]
   const out: SvgNode[] = [occlude(silhouette)]
 
-  // Fall-line coordinates: ray u in [-1, 1] at height fraction t sits at cx + u * t * reach.
   const rayPt = (u: number, t: number): Pt => [cx + u * t * (u < 0 ? reachL : reachR), top + h * t]
   const widthAt = (u: number, t: number) => {
     const yy = top + h * t
     return u < 0 ? cx - leftX(yy) : rightX(yy) - cx
   }
-  /** Smallest t from which the ray stays inside the cone, with a margin. */
   const needT = (u: number): number => {
     let first = 1
     for (let t = 1; t > 0.01; t -= 0.01) {
@@ -101,7 +89,6 @@ export const volcano: KitModule = ([x, y, w, h], p) => {
     return first
   }
 
-  // Snow line: jagged, with longer fingers where the gullies start.
   const snowY = top + h * snowS
   const gullyU: number[] = []
   for (let i = 0; i < gullyCount; i++) {
@@ -127,7 +114,6 @@ export const volcano: KitModule = ([x, y, w, h], p) => {
     [snowLo - pad, jag[0][1]],
   ]
 
-  // Gullies: long tapering white streaks along the fall line.
   const gullyPolys: Pt[][] = gullyU.map((u, i) => {
     const t0 = (jagY(gx[i]) - 1.5 - top) / h
     const t1 = Math.min(0.97, t0 + 0.2 + rand() * 0.2)
@@ -142,7 +128,6 @@ export const volcano: KitModule = ([x, y, w, h], p) => {
     ]
   })
 
-  // Treeline at the foot: irregular crowns, dark T4 verticals. Drawn over the foot of the cone.
   let treePoly: Pt[] | null = null
   if (treeH > 0) {
     const phase = rand() * 6
@@ -164,16 +149,12 @@ export const volcano: KitModule = ([x, y, w, h], p) => {
     return acc
   }
 
-  // Fall-line hatching below the snow. Lit side: sparse, fine, staggered starts. Shaded side
-  // (right of the terminator): every ray, hair weight, plus a fine contour cross-hatch.
   const rayCount = Math.round((2 * half) / spacing)
   const termU = 0.2
   const hatch: SvgNode[] = []
   for (let i = 0; i <= rayCount; i++) {
     const u = -1 + (2 * i) / rayCount
     const shaded = u > termU
-    // Rays start in tiers (every 8th at the snow line, then every 4th, 2nd, all) so the spacing
-    // never drops below about two units as the rays converge upward. The lit side starts later.
     const tier = i % 8 === 0 ? 0 : i % 4 === 0 ? 1 : i % 2 === 0 ? 2 : 3
     const tierStart = [0, 0.48, 0.7, 0.9][tier] + (shaded ? 0 : 0.08 * Math.min(tier, 2))
     const t0 = Math.max(snowS + 0.02, needT(u), tierStart)
@@ -182,14 +163,12 @@ export const volcano: KitModule = ([x, y, w, h], p) => {
   }
   out.push(...erase(hatch))
 
-  // Snow cap: only sparse fine lines on the shaded side, following the fall line.
   for (let u = 0.2; u < 0.95; u += 0.15 + rand() * 0.05) {
     const a = Math.max(needT(u), 0.04) + rand() * 0.08
     const b = a + 0.1 + rand() * 0.14
     const [ex, ey] = rayPt(u, b)
     if (b < 0.99 && ey < jagY(ex) - 3) out.push(stroke('fine', [rayPt(u, a), [ex, ey]]))
   }
-  // Snow edge: a hair line along the jagged lower edge, skipping the gullies.
   for (let i = 0; i + 1 < jag.length; i += 1) {
     const [ax, ay] = jag[i]
     const [bx, by] = jag[i + 1]
@@ -199,7 +178,6 @@ export const volcano: KitModule = ([x, y, w, h], p) => {
     const nearGully = gx.some((g) => Math.abs(g - mx) < 1.6)
     if (inside && !nearGully) out.push(stroke('hair', [jag[i], jag[i + 1]]))
   }
-  // Clouds: soft paper bands that wipe the hatching and the sky across the cone.
   for (const ct of clouds) {
     const cy = top + h * ct
     const reach = Math.min(half - 4, widthAt(1, ct) + 10)

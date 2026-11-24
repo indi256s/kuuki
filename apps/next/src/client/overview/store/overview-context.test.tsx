@@ -391,7 +391,6 @@ it('drains a held Overview renewal before sign-in can replace the cookie identit
   const fetcher = vi.fn<typeof fetch>().mockImplementation(async (input) => {
     if (input === '/api/me/overview/data') {
       const response = await renewal.promise
-      // Browsers apply renewal cookies before exposing response headers to JavaScript.
       order.push('renew A')
       document.cookie = 'kuuki_csrf=account-a; path=/'
       return response
@@ -888,7 +887,6 @@ it('same-owner incoming privacy changes survive the next full PUT without a moun
   expect(saver.mock.calls[1][0].publicSections).toEqual({ records: false, fleet: false })
 })
 
-// Uses the real account orchestration and generation authority; failure never resets the provider.
 async function rejectSignout() {
   const generation = getAuthGeneration()
   await expect(
@@ -942,7 +940,7 @@ it.each(['resolve', 'reject'])(
       expect(await pending).toBe('failed')
     })
     expect(current.payload).toBe(payload)
-    expect(saver).toHaveBeenCalledTimes(1) // Abort cannot authorize an overlapping endpoint write.
+    expect(saver).toHaveBeenCalledTimes(1)
     await act(async () =>
       completion === 'resolve'
         ? oldSave.resolve(DEFAULT_PREFS)
@@ -1180,7 +1178,6 @@ it.each(['reset', 'owner', 'timeout'])(
           return 'W/"ov3-owner-2-0"'
         },
       })
-      // The JSON producer runs first; the store continuation has not consumed its result yet.
       await Promise.resolve()
       expect(admitted).toBe(true)
       if (boundary === 'reset') window.dispatchEvent(new Event('kuuki:identity-reset'))

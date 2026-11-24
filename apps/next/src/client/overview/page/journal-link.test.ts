@@ -35,7 +35,6 @@ it('carries the facets the Journal matches the same way', () => {
 })
 
 it('names what it cannot carry instead of promising the same flights', () => {
-  // The Journal ORs airports with countries and aircraft with families: the narrower facet stays.
   expect(
     journalLinkFor(
       {
@@ -52,7 +51,6 @@ it('names what it cannot carry instead of promising the same flights', () => {
     href: '/journal?airport=TBS&aircraft=A320',
     dropped: ['countries', 'families', 'routes', 'haul'],
   })
-  // A suppressed transit country still matches in the Journal, so the country cannot carry.
   expect(
     journalLinkFor({ countries: ['TR'] }, payload([row({ destination: 'IST', suppressed: 2 })])),
   ).toEqual({

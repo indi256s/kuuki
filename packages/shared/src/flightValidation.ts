@@ -1,5 +1,4 @@
 export interface FlightInput {
-  /** Manual Passport air visit being enriched by this create; never editable on a flight. */
   passport_visit_id?: string
   date?: string
   origin?: string
@@ -20,7 +19,6 @@ export interface FlightInput {
 export type FlightCreateInput = FlightInput &
   Required<Pick<FlightInput, 'date' | 'origin' | 'destination'>>
 
-/** Most flights one POST /api/flights/bulk request may carry. */
 export const FLIGHT_BULK_CREATE_MAX = 50
 
 const fields = new Set<keyof FlightInput>([
@@ -41,7 +39,6 @@ const fields = new Set<keyof FlightInput>([
   'enrichment_status',
 ])
 
-/** A real YYYY-MM-DD calendar date (no month 13, no 30 February). */
 export function isCalendarDate(value: string): boolean {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
   if (!match) return false
@@ -54,7 +51,6 @@ export function isCalendarDate(value: string): boolean {
   )
 }
 
-/** Pure syntax and range validation. Reference-table existence is checked by the API adapter. */
 export function validateFlightInput(value: unknown, mode: 'create'): FlightCreateInput
 export function validateFlightInput(value: unknown, mode: 'patch'): FlightInput
 export function validateFlightInput(value: unknown, mode: 'create' | 'patch'): FlightInput

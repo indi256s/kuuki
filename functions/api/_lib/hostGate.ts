@@ -1,7 +1,6 @@
 import { configuredActivationOrigin } from './activationSender'
 import { jsonError } from './http'
 
-/** Run before assets, API dispatch, rendering, or a session/database lookup. */
 export function gateActivationHost(request: Request, env: Env): Response | 'activation' | null {
   if (!env.ACTIVATION_ORIGIN) return null
   let activationOrigin: string
@@ -25,8 +24,6 @@ export function gateActivationHost(request: Request, env: Env): Response | 'acti
   if (request.method === 'POST' && url.pathname === '/api/auth/activation/complete')
     return 'activation'
   if (request.method === 'GET' || request.method === 'HEAD') {
-    // The sign-in return (`/?mode=signin`) resolves to the card's password-saved notice; `mode=signin` stays so a legacy
-    // rollback still opens sign-in. The empty fragment keeps the browser from carrying a token fragment across.
     const signIn = url.pathname === '/' && url.searchParams.get('mode') === 'signin'
     return new Response(null, {
       status: 302,
@@ -43,7 +40,6 @@ export function gateActivationHost(request: Request, env: Env): Response | 'acti
   return new Response('Forbidden', { status: 403, headers: { 'Cache-Control': 'no-store' } })
 }
 
-/** Enforce a maintenance hold before D1 work on private reads and all API routes. */
 export function maintenanceResponse(env: Env): Response | null {
   if (env.MAINTENANCE_MODE !== 'true') return null
   return jsonError(503, 'Service temporarily unavailable', 'MAINTENANCE', {

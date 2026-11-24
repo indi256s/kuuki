@@ -1,5 +1,3 @@
-// Grand-Bassam colonial house: a low hipped roof over an upper veranda behind slim posts and a
-// railing, shuttered windows, and an arcade of dark arches below. Box bottom is the ground line.
 import {
   type Pt,
   type SvgNode,
@@ -22,7 +20,6 @@ export const veranda: KitModule = ([x, y, w, h], p) => {
   const lowH = h - roofH - upH
   const out: SvgNode[] = []
   const bw = w / bays
-  // Ground storey: wall with arches.
   out.push(...body(rectPts(x, base - lowH, w, lowH), 'line'))
   for (let i = 0; i < bays; i++) {
     const ax = x + bw * i + bw * 0.25
@@ -41,7 +38,6 @@ export const veranda: KitModule = ([x, y, w, h], p) => {
     out.push(fill(arch))
   }
   out.push(hline('bold', x - 1.5, x + w + 1.5, base - lowH))
-  // Upper veranda: shaded wall behind posts, shutters, railing.
   const upTop = base - lowH - upH
   const wall = rectPts(x + 1, upTop, w - 2, upH)
   out.push(...body(wall, 'hair'))
@@ -55,7 +51,6 @@ export const veranda: KitModule = ([x, y, w, h], p) => {
     )
   out.push(...body(rectPts(x, base - lowH - upH * 0.32, w, upH * 0.32), 'hair'))
   out.push(hline('hair', x, x + w, base - lowH - upH * 0.16))
-  // Hipped roof: solid eave band under a hatched slope.
   const eaveY = upTop
   const roof: Pt[] = [
     [x - 4, eaveY],

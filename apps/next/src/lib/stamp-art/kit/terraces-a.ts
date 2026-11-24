@@ -1,7 +1,3 @@
-// Machu Picchu terraces: a ridge saddle stepped into stone terrace walls that follow the slope,
-// a paper stair cutting down through them and small roofed trapezoid-doored huts along the
-// ridge. The box is the whole hillside; the bottom is the ground line. `huts` lists hut x
-// fractions, `stairX` the stair position.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, hatch, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, nums, num, weight } from './util'
@@ -32,7 +28,6 @@ export const terracesA: KitModule = ([x, y, w, h], p) => {
   const out: SvgNode[] = []
   const xs: number[] = []
   for (let px = x; px <= x + w + 0.1; px += 3) xs.push(px)
-  // Hillside body above the first wall.
   const hill: Pt[] = [...ridge, [x + w, base], [x, base]]
   out.push(occlude(hill))
   out.push(stroke('line', ridge))
@@ -41,12 +36,10 @@ export const terracesA: KitModule = ([x, y, w, h], p) => {
     const topL = xs.map((px): Pt => [px, off(px)])
     const botL = xs.map((px): Pt => [px, off(px) + wallH]).reverse()
     const band: Pt[] = [...topL, ...botL]
-    // Flat: horizontal fine hatching up to the next wall; wall face: vertical hair, bold top.
     out.push(occlude(band))
     out.push(...hatch(band, 'v', 4.2, 'fine', 0.6, 0.3))
     out.push(stroke(weight(p, 'wallWeight', 'bold'), topL))
   }
-  // Stair: a paper strip descending along the whole slope with step ticks.
   const sTop = yAtX(ridge, stairX)
   const lean = 5
   const stair: Pt[] = [
@@ -69,7 +62,6 @@ export const terracesA: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // Huts on the ridge: battered trapezoid walls, a dark trapezoid door, steep thatched gable.
   const huts = nums(p, 'huts', [0.18, 0.36, 0.7, 0.86])
   huts.forEach((hf, i) => {
     const hw = 11 + (i % 2) * 4
@@ -99,7 +91,6 @@ export const terracesA: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   })
-  // A touch of rubble along the foot.
   for (let i = 0; i < 6; i++) {
     const px = x + 4 + rand() * (w - 8)
     out.push(

@@ -40,8 +40,6 @@ const REDUCED = Symbol('reduced-motion')
 const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 let markerToken = 0
 
-// Where each page sat in its stage, read as React detaches it. ssgoi puts the outgoing copy at the stage top,
-// which moves a page that sat lower down, so it goes back to this offset.
 const stageOffsets = new WeakMap<HTMLElement, number>()
 function trackOffset(node: HTMLDivElement | null) {
   if (node)
@@ -53,10 +51,6 @@ function StagePage(props: ComponentProps<'div'>) {
   return <div {...props} ref={trackOffset} />
 }
 
-/**
- * Fade-in only: the outgoing page hides at once, so the incoming one never waits on it. Opacity alone, so reduced
- * motion keeps it, shorter and linear.
- */
 function tabFade(): Transition {
   const direction = {
     prepare({ from, to, onCleanup }: PrepareArgs) {
@@ -90,10 +84,6 @@ function tabFade(): Transition {
   return defineTransition({ forward: direction, backward: direction })
 }
 
-/**
- * Wraps a preset for Kuuki: reduced motion swaps instantly unless the preset keeps its own reduced form; otherwise the
- * outgoing page turns inert and `html[data-route-transition]` names the running transition until it settles.
- */
 function routeTransition(
   name: string,
   preset: Transition,
@@ -139,14 +129,12 @@ function routeTransition(
 }
 
 const config: SsgoiConfig = {
-  // The outgoing page is inert, so there is nothing to protect; a scroll right after a tap must land.
   scrollLock: false,
   transitions: [
     {
       from: '/import',
       to: '/passport',
       bidirectional: false,
-      // Import → Passport is also a tab switch; the stamps' hero wins.
       priority: 1,
       transition: routeTransition('hero', hero({}, tuned(ROUTE_SPRINGS.hero)), {
         beforePrepare: keepVisibleStamps,

@@ -17,7 +17,6 @@ const OPTIONAL: FieldName[] = [
   'arrival_time',
 ]
 
-/** The one field set for draft edits and manual rows, so both share the same labels, hints and validation messages. */
 export function RowForm({
   locale,
   values,
@@ -32,17 +31,14 @@ export function RowForm({
   values: FieldValues
   onChange: (next: FieldValues) => void
   errors: Partial<Record<FieldName, FieldError>>
-  /** Fields the source was unsure about, explained in the field hint. */
   low?: FieldName[]
   disabled?: boolean
-  /** Present when the document showed no year: the date needs the member's explicit decision. */
   year?: { missing: boolean; checked: boolean; onChange: (checked: boolean) => void }
   idPrefix: string
 }) {
   const yearId = useId()
   const optional = locale === 'ru' ? 'необязательно' : 'optional'
   const airlineCode = values.airline_iata.trim().toUpperCase()
-  // Preserve manual codes for historical airlines missing from the reference.
   const airlines =
     /^[A-Z0-9]{2}$/.test(airlineCode) &&
     !airlineChoices.some((choice) => choice.code === airlineCode)

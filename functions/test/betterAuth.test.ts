@@ -466,7 +466,6 @@ function mockGoogle(profile: Record<string, unknown>) {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
     if (url !== 'https://oauth2.googleapis.com/token') throw new Error(`Unexpected fetch: ${url}`)
     const claims = { sub: 'google-subject', email_verified: true, name: 'Google name', ...profile }
-    // The trusted token endpoint is the network boundary; Better Auth consumes its ID token.
     const idToken = `${btoa(JSON.stringify({ alg: 'RS256' }))}.${btoa(JSON.stringify(claims))}.signature`
     return Response.json({
       access_token: 'synthetic-access-token',

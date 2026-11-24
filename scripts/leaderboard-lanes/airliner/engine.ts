@@ -1,4 +1,3 @@
-// The engines: a turbofan's nacelle with its fan face, exhaust and pylon, or a turboprop's nacelle with its propeller.
 import { clamp, nacelleFlat, smooth, type Airframe } from './airframe'
 import type { AircraftGeometry, Ink, Item } from './model'
 import { closed, foil, oriented, revolve, ringsOfPath, type Draw, type Foil } from './draw'
@@ -24,7 +23,6 @@ const propItems = (d: Draw, e: Engine, ax: { x: number; y: number; z: number }):
     P,
   )
   const D = e.prop!.diameter / 2
-  // The turning disc: a faint ring; four blades frozen in it.
   const ring: Pt[] = Array.from({ length: 72 }, (_, i) => {
     const a = (i / 72) * 2 * Math.PI
     return cam.project(G.pointOf(F, 0.25, D, a))
@@ -61,10 +59,6 @@ const propItems = (d: Draw, e: Engine, ax: { x: number; y: number; z: number }):
   ]
 }
 
-/**
- * One engine on side sg: `out` is the nacelle and pylon, drawn before the wing; `front`
- * the turboprop's spinner and blades, drawn after it.
- */
 export function engine(
   a: Airframe,
   d: Draw,
@@ -78,7 +72,6 @@ export function engine(
   const flat = nacelleFlat(e)
   const out: Item[] = []
   if (e.prop) {
-    // Turboprop: a long round nacelle under the high wing, the spinner and the blades in front.
     const nac = revolve(
       ax,
       (m) => {
@@ -98,17 +91,14 @@ export function engine(
       ...nac,
       at: (m, v) => {
         const p = nac.at(m, v)
-        // A deeper nacelle under the wing (it carries the gear bay): stretch the lower half.
         const dz = p[2] - ax.z
         return [p[0], p[1], dz < 0 ? ax.z + dz * 1.35 : p[2]]
       },
     }
-    // The livery on the engine cowling ahead of the wing; the nacelle aft of it stays bare.
     const cowlEnd = clamp((a.leAt(e.y) - e.fanX + 0.1) / (L + 0.1), 0.25, 0.6)
     out.push(...twoTone(oriented(n2, 0.5), 'body', 0, cowlEnd))
     return { out, front: propItems(d, e, ax) }
   }
-  // Exhaust: the core cowl and plug behind the fan cowl, drawn first (they sit behind it from this side).
   const ex = e.exhaustLength ?? L * 0.32
   const core = revolve(
     ax,
@@ -128,7 +118,6 @@ export function engine(
   )
   out.push(solid(oriented(plug, 0.3), 'metal'))
   out.push(solid(oriented(core, 0.5), 'metal'))
-  // Intake: the dark fan face, the spinner, the inner wall; the lip and outer cowl go over them.
   const fanS = 0.42 * r
   const fanF = G.frameAlong([ax.x - fanS, ax.y, ax.z], [-1, 0, 0])
   const disc = G.disc(-0.01, 0.01, r * 0.86, fanF, P)
@@ -144,7 +133,6 @@ export function engine(
   out.push(kitSolid(spinner, 'metal', [], 0.18))
   const inner = revolve(ax, (m) => [fanS * (1 - m) + 0.1 * r * m, r * (0.85 - 0.01 * m)], 8)
   out.push(solid(oriented(inner, 0.5, true), 'void', [], 0))
-  // Lip and cowl: one meridian from the lip's inner edge, round the elliptical lip, over the cowl to the fan nozzle.
   const hl = 0.9 * r,
     lipT = 0.06 * r,
     lipA = 0.1 * r
@@ -166,7 +154,6 @@ export function engine(
     40,
     flat,
   )
-  // The cowl in livery behind a bare metal lip ring.
   const ring = lipEnd + ((1 - lipEnd) * 0.16 * r) / (L - lipA)
   const cowlSeams: [number, Ink][] =
     sg > 0
@@ -176,7 +163,6 @@ export function engine(
         ]
       : []
   out.push(...twoTone(oriented(cowl, 0.5), 'metal', ring, 1, cowlSeams))
-  // Pylon: from the cowl crown up into the wing's lower skin, its fairing running past the nozzle.
   const zw = a.lowerAt(e.y) + 0.05
   const pyl: Foil = {
     path: (t) => [sg * e.y, ax.z + r * 0.7 + t * (zw - ax.z - r * 0.7)],

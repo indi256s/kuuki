@@ -1,4 +1,3 @@
-// Inline, offline preview of the exact production locomotive builder at lane size, phone size and 4x in both themes.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { buildLocomotive } from './locomotive'
 import { AIRCRAFT_CSS } from '../airliner/svg'
@@ -13,7 +12,6 @@ async function main() {
   const colors = ['#93b6f7', '#a7cc8f', '#f2a09d', '#dba1d1']
   mkdirSync(dir, { recursive: true })
   const [x, y, w, h] = vb
-  // The rails the lane draws, as two thin levelled lines at the gauge, so the wheel contacts can be checked.
   const rails = (width: number) =>
     `<line x1="${x}" x2="${x + w}" y1="${loco.rail.near}" y2="${loco.rail.near}" style="stroke:var(--iso-line);stroke-width:${(0.9 * vb[2]) / width}"/>`
   for (const theme of ['light', 'dark']) {

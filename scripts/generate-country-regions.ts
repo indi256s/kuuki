@@ -1,9 +1,3 @@
-/**
- * Generates packages/shared/src/countryRegions.generated.ts from the catalog (`packages/data/src/countries.json`,
- * the `continent` field). `functions/` cannot import `@kuuki/data`, so the six-region map is checked in and a
- * parity test (functions/test/regions.test.ts) fails when the catalog and the map diverge.
- * Run: pnpm generate:regions
- */
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'

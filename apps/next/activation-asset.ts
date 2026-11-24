@@ -35,7 +35,6 @@ export async function activationAsset(
   } catch {
     return new Response('Activation page unavailable', { status: 503, headers })
   }
-  // The restricted activation host cannot serve sign-in, resend or the card. Only these explicit static links leave it.
   return new HTMLRewriter()
     .on('a[data-primary-path]', {
       element(element) {

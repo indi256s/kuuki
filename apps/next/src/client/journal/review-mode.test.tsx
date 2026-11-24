@@ -65,7 +65,6 @@ const flight = (
     destination_country: null,
   }) as JournalFlight
 
-/** Oldest first: 3 (1 May), 1 (2 May), 2 (3 May). Flight 9 is already flown. */
 const journal = () => [
   flight(2, '2024-05-03', 'LHR', 'JFK'),
   flight(1, '2024-05-02', 'IST', 'LHR'),
@@ -82,7 +81,6 @@ const payloadOf = (flights: JournalFlight[]): JournalPayload => ({
   refs: { airports: {}, airlines: {}, aircraft: {} },
 })
 
-/** The server's flights: confirm logs them, the journal and the awaiting queue read them. */
 let server: JournalFlight[] = []
 const queueOf = () => {
   const awaiting = server.filter((item) => item.lifecycle_state === 'awaiting')
@@ -113,7 +111,6 @@ const confirmed = async (_path: string, body: unknown) => {
   }
 }
 
-/** The page's `useAwaiting().data`; null unless a test sets it. */
 let pageQueue: AwaitingQueue | null = null
 function Content() {
   const docked = useDockedDetail()

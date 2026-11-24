@@ -1,6 +1,3 @@
-// Build-time only (generate:stamps, check:stamps, dev sheet server): derives stamp-index.generated.json, the one
-// file client code reads. Names come from Node's Intl.DisplayNames at generation time, so the browser never
-// formats them and SSR cannot disagree with the client.
 import countries from '@kuuki/data/countries.json'
 import { type ShapeName, shapeFor } from './frame'
 import { type InkName, inkMap } from './inks'
@@ -19,7 +16,6 @@ export type StampIndexEntry = {
 }
 export type StampIndex = Record<string, StampIndexEntry>
 
-/** Territories whose Intl name varies by ICU build or carries a disputed alternate: the catalog name rules in English. */
 const CONTESTED = new Set(['EH', 'PS', 'XK', 'IO', 'FK', 'YT'])
 const LOCALES = ['en', 'ru'] as const
 type Catalog = Record<string, { name: string }>
@@ -83,7 +79,6 @@ export function buildStampIndex(): StampIndex {
   return out
 }
 
-/** The committed file's exact text: sorted keys, 2-space JSON, trailing newline. */
 export function stampIndexJson(): string {
   const sort = (v: unknown): unknown =>
     Array.isArray(v)

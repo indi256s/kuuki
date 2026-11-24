@@ -15,13 +15,10 @@ export interface ShareCardTheme {
   accent: AccentKey
 }
 
-// New writes store canonical names only; legacy rows may still hold the pre-v1 names.
-/** Canonical accent for a stored profile `theme_color`; unknown or missing values fall back to shu. */
 export function resolveShareAccent(stored: string | null | undefined): AccentKey {
   return recognizeAccentKey(stored) ?? 'shu'
 }
 
-/** The one color snapshot the card background, text and chart SVG all draw from. */
 export function shareCardSnapshot({ mode, accent }: ShareCardTheme) {
   const surfaces = SURFACES[mode]
   const { markPeak, markRest } = THEMES[accent][mode]
@@ -29,13 +26,11 @@ export function shareCardSnapshot({ mode, accent }: ShareCardTheme) {
     background: surfaces.background,
     text: surfaces.text,
     muted: surfaces.muted,
-    // Same roles as the Clock dial: the peak hour takes `--mark-peak`, every other hour `--mark-rest`.
     peak: markPeak,
     bar: markRest,
   }
 }
 
-/** Temporary renderer fixture; the design thread owns the card's visual layout. */
 export function shareCardTree(
   scope: OverviewScope,
   theme: ShareCardTheme = { mode: 'light', accent: 'shu' },
@@ -53,7 +48,6 @@ export function shareCardTree(
     .map((row, index) => {
       const x = left + index * step,
         barHeight = (row.flights / max) * height
-      // An hour without flights draws no bar; only the label marks it.
       const bar =
         row.flights > 0
           ? `<rect x="${x}" y="${top + height - barHeight}" width="${step}" height="${barHeight}" fill="${row.hour === peakHour ? colors.peak : colors.bar}"/>`
@@ -67,7 +61,6 @@ export function shareCardTree(
         `<text x="32" y="${top + height - ratio * height}" text-anchor="end" dominant-baseline="middle">${Number((ratio * max).toFixed(2))}</text>`,
     )
     .join('')
-  // Keep this existing static share-card fixture DOM-free; the application dial owns radial rendering.
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="300" viewBox="0 0 600 300" role="img" aria-label="Clock" font-family="sans-serif" font-size="11" fill="${colors.muted}"><path d="M40,10V277H596" fill="none" stroke="${colors.text}" opacity=".28"/>${bars}${ticks}</svg>`
   const figures = scope.figures
   return {

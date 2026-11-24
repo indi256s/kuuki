@@ -2,14 +2,11 @@ import { afterAll } from 'vitest'
 import { Miniflare } from 'miniflare'
 import { applyMigrations } from '../../scripts/_migrations'
 
-// One Miniflare per test file holds a few D1 bindings. Booting workerd and replaying every migration for each test
-// cost ~350 ms apiece; a binding is instead migrated once and wiped back to that state when it is handed out again.
 const BINDINGS = Array.from({ length: 4 }, (_, i) => `DB${i}`)
 
 interface Baseline {
   schema: Map<string, string>
   tables: string[]
-  /** Rows the migrations themselves write (maintenance_status), restored after every wipe. */
   seeds: Array<{ table: string; rows: Record<string, unknown>[] }>
 }
 interface Slot {
@@ -47,8 +44,6 @@ async function schemaOf(db: D1Database) {
 
 async function migrate(db: D1Database): Promise<Baseline> {
   await applyMigrations(db)
-  // API fixtures supply their own airport corpus. Keep reference-data migrations
-  // in the dedicated migration tests instead of restoring thousands of rows per test.
   await db.prepare('DELETE FROM airports_reference').run()
   const schema = await schemaOf(db)
   const tables = [...schema.keys()]
@@ -62,14 +57,13 @@ async function migrate(db: D1Database): Promise<Baseline> {
   return { schema, tables, seeds }
 }
 
-/** Drop what a test added (failure triggers), then empty every table. False when the migrated schema itself changed. */
 async function wipe(db: D1Database, baseline: Baseline): Promise<boolean> {
   const current = await schemaOf(db)
   for (const [key, sql] of baseline.schema) if (current.get(key) !== sql) return false
   const added = [...current.keys()].filter((key) => !baseline.schema.has(key))
   for (const key of added) {
     const [type, name] = [key.slice(0, key.indexOf(':')), key.slice(key.indexOf(':') + 1)]
-    if (type === 'index' && current.get(key) === '') continue // dropped with its table
+    if (type === 'index' && current.get(key) === '') continue
     await db.prepare(`DROP ${type.toUpperCase()} IF EXISTS "${name}"`).run()
   }
   await db.batch([
@@ -90,13 +84,12 @@ async function wipe(db: D1Database, baseline: Baseline): Promise<boolean> {
   return true
 }
 
-/** A private in-process D1 database with the full migrated schema and no rows. */
 export async function createApiDatabase() {
   const { free } = await (pool ??= bootPool())
   const slot = free.pop()
   if (!slot) return isolatedDatabase()
   if (!slot.baseline || !(await wipe(slot.db, slot.baseline))) {
-    if (slot.baseline) return isolatedDatabase() // a test rewrote the schema; retire this binding
+    if (slot.baseline) return isolatedDatabase()
     slot.baseline = await migrate(slot.db)
   }
   let released = false
@@ -110,7 +103,6 @@ export async function createApiDatabase() {
   }
 }
 
-/** More databases open at once than the pool holds, or a retired binding: boot a dedicated runtime as before. */
 async function isolatedDatabase() {
   const mf = new Miniflare({
     modules: true,
@@ -122,7 +114,6 @@ async function isolatedDatabase() {
   return { db, dispose: () => mf.dispose() }
 }
 
-/** Invoke a Pages Function at its public request boundary with a real D1 binding. */
 export function apiContext(
   db: D1Database,
   request: Request,
@@ -141,7 +132,6 @@ export function apiContext(
 
 export const testOrigin = 'https://kuuki.test'
 
-/** Build a same-origin request carrying the CSRF cookie/header pair; a string or stream body is sent as-is, anything else as JSON. */
 export function csrfRequest(
   path: string,
   method: string,

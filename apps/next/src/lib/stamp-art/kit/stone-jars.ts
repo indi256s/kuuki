@@ -1,7 +1,3 @@
-// Plain of Jars (Laos): megalithic stone jars, tall barrels with a wide mouth, a swelling shoulder
-// and a narrower foot, standing in grass. Some have a flat lid, some are open and dark inside, one
-// is cracked. Lit left, shaded right in fall-line verticals. `jars` lists
-// [x fraction, height fraction of the box, 0 open | 1 lid]. The box bottom is the front ground.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, hatch, hline, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
@@ -20,7 +16,6 @@ function jar(cx: number, base: number, ht: number, lid: number, rand: () => numb
   const out: SvgNode[] = []
   const w = ht * 0.62
   const hw = (t: number) => {
-    // Rough cylindrical stone sides, with only a slight taper.
     return (w / 2) * (0.92 + 0.05 * Math.sin(t * 8) - 0.1 * t)
   }
   const top = base - ht
@@ -34,7 +29,6 @@ function jar(cx: number, base: number, ht: number, lid: number, rand: () => numb
   }
   const outline: Pt[] = [...left, ...right.reverse()]
   out.push(...body(outline, 'line'))
-  // Shaded right third: vertical hatching along the fall line.
   const shade: Pt[] = []
   const shadeR: Pt[] = []
   for (let i = 1; i <= n; i++) {
@@ -43,7 +37,6 @@ function jar(cx: number, base: number, ht: number, lid: number, rand: () => numb
     shadeR.push([cx + hw(t) - 0.6, top + ht * t])
   }
   out.push(...toneFill([...shade, ...shadeR.reverse()], 'T4', { angle: 90, gap: [2.2, 2.2] }))
-  // Rock texture on the lit side: short pitted dashes and one crack.
   for (let i = 0; i < 5; i++) {
     const t = 0.25 + rand() * 0.6
     const px = cx - hw(t) * 0.75 + rand() * hw(t) * 0.9
@@ -62,7 +55,6 @@ function jar(cx: number, base: number, ht: number, lid: number, rand: () => numb
       [cx - hw(0.5) * 0.35, top + ht * 0.58],
     ]),
   )
-  // Rim: ellipse; open jars are dark inside, lidded jars carry a flat slab.
   const rx = hw(0) + 0.4
   const ry = Math.max(2, rx * 0.26)
   const rim: Pt[] = Array.from({ length: 20 }, (_, i): Pt => {
@@ -92,7 +84,6 @@ function jar(cx: number, base: number, ht: number, lid: number, rand: () => numb
     out.push(...body(rim, 'line'))
     out.push(fill(rim.map(([px, py]): Pt => [cx + (px - cx) * 0.78, top + (py - top) * 0.7])))
   }
-  // Foot shadow.
   out.push(
     ...hatch(
       [
@@ -114,7 +105,6 @@ export const stoneJars: KitModule = ([x, y, w, h], p) => {
   const jars = (Array.isArray(p.jars) ? p.jars : DEFAULT_JARS) as [number, number, number][]
   const base = y + h
   const out: SvgNode[] = []
-  // Back jars sit higher, so draw them in order of ground height (small first).
   const order = [...jars].sort((a, b) => a[1] - b[1])
   for (const [fx, fh, lid] of order) {
     const ht = fh * h
@@ -150,7 +140,6 @@ export const stoneJars: KitModule = ([x, y, w, h], p) => {
       'hair',
     ),
   )
-  // Foreground grass: short tufts along the base.
   for (let gx = x; gx < x + w; gx += 2.6 + rand() * 1.8) {
     const len = 2 + rand() * 4
     out.push(

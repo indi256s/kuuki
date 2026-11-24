@@ -4,7 +4,6 @@ import type { JournalPayload } from '../../../../functions/api/_services/journal
 import { readTransitReviewAvailability } from '../../../../functions/api/_services/transitReview'
 import { getRequestEnv, getRequestIdentity } from './identity'
 
-/** The owner's whole journal (spec D3/D4): no filters or paging, the client filters in memory. */
 export async function getOwnJournalAll() {
   const identity = await getRequestIdentity()
   if (!identity) return null

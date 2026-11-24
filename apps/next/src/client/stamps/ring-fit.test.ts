@@ -38,7 +38,6 @@ describe('baked ring text', () => {
     expect([gr.top.text, gr.bottom?.text]).toEqual(['ΕΛΛΑΣ', 'GREECE'])
     const gb = bakeRing('GB', stampMeta('GB').shape)
     expect([gb.top.text, gb.bottom]).toEqual(['UNITED KINGDOM', null])
-    // Names that differ only in accents, SAINT/ST or the word for "and" are the same name.
     for (const code of ['CC', 'BL', 'PM', 'WF', 'ST', 'GW', 'SJ'])
       expect(bakeRing(code, stampMeta(code).shape).bottom, code).toBeNull()
   })

@@ -6,7 +6,6 @@ import { setTheme } from '../appearance'
 import type { Locale } from '../../lib/format'
 import './auth-card.css'
 
-/** The theme in effect (`html[data-theme]`), so a device that flips while the preference is `system` is followed too. */
 function subscribe(listener: () => void) {
   const observer = new MutationObserver(listener)
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
@@ -14,10 +13,6 @@ function subscribe(listener: () => void) {
 }
 const isDark = () => document.documentElement.dataset.theme === 'dark'
 
-/**
- * The card's theme control: a pressed button showing the theme in effect. A click sets the opposite theme explicitly;
- * until then the stored preference stays `system`. The name is constant, and `aria-pressed` carries the state.
- */
 export function HorizonToggle({ locale }: { locale: Locale }) {
   const dark = useSyncExternalStore(subscribe, isDark, () => false)
   const label = locale === 'ru' ? 'Тёмная тема' : 'Dark theme'

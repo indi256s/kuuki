@@ -1,6 +1,3 @@
-// POST /api/profiles/me/onboarded — mark the authenticated user's onboarding finished.
-// Idempotent: the first call stamps onboarded_at, later calls return the same timestamp.
-
 import { runHandler, json, HttpError } from '../../_lib/http'
 import { requireCsrf, requireUser } from '../../_lib/auth'
 import type { RequestData } from '../../_lib/auth'

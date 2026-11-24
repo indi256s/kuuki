@@ -1,5 +1,3 @@
-// GET /api/flights/recent?limit=5 — most recent completed flights for the dashboard.
-
 import { runHandler, json } from '../_lib/http'
 import { requireUser, type RequestData } from '../_lib/auth'
 import { toOwnFlight, type FlightRow } from '../_lib/flights'

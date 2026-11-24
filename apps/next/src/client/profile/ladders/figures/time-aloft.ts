@@ -23,15 +23,12 @@ import {
 import type { LadderFigureDef } from './types'
 
 const Z: P3 = [0, 0, 1]
-/** The ground direction that runs straight across the screen, for flames that face the viewer. */
 const SX: P3 = unit([1, -1, 0])
 
-// Seatback tray table: 140 × 88 slab, top at z 6. The cup ring is a recess at the right.
 const TW = 140,
   TD = 88,
   TH = 6
 const RING: Pt = [122, 42]
-// Moulded meal tray on the table: outer footprint, the rolled lip's top, the deck inside the lip, and the floor of the compartment wells.
 const TX = 6,
   TY = 8,
   TWD = 98,
@@ -41,19 +38,16 @@ const TX = 6,
   FZ = 7.4,
   LIP = 2.6
 type Rect = readonly [number, number, number, number]
-/** Compartment wells: the main dish, the back-left (napkin, then salad), the left (dessert) and the long front well (cutlery, roll, butter, sachets). */
 const WA: Rect = [44, 13.5, 98, 58],
   WB: Rect = [12, 13.5, 40, 35],
   WC: Rect = [12, 39, 40, 58],
   WD: Rect = [12, 62, 98, 74]
-/** Centre of the main well. */
 const MC: Pt = [71, 36]
 
 type Ink = { line: Paint; crease: Paint }
 const PLAIN: Ink = { line: 'line', crease: 'crease' }
 const LIT: Ink = { line: 'accent', crease: 'accent-side' }
 
-/** Points every `step` along a polyline in plan, ends included. */
 function stepAlong(run: readonly Pt[], step: number): Pt[] {
   const out: Pt[] = [run[0]]
   let carry = 0
@@ -71,13 +65,6 @@ function stepAlong(run: readonly Pt[], step: number): Pt[] {
   return out
 }
 
-/** Fixed pseudo-random in [0, 1). */
-
-/**
- * Time aloft: the in-flight meal tray on a seatback tray table. The table, the moulded tray with its rolled lip and compartment wells, the folded napkin or cutlery roll and the cup in the table's ring stay; the main well levels up.
- * Rungs: a crinkled pretzel bag, a wedge sandwich pack, a foil-lidded hot meal with its cutlery roll, the full tray (salad, roll, butter) with a dessert pot, and a two-tier birthday cake with candles in place of the hot meal.
- * Lit: the new item only, as an accent outline with a light wash (the cake's flames are solid accent).
- */
 export const timeAloft: LadderFigureDef = {
   id: 'time-aloft',
   rungs: 5,
@@ -85,10 +72,8 @@ export const timeAloft: LadderFigureDef = {
     const s = new Scene(k)
     const hero = lod === 'hero'
     const n = hero ? 40 : 18
-    // At 56px the object needs bulk, so the thumb stands its items taller.
     const H = hero ? 1 : 1.35
 
-    /** A light accent wash over the screen hull of a lit part. */
     const wash = (pts: readonly P3[], op = 0.22) => {
       const back = new Map<string, P3>()
       const scr = pts.map((p) => {
@@ -117,14 +102,9 @@ export const timeAloft: LadderFigureDef = {
       [x1, y1, z],
       [x0, y1, z],
     ]
-    /** A flat round blob facing the viewer (a piped bead, a cherry tomato). */
     const bead = (c: P3, r: number, fill: Paint = 'top', stroke: Paint = 'crease') =>
       s.poly(circleOn(c, VIEW, r, 10), fill, stroke, undefined, 0.5)
 
-    /**
-     * A recess sunk `depth` into a surface at `z` with a convex plan: its far walls (the y-facing run in `front`, the rest `side`), the floor it shows, and its edge.
-     * Returns the opening, for clipping what stands in it.
-     */
     const well = (plan: readonly Pt[], z: number, depth: number, floor: Paint = 'top'): P3[] => {
       const top = plan.map(([a, b]): P3 => [a, b, z]),
         open = s.pp(top),
@@ -133,7 +113,6 @@ export const timeAloft: LadderFigureDef = {
       const m = plan.length
       const front = plan.map(([x0, y0], i) => {
         const [x1, y1] = plan[(i + 1) % m]
-        // Inward normal (-dy, dx); the wall shows when it faces the viewer.
         const nx = y0 - y1,
           ny = x1 - x0
         return nx + ny > 1e-6 && ny > nx
@@ -150,21 +129,17 @@ export const timeAloft: LadderFigureDef = {
         if (strip.length > 2) s.poly2(strip, 'front', 'none')
       }
       const fl = clipTo(low, open)
-      // The floor's edge only on the hero: at 56px the opening's outline says enough.
       if (fl.length > 2) s.poly2(fl, floor, hero ? 'crease' : 'none', 0.5)
       s.poly2(open, 'none', 'crease', 0.8)
       return top
     }
-    /** Draws what stands in a well, clipped by the well's near edge. */
     const inWell = (open: readonly P3[], draw: () => void) =>
       s.group('in-well', draw, {
         clip: [...open, ...open.map(([a, b, c]): P3 => [a, b, c + 400])],
       })
 
-    // ---- the table -------------------------------------------------------------------------
     shadowRect(s, 0, -8, TW, TD + 8, 7)
 
-    // Hinge arm stubs and their barrel, behind the slab.
     if (hero) {
       for (const x of [24, 106]) {
         s.box(x, -12, 1.4, 10, 14, 4.4)
@@ -180,7 +155,6 @@ export const timeAloft: LadderFigureDef = {
 
     s.rbox(0, 0, 0, TW, TD, TH, 5, { top: 'top', wall: 'front', side: 'side' })
     if (hero) {
-      // Rolled edge seam round the visible sides, ending on the silhouette corners.
       s.line(
         visibleRun(roundRect(0, 0, TW, TD, 5)).map(([a, b]): P3 => [a, b, TH - 2.4]),
         'crease',
@@ -195,7 +169,6 @@ export const timeAloft: LadderFigureDef = {
       )
     }
 
-    // Latch tab on the front edge, with its slot on the slab.
     s.box(62, TD, 1.4, 16, 3.4, 3.8)
     if (hero) {
       s.poly(rrOn(s, [0, 0, TH], X, Y, 64, 81.4, 12, 3, 1.4), 'shade', 'crease', undefined, 0.6)
@@ -209,7 +182,6 @@ export const timeAloft: LadderFigureDef = {
       )
     }
 
-    // Cup ring: a round recess in the slab.
     const ringOpen = well(
       s.circle([RING[0], RING[1], 0], X, Y, 0, 0, 8.8, n).map(([a, b]): Pt => [a, b]),
       TH,
@@ -224,8 +196,6 @@ export const timeAloft: LadderFigureDef = {
         0.5,
       )
 
-    // ---- the tray --------------------------------------------------------------------------
-    // A shallow foot, the moulded body up to the lip, the lip's roll seam, the deck inside the lip.
     s.rbox(TX + 2, TY + 2, TH, TWD - 4, TDP - 4, 0.8, 5, {
       top: 'side',
       wall: 'side',
@@ -250,9 +220,6 @@ export const timeAloft: LadderFigureDef = {
       openA = wellOf(WA),
       openD = wellOf(WD)
 
-    // ---- what is on the tray ---------------------------------------------------------------
-
-    /** Folded napkin: two layers, the top fold turned back at the near corner, fold lines edge to edge. */
     const napkin = () => {
       const x = 15,
         y = 16.5,
@@ -261,7 +228,6 @@ export const timeAloft: LadderFigureDef = {
       s.box(x, y, FZ, w, d, 0.9)
       s.box(x + 0.6, y + 0.6, FZ + 0.9, w - 1.2, d - 1.2, 0.7)
       const z = FZ + 1.6
-      // Turned-back corner: the fold line and the flap lying on the top layer.
       s.poly(
         [
           [x + w - 0.6, y + d - 9, z],
@@ -293,7 +259,6 @@ export const timeAloft: LadderFigureDef = {
       }
     }
 
-    /** Salt and pepper sachets at the right end of the front well, one dropped across the other, crimped at both ends. */
     const sachets = () => {
       for (const [x, y, z] of [
         [83.5, 63.2, FZ],
@@ -312,7 +277,6 @@ export const timeAloft: LadderFigureDef = {
       }
     }
 
-    /** The pretzel bag: a pillow pouch with crimped end seals, crinkles gathered at the seals, and a printed pretzel. */
     const pretzels = (ink: Ink) => {
       const L = 30,
         y0 = MC[1] - L / 2,
@@ -339,7 +303,6 @@ export const timeAloft: LadderFigureDef = {
             ])
           s.segs(ticks, ink.crease, 0.4)
         }
-        // Each piece takes its own wash, so the hollows between the fins and the pillow stay clear.
         if (ink === LIT)
           wash(
             rect(cx - W, ya, cx + W, ya + fin, zf).flatMap((p): P3[] => [
@@ -370,7 +333,6 @@ export const timeAloft: LadderFigureDef = {
       if (ink === LIT) wash(ringsOf(body, 0, L, 8))
       finAt(y0 + L)
       if (hero) {
-        // Crinkles where the film gathers into each seal.
         for (const [a, b, sg] of [
           [0.4, 6, 1],
           [L - 0.4, L - 6, -1],
@@ -389,7 +351,6 @@ export const timeAloft: LadderFigureDef = {
             }
             s.line(pts, ink.crease, 0.45)
           }
-        // Printed panel and the pretzel on it.
         body.patch(
           [
             [L * 0.3, 100],
@@ -421,7 +382,6 @@ export const timeAloft: LadderFigureDef = {
       }
     }
 
-    /** The wedge sandwich pack: a card triangle standing on its back, a window on the slope showing both halves' cut faces. */
     const sandwich = (ink: Ink) => {
       const B = 28,
         Hs = 20 * H,
@@ -451,7 +411,6 @@ export const timeAloft: LadderFigureDef = {
           undefined,
           0.5,
         )
-      // Window, then the two cut faces: bread, filling, bread across each half.
       band(0.1, 0.86, ys + 2, ys + D - 2, 'glass', ink.crease)
       const halves: [number, number][] = [
         [ys + 2.6, ys + D / 2 - 0.5],
@@ -460,7 +419,6 @@ export const timeAloft: LadderFigureDef = {
       for (const [h0, h1] of halves) {
         const t = h1 - h0
         band(0.14, 0.82, h0, h1, 'top', 'crease')
-        // Filling with a ragged lettuce edge.
         const fa: P3[] = [],
           fb: P3[] = []
         for (let i = 0; i <= 14; i++) {
@@ -471,16 +429,13 @@ export const timeAloft: LadderFigureDef = {
         }
         s.poly([...fa, ...fb.reverse()], 'side', 'crease', undefined, 0.5)
         if (hero) {
-          // Crust at both ends of the cut.
           band(0.14, 0.17, h0, h1, 'front', 'none')
           band(0.79, 0.82, h0, h1, 'front', 'none')
         }
       }
       if (hero) {
-        // Tear strip along the apex, edge to edge.
         s.line([slope(0.93, ys), slope(0.93, ys + D)], 'crease', 0.5)
         s.line([slope(0.96, ys), slope(0.96, ys + D)], 'crease', 0.5)
-        // On the near end: the glued flap seam, the label with its rule lines, a barcode.
         const yE = ys + D
         s.line(
           [
@@ -525,7 +480,6 @@ export const timeAloft: LadderFigureDef = {
       return [...prof.map(([a, b]): P3 => [a, ys, b]), ...prof.map(([a, b]): P3 => [a, ys + D, b])]
     }
 
-    /** The hot meal: a foil casserole with flared, pleated walls, a crimped flange, a card lid with a label and one corner peeled up. */
     const casserole = (ink: Ink) => {
       const w = 40,
         d = 30,
@@ -555,7 +509,6 @@ export const timeAloft: LadderFigureDef = {
         s.poly2([...run.map((i) => T[i]), ...[...run].reverse().map((i) => B[i])], 'side', 'none')
       }
       s.poly2(outline, 'none', ink.line)
-      // Pleats where the foil gathers round each visible corner, from the base to the flange.
       if (hero) {
         const pl: P3[][] = []
         fb.forEach(([a, b], i) => {
@@ -569,7 +522,6 @@ export const timeAloft: LadderFigureDef = {
         })
         s.segs(pl, ink.crease, 0.45)
       }
-      // Flange, crimped round its visible edge.
       const zf = z + h - 0.9
       s.rbox(x - 1.2, y - 1.2, zf, w + 2.4, d + 2.4, 0.9, r + g + 1.2, {
         top: 'top',
@@ -588,7 +540,6 @@ export const timeAloft: LadderFigureDef = {
           ink.crease,
           0.4,
         )
-      // The lid, its embossed border, the label, the peeled corner.
       const zl = zf + 0.9
       s.poly(
         rrOn(s, [0, 0, zl], X, Y, x - 0.4, y - 0.4, w + 0.8, d + 0.8, r + g + 0.4),
@@ -619,7 +570,6 @@ export const timeAloft: LadderFigureDef = {
           0.6,
         )
       }
-      // Peeled corner: the hot food it uncovers, then the flap folded up off it.
       const ca: P3 = [x + w - 9, y + d + 0.4, zl],
         cb: P3 = [x + w + 0.4, y + d - 8, zl],
         tip: P3 = [x + w - 5.5, y + d - 5, zl + 4.2 * H]
@@ -636,7 +586,6 @@ export const timeAloft: LadderFigureDef = {
       ]
     }
 
-    /** Cutlery rolled in a napkin with a paper band; the handles show at the near end. */
     const cutlery = () => {
       const y = 68,
         r = 3.1,
@@ -655,7 +604,6 @@ export const timeAloft: LadderFigureDef = {
       if (hero) band.seam(3)
       const Bd = roll(34, x1, r)
       if (hero) Bd.along(100, 0, x1 - 34)
-      // The rolled end: a spiral of napkin, then the handles of knife, fork and spoon.
       if (hero) {
         const sp: P3[] = []
         for (let i = 0; i <= 60; i++) {
@@ -665,11 +613,9 @@ export const timeAloft: LadderFigureDef = {
         }
         s.line(sp, 'crease', 0.45)
       }
-      // The spoon's handle end, the one piece of cutlery that shows.
       s.rbox(x1 - 0.4, y - 1.1, zc - 0.3, 3.2, 2.2, 0.6, 1)
     }
 
-    /** Bread roll: an ovoid loaf with three scores across its crown. */
     const breadRoll = () => {
       const L = 13,
         R = 5.2,
@@ -680,7 +626,6 @@ export const timeAloft: LadderFigureDef = {
         frameAlong([x0, y, FZ], X),
         (t) => {
           const e = (t - L / 2) / (L / 2)
-          // A superellipse, so the ends are blunt like a baked roll's, not pointed.
           const r = R * Math.max(0, 1 - Math.abs(e) ** 2.6) ** (1 / 2.6) * (1 - 0.06 * e)
           return { r, rz: r * 0.78, lift: r * 0.78 }
         },
@@ -703,7 +648,6 @@ export const timeAloft: LadderFigureDef = {
           )
     }
 
-    /** Butter pat in its foil, folded like an envelope on top. */
     const butter = () => {
       const x = 72.5,
         y = 65.4,
@@ -742,7 +686,6 @@ export const timeAloft: LadderFigureDef = {
       }
     }
 
-    /** Salad in a round bowl: leaves heaped above the rim, two cherry tomatoes, cucumber slices. */
     const salad = () => {
       const cx = 26,
         cy = 24.2,
@@ -776,7 +719,6 @@ export const timeAloft: LadderFigureDef = {
         dx + dy,
         () => {
           const c: P3 = [cx + dx, cy + dy, zt + lift]
-          // A ruffled lettuce leaf.
           const m = hero ? 30 : 12
           const leaf = Array.from({ length: m }, (_, j): P3 => {
             const a = (j / m) * 2 * Math.PI,
@@ -822,7 +764,6 @@ export const timeAloft: LadderFigureDef = {
       pieces.sort((a, b) => a[0] - b[0]).forEach(([, draw]) => draw())
     }
 
-    /** Dessert pot with a foil lid and its peel tab. Returns the points for a wash. */
     const dessert = (ink: Ink) => {
       const cx = 26,
         cy = 48.5,
@@ -847,7 +788,6 @@ export const timeAloft: LadderFigureDef = {
         s.poly(s.circle([cx, cy, FZ + h], X, Y, 0, 0, 4.4, n), 'none', 'crease', undefined, 0.5)
         s.poly(s.circle([cx, cy, FZ + h], X, Y, 0, 0, 1.2, 12), 'none', 'detail', undefined, 0.5)
       }
-      // Peel tab, folded out over the rim towards the viewer.
       const a = Math.PI / 4,
         u: P3 = [Math.cos(a), Math.sin(a), 0],
         v: P3 = [-Math.sin(a), Math.cos(a), 0]
@@ -866,7 +806,6 @@ export const timeAloft: LadderFigureDef = {
       return [...ringsOf(b, 0, h, 3), at(9.2, -1.2, -0.6), at(9.2, 1.2, -0.6)]
     }
 
-    /** A plastic cup in the table's ring, with a rolled rim and water inside. */
     const cup = () => {
       const [cx, cy] = RING,
         z0 = TH - 2.4,
@@ -894,7 +833,6 @@ export const timeAloft: LadderFigureDef = {
       if (water.length > 2) s.poly2(water, 'top', 'crease', 0.5)
     }
 
-    /** The birthday cake: two iced tiers on a board, drips, piped beads, five candles. Returns nothing; drawn whole in the lit group. */
     const cake = () => {
       const [cx, cy] = MC
       const zb = FZ,
@@ -905,7 +843,6 @@ export const timeAloft: LadderFigureDef = {
         h2 = 7.5 * H,
         z1 = z0 + h1,
         z2 = z1 + h2
-      // Board.
       lathe(s, frameAlong([cx, cy, zb], Z), () => ({ r: 19 }), 0, 0.8, { steps: 1, ring: n })
       if (hero)
         s.poly(s.circle([cx, cy, z0], X, Y, 0, 0, 17.8, n), 'none', 'crease', undefined, 0.5)
@@ -922,7 +859,6 @@ export const timeAloft: LadderFigureDef = {
           line: 'accent',
           crease: 'accent-side',
         })
-        // Icing drips down the visible side, stroked only along their lower edge.
         if (hero) {
           const t0 = h - f,
             lim = b.limbs(t0)
@@ -947,14 +883,12 @@ export const timeAloft: LadderFigureDef = {
         return b
       }
       tier(z0, R1, h1)
-      // Shell border round the foot of the bottom tier, only the half in front of it.
       if (hero)
         for (let i = 0; i < 36; i++) {
           const a = (i / 36) * 2 * Math.PI
           if (Math.cos(a) + Math.sin(a) < 0.25) continue
           bead([cx + (R1 + 0.5) * Math.cos(a), cy + (R1 + 0.5) * Math.sin(a), z0 + 0.9], 1.05)
         }
-      // Beads round the bottom tier's top edge: those behind the top tier first.
       const ringBeads = (R: number, z: number, count: number, front: boolean) => {
         if (!hero) return
         const list: P3[] = []
@@ -969,7 +903,6 @@ export const timeAloft: LadderFigureDef = {
       tier(z1, R2, h2)
       ringBeads(R1 - 1.6, z1 + 0.7, 30, true)
 
-      // Candles and the top tier's beads, back to front together.
       const items: [number, () => void][] = []
       if (hero)
         for (let i = 0; i < 20; i++) {
@@ -1008,7 +941,6 @@ export const timeAloft: LadderFigureDef = {
         ])
       }
       items.sort((p, q) => p[0] - q[0]).forEach(([, draw]) => draw())
-      // Flames last: small, solid accent, glowing.
       flames.sort((p, q) => p[0] + p[1] - (q[0] + q[1]))
       for (const [px, py, pz] of flames) {
         const zf = pz + 0.8
@@ -1042,10 +974,8 @@ export const timeAloft: LadderFigureDef = {
       }
     }
 
-    // ---- placing the contents --------------------------------------------------------------
     const lit = (draw: () => void) => s.group('lit', draw)
 
-    // Back-left well: the folded napkin until the hot meal (it becomes the cutlery roll), then the salad.
     inWell(openB, () => {
       if (rung <= 2) napkin()
       else if (rung >= 4) salad()

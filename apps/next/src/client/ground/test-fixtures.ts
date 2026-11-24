@@ -1,4 +1,3 @@
-// Synthetic journeys for the ground-travel tests. Clearly fake ids and places; nothing here is a live record.
 import type {
   GroundJourneyDto,
   GroundJourneyList,

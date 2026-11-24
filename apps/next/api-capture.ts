@@ -30,7 +30,6 @@ import { deleteAccountRequest } from '../../functions/api/auth/account'
 import { requestPasswordReset } from '../../functions/api/auth/password-reset/request'
 import { completePasswordReset } from '../../functions/api/auth/password-reset/complete'
 
-/** One active transport per migrated family; Pages wrappers remain for rollback. */
 export function captureHandler(
   request: Request,
   env: Env,
@@ -82,7 +81,6 @@ export function captureHandler(
   } else if (path === '/api/profiles/me' && method === 'PATCH')
     handler = () => updateProfileRequest(request, env, data)
   else if (path === '/api/auth/account') handler = () => deleteAccountRequest(request, env, data)
-  // Pre-auth recovery: the shared middleware skips session handling for these paths.
   else if (path === '/api/auth/password-reset/request')
     handler = () => requestPasswordReset(request, env, (task) => ctx.waitUntil(task))
   else if (path === '/api/auth/password-reset/complete')

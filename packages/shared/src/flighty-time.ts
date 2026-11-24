@@ -1,36 +1,23 @@
-// Airport-local timestamps from a Flighty CSV, resolved to instants without guessing.
-//
-// The observed export writes `YYYY-MM-DDTHH:MM` with no offset (docs/research/2026-11-10-flighty-csv-format-research.md).
-// Such a wall-clock time names zero, one or two instants in the airport's historical IANA zone: a DST gap has none,
-// a DST fold has two. The resolver reports which, and never picks an offset on the caller's behalf.
 import { isCalendarDate } from './flightValidation'
 import { utcOffsetMinutes } from './timezones'
 
 export interface LocalTimestamp {
-  /** Calendar date as written, `YYYY-MM-DD`. */
   date: string
-  /** Wall-clock time as written, `HH:MM`. Seconds, when present, are kept in `seconds`. */
   time: string
   seconds: number
-  /** Explicit offset in minutes when the source wrote one (`Z`, `+09:00`); null for the observed naive form. */
   offset: number | null
 }
 
 export type LocalResolution =
   | { kind: 'unique'; utc: string; offset: number }
-  /** DST fold: the wall clock repeats. Options are ordered earlier instant first. */
   | { kind: 'ambiguous'; options: Array<{ utc: string; offset: number }> }
-  /** DST gap: the wall clock never showed this time. */
   | { kind: 'nonexistent' }
-  /** The source wrote an offset that the airport's zone did not use at that instant. */
   | { kind: 'offset_mismatch'; utc: string; offset: number; zoneOffset: number | null }
-  /** Unknown zone, or an instant the runtime cannot format. */
   | { kind: 'unresolved' }
 
 const TIMESTAMP =
   /^(\d{4}-\d{2}-\d{2})T([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?(Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)?$/
 
-/** Strict parse of the timestamp shapes the importer accepts; anything else is null (reported, never coerced). */
 export function parseLocalTimestamp(value: string): LocalTimestamp | null {
   const match = TIMESTAMP.exec(value.trim())
   if (!match || !isCalendarDate(match[1])) return null
@@ -58,10 +45,6 @@ function wallClockMs(local: LocalTimestamp): number {
   return Date.UTC(year, month - 1, day, hour, minute, local.seconds)
 }
 
-/**
- * Resolve an airport-local timestamp in `timeZone`. A naive time is tried against every offset the zone used within
- * two days of it; each candidate instant must map back to the same wall clock. Explicit offsets are checked, not trusted.
- */
 export function resolveLocalTimestamp(
   local: LocalTimestamp,
   timeZone: string | null,
@@ -92,7 +75,6 @@ export function resolveLocalTimestamp(
   return { kind: 'ambiguous', options }
 }
 
-/** Whole minutes between two ISO instants (later minus earlier). */
 export function minutesBetween(fromUtc: string, toUtc: string): number {
   return Math.round((Date.parse(toUtc) - Date.parse(fromUtc)) / MINUTE)
 }

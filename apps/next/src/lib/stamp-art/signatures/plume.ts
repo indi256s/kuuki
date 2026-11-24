@@ -1,5 +1,3 @@
-// CR: the steam plume over Arenal. Overlapping round puffs that grow as they climb and drift to the
-// right; each puff is a lit shape with a hair outline and a little shading arc on its lower right.
 import { type Pt, type SvgNode, body, stroke } from '../grid'
 import type { KitModule } from '../kit'
 import { num } from '../kit/util'
@@ -10,13 +8,11 @@ const circle = (cx: number, cy: number, r: number, n = 18): Pt[] =>
     cy + r * 0.82 * Math.sin((i / n) * Math.PI * 2),
   ])
 
-/** The box is the plume: it starts at the bottom left and climbs to the top right. */
 export const plume: KitModule = ([x, y, w, h], p) => {
   const count = Math.max(3, Math.round(num(p, 'puffs', 6)))
   const out: SvgNode[] = []
   const r0 = num(p, 'r0', 4)
   const r1 = num(p, 'r1', 9)
-  // Paint the highest (largest) puff first so the lower ones overlap it.
   for (let i = count - 1; i >= 0; i--) {
     const t = i / (count - 1)
     const r = r0 + (r1 - r0) * t

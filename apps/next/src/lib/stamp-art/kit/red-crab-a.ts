@@ -1,7 +1,3 @@
-// Christmas Island red crab (lane A, `-a` until consolidated), front-high view: a wide carapace on
-// four splayed legs a side, eye stalks, two arms raised to open pincers. The box is the crab with
-// its feet on the bottom; `rock` (fraction of the height) sits it on a T4 boulder. Lit shapes with
-// outlines throughout, dark only in the pincer notches, eyes and the boulder.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, hatchPoly, occlude, quad, stroke } from '../grid'
 import { type KitModule, num } from './util'
@@ -31,7 +27,7 @@ export const redCrabA: KitModule = ([x, y, w, h], p) => {
   const feet = base - rockH + 1
   const ch = feet - y
   const cx = x + w / 2
-  const sc = w / 72 // claw and leg weights are tuned for a 72-wide crab
+  const sc = w / 72
   const bodyY = y + ch * 0.64
   const rx = w * 0.27
   const ry = ch * 0.21
@@ -52,7 +48,6 @@ export const redCrabA: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // Legs: four a side, knee out and slightly up, foot down and out.
   for (const side of [-1, 1] as const) {
     for (let i = 0; i < 4; i++) {
       const a = 0.25 + i * 0.3
@@ -72,7 +67,6 @@ export const redCrabA: KitModule = ([x, y, w, h], p) => {
       )
     }
   }
-  // Arms and claws (behind the carapace edge).
   for (const side of [-1, 1] as const) {
     const sx = cx + side * rx * 0.82
     const sy = bodyY - ry * 0.55
@@ -101,7 +95,6 @@ export const redCrabA: KitModule = ([x, y, w, h], p) => {
     })
     out.push(fill(nt))
   }
-  // Carapace: a wide superellipse, lit, with two shell grooves.
   const shell: Pt[] = []
   for (let i = 0; i < 40; i++) {
     const t = (i / 40) * Math.PI * 2
@@ -133,7 +126,6 @@ export const redCrabA: KitModule = ([x, y, w, h], p) => {
       ),
     ),
   )
-  // Eyes on short stalks.
   for (const side of [-1, 1] as const) {
     const ex = cx + side * rx * 0.28
     const ey = bodyY - ry * 0.92

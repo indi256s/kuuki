@@ -34,7 +34,6 @@ describe('airport catalog expansion', () => {
       code: 'UNKNOWN_AIRPORT',
     })
 
-    // D1's hosted statement limit also applies inside a batch (platform/limits).
     for (const statement of migrationStatements(migration)) {
       expect(Buffer.byteLength(statement, 'utf8')).toBeLessThanOrEqual(100_000)
     }

@@ -1,12 +1,7 @@
-// Papua New Guinea: a Raggiana bird-of-paradise perched on a branch, in profile facing left. The
-// body is solid (T5) with a lit head and beak; long flank plumes cascade down and right as lit
-// ribbons with fine barbs and a shaded edge, over rainforest in T2. A branch with a few big leaves
-// carries it. The module draws its own rainforest as backdrop hatching; the box is the window.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, occlude, quad, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
 
-/** A ribbon along a quadratic centreline: lit paper, outlined, barbed, shaded on its lower edge. */
 function ribbon(a: Pt, c: Pt, b: Pt, wid: number): SvgNode[] {
   const n = 18
   const cl = quad(a, c, b, n)
@@ -25,7 +20,6 @@ function ribbon(a: Pt, c: Pt, b: Pt, wid: number): SvgNode[] {
   }
   const poly: Pt[] = [...L, ...R.reverse()]
   const out: SvgNode[] = [occlude(poly, { halo: 1.2 }), stroke('hair', poly, true)]
-  // Barbs: short strokes leaning away from the centreline toward the tip, on the lit side.
   for (let i = 3; i < n - 1; i += 2) {
     const [px, py] = cl[i]
     const prev = cl[i - 1],
@@ -46,7 +40,6 @@ function ribbon(a: Pt, c: Pt, b: Pt, wid: number): SvgNode[] {
   return out
 }
 
-/** Backdrop rainforest: T2 diagonal hatching over the whole window box. */
 export const rainforestA: KitModule = ([x, y, w, h], p) =>
   toneFill(
     [
@@ -62,7 +55,6 @@ export const rainforestA: KitModule = ([x, y, w, h], p) =>
 export const paradiseA: KitModule = (_box, p) => {
   const rand = mulberry32(Math.round(num(p, 'seed', 7)))
   const out: SvgNode[] = []
-  // Branch: a tapering limb from the left, rising slightly, with bark ticks.
   const top = quad([27, 100], [90, 96], [170, 84], 20)
   const bot = quad([27, 107], [90, 104], [170, 89], 20)
   const limb: Pt[] = [...top, ...bot.slice().reverse()]
@@ -75,7 +67,6 @@ export const paradiseA: KitModule = (_box, p) => {
       ]),
     )
   }
-  // Leaves: big pointed blades hanging off the branch.
   const leaf = (bx: number, by: number, len: number, ang: number, wd: number): SvgNode[] => {
     const dx = Math.cos(ang),
       dy = Math.sin(ang)
@@ -105,7 +96,6 @@ export const paradiseA: KitModule = (_box, p) => {
     ...leaf(150, 90, 28, 1.1, 5.5),
     ...leaf(60, 98, 24, -0.9, 5),
   )
-  // Plumes cascading from the flank, back to front.
   const tips: Pt[] = [
     [158, 108],
     [152, 128],
@@ -120,7 +110,6 @@ export const paradiseA: KitModule = (_box, p) => {
       ...ribbon([98 + i * 3, 78], [96 + i * 8 + (t[0] - 100) * 0.5, 84], t, 6 + rand() * 1.4),
     )
   })
-  // Body: solid, a lit head with a dark beak and eye.
   const bodyPts: Pt[] = [
     [63, 62],
     [68, 55],
@@ -161,7 +150,6 @@ export const paradiseA: KitModule = (_box, p) => {
       [64.5, 54.4],
     ]),
   )
-  // Feet on the branch.
   out.push(
     stroke('line', [
       [90, 88],

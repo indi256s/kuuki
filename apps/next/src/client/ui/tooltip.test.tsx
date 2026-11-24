@@ -49,7 +49,6 @@ it('stays open while the pointer moves from the trigger onto the bubble, and clo
   })
   const bubble = screen.getByRole('tooltip')
   expect(bubble).toHaveAttribute('data-state', 'open')
-  // Out of the trigger, across the gap and onto the bubble.
   fireEvent.pointerOut(trigger, { pointerType: 'mouse', relatedTarget: document.body })
   act(() => {
     vi.advanceTimersByTime(60)
@@ -66,6 +65,6 @@ it('stays open while the pointer moves from the trigger onto the bubble, and clo
   expect(bubble).toHaveAttribute('data-state', 'closed')
   act(() => {
     vi.advanceTimersByTime(200)
-  }) // the fade-out timer starts once the close commits
+  })
   expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
 })

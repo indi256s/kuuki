@@ -1,47 +1,31 @@
 import { burst, glLayer, settle } from './gl.generated.js'
 import type { TurnController } from './turn.generated.js'
 
-/** The reheat geometry the generator writes (`CONCORDE.reheat`): rest-world points in the `model` group, millimetres. */
 export type Reheat = {
   view: number[]
   camera: { origin: number[]; k: number; cam: number[] }
-  /** Nozzle exit centres; the first pair belongs to `proxies[0]`, the second to `proxies[1]`. */
   exits: number[][]
   axis: number[]
   plume: number[]
   proxies: string[]
-  /** The nozzle opening's radius and the drawn flame's length. */
   r: number
   len: number
 }
 
 export type ReheatLayer = {
-  /** Advances the burn by `dt` seconds; `turning` says the model is under way. True while reheat burns or still shows. */
   step(dt: number, turning: boolean): boolean
-  /** Lights reheat now, pop included, and burns HOLD seconds whether or not the model turns (a click on the model). */
   launch(): void
-  /** True when the tail is round far enough for the streams to show: the aft axis at least side-on to the viewer. */
   showing(): boolean
-  /** Draws the flame for the controller's current pose. */
   paint(): void
-  /** Puts the flame out at once (off screen, hidden tab, reduced motion). */
   reset(): void
   destroy(): void
 }
 
-/** The aft axis's facing toward the viewer at which reheat lights: side-on, as the tail starts to swing round. */
 const ON = -0.3
-/** Seconds of reheat per lap: about 50° of the 12°/s turn. */
 const HOLD = 4.2
 const POLYS = 8
 const EDGES = 10
 
-// Energy along each pixel's ray from four jet streams, in closed form: the aft axis is level and the camera looks down
-// 30°, so every ray crosses a stream at 30° or more and a Gaussian tube integrates to σ·√π / sin θ. Each stream has a
-// short hot core that fills the opening, a thin line, and evenly spaced beads stretched along the flow that ride it aft,
-// grow and fade (the reference's beaded exhaust, drawn as a graphic rather than as fire), plus a wide glow that only
-// the dark panel shows. A bead is an elongated Gaussian, so its ray integral is closed-form too. Streams are masked by
-// the parts drawn after their nacelle's proxy (bit 1: the first pair, bit 2: the second).
 const fragment = (data: Reheat) => `
 uniform vec3 uExit[4];
 uniform vec3 uAxis;
@@ -146,13 +130,6 @@ void main(){
   gl_FragColor=max(col+n*smoothstep(0.,1.5/255.,col.a),0.);
 }`
 
-/**
- * The sign-in Concorde's afterburner: once as the model first reaches speed, then once a lap as the tail swings toward
- * the viewer (or whenever the model is clicked: `launch`), reheat lights with a short pop, burns for HOLD seconds and
- * spools down. A WebGL canvas over the live model draws it as beaded jet streams in the canvas's CSS colour (the
- * accent); parts the painter's order puts in front of a nacelle's clear proxy mask them. Null without WebGL, where the
- * nozzles keep their SVG glow.
- */
 export function mountReheat(
   stage: HTMLElement,
   controller: TurnController,
@@ -181,16 +158,13 @@ export function mountReheat(
   let flash = 0
   let age = Infinity
   let burning = false
-  // Reheat also lights the first time the model reaches speed, so a visit doesn't wait most of a lap for the tail.
   let opened = false
-  // A launched burn keeps its HOLD when the turn stops; the turn's own burns spool down with it.
   let launched = false
   let previous: number | null = null
   let drawn = false
   let warmth = ''
   const accent = new Float32Array([0.92, 0.52, 0.44])
   let tint = ''
-  // The stream takes the canvas's CSS colour (the accent), read again only when the theme or the accent changes.
   const shade = (light: number) => {
     const key = `${light}${document.documentElement.getAttribute('data-accent') ?? ''}`
     if (key === tint) return
@@ -205,8 +179,6 @@ export function mountReheat(
     const V = controller.cams().world.V
     return direction[0] * V[0] + direction[1] * V[1] + direction[2] * V[2]
   }
-  // Each nacelle's covers, merged into one list with an owner bit per pair. The other pair's proxy draws nothing, so it
-  // hides nothing.
   const pack = () => {
     edges.fill(0)
     info.fill(0)
@@ -248,8 +220,6 @@ export function mountReheat(
     previous = null
     out()
   }
-  // A lost context (a GPU reset) puts the flame out, nozzle warmth included; once the browser restores it, the layer is
-  // rebuilt on the same canvas.
   const lost = (event: Event) => {
     event.preventDefault()
     reset()
@@ -302,7 +272,6 @@ export function mountReheat(
           uCover: edges,
           uCoverInfo: info,
         },
-        // The burn's own clock: the puffs start at the nozzle each time reheat lights.
         Math.min(age, 60),
       )
       drawn = true

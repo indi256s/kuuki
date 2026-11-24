@@ -1,4 +1,3 @@
-/* Kilometres odometer, hover pose: the units drum ticks over one digit. The strip is clipped to its window cell, so it only slides inside it. */
 @media (prefers-reduced-motion: no-preference) {
   .iso-odometer [data-part='last-drum'] {
     transform: translate(

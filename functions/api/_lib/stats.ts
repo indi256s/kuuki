@@ -1,8 +1,3 @@
-// user_stats row + DTO. has_night_departure is the only 0/1 boolean; everything else is numeric or
-// text. computedStatsStatement deliberately leaves most_visited_*, world_completion_pct and
-// time_zones_count at their defaults (parity quirk — the frontend tolerates it), but they are still
-// returned so the shape matches the old Supabase row.
-
 export interface UserStatsRow {
   user_id: string
   total_flights: number
@@ -45,10 +40,6 @@ export function toUserStats(row: UserStatsRow) {
   }
 }
 
-/**
- * The stats a public profile and its owner preview may show (ADR 0007): totals only. Never the
- * member id or `updated_at`, which would reveal when the member was last active.
- */
 export function toPublicStats(row: UserStatsRow) {
   return {
     total_flights: row.total_flights,

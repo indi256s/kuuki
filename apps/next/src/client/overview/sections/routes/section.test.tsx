@@ -45,11 +45,9 @@ it('a pick changes the hero to that route and does not filter', () => {
   expect(hero).toHaveTextContent(/flights?$/)
   expect(actions.add).not.toHaveBeenCalled()
   expect(actions.setPeriod).not.toHaveBeenCalled()
-  // A pick mid-deal keeps the running deal; after it settles, the next pick deals again.
   const pass = container.querySelector('.ov3-passes')!
   fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${routeArrow(third.key)},`) }))
   expect(pass).toHaveAttribute('data-deal', '1')
-  // jsdom has no AnimationEvent, so React listens for the prefixed name there (browsers get `animationend`).
   fireEvent(pass, new Event('webkitAnimationEnd', { bubbles: true }))
   fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${routeArrow(first.key)},`) }))
   expect(pass).toHaveAttribute('data-deal', '2')

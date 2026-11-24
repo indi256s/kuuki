@@ -9,7 +9,6 @@ const allianceMarks = {
   skyteam: { symbol: '△', name: 'SkyTeam' },
 } satisfies Record<Alliance, { symbol: string; name: string }>
 
-/** Unknown is an outline with a «?», never a fill: it must not pass for a manufacturer colour. Other stays a filled neutral. */
 export function MakerSwatch({ maker, size = 12 }: { maker: MakerKey; size?: number }) {
   if (maker === 'unknown')
     return (
@@ -40,7 +39,6 @@ export function MakerSwatch({ maker, size = 12 }: { maker: MakerKey; size?: numb
   )
 }
 
-/** A region's fixed colour; `unknown` (a region the data does not name) is an outline with a «?», like the Unknown maker. */
 export function RegionSwatch({
   region,
   size = 12,
@@ -59,7 +57,6 @@ export function RegionSwatch({
   )
 }
 
-/** `decorative` when the alliance's name is already written beside the mark, so it is not announced twice. */
 export function AllianceMark({
   alliance,
   size = 12,

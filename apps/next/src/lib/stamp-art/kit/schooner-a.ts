@@ -1,6 +1,3 @@
-// Two-masted gaff schooner in profile (British Virgin Islands). Low dark hull with a high stern and
-// a bowsprit, a shorter foremast and a taller mainmast, each with a lit gaff sail and a topsail,
-// and shaded headsails forward. The box is the vessel; its bottom is the waterline.
 import { type Pt, type SvgNode, body, fill, hline, occlude, stroke, toneFill } from '../grid'
 import { quad } from '../grid'
 import { type KitModule, num } from './util'
@@ -21,7 +18,6 @@ export const schoonerA: KitModule = ([x, y, w, h], p) => {
   const boom2 = sheerMid - h * 0.04
   const out: SvgNode[] = []
 
-  // Main gaff sail and topsail.
   const gaff2: Pt = [m2 + w * 0.27, y + h * 0.17]
   const main: Pt[] = [[m2 + 1.4, y + h * 0.27], gaff2, [sx + 3, boom2], [m2 + 1.4, boom2]]
   out.push(...body(main, 'hair'))
@@ -41,7 +37,6 @@ export const schoonerA: KitModule = ([x, y, w, h], p) => {
   ]
   out.push(...body(top, 'hair'))
 
-  // Foresail and topsail.
   const gaff1: Pt = [m1 + w * 0.21, y + h * 0.3]
   const fore: Pt[] = [[m1 + 1.4, y + h * 0.4], gaff1, [m2 - 3.5, boom1], [m1 + 1.4, boom1]]
   out.push(...body(fore, 'hair'))
@@ -61,7 +56,6 @@ export const schoonerA: KitModule = ([x, y, w, h], p) => {
   ]
   out.push(...body(top1sail, 'hair'))
 
-  // Headsails: shaded jib to the bowsprit tip, lit staysail between.
   const tip: Pt = [x + 1, sheerBow - 1.5]
   const jib: Pt[] = [[m1 - 1.4, top1 + h * 0.03], tip, [m1 - w * 0.17, boom1 - 1]]
   out.push(occlude(jib), ...toneFill(jib, 'T4', { inset: 0.4 }), stroke('hair', jib, true))
@@ -72,7 +66,6 @@ export const schoonerA: KitModule = ([x, y, w, h], p) => {
   ]
   out.push(...body(stay, 'hair'))
 
-  // Masts, booms, bowsprit and a backstay.
   out.push(
     stroke('line', [
       [m1, top1],
@@ -111,7 +104,6 @@ export const schoonerA: KitModule = ([x, y, w, h], p) => {
     ]),
   )
 
-  // Hull with a high stern, a dark deckhouse and a cap rail.
   const hull: Pt[] = [
     [bx - 2, sheerBow],
     ...quad([bx - 2, sheerBow], [x + w * 0.5, sheerMid + hullH * 0.18], [sx, sheerStern]),

@@ -1,10 +1,6 @@
 'use client'
 import { useEffect, type RefObject } from 'react'
 
-/**
- * Marks a sideways-scrolling strip with `data-fade-start` / `data-fade-end` while that edge can still scroll, so its
- * CSS masks only an edge with more behind it. Re-measures on scroll, on window resize and when `content` changes.
- */
 export function useScrollFade(ref: RefObject<HTMLElement | null>, content?: unknown) {
   useEffect(() => {
     const element = ref.current

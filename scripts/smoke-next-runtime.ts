@@ -627,6 +627,10 @@ async function main() {
         'public, max-age=3600, must-revalidate',
         ['/fonts/Commissioner-Regular.woff2', '/fonts/PaperMono.woff2'],
       ],
+      [
+        'public, max-age=86400, must-revalidate',
+        ['/stamps/ad.svg', '/stamps/ring/ad.svg', '/airlines/TK.png', '/icons/icon-192.png'],
+      ],
     ] as const)
       for (const path of paths) {
         const asset = await assertResponse(path, 200)

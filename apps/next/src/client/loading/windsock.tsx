@@ -7,10 +7,8 @@ import './windsock.generated.css'
 import './windsock.css'
 
 const MARKUP = { __html: WINDSOCK.svg }
-/** The loading screen fades in after this delay (shell.css); the wind starts building when it shows. */
 const REVEAL_MS = 250
 
-/** The route loading figure: a windsock that fills band by band as the wind builds, then rides the gusts. */
 export function Windsock() {
   const ref = useRef<HTMLDivElement>(null)
 
@@ -62,7 +60,6 @@ export function Windsock() {
           gradient.setAttribute('y2', y2.toFixed(1))
         }
       }
-      // Paint order follows depth; only touch the DOM when it changes.
       const next = pose.bands.map(({ band }) => band).join()
       if (next !== order) {
         for (const b of pose.bands) stack.appendChild(byBand.get(b.band)!.group)

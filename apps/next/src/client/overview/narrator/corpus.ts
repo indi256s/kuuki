@@ -8,7 +8,6 @@ const flights: [Line, Line, Line] = [
   },
   { en: 'Flight total for this view: {flights}.', ru: 'В обзоре перелётов: {flights}.' },
 ]
-// Factual fallbacks for the slots and the six section gates.
 export const CORPUS: Record<string, [Line, Line, Line]> = {
   records: flights,
   crossings: flights,
@@ -20,16 +19,16 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
   globe: flights,
   firstRun: [
     {
-      en: 'Your flight journal has no completed flights yet.',
-      ru: 'В журнале пока нет завершённых перелётов.',
+      en: 'One flight in, and this page opens a file on you: routes, records, habits.',
+      ru: 'После первого перелёта здесь заведут досье: маршруты, рекорды, привычки.',
     },
     {
-      en: 'A whole planet, and not one route on it. Bold of you.',
-      ru: 'Целая планета — и ни одного маршрута. Смело.',
+      en: 'A whole planet, not one route on it, and the records still blank. Bold of you.',
+      ru: 'Целая планета — ни одного маршрута, рекорды пустуют. Смело.',
     },
     {
-      en: 'Your overview is waiting for its first completed flight.',
-      ru: 'Обзор ждёт первого завершённого перелёта.',
+      en: 'The map, the records and the clock are ready. They lack only a flight.',
+      ru: 'Карта, рекорды и часы готовы. Не хватает только перелёта.',
     },
   ],
   zero: [
@@ -748,30 +747,30 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
   ],
   'rhythm:gap': [
     {
-      en: 'Longest empty run in this view: {from}–{to}; months: {months}. A gap in the selected calendar.',
-      ru: 'Самый долгий перерыв — {from}–{to}, месяцев {months}.',
+      en: 'Nothing took off from {from} to {to}. Months on the ground: {months}.',
+      ru: 'Самый долгий перерыв: {from} — {to}, {months} мес. Чемодан ждал.',
     },
     {
-      en: 'No selected flights across {from}–{to}; consecutive months: {months}. The filter’s quiet interval.',
-      ru: 'Без перелётов: {from}–{to}, месяцев подряд {months}. Тихий интервал.',
+      en: 'Longest quiet spell: {from} to {to}. Months unpacked: {months}.',
+      ru: 'Пауза: {from} — {to}, {months} мес. без вылетов. Авиакомпании заметили.',
     },
     {
-      en: 'Your current view’s longest monthly gap is {from}–{to}; months: {months}. Scope matters.',
-      ru: 'Пауза {from}–{to}: месяцев {months}. Чемодан ждал.',
+      en: '{from} to {to}, flightless. Months the passport rested: {months}.',
+      ru: 'Без перелётов: {from} — {to}, {months} мес. Паспорт отдохнул.',
     },
   ],
   'rhythm:pooled-month': [
     {
-      en: 'A busiest month number here is {month}: flights {count} pooled across years. Recurrence is a separate question.',
-      ru: 'Месяц номер {month} — среди лидеров: перелётов {count} по всем годам.',
+      en: 'Add up every year and {month} leads: {count} flights. A coincidence that keeps recurring.',
+      ru: 'Если сложить все годы, впереди {month}: перелётов {count}. Совпадение, которое повторяется.',
     },
     {
-      en: 'Your pooled monthly peak is month {month}: flights {count} across this view’s years. Calendar totals, not an annual promise.',
-      ru: 'Месяц номер {month}: перелётов {count} за все годы. Сумма, не традиция.',
+      en: 'Across all years, {month} holds {count} flights. The calendar has a favourite.',
+      ru: 'Лидер по сумме лет — {month}: перелётов {count}. У календаря есть любимчик.',
     },
     {
-      en: 'Month number {month} tops the displayed pooled totals: flights {count}. Years combined for counting.',
-      ru: 'В сумме лидирует месяц номер {month}: перелётов {count}. Годы сложены.',
+      en: 'Every year pooled, {month} comes first with {count} flights. A sum, not a tradition.',
+      ru: 'Годы сложены, первым идёт {month}: перелётов {count}. Сумма, не традиция.',
     },
   ],
   'rhythm:july-and-august-empty': [
@@ -886,7 +885,6 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
       ru: '{route} возглавляет список: перелётов {count}, туда и обратно.',
     },
   ],
-  // Hero card: the footer reads the winning `hero` trigger; a record's takeover rotates through its own triple.
   'hero:flights': [
     {
       en: '{flights} flights. The spike has stopped taking new stubs gracefully.',
@@ -899,6 +897,34 @@ export const CORPUS: Record<string, [Line, Line, Line]> = {
     {
       en: '{flights} flights. That is a lot of safety demonstrations sat through.',
       ru: 'Перелётов: {flights}. Инструктаж по безопасности прослушан столько же раз.',
+    },
+  ],
+  'hero:ground-share': [
+    {
+      en: '{percent}% of the distance went by land. The atmosphere has no objections.',
+      ru: '{percent}% пути — по земле. Возражений со стороны атмосферы не поступало.',
+    },
+    {
+      en: '{percent}% by rail and road. Slower, and nobody burned kerosene for it.',
+      ru: 'По земле — {percent}% расстояния. Медленнее, зато без керосина.',
+    },
+    {
+      en: '{percent}% of the kilometres stayed on the ground. The view was better too.',
+      ru: '{percent}% километров пройдено по земле. Вид из окна, к тому же, лучше.',
+    },
+  ],
+  'hero:flights-cost': [
+    {
+      en: '{flights} flights. The atmosphere kept a log too, and it is less flattering.',
+      ru: 'Перелётов: {flights}. Атмосфера тоже вела журнал, и он менее лестный.',
+    },
+    {
+      en: '{flights} flights. The kerosene is logged somewhere else, not here.',
+      ru: 'Перелётов: {flights}. Керосин учтён где-то ещё, не в этом журнале.',
+    },
+    {
+      en: '{flights} flights. Every one cost more than the fare said.',
+      ru: 'Перелётов: {flights}. Каждый обошёлся дороже, чем указано в билете.',
     },
   ],
   'hero:km-belt': [

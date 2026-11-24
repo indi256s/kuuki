@@ -138,9 +138,7 @@ function retained(ownerId: string, batchId: string | null): RetainedEntry[] {
       (batchId ? stored.some((entry) => entry.batchIds.includes(batchId)) : stored.length > 0)
     )
       return stored
-  } catch {
-    /* The server batch remains resumable when browser storage is unavailable. */
-  }
+  } catch {}
   return batchId
     ? [{ id: batchId, label: '', operationId: crypto.randomUUID(), batchIds: [batchId] }]
     : []
@@ -157,7 +155,6 @@ export function UnifiedImport({
   locale: Locale
   initialBatchId?: string | null
   initialSource?: 'file' | 'text' | 'pass' | null
-  /** A Flighty CSV import to restore from the server (`/import?history=`). */
   initialHistoryId?: string | null
 }) {
   const locale = useLocale(initialLocale)
@@ -169,9 +166,7 @@ export function UnifiedImport({
       new UnifiedSession(store?.api, store, (records) => {
         try {
           sessionStorage.setItem(`kuuki-import-session:${ownerId}`, JSON.stringify(records))
-        } catch {
-          /* The server queue remains available. */
-        }
+        } catch {}
       }),
   )
   const entries = useSyncExternalStore(session.subscribe, session.getEntries, session.getEntries)
@@ -182,7 +177,6 @@ export function UnifiedImport({
     () => history.getState().run?.id ?? null,
     () => null,
   )
-  /** CSV files go to the history import (first one only); every other file to the document session. */
   const addFiles = useCallback(
     (files: File[]) => {
       const csv = files.find(isHistoryCsv)
@@ -210,12 +204,9 @@ export function UnifiedImport({
   const [dirty, setDirty] = useState<ReadonlySet<string>>(new Set())
   const [saving, setSaving] = useState(false)
   const savingNow = useRef(false)
-  /** Everything was saved and the Journal is opening: the lane clears its trays. */
   const [saved, setSaved] = useState(false)
-  // The figure shrinks to its band with the first source and keeps that height until the screen is left, even when that source is removed.
   const [banded, setBanded] = useState(false)
   if (entries.length && !banded) setBanded(true)
-  /** A file is held over the page. Enter and leave fire for every child, so depth counts them. */
   const [dragging, setDragging] = useState(false)
   const dragDepth = useRef(0)
   const [error, setError] = useState(false)
@@ -305,16 +296,12 @@ export function UnifiedImport({
       session.stop()
       try {
         sessionStorage.removeItem(`kuuki-import-session:${ownerId}`)
-      } catch {
-        /* Storage may be unavailable. */
-      }
+      } catch {}
     }
     window.addEventListener('kuuki:identity-reset', reset)
     return () => window.removeEventListener('kuuki:identity-reset', reset)
   }, [session, ownerId])
   useEffect(() => {
-    // The history screen takes no pasted files: a paste there would restart the Flighty upload under way, or start a
-    // document read the owner cannot see.
     if (historyOpen) return
     const paste = (event: ClipboardEvent) => {
       const target = event.target as HTMLElement | null
@@ -330,7 +317,6 @@ export function UnifiedImport({
   }, [addFiles, historyOpen])
 
   const drafts = withSaved(session.drafts(), session.getOutcomes())
-  // The final save carries the owner confirmation. This presentation suppresses only that repeated question.
   const shown = drafts.map((draft) => {
     const updated = withUnsent(draft, states[draft.id]?.unsent)
     return { ...updated, fields: { ...updated.fields, flown_confirmed: true as const } }
@@ -472,9 +458,7 @@ export function UnifiedImport({
             )
           )
             sessionStorage.removeItem(`kuuki-import-session:${ownerId}`)
-        } catch {
-          /* Server batches remain the authority. */
-        }
+        } catch {}
         setSaved(true)
         router.push(destination)
         router.refresh()
@@ -506,7 +490,6 @@ export function UnifiedImport({
       id: entry.id,
       phase: entry.phase,
       problem: entry.problem,
-      // Only a ready tray shows its stubs: one per flight this source left for review.
       drafts:
         entry.phase === 'ready'
           ? new Set(
@@ -526,7 +509,6 @@ export function UnifiedImport({
       ref={root}
       className="import-page unified-import"
       onDragEnter={(event) => {
-        // Dragged text or links are not sources: only a file transfer reaches the lane.
         if (saving || !carriesFiles(event.dataTransfer)) return
         dragDepth.current += 1
         setDragging(true)
@@ -607,7 +589,6 @@ export function UnifiedImport({
             >
               {C.choose[locale]}
             </Button>
-            {/* Desktop browsers ignore `capture`, so there this would only repeat Choose files. */}
             <Button
               className="unified-import-camera"
               icon={<Camera size={18} aria-hidden="true" />}
@@ -747,7 +728,6 @@ export function UnifiedImport({
               {entry.nomads && entry.nomads.skipped > 0 ? (
                 <span className="import-hint">{C.nomadsSkipped[locale]}</span>
               ) : null}
-              {/* The same file fails the same type or size check again; only another file helps. */}
               {entry.phase === 'failed' && entry.problem !== 'type' && entry.problem !== 'size' ? (
                 <Button
                   dense
@@ -831,7 +811,6 @@ export function UnifiedImport({
               }}
               onDiscard={() => saver.discard(draft.id)}
             >
-              {/* The row's own missing facts are asked inside its card, under the facts they complete. */}
               <QuestionDeck
                 compact
                 locale={locale}

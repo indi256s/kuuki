@@ -15,7 +15,6 @@ export interface ScannedFlight {
 }
 const invalid = () => new HttpError(502, 'Invalid extraction envelope', 'PROVIDER_INVALID_RESPONSE')
 
-/** Incremental JSON grammar, with bounded in-memory envelope reconciliation. Nothing is stored or logged. */
 export class FlightScanner {
   private text = ''
   private bytes = 0
@@ -31,7 +30,6 @@ export class FlightScanner {
     const remaining = MAX_OUTPUT_BYTES - this.bytes
     const limited = encoded.byteLength > remaining
     this.bytes += Math.min(encoded.byteLength, remaining)
-    // Decode only the fitting prefix, omitting any incomplete UTF-8 character at the cap.
     if (limited) chunk = new TextDecoder().decode(encoded.subarray(0, remaining), { stream: true })
     const start = this.text.length
     this.text += chunk
@@ -75,7 +73,6 @@ export class FlightScanner {
           }
           this.primitiveStart = -1
           this.endValue()
-          // The delimiter belongs to the enclosing array/object.
         }
         if (/\s/.test(c)) continue
         if (this.complete) throw invalid()
@@ -140,7 +137,6 @@ export class FlightScanner {
         }
       }
     } catch (error) {
-      // Keep the size refusal authoritative for an oversized malformed tail, as before.
       if (!limited) throw error
     }
     if (limited) throw new HttpError(502, 'Extraction output limit exceeded', 'OUTPUT_LIMIT')

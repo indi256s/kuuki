@@ -1,5 +1,3 @@
-// POST /api/auth/signin — email + password.
-
 import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireSameOrigin } from '../_lib/auth'
 import { getUserByEmail, parsePassword } from '../_lib/users'
@@ -26,12 +24,10 @@ export const onRequestPost: PagesFunction<Env> = (context) =>
 
     const user = await getUserByEmail(env.DB, email)
     if (!user) {
-      // Equalize timing so a missing account isn't distinguishable from a wrong password.
       await dummyVerify(password, env.AUTH_SECRET)
       throw new HttpError(401, 'Invalid email or password', 'INVALID_CREDENTIALS')
     }
     const authResponse = await signInWithBetterAuth(env, request, user.email, password)
-    // Better Auth's own 401 body differs from the unknown-email one above, which would reveal that the account exists.
     if (!authResponse.ok) return authResponse
 
     const authResult = (await authResponse.json()) as Record<string, unknown>

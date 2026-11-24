@@ -1,40 +1,19 @@
-/**
- * generate-seed.ts — Phase 5 reference-seed SQL generator.
- *
- * Emits committable, idempotent seed SQL for the four reference tables:
- *   - aircraft_reference   (from @kuuki/data aircraft.json, dedup on icao)
- *   - airports_reference   (from @kuuki/data airports.json)
- *   - badge_definitions    (from db/_snapshot/badge_definitions.json)
- *   - _code_adjectives     (from db/_snapshot/code_adjectives.json)
- *   - _code_nouns          (from db/_snapshot/code_nouns.json)
- *
- * Column lists match db/migrations/0001_init.sql EXACTLY. Reads files only —
- * never touches D1. Run: npx tsx db/scripts/generate-seed.ts
- *
- * Idempotency: each file is DELETE-preamble + INSERT (full reload of the
- * reference table) so re-applying is safe and deterministic.
- */
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const REPO = join(__dirname, '..', '..') // db/scripts -> repo root
+const REPO = join(__dirname, '..', '..')
 const DATA = join(REPO, 'packages', 'data', 'src')
 const SNAP = join(REPO, 'db', '_snapshot')
 const OUT = join(REPO, 'db', 'seed')
 
-// ---------------------------------------------------------------------------
-// SQL value helpers
-// ---------------------------------------------------------------------------
 function sqlStr(v: string): string {
   return `'${v.replace(/'/g, "''")}'`
 }
-/** string | null -> quoted-escaped | NULL */
 function sqlNullableStr(v: string | null | undefined): string {
   return v === null || v === undefined ? 'NULL' : sqlStr(v)
 }
-/** number | null -> bare numeric | NULL */
 function sqlNullableNum(v: number | null | undefined): string {
   if (v === null || v === undefined) return 'NULL'
   if (typeof v !== 'number' || !Number.isFinite(v)) {
@@ -43,21 +22,12 @@ function sqlNullableNum(v: number | null | undefined): string {
   return String(v)
 }
 
-/**
- * Build a full seed file: DELETE preamble + chunked INSERT statements.
- * rowsPerInsert = floor(100 / numCols) per D1 placeholder/value limits.
- */
-function buildSeedSql(opts: {
-  table: string
-  columns: string[]
-  rows: string[][] // each cell already SQL-rendered
-}): string {
+function buildSeedSql(opts: { table: string; columns: string[]; rows: string[][] }): string {
   const { table, columns, rows } = opts
   const numCols = columns.length
   const rowsPerInsert = Math.floor(100 / numCols)
   if (rowsPerInsert < 1) throw new Error(`Too many columns for ${table}: ${numCols}`)
 
-  // Validate every row has the right arity.
   for (const r of rows) {
     if (r.length !== numCols) {
       throw new Error(`Arity mismatch in ${table}: expected ${numCols}, got ${r.length}`)
@@ -88,9 +58,6 @@ function loadJson<T>(path: string): T {
   return JSON.parse(readFileSync(path, 'utf8')) as T
 }
 
-// ---------------------------------------------------------------------------
-// Source types
-// ---------------------------------------------------------------------------
 interface AircraftSrc {
   icao: string
   iata: string | null
@@ -100,7 +67,7 @@ interface AircraftSrc {
   type: string
   engineType: string
   engineCount: number
-  capacity: number | null // present in JSON, OMITTED from D1 schema
+  capacity: number | null
 }
 interface AirportSrc {
   iata: string
@@ -111,7 +78,7 @@ interface AirportSrc {
   countryCode: string
   latitude: number | null
   longitude: number | null
-  timezone: string // present in JSON, OMITTED from D1 schema
+  timezone: string
 }
 interface BadgeSrc {
   id: number
@@ -122,7 +89,7 @@ interface BadgeSrc {
   tier: string | null
   icon: string | null
   points: number | null
-  criteria: unknown // object in snapshot -> JSON string in D1
+  criteria: unknown
 }
 interface WordSrc {
   word: string
@@ -139,7 +106,6 @@ interface AirportSupplement {
   longitude: number
 }
 
-/** Explicitly additive seed for the eight public-domain source rows only. */
 function genAirportSupplement(): void {
   const supplement = loadJson<{
     source: { url: string; sha256: string; license: string; attribution: string }
@@ -206,9 +172,6 @@ function genAirportSupplement(): void {
   writeFileSync(join(OUT, 'airports_reference_supplement.sql'), lines.join('\n') + '\n')
 }
 
-// ---------------------------------------------------------------------------
-// Generators
-// ---------------------------------------------------------------------------
 const results: Record<string, number> = {}
 let realAirportCount = 0
 let aircraftRawCount = 0
@@ -218,7 +181,6 @@ function genAircraft(): AircraftSrc[] {
   const raw = loadJson<AircraftSrc[]>(join(DATA, 'aircraft.json'))
   aircraftRawCount = raw.length
 
-  // Dedup on icao: keep FIRST occurrence, drop the SECOND (E135 -> drop RJ140).
   const seen = new Set<string>()
   const deduped: AircraftSrc[] = []
   for (const a of raw) {
@@ -233,10 +195,8 @@ function genAircraft(): AircraftSrc[] {
     throw new Error(`ASSERT FAIL: expected 215 aircraft after dedup, got ${deduped.length}`)
   }
 
-  // Deterministic sort by PK (icao).
   const sorted = [...deduped].sort((x, y) => (x.icao < y.icao ? -1 : x.icao > y.icao ? 1 : 0))
 
-  // Columns EXACTLY per 0001_init.sql aircraft_reference (capacity OMITTED).
   const columns = [
     'icao',
     'iata',
@@ -267,11 +227,9 @@ function genAirports(): void {
   const raw = loadJson<AirportSrc[]>(join(DATA, 'airports.json'))
   realAirportCount = raw.length
 
-  // Assert against the REAL count reported from packages/data.
   if (raw.length !== realAirportCount) {
     throw new Error('unreachable')
   }
-  // Dedup defensively on iata PK (expect 0 dups -> count unchanged).
   const seen = new Set<string>()
   const deduped: AirportSrc[] = []
   for (const a of raw) {
@@ -287,7 +245,6 @@ function genAirports(): void {
 
   const sorted = [...deduped].sort((x, y) => (x.iata < y.iata ? -1 : x.iata > y.iata ? 1 : 0))
 
-  // Columns EXACTLY per 0001_init.sql airports_reference (timezone OMITTED).
   const columns = [
     'iata',
     'icao',
@@ -323,10 +280,8 @@ function genBadges(): void {
     throw new Error(`ASSERT FAIL: expected max badge id 63, got ${maxId}`)
   }
 
-  // Preserve explicit ids (incl. gaps) — deterministic sort by id.
   const sorted = [...raw].sort((a, b) => a.id - b.id)
 
-  // Columns EXACTLY per 0001_init.sql badge_definitions.
   const columns = [
     'id',
     'code',
@@ -339,7 +294,6 @@ function genBadges(): void {
     'criteria',
   ]
   const rows = sorted.map((b) => {
-    // criteria: object/dict in snapshot -> compact JSON string in TEXT column.
     const criteriaCell =
       b.criteria === null || b.criteria === undefined ? 'NULL' : sqlStr(JSON.stringify(b.criteria))
     return [
@@ -372,13 +326,9 @@ function genWords(file: string, table: string, outName: string): void {
   results[outName] = rows.length
 }
 
-// ---------------------------------------------------------------------------
-// Validation — diff generated counts/samples vs source of truth
-// ---------------------------------------------------------------------------
 function validate(dedupedAircraft: AircraftSrc[]): string[] {
   const log: string[] = []
 
-  // Aircraft: re-read source, recompute expected, sample-diff 3 PKs from SQL.
   const srcRaw = loadJson<AircraftSrc[]>(join(DATA, 'aircraft.json'))
   const expectedAircraft = new Map<string, AircraftSrc>()
   for (const a of srcRaw) if (!expectedAircraft.has(a.icao)) expectedAircraft.set(a.icao, a)
@@ -390,19 +340,16 @@ function validate(dedupedAircraft: AircraftSrc[]): string[] {
   const acSql = readFileSync(join(OUT, 'aircraft_reference.sql'), 'utf8')
   for (const icao of ['A124', 'B738', 'E135']) {
     const a = expectedAircraft.get(icao)!
-    // E135 in SQL must be the FIRST (RJ135), not the dropped RJ140.
     if (!acSql.includes(sqlStr(a.name))) {
       throw new Error(`VALIDATE FAIL aircraft sample: ${icao} (${a.name}) not in SQL`)
     }
   }
-  // Confirm dropped E135 row (RJ140) is NOT present.
   const rj140Present = acSql.includes(sqlStr('Embraer RJ140'))
   if (rj140Present) throw new Error('VALIDATE FAIL: dropped E135 RJ140 present in aircraft SQL')
   log.push(
     `aircraft: src=${srcRaw.length} deduped=${expectedAircraft.size} RJ140-dropped=${!rj140Present}`,
   )
 
-  // Airports sample-diff.
   const apRaw = loadJson<AirportSrc[]>(join(DATA, 'airports.json'))
   const apSql = readFileSync(join(OUT, 'airports_reference.sql'), 'utf8')
   for (const a of [apRaw[0], apRaw[Math.floor(apRaw.length / 2)], apRaw[apRaw.length - 1]]) {
@@ -414,10 +361,6 @@ function validate(dedupedAircraft: AircraftSrc[]): string[] {
     `airports: src=${apRaw.length} generated=${results['airports_reference.sql']} sample-diff=PASS`,
   )
 
-  // Flights cross-check (scoped requirement): confirm NO flight references the
-  // dropped E135 row. Both source E135 rows share icao 'E135' and the kept row
-  // is RJ135, so it suffices to confirm no flight uses 'E135' at all -> the
-  // dedup choice (drop RJ140) cannot orphan any flight. This is a HARD assert.
   const flights = loadJson<Array<{ aircraft_icao: string | null }>>(join(SNAP, 'flights.json'))
   const flightIcaos = new Set(flights.map((f) => f.aircraft_icao))
   const e135Refs = flights.filter((f) => f.aircraft_icao === 'E135').length
@@ -425,10 +368,6 @@ function validate(dedupedAircraft: AircraftSrc[]): string[] {
     throw new Error(`VALIDATE FAIL: ${e135Refs} flight(s) reference dropped E135 row`)
   }
 
-  // Broader FK survey (informational, NOT a seed failure): report any flight
-  // aircraft_icao absent from the reference set. These are pre-existing live
-  // data-quality issues to be handled by the flights-import agent, not by the
-  // reference seed (the seed must mirror packages/data row-for-row).
   const dedupSet = new Set(dedupedAircraft.map((a) => a.icao))
   const orphans: string[] = []
   for (const icao of flightIcaos) {
@@ -444,9 +383,6 @@ function validate(dedupedAircraft: AircraftSrc[]): string[] {
   return log
 }
 
-// ---------------------------------------------------------------------------
-// Run
-// ---------------------------------------------------------------------------
 if (process.argv.includes('--airports-only')) {
   genAirports()
   console.log(

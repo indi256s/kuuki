@@ -2,7 +2,6 @@ import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
-// Shared by figure generators. Validate the complete locked dependency set before executing kit code or writing.
 export function verifiedAnatomyKit() {
   const pin = JSON.parse(readFileSync(new URL('./anatomy.lock.json', import.meta.url), 'utf8'))
   const kit = resolve(process.env.ANATOMY_KIT ?? '.scratch/concorde/anatomy/kit')

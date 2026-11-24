@@ -32,23 +32,16 @@ export type { QuickVisit }
 
 export type PassportAtlasProps = {
   locale: Locale
-  /** The filtered visible collection: the same countries, in the same filter state, as the cards. */
   entries: PassportEntry[]
-  /** Owner-only pending countries, drawn distinctly; always empty for visitors. */
   pending: PassportEntry[]
   owner: boolean
   name: (code: string) => string
-  /** Opens the shared country sheet (`?country=`), for visited and unvisited countries alike. */
   onSelectCountry: (code: string) => void
-  /** The owner's sticker on unrecorded countries; null for visitors, the preview and filtered or searched views. */
   quickVisit?: QuickVisit | null
 }
 
-// The MapLibre island (~0.5 MB) is fetched only when the map view is shown; until it is ready, and whenever
-// WebGL, the worker or the geometry fails, the accessible list below stands in for it.
 const AtlasMap = lazy(() => import('./map'))
 const noSubscription = () => () => {}
-/** False on the server and during hydration: MapLibre needs the browser, so the island never renders on the server. */
 const useClient = () =>
   useSyncExternalStore(
     noSubscription,
@@ -118,7 +111,6 @@ const COPY = {
   },
 } as const
 
-/** Flat atlas of the Passport: an interactive map over the same filtered collection as the cards. */
 export function PassportAtlas({
   locale,
   entries,
@@ -136,16 +128,15 @@ export function PassportAtlas({
     [entries],
   )
   const pendingCodes = useMemo(() => pending.map((entry) => entry.code), [pending])
+  const marked = entries.length + pending.length > 0
   const firsts = useMemo(
     () => new Map([...entries, ...pending].map((entry) => [entry.code, entry.first])),
     [entries, pending],
   )
-  // Visitors see no dates, so their pages are regions only.
   const dated = useMemo(() => [...firsts.values()].some(Boolean), [firsts])
   const [chosenAxis, setAxis] = useState<AtlasAxis>('regions')
   const axis = dated ? chosenAxis : 'regions'
 
-  // Phones read the map as pages: the world cover, then one per travel region or per year (pager.tsx).
   const pages = useMemo(
     () => atlasPages(axis, visits, pendingCodes, name, (code) => firsts.get(code) ?? null),
     [axis, visits, pendingCodes, name, firsts],
@@ -155,7 +146,6 @@ export function PassportAtlas({
     0,
     pages.findIndex((entry) => entry.id === pageId),
   )
-  /** Which way the last page change went, so the list turns with the map; null until the first one. */
   const [turn, setTurn] = useState<number | null>(null)
   const [reframe, setReframe] = useState(0)
   const [announced, setAnnounced] = useState('')
@@ -184,7 +174,6 @@ export function PassportAtlas({
     },
     [copy],
   )
-  // The strip's selection follows the camera frame by frame; the list registers how to draw it.
   const follow = useRef<((position: number) => void) | null>(null)
   const onProgress = useCallback((position: number) => follow.current?.(position), [])
   const paging = useMemo<AtlasPaging | null>(
@@ -216,7 +205,7 @@ export function PassportAtlas({
           </Suspense>
         )}
       </section>
-      {mobile ? (
+      {!marked ? null : mobile ? (
         <AtlasPagesList
           locale={locale}
           axis={axis}
@@ -267,7 +256,6 @@ export function PassportAtlas({
   )
 }
 
-/** The fill legend: same buckets and tokens as the map paint (map.tsx). */
 function AtlasLegend({ locale, pending }: { locale: Locale; pending: boolean }) {
   const copy = COPY[locale]
   return (
@@ -295,7 +283,6 @@ function AtlasLegend({ locale, pending }: { locale: Locale; pending: boolean }) 
   )
 }
 
-/** No count is pending, drawn dashed; a visitor's countries count 0, so they take the first bucket. */
 function Swatch({ count }: { count: number | undefined }) {
   return count !== undefined ? (
     <span
@@ -308,10 +295,6 @@ function Swatch({ count }: { count: number | undefined }) {
   )
 }
 
-/**
- * Under the phone map: the page strip, then the page's list in the page's own scroll (no scroll box). The cover lists
- * the regions or years, which open their page; any other page lists its countries, which open the country sheet.
- */
 function AtlasPagesList({
   locale,
   axis,
@@ -329,15 +312,12 @@ function AtlasPagesList({
 }: {
   locale: Locale
   axis: AtlasAxis
-  /** Switches the pages between regions and years; null when no country has a year. */
   onAxis: ((axis: AtlasAxis) => void) | null
   pages: AtlasPage[]
   page: number
   turn: number | null
   onPage: (index: number) => void
-  /** Where the map's pager sends its live page position. */
   follow: Ref<(position: number) => void>
-  /** The map failed, so nothing else moves the strip's selection. */
   mapless: boolean
   visits: ReadonlyMap<string, number>
   name: (code: string) => string
@@ -349,11 +329,9 @@ function AtlasPagesList({
   const strip = useRef<HTMLElement>(null)
   const thumb = useRef<HTMLLIElement>(null)
   const title = useRef<HTMLHeadingElement>(null)
-  /** The selection's last drawn position, and whether the map is the one moving it. */
   const shown = useRef(page)
   const driven = useRef(false)
   const focusTitle = useRef(false)
-  /** The tabs' boxes and the strip's inner size, read once per layout change instead of on every frame. */
   const layout = useRef<{
     tabs: { x: number; y: number; w: number; h: number }[]
     w: number
@@ -366,10 +344,6 @@ function AtlasPagesList({
   const current = pages[page]
   const cover = current.id === 'world'
 
-  /**
-   * Draws the selection at a page position: between two tabs mid-swipe, so it moves with the finger, and keeps it
-   * centred by scrolling only the strip, never the page. `glide` animates a move the map is not driving.
-   */
   const measureTabs = useCallback(() => {
     const list = thumb.current?.parentElement
     if (!list) return
@@ -419,7 +393,6 @@ function AtlasPagesList({
   useEffect(() => {
     if (mapless) driven.current = false
   }, [mapless])
-  // New tabs (the other axis, a filter) redraw at once; a page chosen while the map is not driving glides there.
   useLayoutEffect(() => {
     measureTabs()
     draw(shown.current, false)
@@ -427,7 +400,6 @@ function AtlasPagesList({
   useLayoutEffect(() => {
     if (!driven.current) draw(page, true)
   }, [page, draw])
-  // Web fonts and rotation change the tabs' widths under the selection.
   useEffect(() => {
     const list = thumb.current?.parentElement
     if (!list) return
@@ -439,9 +411,7 @@ function AtlasPagesList({
     return () => observer.disconnect()
   }, [measureTabs, draw])
 
-  // The strip scrolls sideways; a fade shows only on an edge that can still scroll.
   useScrollFade(strip, pages.length)
-  // A page opened from the cover's list hands keyboard focus to its heading, not to the top of the document.
   useEffect(() => {
     if (!focusTitle.current) return
     focusTitle.current = false
@@ -459,7 +429,6 @@ function AtlasPagesList({
     onPage(next)
     strip.current?.querySelectorAll<HTMLButtonElement>('li > button')[next]?.focus()
   }
-  /** A cover row opens its page; the map above may be scrolled away, so it comes back into view. */
   const openPage = (index: number) => {
     focusTitle.current = true
     onPage(index)

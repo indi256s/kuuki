@@ -15,7 +15,6 @@ export type ContinentId = (typeof CONTINENT_IDS)[number]
 
 const RINGS: Record<ContinentId, readonly (readonly number[])[]> = CONTINENT_RINGS
 
-/** Far to near, so neighbours overlap the way their raised edges do on a tray. */
 const PAINT_ORDER: readonly ContinentId[] = [
   'north-america',
   'europe',
@@ -26,12 +25,9 @@ const PAINT_ORDER: readonly ContinentId[] = [
   'antarctica',
 ]
 
-/** How far a pick lifts a piece out of the tray, in px (not scaled by k: the card's motion is a fixed 4px). */
 const LIFT_PX = 4,
-  // Plan scale: degrees to plan units.
   SC = 0.6,
   LAT0 = 84,
-  // Tray depths along z: the rim top, the bed the sockets are cut into, the socket floor, and a piece's top.
   RIM = 7.5,
   BED = 3,
   FLOOR = 0.8,
@@ -39,10 +35,6 @@ const LIFT_PX = 4,
   W = 360 * SC,
   D = 112
 
-/**
- * Plan rings (lon, lat flattened) of a continent as tray coordinates. Antarctica is a strip 84° wide in latitude on a map, which reads as a scratch:
- * it is drawn as a compact piece at the bottom instead, its width squeezed to a quarter and its height stretched into the tray's last band.
- */
 const plan = (id: ContinentId): Pt[][] =>
   RINGS[id].map((flatRing) => {
     const ring: Pt[] = []
@@ -62,25 +54,18 @@ const PLAN = Object.fromEntries(CONTINENT_IDS.map((id) => [id, plan(id)])) as Re
   Pt[][]
 >
 
-/** A wall ribbon: the points at height `hi`, then back along `lo`. */
 const strip = (pts: readonly Pt[], hi: number, lo: number): P3[] => [
   ...pts.map(([x, y]): P3 => [x, y, hi]),
   ...[...pts].reverse().map(([x, y]): P3 => [x, y, lo]),
 ]
 
-/** A run of neighbouring wall facets of one tone, as the coastline points they span, in ring order. */
 type Wall = { pts: Pt[]; tone: Paint }
-/**
- * The walls of a ring that face the viewer (`outside`: a raised piece's faces) or the far walls of a hole, whose inner faces face the viewer (`!outside`),
- * far to near. Tones follow a box: faces toward +x take `side`, toward +y `front`. Neighbouring facets of one tone are one polygon, as a prism merges its up-facing facets.
- */
 function walls(ring: Pt[], outside: boolean): Wall[] {
   const n = ring.length
   const area = ring.reduce((sum, [x, y], i) => {
     const [x2, y2] = ring[(i + 1) % n]
     return sum + x * y2 - x2 * y
   }, 0)
-  // Outward normal; flipped for a hole, whose visible wall is the far one.
   const sign = (area > 0 ? 1 : -1) * (outside ? 1 : -1)
   const tone = ring.map((a, i): Paint | null => {
     const b = ring[(i + 1) % n]
@@ -88,7 +73,6 @@ function walls(ring: Pt[], outside: boolean): Wall[] {
       ny = -(b[0] - a[0]) * sign
     return nx + ny <= 1e-6 ? null : nx > ny ? 'side' : 'front'
   })
-  // Start the walk where a run begins, so no run is split by the ring's first point.
   let start = tone.findIndex((t, i) => t !== tone[(i + n - 1) % n])
   if (start < 0) start = 0
   const out: Wall[] = []
@@ -105,18 +89,6 @@ function walls(ring: Pt[], outside: boolean): Wall[] {
   return out.sort((p, q) => depth(p) - depth(q))
 }
 
-/**
- * Continents: a world-map jigsaw in its tray. A flown continent is a raised piece in place; one not flown is an empty socket.
- * Parts, in a fixed order whatever is lit, so no element ever moves in the DOM (a moved element loses its CSS transitions):
- * `socket-<id>` (the hole under a flown piece, which stays when the piece lifts) or `piece-<id>` (an unflown continent's empty socket);
- * then one `shadow-<id>` per flown continent (the soft shadow the lifted piece casts on the bed); `piece-<id>` for a flown one (the raised piece at rest);
- * then, when `lit` is set, one `lit-<id>` per continent on top of everything.
- * A flown `lit-<id>` is the accent copy of its piece (walls and top, with the glow); an unflown one is the socket outline in the accent. The lit one has `--lit: 1`
- * and the rest 0 (puzzle.css fades the overlays on it, lifts the lit flown piece and its overlay together by `--lift-y`, and fades its shadow in).
- * Painting the overlays after every rest piece is what makes the lit piece pass over its neighbours as it lifts.
- * The tray: a rim with a bed recessed into it, corner screws and a label plate for the count. Each socket is a real recess: a floor (`floor`, which puzzle.css
- * paints darker than the card's shadow so an empty socket reads in both themes) and the far walls you see into.
- */
 export function puzzle(
   k: number,
   {
@@ -139,7 +111,6 @@ export function puzzle(
     'shadow',
     'none',
   )
-  // The tray: its rim, then the bed recessed into it (far inner walls), corner screws and the label plate.
   const OUT = 9,
     FRONT = 17,
     IN = 2
@@ -202,7 +173,6 @@ export function puzzle(
     ...(lifts ? { '--lift-y': `${-LIFT_PX}px` } : {}),
     '--lit': id === lit ? '1' : '0',
   })
-  /** A piece's exterior walls (BED up to TOP) and its top face. The accent copy's walls are one path (one tone, no creases): it is there for the lift, so it stays light. */
   const solid = (id: ContinentId, accent: boolean) => {
     if (accent)
       s.area(
@@ -223,7 +193,6 @@ export function puzzle(
       )
   }
   const socket = (id: ContinentId) => {
-    // The floor is painted at the rim of the opening and the far walls hang inside it, so nothing spills onto the bed.
     s.group(
       'floor',
       () => {

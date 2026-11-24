@@ -14,13 +14,10 @@ import { periodLabel, periodName } from './period-label'
 import { useAppliedFacets } from './use-applied-facets'
 import './filters.css'
 
-/** Scope, period and Filter keep one row of their own; applied conditions wrap in a chip row below, so chips and a new period never move them. */
 export function FilterBar() {
   const { filter, locale, isCurrent, payload, scope, actions } = useOverview()
-  // The segment exists only with ground data; the compute already ignores a stored scope without it.
   const hasGround = (payload?.ground.length ?? 0) > 0
   const travelScope = scope?.figures.scope ?? 'all'
-  // The period button names the period, so the chip row leaves it out.
   const facets = useAppliedFacets().filter(({ facet }) => facet !== 'period')
   const conditions = facets.length + (filter.period ? 1 : 0)
   const bar = useRef<HTMLDivElement>(null),
@@ -28,7 +25,6 @@ export function FilterBar() {
     overflow = useRef<HTMLButtonElement>(null),
     reset = useRef<HTMLButtonElement>(null)
   const [shown, setShown] = useState(Infinity)
-  // A removed chip hands focus to its neighbour, or to Filter when it was the last.
   const focusAfter = useRef<string | null>(null)
   useLayoutEffect(() => {
     const key = focusAfter.current
@@ -51,7 +47,6 @@ export function FilterBar() {
   useLayoutEffect(() => {
     const node = bar.current
     if (!node) return
-    // Over the map (Fullscreen) the bar stays clear of the corner controls.
     const corner = node.parentElement,
       right = node.closest('.globe-card')?.querySelector<HTMLElement>('.globe-top-right')
     const measure = () => {
@@ -66,7 +61,6 @@ export function FilterBar() {
         more = overflow.current
       const trailing = () => reset.current ?? (more && !more.hidden ? more : null)
       const focused = document.activeElement
-      // Measure the actual wrapped chips before paint; collapsed chips use native hidden.
       items.forEach((item) => {
         item.hidden = false
       })
@@ -78,8 +72,6 @@ export function FilterBar() {
       const tops = [...new Set([...row.children].filter(visibleBox).map(middle))].sort(
         (a, b) => a - b,
       )
-      // Chips use at most two rows; the rest go to +N, which sits with Clear all on the last one.
-      // Nothing laid out (a hidden ancestor) measures nothing, so nothing collapses.
       if (!tops.length) {
         setShown(Infinity)
         return

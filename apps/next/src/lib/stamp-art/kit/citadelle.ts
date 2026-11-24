@@ -1,8 +1,3 @@
-// Citadelle Laferriere (Haiti): a ship-shaped fortress on a forested summit, prow to the viewer's
-// left. The hull's stem leans out over the slope; its lit prow face is paper with course lines,
-// the long flank on the right is T4 with rows of T5 gun ports, a set-back second tier carries a
-// crenellated parapet and a square tower. The mountain below is T3 forest. The box is mountain
-// plus fortress; its bottom is the foot of the mountain.
 import { mulberry32 } from '../hash'
 import {
   type Pt,
@@ -25,7 +20,6 @@ export const citadelle: KitModule = ([x, y, w, h], p) => {
   const Y = (v: number) => y + h * v
   const base = y + h
   const out: SvgNode[] = []
-  // Forest mountain under the fortress, T3 with crowns along the slopes.
   const mt: Pt[] = rough(
     [
       [X(0.04), base],
@@ -56,7 +50,6 @@ export const citadelle: KitModule = ([x, y, w, h], p) => {
     [0.2, 0.4, 0.76],
   ])
     out.push(...canopyNodes(X(u0), X(u1), Y(v), 6, rand, { crowns: 2, thr: 0.3 }))
-  // Hull: stem leaning out to the prow tip, flat top, lit prow face and shaded flank.
   const foot = Y(0.6)
   const tip: Pt = [X(0.1), Y(0.38)]
   const keel: Pt = [X(0.27), foot]
@@ -81,7 +74,6 @@ export const citadelle: KitModule = ([x, y, w, h], p) => {
       inset: 0.3,
     }),
   )
-  // Course lines follow the stem on the lit prow.
   for (let i = 1; i < 5; i++) {
     const t = i / 5
     const a: Pt = [tip[0] + (keel[0] - tip[0]) * t, tip[1] + (keel[1] - tip[1]) * t]
@@ -93,7 +85,6 @@ export const citadelle: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // Gun ports: a row on the prow, two along the flank.
   for (const v of [0.45, 0.53]) {
     const py = Y(v)
     for (const u of [0.3, 0.38, 0.45])
@@ -109,7 +100,6 @@ export const citadelle: KitModule = ([x, y, w, h], p) => {
       [X(0.98), foot],
     ]),
   )
-  // Second tier set back: lit wall, crenellated parapet, ports.
   const t2x0 = X(0.4),
     t2x1 = X(0.9)
   const t2Top = Y(0.12),
@@ -132,7 +122,6 @@ export const citadelle: KitModule = ([x, y, w, h], p) => {
   out.push(...toneFill(shade2, 'T4', { gap: 2.3, inset: 0.3 }))
   for (let u = 0.44; u < 0.68; u += 0.065) out.push(fill(rectPts(X(u), Y(0.21), 2.8, 3.2)))
   out.push(hline('bold', t2x0 - 1, t2x1 + 1, t2Foot))
-  // Square tower with a flat cap at the stern.
   const tw = w * 0.1,
     tx = X(0.66)
   out.push(...body(rectPts(tx, y + 2, tw, t2Top - y + 0.6), 'line'))

@@ -1,6 +1,3 @@
-// A dugout canoe (pirogue) on the water, bow to the right: a long narrow hull with raised ends,
-// a dark hollow inside, a rounded palm-thatch awning over the middle on two posts, and a
-// paddle leaning at the stern. The box bottom is the waterline.
 import { type Pt, type SvgNode, hline, fill, occlude, quad, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
 
@@ -21,7 +18,6 @@ export const pirogue: KitModule = ([x, y, w, h], p) => {
   if (p.awning !== false) out.push(...toneFill(hull, 'T4', { gap: 3, weight: 'fine', inset: 0.5 }))
   out.push(stroke(p.awning === false ? 'hair' : 'bold', quad(rim[0], rim[1], rim[2], 14)))
   if (p.awning !== false) {
-    // Awning: dome of thatch over posts.
     const ax0 = x + w * num(p, 'awning', 0.3),
       ax1 = ax0 + w * 0.42
     const dome: Pt[] = quad(

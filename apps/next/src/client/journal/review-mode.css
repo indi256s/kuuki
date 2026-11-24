@@ -1,12 +1,11 @@
-/* Review mode inside the Journal detail sheet. Tokens only, weights 400/500, no divider lines: space groups the blocks. */
 .journal-review-status {
   display: grid;
   gap: var(--space-3);
 }
 .journal-review-count {
   margin: 0;
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
@@ -19,8 +18,8 @@
 }
 .journal-review-question {
   margin: 0;
-  font-size: 15px;
-  line-height: 24px;
+  font-size: 0.9375rem;
+  line-height: 1.5rem;
   font-weight: 500;
   letter-spacing: 0;
 }
@@ -30,8 +29,8 @@
 }
 .journal-review-transit p {
   margin: 0;
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   color: var(--text-muted);
   text-wrap: pretty;
 }

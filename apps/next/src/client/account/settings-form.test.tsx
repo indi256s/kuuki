@@ -457,7 +457,6 @@ describe.each(['en', 'ru'] as const)('accent color (%s)', (locale) => {
   const root = document.documentElement
   const swatch = (name: string) => screen.getByRole('radio', { name })
   beforeEach(() => {
-    // Each test is a fresh sign-in, so no earlier test's saved accent becomes this one's rollback target.
     advanceAuthGeneration()
     document.cookie = 'kuuki_accent=shu; Path=/'
     root.dataset.accent = 'shu'
@@ -495,7 +494,6 @@ describe.each(['en', 'ru'] as const)('accent color (%s)', (locale) => {
     await waitFor(() => expect(m.patch).toHaveBeenCalledTimes(1))
     first.unmount()
     m.patch.mockRejectedValue(new TypeError('offline'))
-    // A soft navigation can hand the next picker the profile as it was before the save.
     render(
       <SettingsForm
         ownerId="a"
@@ -519,7 +517,6 @@ describe.each(['en', 'ru'] as const)('accent color (%s)', (locale) => {
     mount(locale)
     await userEvent.click(swatch(ru ? 'Ай' : 'Ai'))
     await userEvent.click(swatch(ru ? 'Сакура' : 'Sakura'))
-    // The second write waits behind the first instead of racing it to the server.
     expect(sent.map((request) => request.accent)).toEqual(['ai'])
     await act(async () => sent[0].fail())
     expect(screen.queryByRole('alert')).toBeNull()

@@ -1,10 +1,8 @@
-// Shared fixtures for lifecycle migration and API tests (ADR 0001 A1/A2).
 import { Miniflare } from 'miniflare'
 import { applyMigrations, migrationStatements } from '../../scripts/_migrations'
 
 export const LIFECYCLE_MIGRATION = '0006_flight_lifecycle.sql'
 
-/** A private D1 database migrated through `through` (inclusive numeric prefix). */
 export async function databaseThrough(through?: string) {
   const mf = new Miniflare({
     modules: true,
@@ -16,14 +14,9 @@ export async function databaseThrough(through?: string) {
   return { db, dispose: () => mf.dispose() }
 }
 
-/** Apply one migration file atomically in one D1 batch, as a single transaction. */
 export async function applyMigrationAtomically(db: D1Database, file: string): Promise<void> {
   await db.batch(migrationStatements(file).map((statement) => db.prepare(statement)))
 }
-
-// ---------------------------------------------------------------------------
-// Pre-lifecycle writers, verbatim from abe1d80 (the build below the rollback floor).
-// ---------------------------------------------------------------------------
 
 export const OLD_CREATE_LEDGER =
   'INSERT INTO flight_idempotency (user_id, key, payload_digest, flight_id, created_at) VALUES (?, ?, ?, NULL, ?) ON CONFLICT (user_id, key) DO NOTHING'
@@ -44,7 +37,6 @@ export const OLD_SYNC =
 export const OLD_CRON = `UPDATE flights SET is_upcoming = 0 WHERE user_id = ? AND is_upcoming = 1
              AND date <= ? AND id IN (SELECT value FROM json_each(?))`
 
-/** The old create chain for one flight; returns the batch results. */
 export function oldCreate(
   db: D1Database,
   userId: string,
@@ -102,7 +94,6 @@ type OldRow = {
   enrichment_status: string
 }
 
-/** The old PATCH: rewrites every pre-lifecycle column; is_upcoming from the old UTC rule only when the date is patched. */
 export async function oldEdit(
   db: D1Database,
   id: number,
@@ -139,24 +130,18 @@ export async function oldEdit(
     .run()
 }
 
-// ---------------------------------------------------------------------------
-// Trigger manipulation (test-only).
-// ---------------------------------------------------------------------------
-
 export const ADAPTERS = [
   'flights_lifecycle_adapt_insert',
   'flights_lifecycle_adapt_flag',
   'flights_lifecycle_adapt_redate',
 ] as const
 
-/** The 0006 CREATE TRIGGER statements in creation order. */
 export function lifecycleTriggerStatements(): Array<{ name: string; sql: string }> {
   return migrationStatements(LIFECYCLE_MIGRATION)
     .filter((statement) => /^\s*CREATE\s+TRIGGER/i.test(statement.replace(/^(\s*--[^\n]*\n)+/, '')))
     .map((sql) => ({ name: /CREATE\s+TRIGGER\s+(\w+)/i.exec(sql)![1], sql }))
 }
 
-/** Recreate the lifecycle triggers so SQLite fires them in the opposite order to 0006. */
 export async function reverseTriggerOrder(db: D1Database): Promise<void> {
   const triggers = lifecycleTriggerStatements()
   await db.batch([
@@ -165,7 +150,6 @@ export async function reverseTriggerOrder(db: D1Database): Promise<void> {
   ])
 }
 
-/** Recreate adapters 1–3 with an extra first statement that records each firing. */
 export async function countAdapterFirings(
   db: D1Database,
 ): Promise<() => Promise<Record<string, number>>> {

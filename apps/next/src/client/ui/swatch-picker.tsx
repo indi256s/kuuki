@@ -18,12 +18,10 @@ export const NAMES: Record<Accent, { en: string; ru: string }> = {
 export type SwatchPickerProps = {
   locale: Locale
   label?: string
-  /** Controlled value; when omitted the picker follows `data-accent` on <html> (shu by default). */
   value?: Accent
   onChange?: (accent: Accent) => void
 }
 
-/** Only the five named accents; selection goes through `setAccent`, which stores the name, never a color. */
 export function SwatchPicker({ locale, label, value, onChange }: SwatchPickerProps) {
   const [own, setOwn] = useState<Accent>('shu')
   const refs = useRef<(HTMLButtonElement | null)[]>([])

@@ -3,10 +3,7 @@
 import { useRef, type CSSProperties } from 'react'
 import { useMeasuredWidth } from './use-width'
 
-// Adapted from Arc UI Brush Chart (MIT), source hash d37c0f866336bd4a.
 // Copyright (c) 2026 Elia Kuratli; license: ../../ui/ARC-LICENSE.txt.
-// Full provenance: docs/research/2026-10-08-arc-source-inventory.md.
-// Keep its time-scaled overview/selected window; native range handles own keyboard and touch.
 export type ArcBrushProps = {
   bounds: readonly [number, number]
   value: readonly [number, number]
@@ -15,11 +12,9 @@ export type ArcBrushProps = {
   fromLabel: string
   toLabel: string
   points?: readonly { x: number; y: number }[]
-  /** Viewbox width in CSS pixels; measured from the host when omitted. */
   width?: number
   height?: number
   step?: number
-  /** Plot-area insets in CSS pixels (1 viewBox unit = 1px); the line, the selection and the thumbs' travel all use them. */
   inset?: { left: number; right: number }
 }
 const KEYS = [
@@ -50,7 +45,6 @@ export function ArcBrush({
     dirty = useRef(false)
   const [root, measured] = useMeasuredWidth<HTMLDivElement>(),
     width = fixedWidth ?? measured
-  // A completed interaction consumes its draft, so blur after key/pointer release cannot commit twice.
   const change = (index: number, next: number) => {
     const range: readonly [number, number] =
       index === 0 ? [Math.min(next, value[1]), value[1]] : [value[0], Math.max(next, value[0])]
@@ -72,7 +66,6 @@ export function ArcBrush({
   const line = points
     .map((point, index) => `${index ? 'L' : 'M'}${x(point.x)},${height - (point.y / max) * height}`)
     .join('')
-  // Both inputs span the plot area, so each thumb sits on its own edge. When the pair rests in the far half, the start input is lifted so it stays grabbable.
   const startOnTop = value[0] > (bounds[0] + bounds[1]) / 2
   return (
     <div

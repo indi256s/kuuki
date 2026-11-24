@@ -7,7 +7,6 @@ import { Button } from '../ui/button'
 import type { Locale } from '../../lib/format'
 import { guardTraversals } from '../history-gate'
 
-/** Settings owns this guard; preserve Next's history payload and restore a traversal before asking. */
 export function useSettingsGuard(dirty: boolean, busy: boolean, locale: Locale) {
   const router = useRouter()
   const [pending, setPending] = useState<{ run: () => void } | null>(null)
@@ -57,7 +56,6 @@ export function useSettingsGuard(dirty: boolean, busy: boolean, locale: Locale) 
       if (!state.current.busy)
         setPending({ run: () => router.push(url.pathname + url.search + url.hash) })
     }
-    // Back and Forward are held while the form is dirty or saving; a hash-only move on the same page is not leaving it.
     const stopGuarding = guardTraversals((from, rerun) => {
       const to = new URL(window.location.href)
       if (from.pathname === to.pathname && from.search === to.search && from.hash !== to.hash)

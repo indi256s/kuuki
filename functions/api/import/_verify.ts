@@ -31,7 +31,6 @@ function question(index: number, key: Key) {
   return { type: 'noul', instructions: `${rules}\nFor candidate row ${index}: ${claim}` }
 }
 
-// Conservative admission policy, below the provider context ceiling; never truncate evidence.
 const MAX_CONTEXT_BYTES = 32 * 1024
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024
 const MAX_IMAGE_PIXELS = 16_000_000

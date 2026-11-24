@@ -14,7 +14,6 @@ vi.mock('../../write-feedback', () => ({
   useWriteFeedback: () => ({ acknowledge: vi.fn(), status: 'idle' }),
 }))
 vi.mock('../../ui/use-mobile', () => ({ useMobile: () => false }))
-// Tween stand-in: runs to its end on demand, so the tests decide when a crossing finishes.
 const tweens = vi.hoisted(() => ({
   running: [] as {
     keys: number[]
@@ -28,8 +27,6 @@ vi.mock('motion/react', async (original) => {
   return {
     ...actual,
     useReducedMotion: () => false,
-    // The sticker's single-value form: animate(start, keyframes, options). Other subjects (the toast's motion values)
-    // go to the real library; an array as the subject would animate nothing there, so it must never reach this.
     animate: ((from: unknown, keys: unknown, options?: { onUpdate?: () => void }) => {
       if (typeof from !== 'number')
         return (actual.animate as (...args: unknown[]) => unknown)(from, keys, options)
@@ -41,7 +38,6 @@ vi.mock('motion/react', async (original) => {
   }
 })
 
-// jsdom has no PointerEvent: without it, fireEvent drops pointerId, button and coordinates.
 if (!('PointerEvent' in window))
   Object.assign(window, {
     PointerEvent: class extends MouseEvent {
@@ -60,7 +56,6 @@ Object.defineProperty(container, 'clientHeight', { value: 500 })
 const canvas = document.createElement('canvas')
 canvas.tabIndex = 0
 container.appendChild(canvas)
-// A flat camera: `scale` is 2 ** (zoom − 0) and `pan` shifts everything in screen pixels.
 const camera = { scale: 1, pan: 0 }
 const listeners = new Map<string, Set<(event: unknown) => void>>()
 const emit = (name: string, event: unknown = {}) =>
@@ -87,7 +82,6 @@ const { useRecordVisit } = await import('./quick-visit')
 const { ToastProvider } = await import('../../ui/toast')
 import type { StickerHandle } from './sticker'
 
-// Germany as a 200 × 200 px square on screen: big enough that the camera stays put.
 const geometry = {
   rings: [
     [
@@ -104,7 +98,6 @@ const refresh = vi.fn(async () => {})
 const covered = vi.fn<(codes: string[]) => void>()
 const handle: { current: StickerHandle | null } = { current: null }
 
-// The page holds the writes; the sticker comes and goes with the map.
 function Harness({ sticker = true }: { sticker?: boolean }) {
   const { record, recording } = useRecordVisit('owner', refresh)
   return (
@@ -144,7 +137,6 @@ const lift = async () => {
 }
 const inked = () => screen.getByRole('status', { name: 'Inked' }).textContent
 const tab = (name: string) => screen.getByRole('button', { name })
-/** The crossing's tween: its frames, and its end (the vehicle leaving the far edge). */
 const crossing = () => tweens.running.find((tween) => tween.to === 1)
 const arrive = () => act(() => crossing()?.onComplete?.())
 const pull = (stub: HTMLElement, ...ys: number[]) => {
@@ -183,7 +175,6 @@ it('focuses the first way and a Train tap writes a land visit by rail', async ()
     expect.any(String),
   )
   expect(inked()).toBe('DE')
-  // The train crosses first; the stamp and the toast arrive as it leaves.
   expect(document.querySelector('.atlas-vehicle')).toHaveAttribute('data-way', 'rail')
   expect(screen.queryByText('Germany is in your passport.')).not.toBeInTheDocument()
   arrive()
@@ -191,7 +182,6 @@ it('focuses the first way and a Train tap writes a land visit by rail', async ()
   expect(document.querySelector('.atlas-vehicle')).toBeNull()
   expect(screen.getByText('Germany is in your passport.')).toBeInTheDocument()
   expect(refresh).toHaveBeenCalled()
-  // The refreshed collection has it now; the optimistic ink goes.
   expect(inked()).toBe('')
 })
 
@@ -226,7 +216,6 @@ it('inks behind the vehicle: the cover over the country is clipped at its middle
   await lift()
   fireEvent.click(tab('By car'))
   expect(crossing()!.keys).toEqual([0, 1])
-  // Germany spans 100–300 px; halfway, the 72 px car's nose is at 100 + 0.5 × (200 + 72) and its middle 36 px behind.
   act(() => crossing()!.onUpdate?.(0.5))
   expect(document.querySelector('.atlas-sticker clipPath rect')).toHaveAttribute('x', '200')
 })
@@ -316,7 +305,6 @@ it('a failed write restores the country and offers to try again', async () => {
     { entryMethod: 'sea', mode: null },
     expect.any(String),
   )
-  // Try again repeats the first write's visit id, so the server can recognise a write whose answer was lost.
   expect(api.add.mock.calls[1][3]).toBe(api.add.mock.calls[0][3])
   expect(inked()).toBe('DE')
   await flush()
@@ -344,7 +332,6 @@ it('a sticker unmounted mid-crossing still offers Undo for the write it started'
   api.add.mockResolvedValue({ id: 'v4', derived_state: 'ready' })
   const { view } = await lift()
   fireEvent.click(tab('By train'))
-  // A switch to Cards before the vehicle leaves.
   view.rerender(page(false))
   await flush()
   expect(screen.getByText('Germany is in your passport.')).toBeInTheDocument()
@@ -355,7 +342,6 @@ it('a press cut short by the sticker closing does not block the next sticker', a
   api.add.mockResolvedValue({ id: 'v5', derived_state: 'ready' })
   const { group } = await lift()
   fireEvent.pointerDown(tab('By train'), { pointerId: 1, button: 0, clientX: 200, clientY: 320 })
-  // Escape closes it before the finger lifts, so the stub never sees a pointerup.
   fireEvent.keyDown(group, { key: 'Escape' })
   await act(async () => vi.advanceTimersByTime(150))
   expect(screen.queryByRole('group', { name: 'Germany' })).not.toBeInTheDocument()
@@ -372,7 +358,6 @@ it('a stale closing timer cannot finish a newer close of the same country', asyn
   act(() => handle.current!.lift('DE'))
   await flush()
   fireEvent.keyDown(screen.getByRole('group', { name: 'Germany' }), { key: 'Escape' })
-  // The first close would have ended here.
   await act(async () => vi.advanceTimersByTime(100))
   expect(screen.getByRole('group', { name: 'Germany' })).toBeInTheDocument()
   await act(async () => vi.advanceTimersByTime(100))
@@ -403,17 +388,14 @@ it('follows the camera synchronously on move: one transform, no frame and no Rea
   await lift()
   const follow = document.querySelector<SVGGElement>('.atlas-sticker-follow')!
   const outline = document.querySelector('.atlas-sticker-face')!.getAttribute('d')
-  // Zoom in by 2 and pan 30px; Germany's corner (0, 0) was at (100, 100) and is now at (130, 100).
   camera.scale = 2
   camera.pan = 30
   emit('move')
-  // Re-projecting at (1, 1) of the old drawing: x' = 2·x + (130 − 2·100 → −70), y' = 2·y − 100.
   expect(follow.style.transform).toBe('translate(-70px, -100px) scale(2)')
   expect(document.querySelector('.atlas-sticker-face')!.getAttribute('d')).toBe(outline)
   expect(screen.getByRole('group', { name: 'Germany' }).parentElement).toHaveAttribute(
     'data-moving',
   )
-  // moveend re-projects once and starts the transform over.
   act(() => emit('moveend'))
   expect(follow.style.transform).toBe('')
   expect(document.querySelector('.atlas-sticker-face')!.getAttribute('d')).not.toBe(outline)
@@ -444,11 +426,9 @@ it('takes the year on the recorded toast: the open wheel holds the toast and the
   expect(screen.getByText('Germany is in your passport.')).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: 'Year of visit: no year' }))
   const drum = screen.getByRole('spinbutton', { name: 'Year of visit' })
-  // The outcome line names what the wheel is for, and the pill becomes its Done.
   expect(screen.getByText('Germany · year of visit')).toBeInTheDocument()
   expect(screen.getByRole('button', { name: 'Done' })).toHaveAttribute('aria-expanded', 'true')
 
-  // Well past the toast's eight seconds: an open wheel keeps the toast and the stamp.
   await act(async () => vi.advanceTimersByTime(20_000))
   expect(screen.getByRole('spinbutton')).toBeInTheDocument()
   expect(stamp()).not.toHaveAttribute('data-leaving')
@@ -462,7 +442,6 @@ it('takes the year on the recorded toast: the open wheel holds the toast and the
   await flush()
   expect(api.update).toHaveBeenCalledExactlyOnceWith('owner', 'v1', { visitYear: thisYear })
 
-  // Focus leaves the toast: its clock runs again, and the stamp leaves with it.
   act(() => (document.activeElement as HTMLElement).blur())
   await act(async () => vi.advanceTimersByTime(8_000))
   expect(stamp()).toHaveAttribute('data-leaving')
@@ -475,12 +454,10 @@ it('keeps the country covered from lift until its landed stamp starts to leave',
   await lift()
   expect(covered).toHaveBeenLastCalledWith(['DE'])
   fireEvent.click(tab('By train'))
-  // The crossing is cut short and the stamp prints the name: the map label stays off.
   act(() => handle.current!.finish())
   expect(screen.queryByRole('group', { name: 'Germany' })).not.toBeInTheDocument()
   expect(stamp()).toBeInTheDocument()
   expect(covered).toHaveBeenLastCalledWith(['DE'])
-  // The stamp leaves with the toast; the label returns as it fades.
   await act(async () => vi.advanceTimersByTime(8_000))
   expect(stamp()).toHaveAttribute('data-leaving')
   expect(covered).toHaveBeenLastCalledWith([])

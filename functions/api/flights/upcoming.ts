@@ -1,5 +1,3 @@
-// GET /api/flights/upcoming?limit=3 — soonest upcoming flights for the dashboard.
-
 import { runHandler, json } from '../_lib/http'
 import { requireUser, type RequestData } from '../_lib/auth'
 import { toOwnFlight, type FlightRow } from '../_lib/flights'

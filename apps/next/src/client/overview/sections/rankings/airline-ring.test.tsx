@@ -18,14 +18,11 @@ it('gives each segment its apportioned dots and draws every dot exactly once', (
   for (const counts of [fits, overflows]) {
     const plan = planDotRing(counts, 'full')
     const total = counts.reduce((sum, count) => sum + count, 0)
-    // One dot a flight while they fit; past the capacity the smallest k that fits, and no segment loses its dot.
     const dotted = plan.dots.reduce((sum, dots) => sum + dots, 0)
     if (plan.k === 1) expect(plan.dots).toEqual(counts)
     else {
-      // Independent of the planner: the dots represent the flights at k a dot, and every airline keeps a dot.
       expect(dotted).toBe(Math.ceil(total / plan.k))
       expect(plan.dots.every((dots) => dots >= 1)).toBe(true)
-      // Every segment but the largest (which lends the minimum-one dots) stays within one dot of its exact share.
       const donor = counts.indexOf(Math.max(...counts))
       counts.forEach((count, index) => {
         if (index !== donor)

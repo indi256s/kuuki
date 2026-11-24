@@ -1,8 +1,3 @@
-// PT: the Tower of Belem in front elevation. A low bulwark terrace on the water (merlons, dark
-// gun ports, a battered foot) carries a stout four-storey tower: a loggia of three arches on the
-// first storey, round domed corner turrets (garitas) at two levels, narrowing storeys with slit
-// windows, a crenellated terrace and a small domed lantern. The box is bulwark plus tower; its
-// bottom is the waterline. `at` is the tower's centre as a fraction of the width.
 import {
   type Pt,
   type SvgNode,
@@ -40,7 +35,6 @@ export const belemTower: KitModule = ([x, y, w, h], p) => {
   const cord = (cx: number, wid: number, yy: number) =>
     out.push(hline('bold', cx - wid / 2 - 1.4, cx + wid / 2 + 1.4, yy))
 
-  // storey blocks, bottom to top
   const s1 = { w: tw, y0: py + 3, h: T * 0.36 + 3 }
   const s2 = { w: tw * 0.88, y0: s1.y0 - s1.h, h: T * 0.3 }
   const s3 = { w: tw * 0.76, y0: s2.y0 - s2.h, h: T * 0.2 }
@@ -60,7 +54,6 @@ export const belemTower: KitModule = ([x, y, w, h], p) => {
   storey(s2)
   storey(s3, false)
 
-  // first storey: a loggia of three round arches
   const archW = tw * 0.17
   const archH = s1.h * 0.52
   for (const f of [-0.28, 0, 0.28]) {
@@ -68,14 +61,12 @@ export const belemTower: KitModule = ([x, y, w, h], p) => {
     out.push(fill(a))
   }
   out.push(hline('hair', tcx - tw / 2, tcx + tw / 2, s1.y0 - s1.h * 0.1 - archH - 3))
-  // second storey: one tall window and two shield nubs; third: twin slits
   out.push(fill(arch(tcx - s2.w * 0.08, s2.y0 - s2.h * 0.2, tw * 0.13, s2.h * 0.55)))
   for (const f of [-0.3, 0.3])
     out.push(...body(rectPts(tcx + s2.w * f - 2.2, s2.y0 - s2.h * 0.82, 4.4, 5), 'hair'))
   for (const f of [-0.17, 0.17])
     out.push(fill(rectPts(tcx + s3.w * f - 1.3, s3.y0 - s3.h * 0.72, 2.6, s3.h * 0.46)))
 
-  // crenellated terrace and lantern
   const topY = s3.y0 - s3.h
   for (let mx = tcx - s3.w / 2 + 0.6; mx < tcx + s3.w / 2 - 3.2; mx += 5.6)
     out.push(...body(rectPts(mx, topY - 3.4, 3.2, 3.4), 'hair'))
@@ -100,7 +91,6 @@ export const belemTower: KitModule = ([x, y, w, h], p) => {
   out.push(...body(dome, 'line'), ...toneFill(dome, 'T4', { gap: 2, inset: 0.2 }))
   out.push(vline('line', tcx, topY - 3.4 - lh - lw * 0.38, topY - 3.4 - lh - lw * 0.38 - 3))
 
-  // round corner turrets with domed caps
   const garita = (cx: number, yb: number, gw: number, gh: number) => {
     out.push(...body(rectPts(cx - gw / 2, yb - gh, gw, gh), 'line'))
     out.push(
@@ -133,7 +123,6 @@ export const belemTower: KitModule = ([x, y, w, h], p) => {
     garita(tcx + sgn * (s3.w / 2 + 0.4), topY + 1, gw1 * 0.82, T * 0.14)
   }
 
-  // bulwark terrace in front: plumb wall, merlons, gun ports, a corner turret
   const bw = w * num(p, 'bulwarkWidth', 0.88)
   const bx0 = tcx - bw / 2
   const bx1 = tcx + bw / 2

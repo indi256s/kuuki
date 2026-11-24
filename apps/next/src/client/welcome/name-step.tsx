@@ -91,7 +91,6 @@ export function NameStep({
 }: StepProps & {
   initialName: string
   initialAddress: string | null
-  /** Every input event, so the passport prints the name as it is typed. */
   onName: (name: string) => void
   onSaved: (saved: { displayName: string; username: string }) => void
 }) {
@@ -99,7 +98,6 @@ export function NameStep({
   const host = useSyncExternalStore(subscribeNothing, readHost, serverHost)
   const online = useSyncExternalStore(subscribeOnline, readOnline, serverOnline)
   const [name, setName] = useState(initialName)
-  // The address the member chose, or the one saved before they came Back; null means "derive it from the name".
   const [custom, setCustom] = useState<string | null>(initialAddress)
   const [kept, setKept] = useState(initialAddress !== null)
   const [editing, setEditing] = useState(false)
@@ -116,14 +114,12 @@ export function NameStep({
   const running = useRef(false)
   const cancelled = useRef(false)
 
-  // Autofocus on the first mount; a step entered with Back lets the heading take focus afterwards.
   useEffect(() => nameRef.current?.focus(), [])
   useEffect(() => {
     if (editing) addressRef.current?.select()
   }, [editing])
 
   const normalized = normalizeName(name)
-  // A fixed random tail per mounted step, so the `pilot-xxxx` fallback doesn't flicker while typing.
   const [tail] = useState(() => Array.from({ length: 4 }, () => Math.random()))
   const derived = useMemo(() => {
     let index = 0
@@ -167,7 +163,6 @@ export function NameStep({
             state: reply?.valid === false ? 'invalid' : reply?.available ? 'ok' : 'taken',
           })
       } catch {
-        // The server is authoritative on save; an unreachable check must not block the member.
         if (!controller.signal.aborted) setCheck({ value: candidate, state: 'ok' })
       }
     }, 300)
@@ -192,7 +187,6 @@ export function NameStep({
     onName(value)
     setFailed(false)
     setNameInvalid(false)
-    // A kept address belongs to the name it was saved with.
     if (kept) {
       setKept(false)
       setCustom(null)

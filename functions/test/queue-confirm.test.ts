@@ -1,5 +1,3 @@
-// T09 / ADR 0001 §5 and C4: the awaiting queue, atomic confirmation receipts, replay, mixed invalid state,
-// cross-account access, post-commit repair failure and concurrency (A3, A7, A8).
 import { describe, expect, it } from 'vitest'
 import { apiContext, count } from './harness'
 import { hasSql, instrumentDb } from './db-hooks'
@@ -80,7 +78,6 @@ describe('GET /api/me/awaiting', () => {
         derivedState: 'ready',
       })
       expect(body.revision).toBe((await stateOf(db, USER.id))!.revision)
-      // Newest awaiting flight first (hero order); each flight carries its own candidate and token.
       expect(body.awaitingFlights.map((entry: any) => entry.flight.id).sort()).toEqual([1, 3])
       const one = body.awaitingFlights.find((entry: any) => entry.flight.id === 1)
       expect(one.flight).toMatchObject({
@@ -106,7 +103,6 @@ describe('GET /api/me/awaiting', () => {
       expect(three.candidate).toMatchObject({ label: null, legId: null })
       expect(three.effectiveDefault).toMatchObject({ transit: false, legId: null })
       expect(one.candidateToken).not.toBe(three.candidateToken)
-      // Draft summaries: unexpired batches only; processing with no rows has a label but no count.
       expect(body.drafts).toEqual([
         {
           batchId: 'b2',
@@ -204,15 +200,14 @@ describe('GET /api/me/awaiting', () => {
           .map((row: any) => row.country_code)
           .sort(),
       ).toEqual(['GB', 'GE'])
-      expect(before.countries.map((row: any) => row.country_code)).not.toContain('TR') // the queue says transit by default
+      expect(before.countries.map((row: any) => row.country_code)).not.toContain('TR')
       const queue = await getAwaiting(raw)
       expect(
         queue.body.awaitingFlights.find((entry: any) => entry.flight.id === 1).effectiveDefault
           .transit,
       ).toBe(true)
-      expect((await overview(raw)).passport.countryCodes).toEqual(['AE', 'TH']) // only pressed Passport evidence counts
+      expect((await overview(raw)).passport.countryCodes).toEqual(['AE', 'TH'])
 
-      // Confirm with the default (transit) while the repair is failing: committed but pending.
       const { db, hooks } = instrumentDb(raw)
       hooks.failBatch(hasSql('INSERT INTO country_visit_evidence'))
       const t = await tokens(raw)
@@ -221,10 +216,10 @@ describe('GET /api/me/awaiting', () => {
         items: [item(1, t[1]), item(3, t[3])],
       })
       expect(pending.body).toMatchObject({ derivedState: 'pending', newlyStampedCountries: null })
-      expect((await overview(raw)).derivedReady).toBe(false) // never a mixed figure while pending
-      expect((await passport(raw)).derivedState).toBe('error') // the failed repair recorded its error: not ready either way
+      expect((await overview(raw)).derivedReady).toBe(false)
+      expect((await passport(raw)).derivedState).toBe('error')
       expect((await getAwaiting(raw)).body.derivedState).toBe('error')
-      expect((await getAwaiting(raw)).body.awaitingFlightCount).toBe(0) // the queue already knows the flights are confirmed
+      expect((await getAwaiting(raw)).body.awaitingFlightCount).toBe(0)
 
       await publish(raw)
       const after = await passport(raw)
@@ -259,7 +254,7 @@ describe('POST /api/flights/confirm', () => {
         derivedState: 'ready',
         newlyStampedCountries: ['GB'],
         pendingCountryCount: 1,
-      }) // GE still pending (flight 1)
+      })
       expect(body.results).toEqual([
         expect.objectContaining({
           flightId: 3,
@@ -272,7 +267,7 @@ describe('POST /api/flights/confirm', () => {
       expect(body.revision).toBe((await stateOf(db, USER.id))!.revision)
       expect(await flightRow(db, 3)).toMatchObject({ s: 'logged', src: 'user', t: 0, leg: null })
       expect((await flightRow(db, 3)).at).toBe(body.results[0].confirmedAt)
-      expect(await flightRow(db, 1)).toMatchObject({ s: 'awaiting' }) // untouched
+      expect(await flightRow(db, 1)).toMatchObject({ s: 'awaiting' })
       expect(await receipts(db)).toEqual([
         {
           operation_id: op,
@@ -303,7 +298,7 @@ describe('POST /api/flights/confirm', () => {
         [1, false, null],
         [3, false, null],
       ])
-      expect(body.newlyStampedCountries).toEqual(['GB', 'GE', 'TR']) // the member left the airport, so Turkey counts
+      expect(body.newlyStampedCountries).toEqual(['GB', 'GE', 'TR'])
       expect(body.pendingCountryCount).toBe(0)
 
       const second = await queueAccount()
@@ -317,7 +312,7 @@ describe('POST /api/flights/confirm', () => {
           arrivalTransit: true,
           arrivalTransitLegId: 2,
         })
-        expect(defaulted.body.newlyStampedCountries).toEqual(['GE']) // Turkey is a transit hub: no stamp
+        expect(defaulted.body.newlyStampedCountries).toEqual(['GE'])
         expect(await flightRow(second.db, 1)).toMatchObject({ s: 'logged', t: 1, leg: 2 })
         const explicit = await queueAccount()
         try {
@@ -372,13 +367,12 @@ describe('POST /api/flights/confirm', () => {
       const replay = await postConfirm(db, {
         operationId: op,
         items: [item(3, 'a-stale-token-is-ignored-on-replay', false), item(1, t[1])],
-      }) // same decisions, other order, stale token
+      })
       expect(replay.status).toBe(200)
       expect(replay.body).toEqual(first.body)
-      expect(await stateOf(db, USER.id)).toEqual(state) // no dirty mark, no revision change
+      expect(await stateOf(db, USER.id)).toEqual(state)
       expect((await flightRow(db, 1)).at).toBe(confirmedAt)
       expect(await count(db, 'lifecycle_operation_receipts')).toBe(1)
-      // The recorded result survives a later deletion of one of the flights.
       await db.prepare('DELETE FROM flights WHERE id = 3').run()
       expect(
         (await postConfirm(db, { operationId: op, items: [item(1, t[1]), item(3, t[3], false)] }))
@@ -456,7 +450,6 @@ describe('POST /api/flights/confirm', () => {
       expect(await flightRow(db, 3)).toMatchObject({ s: 'awaiting' })
       expect(await flightRow(db, 50)).toMatchObject({ s: 'awaiting' })
       expect(await count(db, 'lifecycle_operation_receipts')).toBe(0)
-      // A foreign member cannot replay or see this member's operation either.
       const mine = await postConfirm(db, {
         operationId: 'shared-operation-1',
         items: [item(3, t[3])],
@@ -467,7 +460,7 @@ describe('POST /api/flights/confirm', () => {
         { operationId: 'shared-operation-1', items: [item(3, t[3])] },
         { id: 'u2', email: 'u2@example.test' },
       )
-      expect(theirs.status).toBe(404) // flight 3 is not theirs; the operation id scope is per account
+      expect(theirs.status).toBe(404)
     } finally {
       await dispose()
     }
@@ -477,7 +470,6 @@ describe('POST /api/flights/confirm', () => {
     const { db, dispose } = await queueAccount()
     try {
       const t = await tokens(db)
-      // A second outgoing candidate from the hub makes the connection ambiguous: the effective default changes.
       await db.batch([
         flightStatement(db, {
           id: 6,
@@ -503,7 +495,6 @@ describe('POST /api/flights/confirm', () => {
       })
       expect(await flightRow(db, 1)).toMatchObject({ s: 'awaiting' })
       expect(await flightRow(db, 3)).toMatchObject({ s: 'awaiting' })
-      // Other flights' ticks never conflict: a refreshed token works.
       const fresh = await tokens(db)
       expect(
         (
@@ -632,9 +623,8 @@ describe('A3: concurrency, replay and committed-but-pending', () => {
         cause: 'not_awaiting',
         items: [{ flightId: 3, cause: 'logged' }],
       })
-      expect(await flightRow(raw, 1)).toMatchObject({ s: 'awaiting' }) // all or nothing: the loser's other item did not apply
-      expect((await receipts(raw)).map((row) => row.operation_id)).toEqual([winnerBody.operationId]) // no partial loser receipt
-      // The rolled-back operation id is not burned: the member can re-send it with only what is still valid.
+      expect(await flightRow(raw, 1)).toMatchObject({ s: 'awaiting' })
+      expect((await receipts(raw)).map((row) => row.operation_id)).toEqual([winnerBody.operationId])
       const retry = await postConfirm(raw, {
         operationId: loserBody.operationId,
         items: [item(1, (await tokens(raw))[1])],
@@ -665,7 +655,6 @@ describe('A3: concurrency, replay and committed-but-pending', () => {
       expect(result.body.derivedState).toBe('ready')
       expect(await flightRow(raw, 3)).toMatchObject({ s: 'logged', src: 'user' })
       expect(await count(raw, 'lifecycle_operation_receipts')).toBe(1)
-      // The first batch rolled back on the revision guard; the second decided again on the new revision.
       expect(
         hooks.sql.filter((sql) => sql.includes('INSERT INTO lifecycle_operation_receipts')),
       ).toHaveLength(2)
@@ -710,13 +699,11 @@ describe('A3: concurrency, replay and committed-but-pending', () => {
       const confirmedAt = (await flightRow(raw, 1)).at
       const revision = (await stateOf(raw, USER.id))!.revision
 
-      // Still failing: the replay reports pending again, with no second mutation and no second dirty mark.
       const again = await postConfirm(db, body)
       expect(again.body).toMatchObject({ derivedState: 'pending', newlyStampedCountries: null })
       expect((await stateOf(raw, USER.id))!.revision).toBe(revision)
       expect((await flightRow(raw, 1)).at).toBe(confirmedAt)
 
-      // Healthy again: the replay repairs, freezes and returns the real outcome.
       const done = await postConfirm(raw, body)
       expect(done.body).toMatchObject({
         derivedState: 'ready',
@@ -738,7 +725,6 @@ describe('A8: newlyStampedCountries', () => {
     try {
       const t = await tokens(raw)
       const { db, hooks } = instrumentDb(raw)
-      // A claim lands after the confirmation committed and before its repair published.
       hooks.afterBatch(hasSql('INSERT INTO lifecycle_operation_receipts'), async () => {
         await raw.batch([
           raw
@@ -754,14 +740,14 @@ describe('A8: newlyStampedCountries', () => {
         items: [item(1, t[1]), item(3, t[3])],
       })
       expect(result.body.derivedState).toBe('ready')
-      expect(result.body.newlyStampedCountries).toEqual(['GB', 'GE']) // not JP
+      expect(result.body.newlyStampedCountries).toEqual(['GB', 'GE'])
       const pressed = await raw
         .prepare(
           "SELECT country_code FROM country_visit_evidence WHERE user_id = ? AND status = 'pressed' ORDER BY country_code",
         )
         .bind(USER.id)
         .all()
-      expect(pressed.results.map((row: any) => row.country_code)).toContain('JP') // it is pressed, just not by this operation
+      expect(pressed.results.map((row: any) => row.country_code)).toContain('JP')
     } finally {
       await dispose()
     }
@@ -770,7 +756,6 @@ describe('A8: newlyStampedCountries', () => {
   it('repairs a stale published projection before taking the snapshot, so nothing already pressed is mis-attributed', async () => {
     const { db, dispose } = await queueAccount()
     try {
-      // The published projection wrongly says GE is already pressed and the evidence stamp is stale (an old writer's repair).
       await db.batch([
         db
           .prepare(
@@ -796,12 +781,12 @@ describe('A8: newlyStampedCountries', () => {
       await raw
         .prepare('UPDATE user_derived_state SET revision = revision + 1 WHERE user_id = ?')
         .bind(USER.id)
-        .run() // dirty
+        .run()
       const { db, hooks } = instrumentDb(raw)
-      hooks.failBatch(hasSql('INSERT INTO country_visit_evidence'), 1) // the snapshot repair fails once
+      hooks.failBatch(hasSql('INSERT INTO country_visit_evidence'), 1)
       const result = await postConfirm(db, { operationId: operationId(), items: [item(3, t[3])] })
       expect(result.status).toBe(200)
-      expect(result.body).toMatchObject({ derivedState: 'ready', newlyStampedCountries: null }) // published now, but there was no trustworthy "before"
+      expect(result.body).toMatchObject({ derivedState: 'ready', newlyStampedCountries: null })
       expect(await receipts(raw)).toMatchObject([{ pressed_before_json: null, frozen: 1 }])
     } finally {
       await dispose()

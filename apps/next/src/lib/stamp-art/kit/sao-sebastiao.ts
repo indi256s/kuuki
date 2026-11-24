@@ -1,7 +1,3 @@
-// Sao Sebastiao-type island sea fort: a long squat battered curtain wall between two corner
-// bastions seen on the diagonal (lit prow face, shaded flank), merlons along every parapet, a
-// sentry box on each prow and a low gate block in the middle. A dark rubble plinth meets the
-// water. The box bottom is the waterline.
 import {
   type Pt,
   type SvgNode,
@@ -24,12 +20,10 @@ export const saoSebastiao: KitModule = ([x, y, w, h], p) => {
   const curtainTop = y + h * 0.46
   const out: SvgNode[] = []
 
-  // Rubble plinth under everything: dark band with a ragged crown.
   const crown: Pt[] = []
   for (let px = x; px <= x + w + 0.1; px += 5) crown.push([px, foot + (px % 10 < 5 ? -1.2 : 0.8)])
   const plinth: Pt[] = [...crown, [x + w, base], [x, base]]
 
-  // Curtain wall (behind the bastions).
   const cx0 = x + bw * 0.6
   const cw = w - bw * 1.2
   const curtain = rectPts(cx0, curtainTop, cw, foot - curtainTop + 1)
@@ -41,18 +35,15 @@ export const saoSebastiao: KitModule = ([x, y, w, h], p) => {
         [cx0 + cw - 2, cy + (cy % 12 < 6 ? 0.6 : 0)],
       ]),
     )
-  // Merlons along the curtain.
   const merlon = (mx: number, my: number, mw = 3.4, mh = 3.2): SvgNode[] => [
     fill(rectPts(mx, my - mh, mw, mh)),
   ]
   for (let mx = cx0 + 1; mx < cx0 + cw - 3; mx += 6.4) out.push(...merlon(mx, curtainTop))
-  // Embrasures: dark slits in the curtain.
   for (let k = 1; k <= 6; k++) {
     const ex = cx0 + (cw * k) / 7
     if (Math.abs(ex - (x + w / 2)) < w * 0.1) continue
     out.push(fill(rectPts(ex - 1, curtainTop + 8, 2, 7)))
   }
-  // Gate block.
   const gw = w * 0.15
   const gx = x + w / 2 - gw / 2
   const gateTop = y + h * 0.3
@@ -76,13 +67,10 @@ export const saoSebastiao: KitModule = ([x, y, w, h], p) => {
   for (let mx = gx + 0.8; mx < gx + gw - 3; mx += 5.8) out.push(...merlon(mx, gateTop))
   out.push(hline('bold', gx - 1, gx + gw + 1, gateTop + 0.5))
 
-  // Bastions: prow seen on the diagonal. left = lit face then shaded flank; right mirrored so
-  // the shaded flank always faces the curtain.
   for (const side of [-1, 1] as const) {
     const outer = side < 0 ? x : x + w
     const inner = outer - side * bw
     const prowX = outer - side * bw * 0.52
-    // Prow roofline [outer, prow, inner] and faces.
     const roofO: Pt = [outer, bastTop + 4]
     const roofP: Pt = [prowX, bastTop]
     const roofI: Pt = [inner, bastTop + 3]
@@ -93,7 +81,6 @@ export const saoSebastiao: KitModule = ([x, y, w, h], p) => {
     out.push(occlude(faceLit), occlude(faceShade))
     out.push(...body(lit, 'line'), ...body(shade, 'line'))
     out.push(...toneFill(shade, 'T4', { angle: 90, gap: 2.8, weight: 'fine', inset: 0.5 }))
-    // Courses on the lit face.
     for (let cy = bastTop + 9; cy < foot - 2; cy += 6) {
       const [a, b] = side < 0 ? [outer + 2, prowX - 1.5] : [prowX + 1.5, outer - 2]
       out.push(
@@ -103,7 +90,6 @@ export const saoSebastiao: KitModule = ([x, y, w, h], p) => {
         ]),
       )
     }
-    // Merlons along both roof edges.
     for (let t = 0.1; t < 0.95; t += 0.15) {
       const m1x = roofO[0] + (roofP[0] - roofO[0]) * t
       const m1y = roofO[1] + (roofP[1] - roofO[1]) * t
@@ -113,7 +99,6 @@ export const saoSebastiao: KitModule = ([x, y, w, h], p) => {
       out.push(...merlon(m2x - 1.4, m2y + 0.5, 2.8, 3))
     }
     out.push(stroke('bold', [roofO, roofP, roofI]))
-    // Sentry box on the prow: small box with a cap.
     const sx = prowX
     const box = rectPts(sx - 3, bastTop - 8, 6, 8)
     out.push(occlude(box), ...body(box, 'hair'), fill(rectPts(sx - 1, bastTop - 6, 2, 3)))
@@ -126,7 +111,6 @@ export const saoSebastiao: KitModule = ([x, y, w, h], p) => {
     )
   }
 
-  // Plinth drawn last so the walls sit in it.
   out.push(
     occlude(plinth),
     ...toneFill(plinth, 'T4', { angle: 78, gap: 2.6, weight: 'hair' }),

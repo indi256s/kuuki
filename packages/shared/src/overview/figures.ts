@@ -21,11 +21,9 @@ export interface Figures {
   distanceKm: number
   durationMinutes: number
   durationApproximate: boolean
-  /** The effective scope the geographic figures describe. */
   scope: 'all' | TravelScope
   countries: { value: number; source: 'passport' | 'by_air' | 'ground' | 'all' }
   regions: number
-  /** Flight great-circle km plus completed ground straight-line km, per scope. */
   travelKm: number
   travelKmApproximate: boolean
   groundJourneys: number
@@ -86,7 +84,6 @@ export function preciseDurationSamples(row: OverviewRow, raw = true): number[] {
   if (row.durationSource === null || row.durationSource === 'estimate') return []
   if (row.preciseDurationSamples)
     return row.preciseDurationSamples.filter((value) => Number.isFinite(value) && value >= 0)
-  // Weighted or legacy aggregate rows have no exact constituent evidence.
   return raw &&
     row.weight === 1 &&
     !row.recordExtrema &&
@@ -197,7 +194,6 @@ export function figures(
       ? { value: payload.passport.countries, source: 'passport' }
       : {
           value: countries.size,
-          // Without any ground journeys the union is the flights-only figure it always was.
           source:
             scope === 'ground'
               ? 'ground'

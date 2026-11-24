@@ -1,9 +1,3 @@
-// Country → continent maps, ported VERBATIM from the live PL/pgSQL CASE expressions.
-// Two variants are intentionally different (parity — do not "unify" them):
-//   * continentOf7  — used by recalculate_user_stats. 7 buckets, NA & SA SEPARATE, unmapped → 'OTHER'.
-//   * regionOf      — used by compute_continent_breakdown / compute_region_breakdown.
-//                     NA & SA both collapse to 'americas'; unmapped → 'other'.
-
 const NORTH_AMERICA = [
   'US',
   'CA',
@@ -213,7 +207,6 @@ const SET_AF = new Set(AFRICA)
 export type Continent7 = 'NA' | 'SA' | 'EU' | 'AS' | 'OC' | 'AF' | 'OTHER'
 export type Region = 'americas' | 'europe' | 'asia' | 'oceania' | 'africa' | 'other'
 
-/** recalculate_user_stats continent bucket (7-way; NA/SA separate; unmapped → OTHER). */
 export function continentOf7(cc: string | null | undefined): Continent7 {
   if (!cc) return 'OTHER'
   if (SET_NA.has(cc)) return 'NA'
@@ -225,7 +218,6 @@ export function continentOf7(cc: string | null | undefined): Continent7 {
   return 'OTHER'
 }
 
-/** compute_*_breakdown region bucket (NA+SA → americas; unmapped → other). */
 export function regionOf(cc: string | null | undefined): Region {
   if (!cc) return 'other'
   if (SET_NA.has(cc) || SET_SA.has(cc)) return 'americas'

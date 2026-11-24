@@ -1,14 +1,6 @@
-// Foreground dunes: wavy crest lines across the window; below every crest the lee faces (where the
-// crest descends) take wedges of horizontal hair hatching, the sunlit faces stay bare. The first
-// crest erases the ground hatching below it, so the dunes read as the near sand.
 import { type Pt, type SvgNode, occlude, stroke } from '../grid'
 import { type KitModule, num, nums } from './util'
 
-/**
- * `crests` lists y fractions of the box for each crest, back to front. Crests swell by `amp` with a
- * wavelength of `wave` units; each lee wedge is up to `lee` units deep (a list gives one depth per
- * crest) and the hatching rows are `gap` apart.
- */
 export const dunes: KitModule = ([x, y, w, h], p) => {
   const crests = nums(p, 'crests', [0.84, 0.92])
   const amp = num(p, 'amp', 4)
@@ -27,7 +19,6 @@ export const dunes: KitModule = ([x, y, w, h], p) => {
     for (let px = x; px <= x + w + 2; px += 2) crest.push([px, crestAt(px)])
     if (k === 0) out.push(occlude([...crest, [x + w + 2, bottom], [x, bottom]]))
     const lee = lees[Math.min(k, lees.length - 1)]
-    // The last crest with `band` is a full-width dark band down to the box bottom.
     const band = p.band === true && k === crests.length - 1
     const depthAt = (px: number) => {
       if (band) return bottom - crestAt(px)

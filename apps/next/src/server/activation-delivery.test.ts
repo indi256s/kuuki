@@ -7,7 +7,6 @@ import { compileActivationAsset } from '../../../../scripts/activation-asset.mjs
 import { activationAsset } from '../../activation-asset'
 import { gateRequest } from '../../../../functions/api/_lib/workerBoundary'
 
-// A generic HTMLRewriter adapter: execute the real Worker route/link policy against parsed asset HTML.
 class Rewriter {
   selector = ''
   handler!: {

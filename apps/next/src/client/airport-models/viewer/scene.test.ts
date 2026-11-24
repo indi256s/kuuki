@@ -190,7 +190,6 @@ describe('real Three metric geometry', () => {
       )!
       const bounds = new Box3().setFromObject(building.group),
         centre = bounds.getCenter(new Vector3())
-      // A vertical ray at an actual mesh vertex inset toward its triangle centre must meet that building.
       const mesh = building.meshes[0]!,
         vertices = mesh.geometry.getAttribute('position')
       let picked = false

@@ -15,7 +15,6 @@ export function Tile({ span }: { span: TileSpan }) {
   const earliest = found?.earliest,
     peak = found?.peak
   const time = found?.time ?? null
-  // At rest, showing the hero's headline time; with no time the display stays dark.
   const shown = time ?? '    '
   const figure = useFigure(span, shown, (k) => clock(shown, k))
   if (!scope) return null

@@ -45,7 +45,6 @@ function shape(polygon: PolygonM) {
   return result
 }
 
-/** Shapes are east/north in XY; -π/2 maps their extrusion into east/height/-north. */
 export function polygonGeometry(polygon: PolygonM, height = 0, minHeight = 0) {
   const geometry =
     height > minHeight
@@ -137,7 +136,6 @@ export function buildAirportScene(model: AirportModelV1, palette: ScenePalette) 
             ? line
             : pavement
     if (feature.type === 'surface') {
-      // Physical offsets avoid coplanar z-fighting without changing building height units.
       const elevation = feature.kind === 'runway' ? 0.12 : feature.kind === 'apron' ? 0.04 : 0.08
       for (const polygon of feature.polygons)
         meshes.push(addMesh(group, polygonGeometry(polygon, elevation, elevation), surface))
@@ -160,8 +158,6 @@ export function buildAirportScene(model: AirportModelV1, palette: ScenePalette) 
     for (const mesh of meshes) mesh.userData.featureId = feature.id
     objects.set(feature.id, { feature, group, meshes })
   }
-  // Keep exact, absolute-coordinate feature meshes for picking/outlines on the CPU.
-  // Only merged layer/material batches enter the display scene and acquire GPU buffers.
   const buckets = new Map<FeatureKind, Map<Material, BufferGeometry[]>>()
   for (const { feature, meshes } of objects.values()) {
     let surfaces = buckets.get(feature.kind)
@@ -176,7 +172,7 @@ export function buildAirportScene(model: AirportModelV1, palette: ScenePalette) 
     for (const [surface, parts] of surfaces) {
       const normalized = parts.map((part) => {
         const geometry = part.index ? part.toNonIndexed() : part.clone()
-        geometry.deleteAttribute('uv') // No textures; lines and polygons share position/normal.
+        geometry.deleteAttribute('uv')
         return geometry
       })
       const geometry = mergeGeometries(normalized)
@@ -219,7 +215,6 @@ export function buildAirportScene(model: AirportModelV1, palette: ScenePalette) 
           const edge = new EdgesGeometry(mesh.geometry, 20)
           selection.add(new LineSegments(edge, contour))
         }
-      // Suppressed duplicate volumes/centre-lines retain their original stable identity in the list.
       if (selected && !selected.meshes.length) {
         const feature = selected.feature
         const outlines =

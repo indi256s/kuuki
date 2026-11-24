@@ -1,7 +1,3 @@
-// Taroko Gorge (Taiwan): two near-vertical marble walls close together, flared at the rim, with a
-// narrow river between. The left wall is lit and fluted by gullies, the right wall shaded; a road
-// tunnel arch is cut into the lit wall low by the water, and a far ridge shows in the gap. The box
-// bottom is the near bank.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, fill, hline, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
@@ -26,7 +22,6 @@ export const taroko: KitModule = ([x, y, w, h], p) => {
     return pts
   }
   const out: SvgNode[] = []
-  // Far ridge in the gap.
   const gapTopY = y + h * 0.4
   const gapL = inner(-1).filter((q) => q[1] >= gapTopY)
   const gapR = inner(1).filter((q) => q[1] >= gapTopY)
@@ -56,7 +51,6 @@ export const taroko: KitModule = ([x, y, w, h], p) => {
   }
   const L = wall(-1)
   const R = wall(1)
-  // Lit left wall: gullies from the rim and marble strata ticks.
   const innerX = (ie: Pt[], py: number) => {
     for (let i = 0; i + 1 < ie.length; i++) {
       const [a, b] = [ie[i], ie[i + 1]]
@@ -77,7 +71,6 @@ export const taroko: KitModule = ([x, y, w, h], p) => {
         ]),
       )
   }
-  // Shaded right wall: dark from the gorge edge outward.
   const cut = 0.62
   const shade: Pt[] = [
     ...R.ie,
@@ -94,9 +87,7 @@ export const taroko: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // Outlines.
   out.push(stroke('line', [...L.ridge, ...L.ie]), stroke('line', [...R.ridge, ...R.ie]))
-  // Tunnel arch low on the lit wall.
   const tw = w * 0.085
   const tx = cx + half(0.84) + tw * 1.5
   const tb = floor - 3
@@ -114,7 +105,6 @@ export const taroko: KitModule = ([x, y, w, h], p) => {
       [x + w - 2, tb - 8],
     ]),
   )
-  // River: water lines widening toward the bank, boulders on the shore.
   const river: Pt[] = [
     ...inner(-1).filter((q) => q[1] >= floor),
     ...inner(1)

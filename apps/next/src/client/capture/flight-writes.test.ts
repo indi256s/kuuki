@@ -62,7 +62,7 @@ describe('flight writes carry the browser IANA timezone (ADR 0001 §1)', () => {
     })
     expect(options.headers['Idempotency-Key']).toMatch(/^[0-9a-f-]{36}$/)
     expect(saved).toMatchObject({ id: 7, lifecycle_state: 'logged' })
-    expect(localStorage.length).toBe(0) // receipt completed
+    expect(localStorage.length).toBe(0)
   })
 
   it('stores the payload without the zone so a retry from another zone is the same operation', async () => {
@@ -161,7 +161,7 @@ describe('flight writes carry the browser IANA timezone (ADR 0001 §1)', () => {
       expect(post.mock.calls[1][2].headers['Idempotency-Key']).toBe(
         post.mock.calls[0][2].headers['Idempotency-Key'],
       )
-      expect(localStorage.length).toBe(0) // completed, nothing left that would replay the zone
+      expect(localStorage.length).toBe(0)
     })
 
     it('does not retry again when the retry fails, and keeps a zone-free stored operation', async () => {

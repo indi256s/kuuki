@@ -1,5 +1,3 @@
-// Le Morne Brabant: a compact basalt monolith with a flat, slightly domed crest and near-vertical
-// faces, skirts of wooded talus, and reef surf in the lagoon in front. Lit from the left.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, occlude, quad, stroke, toneFill } from '../grid'
 import { type KitModule, num, xAtY } from './util'
@@ -37,7 +35,6 @@ export const leMorne: KitModule = ([x, y, w, h], p) => {
     ...crest.slice(0, -1).reverse(),
   ]
   out.push(occlude(poly, { halo: 2 }))
-  // Shaded right face: dense verticals.
   const rightFace: Pt[] = [
     ridge[0],
     ...crest.slice(3),
@@ -47,7 +44,6 @@ export const leMorne: KitModule = ([x, y, w, h], p) => {
     ...ridge.slice(0, -1).reverse(),
   ]
   out.push(...toneFill(rightFace, 'T4', { angle: 84, gap: 2.2, weight: 'hair', inset: 0.2 }))
-  // Lit left face: gullies; wooded talus below in diagonals.
   for (let k = 0; k < 7; k++) {
     const ly0 = y + h * (0.1 + rand() * 0.3)
     const ly1 = ly0 + h * (0.25 + rand() * 0.3)
@@ -73,7 +69,6 @@ export const leMorne: KitModule = ([x, y, w, h], p) => {
   out.push(...toneFill(talus, 'T2', { angle: 52, gap: 2.8, weight: 'fine', inset: 0.4 }))
   out.push(stroke('line', outline), stroke('bold', crest))
   out.push(stroke('hair', ridge))
-  // Reef surf in the lagoon: scalloped white breaks.
   for (const [dy, a, b] of [
     [10, 0.0, 0.4],
     [14, 0.5, 1.0],

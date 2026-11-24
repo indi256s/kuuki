@@ -45,24 +45,14 @@ const DIGIT: Record<string, string> = {
   '-': 'g',
 }
 
-/** How far the snooze bar travels, in iso units: a hover hint and a full press. */
 const SNOOZE_DIP = 2,
   SNOOZE_PRESS = 3.25
 
-/**
- * An alarm clock whose seven-segment display shows `time` ("HH:MM"; blanks leave it dark).
- * With `alt`, the display holds both readings: segments lit in both stay in `lit-both`, the rest split into `lit-a` (only `time`) and `lit-b` (only `alt`), so CSS can morph one reading into the other segment by segment.
- * The chapter figure keeps `lit-a` and `lit-b` mounted and swaps which one is shown, so a pick morphs the display. The colon belongs to `lit-both`. Each lit part holds a `backlight` (its glow) that CSS can raise; from k = 1 the display sits recessed behind a rim.
- * The body is a battery-powered bedside alarm clock: feet, a bevelled bezel with screws round the display, a speaker grille and a set knob on its right wall, and buttons on top.
- * `lit-a` and `lit-b` hold one `cell` per digit, carrying --t (0 for the first digit, 1 for the last), so a reading can light digit by digit.
- * Parts: `body`, `snooze` (carries --dip-y/--press-y), `display`, `lit-both`, `lit-a`, `lit-b`, `cell`, `backlight`.
- */
 export function clock(time: string, k = 1, alt?: string) {
   const s = new Scene(k)
   const X: P3 = [1, 0, 0],
     Y: P3 = [0, 1, 0],
     Z: P3 = [0, 0, 1]
-  // The case: x 8..108, y 16..56, z 5..45. Its front wall carries the display, its right wall the grille and the knob.
   const BX = 8,
     BY = 16,
     BW = 100,
@@ -70,9 +60,7 @@ export function clock(time: string, k = 1, alt?: string) {
     ZB = 5,
     ZT = 45,
     YF = BY + BD
-  // The bezel stands 1.4 proud of the front wall, so the opening (and the display's clip) lies on YB.
   const YB = YF + 1.4
-  /** Cylinder lying along x from x0 to x1, centred at (y, z) of the wall it stands on; its ridges run along it. */
   const axle = (x0: number, x1: number, y: number, z: number, r: number, ridges = 0) => {
     const a = s.circle([x0, 0, 0], Y, Z, y, z, r, 24),
       b = s.circle([x1, 0, 0], Y, Z, y, z, r, 24)
@@ -95,7 +83,6 @@ export function clock(time: string, k = 1, alt?: string) {
       'shadow',
       'none',
     )
-    // Feet, back to front.
     for (const [x, y] of [
       [18, 24],
       [98, 24],
@@ -104,13 +91,11 @@ export function clock(time: string, k = 1, alt?: string) {
     ])
       s.cylinder(x, y, 4.4, 0, ZB, { side: 'side', n: 20 })
     s.rbox(BX, BY, ZB, BW, BD, ZT - ZB, 8)
-    // The seam where the base shell meets the case: round the visible corners, edge to edge.
     const plan = roundRect(BX, BY, BW, BD, 8)
     s.line(
       visibleRun(plan).map(([x, y]): P3 => [x, y, 12]),
       'crease',
     )
-    // Speaker grille on the right wall: a plate with closed slots.
     const wall = (u: number, v: number): P3 => [BX + BW, u, v]
     s.poly([wall(27, 11), wall(45, 11), wall(45, 31), wall(27, 31)], 'none', 'crease')
     for (let i = 0; i < 6; i++)
@@ -119,18 +104,14 @@ export function clock(time: string, k = 1, alt?: string) {
         'shade',
         'crease',
       )
-    // The set knob above it.
     axle(BX + BW, BX + BW + 3, 36, 38, 3.4, 1)
-    // Buttons along the back of the top.
     for (const x of [86, 96]) s.cylinder(x, 24, 2.8, ZT, ZT + 2.2, { n: 20 })
-    // The slot: a recess with walls, exactly as wide as the bar's column, so the bar stands in it with a margin of 2.
     const slot = roundRect(42, 27, 32, 16, 1.5)
     s.poly(
       slot.map(([x, y]): P3 => [x, y, ZT]),
       'shade',
       'detail',
     )
-    // Walls facing the viewer are the far ones: outward normal (dy, -dx) pointing away (nx + ny < 0).
     const far = slot.map(([x0, y0], i) => {
       const [x1, y1] = slot[(i + 1) % slot.length]
       return y1 - y0 + (x0 - x1) < -1e-6
@@ -148,7 +129,6 @@ export function clock(time: string, k = 1, alt?: string) {
       'none',
     )
   })
-  // The clip is the bar's own column over the slot, so a press sinks it into the opening instead of sliding over the top.
   const column: P3[] = []
   for (const x of [42, 74])
     for (const y of [27, 43]) for (const z of [ZT, ZT + 5]) column.push([x, y, z])
@@ -159,7 +139,6 @@ export function clock(time: string, k = 1, alt?: string) {
       '--press-y': `${s.vector(0, 0, -SNOOZE_PRESS)[1]}px`,
     },
   })
-  // The display plane sits on the bezel's opening at y = YB; from k = 1 it is one unit deeper, with everything on it clipped to the 72×32 aperture.
   const recess = k >= 1
   const U: P3 = [1, 0, 0],
     V: P3 = [0, 0, -1]
@@ -168,7 +147,6 @@ export function clock(time: string, k = 1, alt?: string) {
   const at = s.on(O, U, V)
   const aperture = [wall(0, 0), wall(72, 0), wall(72, 32), wall(0, 32)]
   const clip = recess ? aperture : undefined
-  // Each digit cell starts 14 units after the last; the colon adds 5 more after the hours.
   const cells = [7, 21, 40, 54]
   const seg = (cell: number, key: Seg) => SEG[key].map(([u, v]) => at(cell + u * 1.05, 7 + v))
   const a = time.replace(':', ''),
@@ -182,7 +160,6 @@ export function clock(time: string, k = 1, alt?: string) {
       const inA = DIGIT[a[i]]?.includes(key) ?? false,
         inB = DIGIT[b[i]]?.includes(key) ?? false
       const path = seg(cell, key)
-      // Unlit segments stay visible as ghosts; a lit one covers its ghost exactly.
       ghost.push(path)
       if (inA && inB) both.push(path)
       else if (inA) onlyA[i].push(path)
@@ -195,12 +172,10 @@ export function clock(time: string, k = 1, alt?: string) {
   }
   s.group('display', () => {
     if (!recess) return face()
-    // The backing darkens the wall tone where the plane is offset, the plane covers the rest, and the rim outline closes the opening.
     s.poly(aperture, 'shade', 'none')
     s.group('face', face, { clip })
     s.poly(aperture, 'none', 'line')
   })
-  // The colon is lit in both readings, so it glows with the digits.
   const dots = [12, 20].map((v) => s.circle(O, U, V, 35.5, v, 1.3, 10))
   const shine = (list: P3[][], colon: P3[][] = []) => {
     if (!list.length && !colon.length) return
@@ -223,11 +198,9 @@ export function clock(time: string, k = 1, alt?: string) {
         }),
       { clip },
     )
-  // A blank display (no digits) is unlit, colon included.
   s.group('lit-both', () => shine(both, (a + b).trim() ? dots : []), { clip })
   lit('lit-a', onlyA)
   lit('lit-b', onlyB)
-  // The bezel closes the opening: four bevelled strips, with a screw in each corner.
   s.box(18, YF, 41, 80, 1.4, 2.5)
   s.box(18, YF, 6.5, 80, 1.4, 2.5)
   s.box(18, YF, 9, 4, 1.4, 32)

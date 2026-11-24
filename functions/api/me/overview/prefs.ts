@@ -28,7 +28,6 @@ export const onRequestPut: PagesFunction<Env, string, RequestData> = (context) =
     })
     const parsed = writeSchema.safeParse(body)
     if (!parsed.success || JSON.stringify(body).length > 8192) throw invalidPrefs()
-    // Validation stays strict; tolerant parsing of this validated body retains facet insertion order.
     const filter = parsePrefs(JSON.stringify(body)).filter
     for (let attempt = 0; attempt < 3; attempt++) {
       const current = await context.env.DB.prepare(
@@ -37,7 +36,6 @@ export const onRequestPut: PagesFunction<Env, string, RequestData> = (context) =
         .bind(user.id)
         .first<{ overview_prefs: string | null }>()
       if (!current) throw new HttpError(404, 'Profile not found', 'NOT_FOUND')
-      // Background saves omit consent; compare-and-set preserves a concurrent withdrawal.
       const prefs = {
         ...parsed.data,
         filter,

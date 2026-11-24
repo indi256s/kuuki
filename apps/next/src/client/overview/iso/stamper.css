@@ -1,12 +1,4 @@
-/* Rhythm stamper, chapter card. No hover pose. A pick plays on the host's data-stamp (sections/rhythm/use-stamp.ts), 450ms in all (--dur-moment):
-   set    the band is offset to where the old month was (--roll-from steps), no transition
-   roll   the band rolls to the new month, --dur-base --ease-in-out
-   plate  the new impression is swapped in, unprinted, the head still up
-   press  the head presses down (--stamp-press) while the impression inks in
-   return the head comes back up, --dur-fast --ease-out
-   Transform and opacity only. Reduced motion never leaves "rest", and nothing below applies to it. */
 .iso-stamper-host {
-  /* The spec's 100ms press has no token. The ink runs through the press and the return together. */
   --stamp-press: 100ms;
   --stamp-ink: calc(var(--stamp-press) + var(--dur-fast));
 }

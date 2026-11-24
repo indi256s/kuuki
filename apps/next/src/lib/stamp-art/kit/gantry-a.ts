@@ -1,13 +1,9 @@
-// Launch pad: a slender two-stage rocket with two side boosters standing beside a tall
-// rectangular lattice service tower. The box is the whole pad; the bottom is the ground. The
-// tower is on the right (`tower` fraction of the width), the rocket on the left of it.
 import { type Pt, type SvgNode, body, fill, hatch, occlude, rectPts, stroke } from '../grid'
 import { type KitModule, num } from './util'
 
 export const gantryA: KitModule = ([x, y, w, h], p) => {
   const base = y + h
   const out: SvgNode[] = []
-  // Tower lattice.
   const tw = w * num(p, 'tower', 0.24)
   const tx = x + w - tw
   const bays = Math.max(4, Math.round(num(p, 'bays', 8)))
@@ -44,14 +40,12 @@ export const gantryA: KitModule = ([x, y, w, h], p) => {
     )
   }
   out.push(...body(rectPts(tx - 2.5, y - 1, tw + 5, 3.4), 'line'))
-  // Arms reaching to the rocket at two heights.
   const rcx = x + (w - tw) * num(p, 'rocketAt', 0.46)
   const rw = Math.min(w * 0.1, 13)
   for (const f of [0.28, 0.58]) {
     const ay = y + h * f
     out.push(...body(rectPts(rcx + rw / 2 + 4, ay - 1.2, tx - rcx - rw / 2 - 4, 2.4), 'hair'))
   }
-  // Boosters (behind the core), then core and fairing.
   const bw = rw * 0.42
   const boosterTop = y + h * 0.5
   for (const s of [-1, 1]) {
@@ -107,7 +101,6 @@ export const gantryA: KitModule = ([x, y, w, h], p) => {
       [rcx + rw / 2, coreTop],
     ]),
   )
-  // Launch table and pad.
   out.push(...body(rectPts(rcx - rw * 1.3, base - 5, rw * 2.6, 5), 'line'))
   out.push(...hatch(rectPts(rcx - rw * 1.3, base - 5, rw * 2.6, 5), 'v', 2.6, 'fine', 0.2))
   out.push(

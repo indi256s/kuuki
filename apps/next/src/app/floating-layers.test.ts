@@ -5,10 +5,6 @@ import { expect, it } from 'vitest'
 
 const src = fileURLToPath(new URL('..', import.meta.url))
 
-/**
- * Feature CSS that may pin something to the viewport. Everything else floats through a shared primitive (Toast,
- * ToastSlot, Popover, Sheet, Dialog, Menu) so it joins the shell's layer order instead of guessing a z-index.
- */
 const ALLOWED: Record<string, string> = {
   'app/shell.css': 'the shell itself: header, tab bar and menu shield',
   'client/auth-card/ring-backdrop.css': 'sign-in backdrop behind the card',

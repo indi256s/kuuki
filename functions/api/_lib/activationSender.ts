@@ -4,7 +4,6 @@ export interface MailSender {
   send(to: string, link: string): Promise<void>
 }
 
-/** Dedicated static activation host; keep it separate from the main application's origin. */
 export function configuredActivationOrigin(env: Env): string {
   const raw = env.ACTIVATION_ORIGIN
   let origin: URL
@@ -114,7 +113,6 @@ const MAIL = {
   },
 }
 
-/** Use Cloudflare Email Sending only when its account and verified sender are configured. */
 function configuredMailSender(env: Env, purpose: keyof typeof MAIL): MailSender {
   const mail = MAIL[purpose]
   const accountId = env.ACTIVATION_MAIL_ACCOUNT_ID
@@ -144,7 +142,6 @@ function configuredMailSender(env: Env, purpose: keyof typeof MAIL): MailSender 
           html: `<p>${mail.subject} using this link:</p><p><a href="${escapeHtml(link)}">${mail.action}</a></p>`,
         }
         if (binding) {
-          // Native sends cannot be cancelled: wait for acknowledgement before invalidating an issued link.
           const receipt = await binding.send(message)
           if (typeof receipt?.messageId !== 'string' || receipt.messageId.length === 0)
             throw new Error(SENDER_FAILURE)
@@ -152,7 +149,6 @@ function configuredMailSender(env: Env, purpose: keyof typeof MAIL): MailSender 
         }
         const response = await fetch(url, {
           method: 'POST',
-          // workerd supports manual/follow only; !response.ok rejects redirects.
           redirect: 'manual',
           signal: controller.signal,
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${bearer}` },
@@ -173,7 +169,6 @@ function configuredMailSender(env: Env, purpose: keyof typeof MAIL): MailSender 
         }
         if (!response.ok || !acknowledged(receipt, to)) throw new Error(SENDER_FAILURE)
       } catch {
-        // Provider bodies and transport errors can contain addresses, links, or credentials.
         console.error(
           JSON.stringify({
             event: 'mail_send_failed',

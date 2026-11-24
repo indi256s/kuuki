@@ -40,10 +40,8 @@ it('counts logged arrivals per city in date order, across the city’s airports'
   const payload = payloadOf(flights)
   expect(arrivalOrdinal(payload, flights[0])).toEqual({ ordinal: 1, city: 'Moscow' })
   expect(arrivalOrdinal(payload, flights[1])).toEqual({ ordinal: 2, city: 'Moscow' })
-  // Only logged flights get, or count towards, an ordinal.
   expect(arrivalOrdinal(payload, flights[2])).toBeNull()
   expect(arrivalOrdinal(payload, flights[3])).toBeNull()
-  // No city in the reference data: the airport stands alone under its name.
   expect(arrivalOrdinal(payload, flights[4])).toEqual({ ordinal: 1, city: 'Nowhere Field' })
 })
 

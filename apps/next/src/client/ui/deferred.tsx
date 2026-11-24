@@ -6,7 +6,6 @@ const subscribe = () => () => {}
 const supported = () => typeof IntersectionObserver !== 'undefined'
 const server = () => true
 
-/** Keep below-fold code and rendering behind its placeholder until the reader approaches it. */
 export function Deferred({
   children,
   fallback,

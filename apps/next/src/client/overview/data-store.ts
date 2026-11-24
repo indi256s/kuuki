@@ -25,7 +25,6 @@ export function createOverviewDataStore(
       if (response.status === 304) return 'unchanged'
       if (response.status !== 200) return 'failed'
       next = (await response.json()) as OverviewPayload
-      // Admission and publication share this synchronous continuation after the final await.
       if (canPublish && !canPublish(response)) return 'failed'
     } catch {
       return 'failed'

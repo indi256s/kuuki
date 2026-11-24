@@ -1,6 +1,3 @@
-// Obelisk in elevation: a tapering four-sided shaft with a pyramidion on a square plinth. The box
-// is the whole monument (plinth foot at the bottom). The lit face is paper, the right face T4,
-// with a ladder of small dark windows near the top and a bold course under the pyramidion.
 import { type SvgNode, body, fill, hline, rectPts, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
 
@@ -14,7 +11,6 @@ export const obelisk: KitModule = ([x, y, w, h], p) => {
   const shaftBot = y + h - plinthH
   const shaftTop = y + capH
   const out: SvgNode[] = []
-  // Plinth: two steps.
   const s1 = rectPts(x, y + h - stepH, w, stepH)
   const s2 = rectPts(x + w * 0.12, shaftBot, w * 0.76, plinthH - stepH)
   out.push(...body(s1), ...body(s2))
@@ -33,7 +29,6 @@ export const obelisk: KitModule = ([x, y, w, h], p) => {
   ] as [number, number][]
   out.push(...body(pyr))
   out.push(hline('bold', cx - topHalf - 0.6, cx + topHalf + 0.6, shaftTop))
-  // Shaded right face: the right 38% of the shaft, tapered.
   const at = (f: number, t: number) => {
     const half = baseHalf + (topHalf - baseHalf) * t
     return cx - half + 2 * half * f
@@ -56,7 +51,6 @@ export const obelisk: KitModule = ([x, y, w, h], p) => {
       [at(0.66, 1), shaftTop],
     ]),
   )
-  // Windows near the top and a doorway at the foot.
   out.push(fill(rectPts(at(0.28, 0.9) - 0.8, shaftTop + (shaftBot - shaftTop) * 0.12, 1.6, 2.4)))
   out.push(fill(rectPts(cx - 1.4 - baseHalf * 0.12, shaftBot - 5, 2.8, 5)))
   return out

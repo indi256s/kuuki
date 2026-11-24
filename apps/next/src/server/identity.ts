@@ -10,14 +10,12 @@ import type { SessionUser } from '../../../../functions/api/_lib/auth'
 export type RequestIdentity = SessionUser
 export type RequestEnv = Parameters<typeof createAuth>[0]
 
-/** Get the binding for this render. Never retain it or the identity at module scope; cache() is per-request. */
 export const getRequestEnv = cache(async (): Promise<RequestEnv> => {
   await connection()
   const context = await getCloudflareContext({ async: true })
   return context.env as RequestEnv
 })
 
-/** Cookie-free fresh D1 identity read from the Better Auth session. */
 export const getRequestIdentity = cache(async (): Promise<RequestIdentity | null> => {
   const env = await getRequestEnv()
   if (env.MAINTENANCE_MODE === 'true') throw new Error('MAINTENANCE')
@@ -35,7 +33,6 @@ export const getRequestIdentity = cache(async (): Promise<RequestIdentity | null
   return session?.user ? { id: session.user.id, email: session.user.email } : null
 })
 
-/** Public pages stay available during maintenance; real session-read errors still surface. */
 export async function getOptionalPublicViewer(): Promise<RequestIdentity | null> {
   const env = await getRequestEnv()
   if (env.MAINTENANCE_MODE === 'true') return null

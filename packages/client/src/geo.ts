@@ -1,6 +1,5 @@
 import { greatCircleKm } from '@kuuki/shared/geo'
 
-/** Rounded great-circle flight distance in km. */
 export function calculateFlightDistance(
   lat1: number,
   lon1: number,
@@ -10,17 +9,6 @@ export function calculateFlightDistance(
   return Math.round(greatCircleKm({ lat: lat1, lon: lon1 }, { lat: lat2, lon: lon2 }))
 }
 
-/**
- * Calculate actual flight duration from local departure and arrival times,
- * accounting for timezone differences between origin and destination airports.
- *
- * @param departureTime Local departure time as "HH:MM" or ISO string
- * @param arrivalTime Local arrival time as "HH:MM" or ISO string
- * @param date Flight date as "YYYY-MM-DD" (needed to resolve DST correctly)
- * @param departureTz IANA timezone of departure airport (e.g., "America/New_York")
- * @param arrivalTz IANA timezone of arrival airport (e.g., "Europe/London")
- * @returns Duration in minutes, or null if inputs are invalid
- */
 export function calculateFlightDuration(
   departureTime: string,
   arrivalTime: string,
@@ -29,7 +17,6 @@ export function calculateFlightDuration(
   arrivalTz?: string,
 ): number | null {
   try {
-    // Parse HH:MM format
     const depParts = departureTime.split(':').map(Number)
     const arrParts = arrivalTime.split(':').map(Number)
 
@@ -39,33 +26,26 @@ export function calculateFlightDuration(
 
     const flightDate = date || new Date().toISOString().split('T')[0]
 
-    // If we have timezone info for both airports, do a proper UTC-based calculation
     if (departureTz && arrivalTz) {
       const depUtc = localTimeToUtcMs(flightDate, depParts[0], depParts[1], departureTz)
       let arrUtc = localTimeToUtcMs(flightDate, arrParts[0], arrParts[1], arrivalTz)
 
       if (depUtc === null || arrUtc === null) return null
 
-      // Handle cross-day flights: if arrival UTC is before departure UTC,
-      // the flight arrived the next day in arrival-local time
       if (arrUtc <= depUtc) {
         arrUtc += 24 * 60 * 60 * 1000
       }
 
       const durationMinutes = Math.round((arrUtc - depUtc) / 60000)
 
-      // Sanity check: commercial flights are typically 30min–20h
-      // If duration exceeds 24h, something is off — fall back to naive calc
       if (durationMinutes > 0 && durationMinutes <= 24 * 60) {
         return durationMinutes
       }
     }
 
-    // Fallback: naive local-time subtraction (no timezone info)
     const depMinutes = depParts[0] * 60 + depParts[1]
     let arrMinutes = arrParts[0] * 60 + arrParts[1]
 
-    // Handle overnight flights
     if (arrMinutes <= depMinutes) {
       arrMinutes += 24 * 60
     }
@@ -76,26 +56,17 @@ export function calculateFlightDuration(
   }
 }
 
-/**
- * Convert a local date+time in a given IANA timezone to UTC milliseconds.
- * Uses the Intl API (no external libraries needed).
- */
 export function localTimeToUtcMs(
-  date: string, // "YYYY-MM-DD"
+  date: string,
   hours: number,
   minutes: number,
   timeZone: string,
 ): number | null {
   try {
-    // Build an ISO-ish string and parse it as if it were UTC,
-    // then find the actual UTC offset for that timezone on that date.
     const [year, month, day] = date.split('-').map(Number)
 
-    // Create a date in UTC with the given wall-clock values
     const naiveUtcMs = Date.UTC(year, month - 1, day, hours, minutes, 0, 0)
 
-    // Use Intl to find what UTC offset the timezone has at this moment
-    // by formatting a known UTC instant and comparing
     const formatter = new Intl.DateTimeFormat('en-US', {
       timeZone,
       year: 'numeric',
@@ -107,8 +78,6 @@ export function localTimeToUtcMs(
       hour12: false,
     })
 
-    // Format naiveUtcMs (treated as UTC) in the target timezone
-    // The difference between the formatted time and the naive UTC time gives us the offset
     const parts = formatter.formatToParts(new Date(naiveUtcMs))
     const get = (type: string) => parseInt(parts.find((p) => p.type === type)?.value || '0', 10)
 
@@ -118,14 +87,10 @@ export function localTimeToUtcMs(
     const tzHour = get('hour') === 24 ? 0 : get('hour')
     const tzMinute = get('minute')
 
-    // Reconstruct what UTC ms the timezone thinks this is
     const tzMs = Date.UTC(tzYear, tzMonth - 1, tzDay, tzHour, tzMinute, 0, 0)
 
-    // The offset is: tzMs - naiveUtcMs (positive means timezone is ahead of UTC)
     const offsetMs = tzMs - naiveUtcMs
 
-    // The actual UTC time for "hours:minutes in timeZone on date" is:
-    // naiveUtcMs - offsetMs
     return naiveUtcMs - offsetMs
   } catch {
     return null

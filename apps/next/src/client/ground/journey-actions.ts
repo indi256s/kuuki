@@ -1,7 +1,3 @@
-// The detail sheet's write steps without React: one command per action, a fresh operation key per attempt, and an
-// outcome the UI can switch on. A command whose answer was lost keeps its key, so a retry replays the original write
-// instead of making a second one (page-flow contract "Сохранение и восстановление").
-
 import { ApiError } from '@kuuki/client/apiClient'
 import type {
   GroundCommand,
@@ -22,13 +18,9 @@ export type PendingCommand = {
 
 export type Outcome =
   | { kind: 'saved'; result: GroundMutationResult }
-  /** 409: the journey changed since it was loaded (or is no longer in the state the action needs). */
   | { kind: 'conflict' }
-  /** 404 / 410: the journey is gone for this owner. */
   | { kind: 'gone' }
-  /** The answer was lost (network, timeout, 5xx). The command may or may not have been written. */
   | { kind: 'unknown' }
-  /** Any other refusal; nothing was written. */
   | { kind: 'rejected'; message: string }
 
 export function startCommand(
@@ -50,7 +42,6 @@ const toCommand = (pending: PendingCommand): GroundCommand => ({
   expectedVersion: pending.expectedVersion,
 })
 
-/** Sends (or re-sends, with the same key) one command and classifies the answer. Never throws. */
 export async function runCommand(pending: PendingCommand, signal?: AbortSignal): Promise<Outcome> {
   try {
     return { kind: 'saved', result: await sendCommand(toCommand(pending), { signal }) }
@@ -68,11 +59,9 @@ export async function runCommand(pending: PendingCommand, signal?: AbortSignal):
 
 export type Resolution =
   | { kind: 'applied'; status: Extract<GroundOperationStatus, { status: 'saved' | 'deleted' }> }
-  /** No receipt: the command was never written (or the receipt expired). */
   | { kind: 'not-recorded' }
   | { kind: 'failed' }
 
-/** "Check result": asks the server what became of a command whose answer was lost. */
 export async function resolveCommand(
   pending: PendingCommand,
   signal?: AbortSignal,

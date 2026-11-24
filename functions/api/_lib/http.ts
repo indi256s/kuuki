@@ -1,6 +1,3 @@
-// JSON request/response helpers for the API handlers.
-
-/** Fixed fields an endpoint adds to every error response (e.g. CORS headers, an empty result list). */
 export interface ErrorShape {
   headers?: Record<string, string>
   fields?: Record<string, unknown>
@@ -29,14 +26,8 @@ export function jsonError(
   )
 }
 
-// Covers the largest ordinary body: a 10,000-id bulk delete is ~110 KB. Bigger callers pass maxBytes.
 const DEFAULT_MAX_JSON_BYTES = 128 * 1024
 
-/**
- * Parse a JSON request body, returning null on empty/invalid JSON instead of throwing.
- * Bytes are counted from the stream itself, since Content-Length can be absent or false;
- * a body over maxBytes throws a 413 HttpError.
- */
 export async function readJson<T>(
   request: Request,
   { maxBytes = DEFAULT_MAX_JSON_BYTES }: { maxBytes?: number } = {},
@@ -69,11 +60,9 @@ export async function readJson<T>(
   }
 }
 
-/** A thrown HttpError short-circuits a handler to a JSON error response (see runHandler). */
 export class HttpError extends Error {
   status: number
   code?: string
-  /** Extra response fields (for example the `cause` of a state conflict); never overrides `error` or `code`. */
   details?: Record<string, unknown>
   constructor(status: number, message: string, code?: string, details?: Record<string, unknown>) {
     super(message)
@@ -83,7 +72,6 @@ export class HttpError extends Error {
   }
 }
 
-/** Wrap a handler so thrown HttpErrors become JSON responses and unexpected throws become 500s. */
 export async function runHandler(
   fn: () => Promise<Response>,
   shape: ErrorShape = {},
@@ -98,7 +86,6 @@ export async function runHandler(
         err.code,
         err.details ? { ...shape, fields: { ...err.details, ...shape.fields } } : shape,
       )
-    // Database/provider error messages can contain user input or payload fragments.
     console.error(JSON.stringify({ event: 'handler_error', code: 'INTERNAL' }))
     return jsonError(500, 'Internal server error', 'INTERNAL', shape)
   }

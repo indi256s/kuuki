@@ -16,12 +16,12 @@ import {
 import { LazyChart } from '../../charts/lazy-chart'
 import { useOverview } from '../../store/overview-context'
 import { copy, filterLabel, number, flights } from '../rankings/display'
+import { formatMonthYear } from '../../../../lib/format'
 import { HEAT_MISSING, heatBucket, measuredMonths, monthStart } from './helpers'
 import { HeatKey, type HeatKeyEntry } from './heat-key'
 import './rhythm.css'
 
 export type Metric = 'flights' | 'distanceKm' | 'durationMinutes'
-// Month grid in CSS pixels: 12 month bands after a year gutter. Bands grow with the card up to BAND_MAX; below BAND_MIN the card scrolls.
 const GUTTER = 36,
   BAND_MIN = 24,
   BAND_MAX = 76,
@@ -36,7 +36,6 @@ type HeatState = {
   setShowAll: (showAll: boolean) => void
   reading?: { key: string | null; pick: (key: string) => void }
 }
-/** The year × month heat grid with its metric control. */
 export function YearByMonth({ metric, setMetric, showAll, setShowAll, reading }: HeatState) {
   const { scope, all, payload, filter, locale, actions, isCurrent } = useOverview()
   if (!scope || !all || !payload) return null
@@ -59,7 +58,6 @@ export function YearByMonth({ metric, setMetric, showAll, setShowAll, reading }:
   const max = baseline.max[metric],
     gridHeight = years.length * 36 + 48
   const noData = copy(locale, 'No data', 'Нет данных')
-  // Totals read a missing distance or duration as 0; a month with flights but no measurement is unknown, not a zero.
   const measured =
     metric === 'flights'
       ? null
@@ -77,35 +75,34 @@ export function YearByMonth({ metric, setMetric, showAll, setShowAll, reading }:
       : heatBucket(row[metric], max)
   const valueOf = (row: (typeof rows)[number]) =>
     metric === 'durationMinutes' ? row[metric] / 60 : row[metric]
+  const withUnit = (value: number) =>
+    metric === 'flights'
+      ? flights(locale, value)
+      : `${number(locale, value)} ${metric === 'distanceKm' ? copy(locale, 'km', 'км') : copy(locale, 'h', 'ч')}`
   const gridPoints = rows
     .filter((row) => row.key <= today)
     .map((row) => ({
       key: row.key,
       datum: row,
-      label: `${row.key} · ${bucketOf(row) === HEAT_MISSING ? noData : number(locale, valueOf(row))}`,
+      label: `${formatMonthYear(locale, row.key)} · ${bucketOf(row) === HEAT_MISSING ? noData : withUnit(valueOf(row))}`,
     }))
   const pointOf = new Map(gridPoints.map((point) => [point.key, point]))
   const cellY = (year: number) => 8 + years.indexOf(year) * 36
   const gridCaption = copy(locale, 'Year by month', 'Год по месяцам')
-  const baseText =
-    metric === 'flights'
-      ? flights(locale, max)
-      : metric === 'distanceKm'
-        ? `${number(locale, max)} ${copy(locale, 'km', 'км')}`
-        : `${number(locale, max / 60)} ${copy(locale, 'h', 'ч')}`
+  const baseText = withUnit(metric === 'durationMinutes' ? max / 60 : max)
   const monthlyBase = `${
     metric === 'flights'
-      ? copy(locale, 'Share of busiest month', 'Доля от самого активного месяца')
+      ? copy(locale, 'Share of your record month', 'Доля от вашего рекордного месяца')
       : metric === 'distanceKm'
         ? copy(
             locale,
-            'Share of busiest month by distance',
-            'Доля от самого активного месяца по расстоянию',
+            'Share of your record month by distance',
+            'Доля от вашего рекордного месяца по расстоянию',
           )
         : copy(
             locale,
-            'Share of busiest month by hours',
-            'Доля от самого активного месяца по часам',
+            'Share of your record month by hours',
+            'Доля от вашего рекордного месяца по часам',
           )
   }: ${baseText}`
   const monthlyKey: HeatKeyEntry[] = [
@@ -164,7 +161,7 @@ export function YearByMonth({ metric, setMetric, showAll, setShowAll, reading }:
                   },
                 ],
                 rows: rows.map((row) => ({
-                  key: row.key,
+                  key: formatMonthYear(locale, row.key),
                   value: bucketOf(row) === HEAT_MISSING ? noData : valueOf(row),
                 })),
               }}
@@ -189,7 +186,6 @@ export function YearByMonth({ metric, setMetric, showAll, setShowAll, reading }:
                       />
                     ))}
                     {rows.map((row) => {
-                      // A future month, an unmeasured one, or a value the scale cannot place is missing: a dashed empty outline, never a zero.
                       const point = pointOf.get(row.key),
                         bucket = bucketOf(row),
                         text = bucket === HEAT_MISSING ? '–' : number(locale, valueOf(row))
@@ -211,25 +207,22 @@ export function YearByMonth({ metric, setMetric, showAll, setShowAll, reading }:
                             }
                             strokeDasharray={bucket === HEAT_MISSING ? '3 3' : undefined}
                           />
-                          {
-                            /* Values that cannot fit the band stay in the tooltip and table. */ cellW >=
-                              text.length * 7 + 8 && (
-                              <text
-                                x={cellX(row.month) + cellW / 2}
-                                y={cellY(row.year) + 23}
-                                textAnchor="middle"
-                                fill={
-                                  bucket === HEAT_MISSING
-                                    ? 'var(--text-muted)'
-                                    : `var(--heat-${bucket}-text)`
-                                }
-                                fontSize={12}
-                                data-sans
-                              >
-                                {text}
-                              </text>
-                            )
-                          }
+                          {cellW >= text.length * 7 + 8 && (
+                            <text
+                              x={cellX(row.month) + cellW / 2}
+                              y={cellY(row.year) + 23}
+                              textAnchor="middle"
+                              fill={
+                                bucket === HEAT_MISSING
+                                  ? 'var(--text-muted)'
+                                  : `var(--heat-${bucket}-text)`
+                              }
+                              fontSize={12}
+                              data-sans
+                            >
+                              {text}
+                            </text>
+                          )}
                         </g>
                       )
                     })}
@@ -265,15 +258,15 @@ export function YearByMonth({ metric, setMetric, showAll, setShowAll, reading }:
           )}
         </LazyChart>
       </div>
-      <div className="ov3-heat-year-totals">
+      <ul className="sr-only" aria-label={copy(locale, 'Flights by year', 'Перелёты по годам')}>
         {scope.figures.byYear
           .filter((row) => years.includes(row.year))
           .map((row) => (
-            <span key={row.key}>
+            <li key={row.key}>
               {row.year}: {flights(locale, row.flights)}
-            </span>
+            </li>
           ))}
-      </div>
+      </ul>
       <div className="ov3-rhythm-key">
         <p className="ov3-chart-caption">{monthlyBase}</p>
         <HeatKey entries={monthlyKey} />
@@ -292,7 +285,6 @@ type DailyState = {
   activityYear: number | null
   setActivityYear: (year: number) => void
 }
-/** The completed-flights-by-day grid of one calendar year. */
 export function DailyActivity({ activityYear, setActivityYear }: DailyState) {
   const { all, payload, filter, locale, actions, isCurrent } = useOverview()
   if (!all || !payload) return null
@@ -307,7 +299,6 @@ export function DailyActivity({ activityYear, setActivityYear }: DailyState) {
     activityYear !== null && baseline.years.includes(activityYear)
       ? activityYear
       : baseline.years[0]
-  // Days are known from the first dated flight of the whole journal (not the filter) through today; outside that range the journal has no evidence either way.
   const dated = payload.rows
     .filter((row) => row.state !== 'upcoming' && dayToEpoch(row.date) !== null)
     .map((row) => row.date)

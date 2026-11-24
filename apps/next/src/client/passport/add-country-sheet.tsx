@@ -19,12 +19,6 @@ const RESULT_FORMS = {
   },
 }
 
-// Arc search-field (uiarc.dev, MIT; docs/research/2026-10-08-arc-source-inventory.md): reserved clear slot and focus return, composed with Field.
-/**
- * Add a country: search pinned at the top, verified suggestions (recent visits and land neighbors of collected
- * countries) and the full catalog list with collected markers. Picking a country opens its detail sheet, where the
- * visit form and the claim live.
- */
 export function AddCountrySheet({
   open,
   onOpenChange,
@@ -40,7 +34,6 @@ export function AddCountrySheet({
   mobile: boolean
   entries: PassportEntry[]
   name: (code: string) => string
-  /** The sheet closes into the country sheet; `opener` is where that sheet should return focus. */
   onPick: (code: string, opener: HTMLElement | null) => void
 }) {
   const ru = locale === 'ru'
@@ -49,8 +42,6 @@ export function AddCountrySheet({
   const collected = useMemo(() => new Map(entries.map((entry) => [entry.code, entry])), [entries])
   const suggestions = useMemo(() => suggestCountries(entries), [entries])
   const results = useMemo(() => searchCountries(query, name), [query, name])
-  // The sheet has no Radix trigger (the cover and the empty state both open it), so it remembers the focused opener
-  // before its own initial focus moves in, and returns there unless a pick handed focus to the country sheet.
   const opener = useRef<HTMLElement | null>(null)
   const handedOff = useRef(false)
   useLayoutEffect(() => {

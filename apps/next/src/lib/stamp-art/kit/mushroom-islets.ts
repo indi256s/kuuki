@@ -1,8 +1,3 @@
-// PW: Rock Islands Southern Lagoon. Low limestone islets undercut by the sea until each one is a
-// mushroom: a dark, tufted forest crown on a pale neck that is narrowest at the waterline.
-// `islets` lists [centre x, width, height, depth] as fractions of the box (height from the
-// waterline at the box bottom; depth 0 is the nearest, 1 the farthest). Far islets are a light
-// diagonal T2 hatch; near ones have a lit left neck, a shaded right neck and a dark crown.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, hline, quad, stroke, toneFill } from '../grid'
 import { type KitModule, num, nums } from './util'
@@ -19,12 +14,11 @@ export const mushroomIslets: KitModule = ([x, y, w, h], p) => {
   for (const it of items) {
     const far = it.d > 0.6
     const hw = it.w / 2
-    const wl = base - it.d * 10 // far islets sit a little higher on the water
+    const wl = base - it.d * 10
     const top = wl - it.h
-    const rimY = top + it.h * 0.7 // underside of the crown
+    const rimY = top + it.h * 0.7
     const neckY = rimY + (wl - rimY) * 0.5
     const j = () => (rand() - 0.5) * 1.6
-    // crown: rounded top with a lumpy canopy edge
     const lump = (pts: Pt[], k: number): Pt[] =>
       pts.map(([px, py], i) => [
         px,
@@ -61,7 +55,6 @@ export const mushroomIslets: KitModule = ([x, y, w, h], p) => {
     if (far) {
       out.push(...toneFill(sil, 'T2', { gap: 2.4, inset: 0.4 }))
     } else {
-      // crown: dense vertical hatching, dark; the lit top edge stays paper
       const dome: Pt[] = [
         [it.cx - hw * 0.25, top + it.h * 0.16],
         ...crownR.filter(([px]) => px > it.cx - hw * 0.25),
@@ -77,7 +70,6 @@ export const mushroomIslets: KitModule = ([x, y, w, h], p) => {
             .map(([px, py]): Pt => [px, py + 3]),
         ]),
       )
-      // neck: lit left, shaded right with fall-line hatching
       const shade: Pt[] = [
         [it.cx + hw * 0.1, rimY + 3],
         [it.cx + hw * 0.8, rimY + 2],
@@ -93,7 +85,6 @@ export const mushroomIslets: KitModule = ([x, y, w, h], p) => {
         ]),
       )
     }
-    // reflection and waterline foam under the neck
     out.push(hline('hair', neckL - 4, neckR + 4, wl + 1.8))
     if (!far) out.push(hline('fine', neckL - 1, neckR + 7, wl + 3.8))
   }

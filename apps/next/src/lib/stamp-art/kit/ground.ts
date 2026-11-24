@@ -1,8 +1,6 @@
-// Ground modules: water, mountains, twin-peak, cliff, platform, steps.
 import { type Pt, type SvgNode, body, hline, occlude, quad, stroke, vline } from '../grid'
 import { type KitModule, bool, num, nums, pairs, str, weight, xAtY } from './util'
 
-/** Rows of broken horizontal lines. Rows spread out toward the bottom (nearer water). */
 export const water: KitModule = ([x, y, w, h], p) => {
   const rows = Math.max(1, Math.round(num(p, 'rows', 6)))
   const w0 = weight(p, 'weight', 'hair')
@@ -24,7 +22,6 @@ export const water: KitModule = ([x, y, w, h], p) => {
   return out
 }
 
-/** Ridge line of a mountain range: peaks are [x fraction, height fraction] inside the box. */
 function ridge([x, y, w, h]: [number, number, number, number], peaks: Pt[], jag: number): Pt[] {
   const sorted = [...peaks].sort((a, b) => a[0] - b[0])
   const py = (hf: number) => y + h * (1 - hf)
@@ -33,7 +30,6 @@ function ridge([x, y, w, h]: [number, number, number, number], peaks: Pt[], jag:
     if (i > 0) {
       const a = corners[corners.length - 1]
       const px = x + w * xf
-      // A valley between peaks, a quarter of the way up from the base.
       corners.push([
         (a[0] + px) / 2,
         Math.min(y + h, Math.max(a[1], py(hf)) + (y + h - Math.max(a[1], py(hf))) * 0.3),
@@ -42,7 +38,6 @@ function ridge([x, y, w, h]: [number, number, number, number], peaks: Pt[], jag:
     corners.push([x + w * xf, py(hf)])
   })
   corners.push([x + w, y + h])
-  // Roughen each slope with a few deterministic kinks (peaks and valleys stay exactly where asked).
   const kinks = [-1, 0.7, -0.5, 0.9, -0.8]
   const pts: Pt[] = [corners[0]]
   for (let i = 1; i < corners.length; i++) {
@@ -58,7 +53,6 @@ function ridge([x, y, w, h]: [number, number, number, number], peaks: Pt[], jag:
   return pts
 }
 
-/** Tapered vertical hatch hugging a slope: engraver's shading for the shaded face. */
 function shadeSlope(slope: Pt[], gap: number, depth: number): SvgNode[] {
   const out: SvgNode[] = []
   const x0 = slope[0][0],
@@ -72,7 +66,6 @@ function shadeSlope(slope: Pt[], gap: number, depth: number): SvgNode[] {
   }
   return out
 }
-/** y on a polyline sorted by x ascending. */
 function xAtYInv(line: Pt[], x: number): number {
   for (let i = 0; i + 1 < line.length; i++) {
     const a = line[i],
@@ -96,14 +89,12 @@ export const mountains: KitModule = (box, p) => {
   if (shade === 'right') {
     const depth = num(p, 'shadeDepth', h * 0.5)
     const gap = num(p, 'shadeGap', 3.4)
-    // For each peak, shade from the summit down the right-hand slope to the next valley.
     const peakIdx = line
       .map((pt, i) => ({ pt, i }))
       .filter(({ pt }) => peaks.some(([xf]) => Math.abs(x + w * xf - pt[0]) < 1e-6))
     const tol = num(p, 'jag', 1.2) * 2.5
     for (const { i } of peakIdx) {
       let j = i + 1
-      // The right slope runs until the ridge rises again or ends.
       while (j < line.length - 1 && line[j + 1][1] < line[j][1] + tol) j++
       out.push(...shadeSlope(line.slice(i, j + 1), gap, depth))
     }
@@ -111,7 +102,6 @@ export const mountains: KitModule = (box, p) => {
   return out
 }
 
-/** Twin-peak volcano pair (Ararat): broad greater cone, lesser cone, concave flanks, snow line, shaded right flanks. */
 export const twinPeak: KitModule = ([x, y, w, h], p) => {
   const ratio = num(p, 'ratio', 0.78)
   const split = num(p, 'split', 0.64)
@@ -123,8 +113,7 @@ export const twinPeak: KitModule = ([x, y, w, h], p) => {
   const sy = y + h * (1 - ratio)
   const saddle: Pt = [x + w * split, y + h * num(p, 'saddle', 0.52)]
   const flat = 3.5
-  // Concave flanks: the control point sits low on the near side so slopes steepen toward the summit.
-  const c = num(p, 'concave', 0.5) // 0 = straight flanks, 1 = bell
+  const c = num(p, 'concave', 0.5)
   const leftB = quad(
     [x, base],
     [bx - (bx - x) * (1 - c * 0.6), base - h * 0.12 * (1 - c)],
@@ -176,10 +165,6 @@ export const twinPeak: KitModule = ([x, y, w, h], p) => {
   return out
 }
 
-/**
- * Rock mass with a flat plateau and an irregular vertical face. `side` is the side the mass sits
- * on. Vertical strata of alternating length read as columnar basalt.
- */
 export const cliff: KitModule = ([x, y, w, h], p) => {
   const side = str(p, 'side', ['left', 'right'] as const, 'left')
   const fx = (t: number) => (side === 'left' ? x + t : x + w - t)
@@ -209,13 +194,11 @@ export const cliff: KitModule = ([x, y, w, h], p) => {
   return out
 }
 
-/** Masonry base: trapezoid with optional flare, stone courses and staggered joints. */
 export const platform: KitModule = ([x, y, w, h], p) => {
   const batter = num(p, 'batter', 0)
   const flare = bool(p, 'flare', false)
   const courses = Math.round(num(p, 'courses', 0))
   const joints = num(p, 'joints', 0)
-  // Each course is `courseRatio` as tall as the one below it: 1 is even, 0.78 grows shallower upward.
   const ratio = num(p, 'courseRatio', 1)
   const wt = weight(p, 'weight', 'line')
   const edge = (sx: number, ex: number): Pt[] =>
@@ -239,7 +222,6 @@ export const platform: KitModule = ([x, y, w, h], p) => {
     )
   const unitH = h / Array.from({ length: courses }, (_, i) => ratio ** i).reduce((a, b) => a + b, 0)
   for (let i = 1; i < courses; i++) {
-    // Courses are counted from the bottom, so the top ones are the shallowest.
     const fromBottom = Array.from({ length: i }, (_, k) => unitH * ratio ** k).reduce(
       (a, b) => a + b,
       0,
@@ -258,10 +240,6 @@ export const platform: KitModule = ([x, y, w, h], p) => {
   return out
 }
 
-/**
- * Stairs. `front`: stacked slabs widening downward. `left`/`right`: side profile rising toward that
- * side, with underside stringer and a handrail.
- */
 export const steps: KitModule = ([x, y, w, h], p) => {
   const count = Math.max(2, Math.round(num(p, 'count', 5)))
   const dir = str(p, 'dir', ['front', 'left', 'right'] as const, 'front')
@@ -299,7 +277,6 @@ export const steps: KitModule = ([x, y, w, h], p) => {
   }
   prof.push([x0 + sx * w, y + h])
   out.push(...body(prof, 'line'))
-  // Stringer under the treads.
   out.push(
     stroke('line', [
       [x0, y + h],

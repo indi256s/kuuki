@@ -5,7 +5,6 @@ import type { MailSender } from './activationSender'
 
 const TOKEN_TTL_SECONDS = 30 * 60
 
-/** HMAC key avoids storing the normalized email in the rate-limit table. */
 export async function activationEmailKey(email: string, secret: string): Promise<string> {
   if (!secret) throw new Error('AUTH_SECRET is not configured')
   const key = await crypto.subtle.importKey(
@@ -23,7 +22,6 @@ export async function activationEmailKey(email: string, secret: string): Promise
   return [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, '0')).join('')
 }
 
-/** Only unclaimed accounts receive a link; callers always return the same public result. */
 export async function requestActivation(
   db: D1Database,
   email: string,
@@ -43,7 +41,6 @@ export async function requestActivation(
     .bind(tokenHash, createdAt, isoPlusSeconds(TOKEN_TTL_SECONDS, createdAt), user.id)
     .run()
   if (inserted.meta.changes !== 1) return
-  // Pages redirects .html assets to their extensionless URL.
   const link = new URL('/activate', origin)
   link.hash = `token=${token}`
   try {
@@ -58,11 +55,9 @@ export async function requestActivation(
       console.error(JSON.stringify({ event: 'activation_token_cleanup_failed' }))
     }
     console.error(JSON.stringify({ event: 'activation_sender_failed' }))
-    // Preserve a generic public response for unknown, active, and delivery-failed accounts.
   }
 }
 
-/** The claim + credential update + revocation sequence is one D1 transaction. */
 export async function completeActivation(
   db: D1Database,
   token: string,

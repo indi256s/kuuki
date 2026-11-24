@@ -12,7 +12,6 @@ const fixtures = join(__dirname, '../../../../../../packages/shared/src/overview
 const load = (name: string) =>
   JSON.parse(readFileSync(join(fixtures, `${name}.json`), 'utf8')) as OverviewPayload
 
-// Synthetic small journals and coverage gaps use the board's rows, never private prod rows.
 const board = load('board')
 const counted = board.rows
   .filter((row) => row.state === 'logged' || row.state === 'awaiting')
@@ -100,6 +99,24 @@ const journals: Record<string, { payload: OverviewPayload; filter: OverviewFilte
     ),
     filter: {},
   },
+  'scenario:ground-share': {
+    payload: {
+      ...board,
+      ground: [
+        {
+          id: 'g1',
+          mode: 'rail',
+          status: 'completed',
+          startDate: '2025-05-01',
+          endDate: '2025-05-20',
+          runs: [],
+          countries: ['FR'],
+          distanceKm: 10_000_000,
+        },
+      ],
+    },
+    filter: {},
+  },
   'scenario:two-airline-split': {
     payload: shaped(counted.map((row, i) => ({ ...row, airline: i % 2 ? 'EK' : 'TK' }))),
     filter: {},
@@ -107,9 +124,7 @@ const journals: Record<string, { payload: OverviewPayload; filter: OverviewFilte
 }
 
 const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map(([, key]) => key).sort()
-// A full stop after an abbreviation (мес., сут.) is followed by lowercase, so it does not end a sentence.
 const sentences = (text: string) => text.match(/[.!?…](?=\s+[A-ZА-ЯЁ{«"]|\s*$)/gu)?.length ?? 1
-// Two lines at the 60ch measure, which is also about three lines at a 390px viewport.
 const MAX_FILLED = 120
 
 describe('corpus lint', () => {

@@ -56,7 +56,6 @@ it('saves a blurred note before a decision and retains marks on other cards', as
     replies.shift()!(Response.json({ JP: { status: 'accepted', note: 'new note', at: 'today' } })),
   )
   await waitFor(() => expect(fetch).toHaveBeenCalledTimes(3))
-  // A full server response may carry an older snapshot of another tab's card.
   await act(async () =>
     replies.shift()!(
       Response.json({

@@ -36,7 +36,6 @@ function todayLabel() {
   const now = new Date()
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
 }
-/** Same day number in another month, clamped to the last day of a shorter month (Jan 31 + 1 month = Feb 28). */
 function addMonths(day: string, delta: number) {
   const [year, month, date] = day.split('-').map(Number)
   const target = new Date(0)
@@ -47,10 +46,8 @@ function addMonths(day: string, delta: number) {
   const last = end.getUTCDate()
   return `${String(target.getUTCFullYear()).padStart(4, '0')}-${String(target.getUTCMonth() + 1).padStart(2, '0')}-${String(Math.min(date, last)).padStart(2, '0')}`
 }
-/** Months sit side by side on one strip (after free Arc's calendar). Rapid clicks retarget the same spring, so panes never queue. */
 const STRIP_SPRING = { type: 'spring', visualDuration: 0.3, bounce: 0, restDelta: 0.002 } as const
 const EASE_OUT = [0.23, 1, 0.32, 1] as const
-/** The title crosses in place: the old month leaves toward the side the strip travels to (read at exit through `custom`). */
 const TITLE_SLIDE: Variants = {
   enter: (direction: number) => ({ opacity: 0, x: direction * 12 }),
   center: { opacity: 1, x: 0, transition: { duration: 0.2, ease: EASE_OUT } },
@@ -69,7 +66,6 @@ const monthIndex = (month: string) => Number(month.slice(0, 4)) * 12 + Number(mo
 const fromIndex = (index: number) =>
   `${String(Math.floor(index / 12)).padStart(4, '0')}-${String((index % 12) + 1).padStart(2, '0')}`
 
-/** One month on the strip. Only the month being navigated to is exposed and focusable; the one sliding past is inert. */
 function MonthPane({
   index,
   position,
@@ -135,13 +131,9 @@ export function Calendar({
   locale: Locale
   error?: string
   disabled?: boolean
-  /** Shows the month grid on mount (the member just chose to pick a day). */
   defaultOpen?: boolean
-  /** The grid flows in the page instead of floating over it. */
   inline?: boolean
-  /** Explicit week start; otherwise follows the locale. */
   weekStartsOn?: 0 | 1
-  /** Readable dates remain replaceable with numeric or ISO input. */
   displayFormat?: 'short' | 'readable'
 }) {
   const id = useId()
@@ -164,7 +156,6 @@ export function Calendar({
     const days = Array.from({ length: 42 }, (_, index) => epochToDay(start + index * DAY_MS))
     return Array.from({ length: 6 }, (_, index) => days.slice(index * 7, index * 7 + 7))
   }
-  // The strip position is measured in months: the panes either side of it render, plus the month being navigated to.
   const reduced = useReducedMotion() ?? false
   const target = monthIndex(month)
   const position = useMotionValue(target)
@@ -173,13 +164,11 @@ export function Calendar({
     const next: [number, number] = [Math.floor(value + 1e-3), Math.ceil(value - 1e-3)]
     setSpan((current) => (current[0] === next[0] && current[1] === next[1] ? current : next))
   })
-  // Direction is read from the month itself, so arrows, keys and a typed date all travel the same way.
   const [shown, setShown] = useState({ target, direction: 0 })
   if (shown.target !== target) setShown({ target, direction: target > shown.target ? 1 : -1 })
   useLayoutEffect(() => {
     const from = position.get()
     if (from === target) return
-    // Opening the grid and reduced motion land in place; month changes slide. Long jumps start one month away.
     if (!open || reduced) {
       position.jump(target)
       return
@@ -193,14 +182,12 @@ export function Calendar({
     setMonth(addMonths(`${month}-01`, delta).slice(0, 7))
   }
   const [focusTarget, setFocusTarget] = useState<{ day: string } | null>(null)
-  // Focus after the target month has rendered, so a move across a month edge lands on a mounted button.
   useEffect(() => {
     if (focusTarget)
       popover.current
         ?.querySelector<HTMLButtonElement>(`[data-present] [data-day="${focusTarget.day}"]`)
         ?.focus({ preventScroll: true })
   }, [focusTarget])
-  // An inline grid opens inside a scrolling host; bring it into view instead of leaving it below the fold.
   useEffect(() => {
     if (open && inline) popover.current?.scrollIntoView?.({ block: 'nearest' })
   }, [open, inline])
@@ -212,7 +199,6 @@ export function Calendar({
   }
   const today = todayLabel()
   const headingId = `${id}-heading`
-  // Use the same week start for the headers, grid and Home/End navigation.
   const weekOffset = (day: string) =>
     (new Date(dayToEpoch(day)!).getUTCDay() - weekStartsOn + 7) % 7
   const moveFocus = (event: KeyboardEvent<HTMLButtonElement>, day: string) => {
@@ -310,7 +296,6 @@ export function Calendar({
               <span className="sr-only" aria-live="polite">
                 {formatMonthYear(locale, `${month}-01`)}
               </span>
-              {/* Old and new titles share one cell while they cross, so the heading never jumps. */}
               <span aria-hidden="true">
                 <AnimatePresence initial={false} custom={shown.direction}>
                   <motion.span

@@ -1,6 +1,3 @@
-// GET /api/import/history/:id — summary and one keyset page of rows (`state`, `group`, `cursor`, `limit` ≤ 50);
-// with `representation=archive`, every record and its private source cells as a JSON download (ADR 0008).
-// DELETE /api/import/history/:id — discard what is not confirmed; created flights stay.
 import { json, runHandler } from '../../_lib/http'
 import { rateLimit } from '../../_lib/ratelimit'
 import { requireCsrf, requireUser, type RequestData } from '../../_lib/auth'

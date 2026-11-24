@@ -1,4 +1,3 @@
-/** One configured account owns analytics; malformed or absent configuration denies access. */
 export function isUserAnalyticsAdmin(
   env: { ADMIN_USER_ID?: string },
   userId: string | null,

@@ -1,12 +1,7 @@
-// Mount Kinabalu (Malaysia): a broad granite massif. Bald, smooth shoulders sweep up on both sides
-// to a jagged summit plateau crowned by rock horns (Donkey Ears, Low's Peak, St John's), over a dark
-// forest belt. The lit left shoulder carries long glacial-polish streaks, each horn throws a shaded
-// right face. The box is the massif; its bottom is the foot of the forest.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, cubic, hline, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
 
-// Summit plateau as [x, y] fractions of the box; y 0 is the top. Peaks are the local minima of y.
 const CROWN: Pt[] = [
   [0.18, 0.38],
   [0.24, 0.3],
@@ -48,10 +43,8 @@ export const kinabalu: KitModule = ([x, y, w, h], p) => {
   const sky: Pt[] = [...leftFlank, ...crown.slice(1), ...rightFlank.slice(1)]
   const out: SvgNode[] = []
   out.push(occlude([...sky, [x + w, foot + 3], [x, foot + 3]]))
-  // Lit left shoulder: sparse streaks following the slope.
   const left: Pt[] = [...leftFlank, ...crown.slice(1, 6), [crown[5][0], foot], [x, foot]]
   out.push(...toneFill(left, 'T2', { angle: 72, gap: [4.2, 4.2], weight: 'fine' }))
-  // Right shoulder: shaded, vertical along the fall line.
   const rightStart = crown.findIndex((q) => q[0] >= x + w * 0.45)
   const right: Pt[] = [
     ...crown.slice(rightStart),
@@ -60,7 +53,6 @@ export const kinabalu: KitModule = ([x, y, w, h], p) => {
     [crown[rightStart][0] + w * 0.24, foot],
   ]
   out.push(...toneFill(right, 'T4', { angle: 65, gap: [6, 6], weight: 'fine', inset: 0.4 }))
-  // Horn faces: shaded right side under every local summit of the crown.
   const plateauY = y + h * 0.4
   for (let i = 1; i + 1 < crown.length; i++) {
     if (!(crown[i][1] < crown[i - 1][1] && crown[i][1] < crown[i + 1][1])) continue
@@ -74,7 +66,6 @@ export const kinabalu: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // Bare-rock streaks and gullies down the lit shoulder.
   for (let gx = x + w * 0.1; gx < x + w * 0.22; gx += 4.5 + rand() * 3) {
     const t = (gx - x) / (w * 0.22)
     const top = foot - (foot - crown[0][1]) * t ** 1.4 - 2
@@ -87,7 +78,6 @@ export const kinabalu: KitModule = ([x, y, w, h], p) => {
     )
   }
   out.push(stroke('line', sky))
-  // A low cloud shelf separates bare granite from forest without outlining puffs.
   const cloudY = y + h * 0.6
   const cloud: Pt[] = [
     [x + w * 0.13, cloudY + 3],
@@ -100,7 +90,6 @@ export const kinabalu: KitModule = ([x, y, w, h], p) => {
     [x + w * 0.18, cloudY + 8],
   ]
   out.push(occlude(cloud), ...toneFill(cloud, 'T1', { gap: 5, weight: 'fine' }))
-  // Forest belt.
   const crownLine: Pt[] = []
   for (let px = x; px <= x + w + 0.1; px += 3.8)
     crownLine.push([px, foot - 1.2 + (rand() - 0.5) * 3.4])

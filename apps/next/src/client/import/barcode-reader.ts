@@ -1,6 +1,3 @@
-// Reads a boarding pass barcode from a chosen file entirely in the browser. The decoder (zxing-wasm, self-hosted wasm)
-// and pdf.js load only once a file is chosen. Decoded text stays in a dedicated worker: it goes straight
-// into the BCBP projection and is never logged, stored or returned, so only allowlisted legs leave this module.
 import type { ZXingModuleOverrides } from 'zxing-wasm/reader'
 import type { RenderTask } from 'pdfjs-dist'
 import type { Leg } from './bcbp'
@@ -11,9 +8,7 @@ export type ReadOutcome =
   | { kind: 'legs'; legs: Leg[]; incomplete: boolean }
   | { kind: 'none'; reason: NoneReason }
 
-/** What the decoder reads: pixels we drew, or the untouched file when the browser cannot draw it for us. */
 export type ReaderInput = Blob | ImageData
-/** Turns the file into decoder inputs no larger than `maxSide` pixels on the longest side. */
 export type Rasterize = (
   file: Blob,
   maxSide: number,
@@ -21,11 +16,8 @@ export type Rasterize = (
 ) => Promise<ReaderInput[]>
 
 export interface ReadOptions {
-  /** Aborting rejects with the signal's reason and stops further work; the caller ignores any late result. */
   signal?: AbortSignal
-  /** Replaces canvas and pdf.js rasterization, for unit tests that have neither. */
   rasterize?: Rasterize
-  /** Supplies wasm bytes or a locateFile URL for tests running outside a browser. */
   moduleOverrides?: ZXingModuleOverrides
 }
 
@@ -34,20 +26,15 @@ const FIRST_ATTEMPT_SIDE = 2000
 const RETRY_SIDE = 3000
 const PDF_PAGES = 2
 const PDF_MAX_PIXELS = 4_000_000
-// pdf.js skips embedded images above maxImageSize and shrinks ones above the canvas area, so a phone photo wrapped in
-// a PDF still decodes within the same memory bound as a page render.
 const PDF_MAX_IMAGE_PIXELS = 25_000_000
 const PDF_CANVAS_MAX_BYTES = PDF_MAX_PIXELS * 4
 
 const wasmUrl = () => new URL('zxing-wasm/reader/zxing_reader.wasm', import.meta.url).href
-/** Warms the browser cache with the decoder's wasm so the first read does not wait for it. Never throws. */
 export async function prefetchReader(): Promise<void> {
   try {
     const response = await fetch(wasmUrl())
     await response.arrayBuffer()
-  } catch {
-    // A failed prefetch only means the read downloads the wasm itself.
-  }
+  } catch {}
 }
 
 function drawingContext(canvas: HTMLCanvasElement) {
@@ -56,7 +43,6 @@ function drawingContext(canvas: HTMLCanvasElement) {
   return context
 }
 
-/** Reads the pixels and frees the canvas, which mobile browsers count against a tight total budget. */
 function takePixels(canvas: HTMLCanvasElement): ImageData {
   const pixels = drawingContext(canvas).getImageData(0, 0, canvas.width, canvas.height)
   canvas.width = canvas.height = 0
@@ -68,7 +54,6 @@ async function rasterizeImage(file: Blob, maxSide: number): Promise<ReaderInput[
   try {
     bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })
   } catch {
-    // The browser cannot decode this file to pixels; the decoder may still read the encoded image itself.
     return [file]
   }
   try {
@@ -123,7 +108,6 @@ async function rasterizePdf(
       const page = await Promise.race([pdf.getPage(number), aborted])
       signal?.throwIfAborted()
       const { width, height } = page.getViewport({ scale: 1 })
-      // Pages are vector, so the scale may exceed 1: the barcode needs pixels, not the page's point size.
       const scale = Math.min(
         maxSide / Math.max(width, height),
         Math.sqrt(PDF_MAX_PIXELS / (width * height)),
@@ -157,7 +141,6 @@ const rasterizeInBrowser: Rasterize = (file, maxSide, signal) =>
 
 const none = (reason: NoneReason): ReadOutcome => ({ kind: 'none', reason })
 
-/** Runs one decode attempt off-thread and retires its worker on every completion path. */
 function decodeInWorker(request: DecodeRequest, signal?: AbortSignal): Promise<ReadOutcome> {
   signal?.throwIfAborted()
   const worker = new Worker(new URL('./barcode-decoder.worker.ts', import.meta.url), {
@@ -196,10 +179,6 @@ function decodeInWorker(request: DecodeRequest, signal?: AbortSignal): Promise<R
   })
 }
 
-/**
- * Looks for a boarding pass barcode in a PDF, PNG or JPEG and returns its legs. Images get one retry at a larger size
- * when nothing is found. A file whose barcodes are not boarding passes is told apart from one with no barcode.
- */
 export async function readBoardingPass(
   file: Blob,
   options: ReadOptions = {},
@@ -227,7 +206,6 @@ export async function readBoardingPass(
       )
       signal?.throwIfAborted()
       if (outcome.kind === 'legs' || outcome.reason !== 'no-barcode') return outcome
-      // The file went to the decoder untouched, so a larger render would change nothing.
       if (inputs.every((input) => input instanceof Blob)) break
     }
     return none('no-barcode')

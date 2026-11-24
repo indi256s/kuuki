@@ -1,12 +1,8 @@
-// Nauru: Topside's coral-limestone pinnacle field, mined and left behind. Two rows of jagged,
-// sharp-tipped needles: the back row is a dense hatched mass, the front row carries a lit left face,
-// a shaded right face cut by dark fissures, and a rubble band at the foot. The box is the field;
-// its bottom is the ground.
 import { type Pt, type SvgNode, body, fill, hline, stroke, toneFill, vline } from '../grid'
 import { mulberry32 } from '../hash'
 import { type KitModule, num } from './util'
 
-type Spire = [number, number, number] // centre fraction, base half-width fraction, height fraction
+type Spire = [number, number, number]
 
 const row = (n: number, hb: number, lo: number, hi: number, shift: number): Spire[] =>
   Array.from({ length: n }, (_, i) => {
@@ -32,7 +28,6 @@ export const topside: KitModule = ([x, y, w, h], p) => {
       for (let i = 1; i <= rows; i++) {
         const t = i / rows
         const yy = top + (base - top) * t
-        // jagged flank: sharp at the tip, rough ledges lower down
         const prof = 0.2 + 0.8 * Math.pow(t, 0.55)
         const jl = (rand() - 0.4) * 3.4 * t
         const jr = (rand() - 0.4) * 3.4 * t
@@ -47,11 +42,9 @@ export const topside: KitModule = ([x, y, w, h], p) => {
         ...right.slice(1),
         ...Array.from({ length: rows }, (_, i) => ridge(rows - i)),
       ]
-      // shaded right face: vertical hatching along the fall line
       out.push(...toneFill(shade, 'T4', { gap: 2.6, inset: 0.2 }))
       if (dark) out.push(...toneFill(pts, 'T2', { gap: 2.6, weight: 'hair', inset: 0.5 }))
       else {
-        // dark fissures down the lit face
         for (const f of [0.3, 0.6]) {
           const a = Math.round(rows * f)
           const sx = left[a][0] + (right[a][0] - left[a][0]) * (0.2 + rand() * 0.25)
@@ -67,7 +60,6 @@ export const topside: KitModule = ([x, y, w, h], p) => {
   }
   draw(BACK, true)
   draw(FRONT, false)
-  // rubble foot: broken dark blocks across the base
   const foot: Pt[] = [[x, base]]
   for (let fx = x; fx <= x + w; fx += 4) foot.push([fx, base - 2 - rand() * 4])
   foot.push([x + w, base])

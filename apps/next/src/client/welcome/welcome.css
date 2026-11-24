@@ -1,8 +1,3 @@
-/*
- * The auth card while onboarding (boards 15.x). The frame owns the card height, the panel padding and the mobile
- * sheet; steps own their contents. `--welcome-bleed` is the panel's inline padding, so a step's sticky footer can
- * span the panel edge to edge with `margin-inline: calc(-1 * var(--welcome-bleed))`.
- */
 .auth-card[data-welcome] .auth-form-panel {
   --welcome-bleed: 64px;
   padding: 96px var(--welcome-bleed) 48px;
@@ -13,7 +8,6 @@
 .auth-card[data-welcome='name'] .auth-column {
   width: min(360px, 100%);
 }
-/* Review: the card grows with its list; the panel starts at the top and its footer spans the full panel. */
 .auth-card[data-welcome='review'] .auth-form-panel {
   --welcome-bleed: 90px;
   justify-content: flex-start;
@@ -34,7 +28,6 @@
   --welcome-shift: -16px;
 }
 
-/* Browsers without view transitions: the incoming step slides in on its own, from the side it comes from. */
 @supports not (view-transition-name: none) {
   .welcome-step[data-direction] {
     animation: welcome-step-in var(--dur-base) var(--ease-out);
@@ -47,10 +40,6 @@
   }
 }
 
-/* The morph (morph.ts): create → name and every step change run as one view transition. The card grows or shrinks
-   as a clipped box over its snapshots at natural size, so the radius and the text never stretch. The passport strip
-   crossfades in place (on desktop the bench animates itself), and the step content cross-slides with a 2px blur that bridges the
-   two states. Names exist only while html[data-welcome-morph] is set, so the theme sweep never captures them. */
 @media (prefers-reduced-motion: no-preference) {
   html[data-welcome-morph='forward'] {
     --welcome-out: -12px;
@@ -93,7 +82,6 @@
     animation-duration: var(--dur-base);
     animation-timing-function: var(--ease-out);
   }
-  /* The passport snapshots keep their own size, centred, so the cover never squashes into the spread. */
   html[data-welcome-morph]::view-transition-old(welcome-passport),
   html[data-welcome-morph]::view-transition-new(welcome-passport) {
     inset: 0;
@@ -107,8 +95,6 @@
   html[data-welcome-morph]::view-transition-new(welcome-passport) {
     animation: welcome-passport-in var(--dur-sheet) var(--ease-out) both;
   }
-  /* On desktop the passport is the bench, which swings its cover and presses its stamps itself: it rides the card's
-     resize live, with no crossfade over its own motion. The phone strip keeps the crossfade above. */
   @media (min-width: 701px) {
     html[data-welcome-morph]::view-transition-old(welcome-passport) {
       animation: none;
@@ -118,8 +104,6 @@
       animation: none;
     }
   }
-  /* The step content swaps in place: no travel between columns, only the cross-slide. Clipped to the new step, so a
-     taller outgoing step (review going Back) never shows below the shrinking card. */
   html[data-welcome-morph]::view-transition-group(welcome-step) {
     animation: none;
     overflow: clip;
@@ -164,7 +148,6 @@
     filter: blur(2px);
   }
 }
-/* Reduced motion: the whole card crossfades, with nothing sliding, scaling or growing. */
 @media (prefers-reduced-motion: reduce) {
   html[data-welcome-morph]::view-transition-old(root),
   html[data-welcome-morph]::view-transition-new(root) {
@@ -183,7 +166,6 @@
   }
 }
 
-/* Mobile: the plane band becomes a header row over the passport strip, and the sheet takes the rest of the height. */
 @media (max-width: 700px) {
   .auth-page:has(.auth-card[data-welcome]) {
     background: var(--auth-brand-surface);
@@ -204,12 +186,9 @@
     position: static;
     pointer-events: auto;
   }
-  /* Review and the reveal need the room: no header row, only the strip. */
   .auth-card:is([data-welcome='review'], [data-welcome='ready']) .auth-brand {
     padding-top: 4px;
   }
-  /* The reveal's strip and bench arrive after hydration: hold their height from the first paint so the heading stays
-     put. Strip 60px, the bench's 4px top padding, and the bench at the width cap of passport.css. */
   .auth-card[data-welcome='ready'] .auth-brand-field {
     min-height: calc(64px + min(100vw, 34svh * 600 / 376) * 376 / 600);
   }
@@ -230,8 +209,6 @@
   .auth-card[data-welcome] .auth-column {
     width: 100%;
   }
-  /* Review and the reveal fill the sheet, so their action bar rests at the bottom (the thumb's reach) instead of
-     floating under short content. */
   .auth-card:is([data-welcome='review'], [data-welcome='ready']) .auth-column,
   .auth-card:is([data-welcome='review'], [data-welcome='ready']) .welcome-step {
     flex: 1 0 auto;

@@ -1,9 +1,3 @@
-// Server-owned import drafts (ADR 0001 §6): batch creation under the owner limits, the fenced draft writer shared
-// by the synchronous endpoint and (later) the import job, snapshot reads with full-history duplicate matching, draft
-// edits and discard. Conversion lives in `importConversion.ts`.
-//
-// Never stored: uploaded bytes, base64, pasted text, provider responses, `raw_text`. A draft holds only the
-// extracted flight fields and bounded confidence numbers.
 import { HttpError } from '../_lib/http'
 import {
   isCalendarDate,
@@ -17,20 +11,16 @@ import type { VerificationStatus } from '../import/_verify'
 import { interruptBatchSql } from './importBatchInterrupt'
 import { findDuplicateMatches, type DuplicateCandidate } from './duplicates'
 
-/** Drafts one batch may hold: a locally parsed `KUUKI FLIGHTS` list is exact, model extraction is not. */
 export const MAX_DRAFTS_DETERMINISTIC = 500
 export const MAX_DRAFTS_MODEL = 100
-/** Open batches (processing, review, partial) an owner may hold; finished ones no longer count. */
 export const MAX_OPEN_BATCHES = 10
 export const BATCH_TTL_DAYS = 30
-/** Provider deadline (90 s) plus validation and the write; past it the maintenance sweep treats the job as dead. */
 export const PROCESSING_WINDOW_MS = 120_000
 const DAY_MS = 24 * 60 * 60 * 1000
 
 export type BatchStatus = 'processing' | 'review' | 'partial' | 'failed' | 'cancelled' | 'completed'
 export type SourceType = 'pdf' | 'image' | 'text'
 
-/** The extracted flight fields a draft persists (`fields_json`). Optional fields are absent, never null or empty. */
 export interface DraftFields {
   date: string
   origin: string
@@ -43,18 +33,14 @@ export interface DraftFields {
   airline_was_placeholder?: boolean
   enrichment_status?: EnrichmentStatus
   verification?: VerificationStatus
-  // Question metadata for the review UI; never part of the flight input.
   date_month_day?: string
   origin_options?: string[]
   destination_options?: string[]
   origin_hint?: string
   destination_hint?: string
   review_required?: boolean
-  /** Boarding-pass flight day (1–366) kept while `date` is empty. */
   date_ordinal_day?: number
-  /** Quick Add rows: a today/past date needs the member's `flown_confirmed` before conversion. Set only at admission. */
   flown_required?: true
-  /** Set only by the draft patch `flownConfirmed`; never through `fields`. */
   flown_confirmed?: true
 }
 
@@ -63,7 +49,6 @@ const FIELD_NAMES = ['date', 'origin', 'destination', 'airline_iata', ...OPTIONA
 const clamp = (value: unknown, max: number) =>
   typeof value === 'string' && value ? value.slice(0, max) : undefined
 
-/** Project an extracted flight onto the stored fields; strings are bounded so `fields_json` stays far below its CHECK. */
 export function draftFieldsOf(flight: ExtractedFlight): DraftFields {
   const fields: DraftFields = {
     date: clamp(flight.date, 10) ?? '',
@@ -100,7 +85,6 @@ export function draftFieldsOf(flight: ExtractedFlight): DraftFields {
   return fields
 }
 
-/** The create input a draft converts with. Empty optional fields are left out; validation is the shared one. */
 export function draftToFlightInput(fields: DraftFields): FlightInput {
   return {
     date: fields.date,
@@ -116,7 +100,6 @@ export function draftToFlightInput(fields: DraftFields): FlightInput {
   }
 }
 
-/** Fixed label or the base filename: no path, no control characters, at most 120 characters. Pasted text has no label. */
 export function sanitizeSourceLabel(type: SourceType, value: unknown): string | null {
   if (type === 'text' || typeof value !== 'string') return null
   const base = value.split(/[\\/]/).pop() ?? ''
@@ -194,10 +177,6 @@ export function ownedBatch(db: D1Database, userId: string, batchId: string) {
     .first<BatchRow>()
 }
 
-/**
- * Insert a `processing` batch unless the owner is at a limit, in one statement so two requests cannot both pass.
- * A replayed submission operation id inserts nothing. Returns whether a row was inserted.
- */
 export async function createProcessingBatch(
   db: D1Database,
   input: {
@@ -239,7 +218,6 @@ export async function createProcessingBatch(
   return (result.meta.changes ?? 0) > 0
 }
 
-/** Why a new batch was refused, read after the fact so the answer names the limit that actually applies. */
 export async function refusalFor(db: D1Database, userId: string, now: Date): Promise<HttpError> {
   const instant = now.toISOString()
   const live = await db
@@ -272,7 +250,6 @@ export interface DraftRowInput {
 export interface BatchFence {
   userId: string
   batchId: string
-  /** The generation the writer was started under; cancel, discard, sweep and account deletion all end it. */
   generation: number
 }
 
@@ -281,11 +258,6 @@ export interface FinalState {
   errorCode: string | null
 }
 
-/**
- * Write the drafts and finalize the batch in one D1 batch (ADR 0001 §6 "Deletion fence"). Every statement is
- * `… WHERE EXISTS (the batch, still processing, same generation)`, so after cancel (generation + 1), discard,
- * the maintenance sweep or account deletion a late write matches nothing, and a half-written batch cannot exist.
- */
 export async function persistDraftRows(
   db: D1Database,
   fence: BatchFence,
@@ -353,7 +325,6 @@ export async function persistDraftRows(
   return { sequence, rowIds: ids.filter((_, index) => (results[index].meta.changes ?? 0) > 0) }
 }
 
-/** Only untouched drafts accept a checker result; a member patch always increments the version. */
 export async function persistDraftVerification(
   db: D1Database,
   fence: BatchFence,
@@ -401,10 +372,6 @@ export async function persistDraftVerification(
   }
 }
 
-// ---------------------------------------------------------------------------
-// Snapshot
-// ---------------------------------------------------------------------------
-
 export interface DraftIssue {
   code: string
   message: string
@@ -424,9 +391,7 @@ export interface DraftView {
   edited: boolean
   duplicateAcknowledged: boolean
   convertedFlightId: number | null
-  /** An owned flight with the same date, origin and destination (the lowest id), excluding the draft's own flight. */
   duplicateFlightId: number | null
-  /** Why the draft cannot convert as it stands, from the same validation conversion uses. Null when it can. */
   issue: DraftIssue | null
 }
 
@@ -452,13 +417,11 @@ export interface BatchSnapshot {
 
 const fieldsOf = (row: DraftRow) => JSON.parse(row.fields_json) as DraftFields
 
-/** A draft can match a flight only with a real date and two airport codes; anything else stays a correctable row. */
 const isTuple = (fields: DraftFields) =>
   isCalendarDate(fields.date) &&
   /^[A-Z]{3}$/.test(fields.origin) &&
   /^[A-Z]{3}$/.test(fields.destination)
 
-/** Duplicate flight id per draft id over the owner's whole history (`excludeId`: the flight a draft already became). */
 export async function duplicatesFor(
   db: D1Database,
   userId: string,
@@ -481,7 +444,6 @@ export async function duplicatesFor(
   return new Map(matches.map((match) => [ids[match.candidateIndex], match.flightId]))
 }
 
-/** The shared validation (`parseFlightBodies`) over each draft; a draft past review needs none. */
 export async function issuesFor(
   db: D1Database,
   rows: DraftRow[],
@@ -549,7 +511,6 @@ export function batchView(row: BatchRow, now: Date): BatchView {
   }
 }
 
-/** Owner-scoped snapshot. An expired batch reports `expired` and no drafts: it can neither be reviewed nor converted. */
 export async function readBatchSnapshot(
   db: D1Database,
   userId: string,
@@ -574,10 +535,6 @@ export async function readBatchSnapshot(
     drafts: view.expired ? [] : await viewDrafts(db, userId, draftsResult.results as DraftRow[]),
   }
 }
-
-// ---------------------------------------------------------------------------
-// Draft edits
-// ---------------------------------------------------------------------------
 
 export interface DraftPatch {
   version: number
@@ -632,11 +589,6 @@ export function parseDraftPatch(body: unknown): DraftPatch {
   return patch
 }
 
-/**
- * Apply correction fields over the stored ones. Syntax is the flight validator's (`validateFlightInput`), so a draft
- * can only hold what a flight could hold shape-wise, but reference existence is not checked here: an unknown airport
- * stays a correctable draft and is refused by conversion, never bypassed. `null` or `''` clears an optional field.
- */
 export function mergeFields(current: DraftFields, patch: Record<string, unknown>): DraftFields {
   const names = new Set<string>(FIELD_NAMES)
   const next: Record<string, unknown> = { ...current }
@@ -663,13 +615,11 @@ export function mergeFields(current: DraftFields, patch: Record<string, unknown>
     throw invalidDraft(error instanceof Error ? error.message : 'Invalid draft field')
   }
   Object.assign(next, normalized)
-  // A changed airline is no longer the placeholder the extraction applied.
   if (check.airline_iata !== undefined && next.airline_iata !== current.airline_iata)
     delete next.airline_was_placeholder
   return next as unknown as DraftFields
 }
 
-/** The flown confirmation is the member's answer, not a correction, so it never marks a row `edited`. */
 const canonical = ({ flown_confirmed: _answer, ...fields }: DraftFields) =>
   JSON.stringify(
     Object.keys(fields)
@@ -722,7 +672,6 @@ export async function patchDraft(
   const edited = row.edited === 1 || changed
   const fields = { ...corrected }
   if (changed && fields.verification) fields.verification = 'not_verified'
-  // A new date voids a prior "I flew it" that may no longer fit it, unless the same patch answers again.
   if (patch.flownConfirmed === undefined && corrected.date !== current.date)
     delete fields.flown_confirmed
   if (patch.flownConfirmed === true) fields.flown_confirmed = true
@@ -752,7 +701,6 @@ export async function patchDraft(
         userId,
         instant,
       ),
-    // Same batch as the draft update (see BATCH_STATUS_AFTER_DRAFTS).
     db
       .prepare(
         `UPDATE import_batches SET sequence = sequence + 1, updated_at = ?, status = ${BATCH_STATUS_AFTER_DRAFTS}
@@ -766,11 +714,6 @@ export async function patchDraft(
   return view
 }
 
-// ---------------------------------------------------------------------------
-// Discard
-// ---------------------------------------------------------------------------
-
-/** Explicitly delete the drafts, then the batch, in one D1 batch; never rely on the FK cascade (0001_init.sql:13-14). */
 export async function discardBatch(
   db: D1Database,
   userId: string,
@@ -789,18 +732,12 @@ export async function discardBatch(
 const OPEN_REVIEW_DRAFT = `EXISTS (SELECT 1 FROM import_drafts
   WHERE batch_id = import_batches.id AND user_id = import_batches.user_id AND status = 'review')`
 
-/**
- * The batch status after its drafts change, as a SQL expression on `import_batches`. A batch with no review row left
- * is completed; one that gets a review row back (an un-dismiss) opens again, as `partial` when its reading recorded an
- * error (only partial reads keep an `error_code` here). processing, failed and cancelled batches keep their status.
- */
 export const BATCH_STATUS_AFTER_DRAFTS = `CASE
   WHEN status IN ('review', 'partial') AND NOT ${OPEN_REVIEW_DRAFT} THEN 'completed'
   WHEN status = 'completed' AND ${OPEN_REVIEW_DRAFT}
     THEN CASE WHEN error_code IS NULL THEN 'review' ELSE 'partial' END
   ELSE status END`
 
-/** Cancel is a durable fence even when the live worker cannot be reached. */
 export async function cancelBatch(
   db: D1Database,
   userId: string,
@@ -819,7 +756,6 @@ export async function cancelBatch(
   return { cancelled: false, status: batch.status }
 }
 
-/** Restart/deadline recovery retains review work and never attempts to recover the source. */
 export async function interruptBatch(db: D1Database, fence: BatchFence) {
   const result = await db
     .prepare(`${interruptBatchSql('one')} RETURNING sequence`)

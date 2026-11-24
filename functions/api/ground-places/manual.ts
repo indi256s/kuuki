@@ -1,5 +1,3 @@
-// /api/ground-places/manual — the owner's private manual places (name + country, optional coordinates/timezone).
-
 import { runHandler, json, readJson, HttpError } from '../_lib/http'
 import { requireUser, requireCsrf, type RequestData } from '../_lib/auth'
 import {
@@ -21,10 +19,6 @@ export function listManualPlacesRequest(env: Env, data: RequestData): Promise<Re
 export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) =>
   createManualPlaceRequest(context.request, context.env, context.data)
 
-/**
- * Idempotent by client id: 201 on creation, 200 with the stored place when the same owner repeats the same
- * payload, 409 for a different payload or an id that is not the caller's (the two are indistinguishable).
- */
 export function createManualPlaceRequest(
   request: Request,
   env: Env,

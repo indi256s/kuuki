@@ -31,7 +31,6 @@ describe('AccentSync', () => {
   const root = document.documentElement
   let AccentSync: typeof import('./appearance').AccentSync
   beforeEach(async () => {
-    // The last-saved accent is per page session; a fresh module is a fresh page load.
     vi.resetModules()
     ;({ AccentSync } = await import('./appearance'))
     m.patch.mockResolvedValue({})
@@ -91,7 +90,6 @@ describe('AccentSync', () => {
     const first = render(<AccentSync profileAccent={null} />)
     await vi.waitFor(() => expect(sent.map((request) => request.accent)).toEqual(['sakura']))
     const picked = persistAccent('asagi')
-    // The pick waits for the automatic save instead of racing it to the server.
     expect(sent).toHaveLength(1)
     sent[0].finish()
     await vi.waitFor(() =>
@@ -100,7 +98,6 @@ describe('AccentSync', () => {
     sent[1].finish()
     await picked
     first.unmount()
-    // The next shell mount still sees a profile without an accent; the cache holds the pick.
     document.cookie = 'kuuki_accent=sakura; Path=/'
     root.dataset.accent = 'sakura'
     render(<AccentSync profileAccent={null} />)
@@ -110,7 +107,6 @@ describe('AccentSync', () => {
 
   it('caches the last successful write even when a later one fails', async () => {
     const { persistAccent } = await import('./appearance')
-    // Matcha is saved; Ai lands, then Sakura fails: the server holds Ai.
     await persistAccent('matcha')
     await persistAccent('ai')
     m.patch.mockRejectedValueOnce(new Error('offline'))
@@ -128,7 +124,6 @@ describe('AccentSync', () => {
     render(<AccentSync profileAccent="blue" />)
     await vi.waitFor(() => expect(m.patch).toHaveBeenCalledTimes(1))
     await new Promise((settle) => setTimeout(settle))
-    // The picker's own event must not re-run reconciliation with the stale profile value.
     setAccent('asagi')
     await persistAccent('asagi')
     expect(root.dataset.accent).toBe('asagi')

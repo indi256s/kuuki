@@ -12,10 +12,6 @@ type Props = {
   ownerId: string
   revision: number
   publishedRevision: number
-  /**
-   * What the read says about publication. Anything but `ready` is pending even when the revisions are equal: an older
-   * build can publish a revision without the evidence projection, and only the owner sync's repair clears that.
-   */
   derivedState?: 'ready' | 'pending' | 'error'
   locale: 'en' | 'ru'
 }
@@ -26,7 +22,6 @@ export const isPublicationPending = (
   derivedState?: Props['derivedState'],
 ) => revision > publishedRevision || (derivedState !== undefined && derivedState !== 'ready')
 
-/** RSC owns summaries; this status-only bridge never fetches a second summary. */
 export function ReadFreshness({
   ownerId,
   revision,
@@ -37,7 +32,6 @@ export function ReadFreshness({
   const locale = useLocale(initialLocale)
   const pending = isPublicationPending(revision, publishedRevision, derivedState)
   const router = useRouter()
-  // The revision whose publication ran late; a newer pending revision starts without the note.
   const [delayedAt, setDelayedAt] = useState<number | null>(null)
   useEffect(() => {
     const controller = new AbortController()

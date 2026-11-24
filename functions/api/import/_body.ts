@@ -1,9 +1,6 @@
 import { HttpError } from '../_lib/http'
 
-/** Validate the entire base64 payload and its actual decoded byte count. */
 export function decodedBase64Size(base64: string): number {
-  // Keep this regex flat: repeating quartet groups can exhaust the stack on a
-  // valid 10 MiB file. Padding is allowed only in the final quartet.
   if (!base64 || base64.length % 4 !== 0 || !/^[A-Za-z0-9+/]*={0,2}$/.test(base64)) {
     throw new HttpError(400, 'Invalid file encoding', 'INVALID_BODY')
   }

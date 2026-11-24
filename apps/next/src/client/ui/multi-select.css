@@ -1,4 +1,3 @@
-/* Arc-derived multi-select. Tokens only. The full-height sheet itself is .flight-full-sheet in flight-controls.css. */
 .ui-multi-trigger {
   display: inline-flex;
   align-items: center;
@@ -46,8 +45,8 @@
 .ui-multi-status {
   margin: 0 var(--space-2) var(--space-2);
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
 }
 .ui-multi-list {
   margin: 0;
@@ -105,13 +104,13 @@
 }
 .ui-multi-text small {
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
 }
 .ui-multi-count {
   flex: none;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
 }
 @media (hover: hover) and (pointer: fine) {

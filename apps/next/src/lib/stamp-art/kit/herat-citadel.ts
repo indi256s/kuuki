@@ -1,7 +1,3 @@
-// Herat Citadel (Afghanistan): a mud-brick fortress on a battered mound. A curtain wall with
-// merlons, round towers along it (the two central ones taller, flanking the gate), horizontal
-// course lines, slit windows, and a dark pointed gate. Mound slopes are hatched dark. The box is the
-// whole fortress; its bottom is the ground.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, hline, rectPts, toneFill } from '../grid'
 import { merlons, pointedArch } from './dome-parts-c'
@@ -14,7 +10,6 @@ export const heratCitadel: KitModule = ([x, y, w, h], p) => {
   const out: SvgNode[] = []
   const glacisTop = base - h * 0.2
   const wallTop = y + h * 0.4
-  // Mound: a battered slope dark with fall-line hatching.
   const mound: Pt[] = [
     [x, base],
     [x + w * 0.05, glacisTop],
@@ -23,7 +18,6 @@ export const heratCitadel: KitModule = ([x, y, w, h], p) => {
   ]
   out.push(...body(mound, 'line'))
   out.push(...toneFill(mound, 'T4', { gap: [3.2, 3.2], inset: 0.3, weight: 'hair' }))
-  // Curtain wall.
   const wall: Pt[] = [
     [x + w * 0.03, glacisTop + 0.5],
     [x + w * 0.03, wallTop],
@@ -35,7 +29,6 @@ export const heratCitadel: KitModule = ([x, y, w, h], p) => {
     out.push(hline('fine', x + w * 0.04, x + w * 0.96, cy + (rand() - 0.5) * 0.4))
   out.push(...merlons(x + w * 0.04, x + w * 0.96, wallTop, 3.2, 2.4, 2.8))
   out.push(hline('bold', x + w * 0.03, x + w * 0.97, wallTop))
-  // Towers.
   const towers: Array<[number, number, number]> = [
     [0.12, 0.18, 0.18],
     [0.25, 0.09, 0.15],
@@ -82,7 +75,6 @@ export const heratCitadel: KitModule = ([x, y, w, h], p) => {
     return t
   }
   for (const [fx, fw, ft] of towers) out.push(...tower(fx, fw, ft))
-  // Gate between the two central towers.
   const gw = w * 0.1
   const gTop = wallTop + h * 0.02
   out.push(...body(rectPts(cx - gw / 2 - 1.4, gTop, gw + 2.8, glacisTop - gTop + 0.5), 'line'))

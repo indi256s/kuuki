@@ -1,8 +1,3 @@
-// Deterministic connection chains (ADR 0001 §4). No trips entity: a link is derived from two legs, a chain
-// is a maximal path of unambiguous links, and ambiguity is review-only and never suppresses a country.
-//
-// Flight `date` is a date-only label and is never passed to `new Date(date)`; it is only compared and
-// shifted with the calendar helper. Instants (`departure_utc`, `arrival_utc`) are canonical ISO strings.
 import { addDays } from '../../../packages/shared/src/calendar'
 
 export interface ConnectionLeg {
@@ -16,7 +11,6 @@ export interface ConnectionLeg {
   destination_country: string | null
 }
 
-/** `precise`: both instants known and 0..24h apart. `estimated`: date-only, same or next calendar day. */
 export type ConnectionLabel = 'precise' | 'estimated'
 
 export type ConnectionDecision =
@@ -26,11 +20,9 @@ export type ConnectionDecision =
       kind: 'link'
       toId: number
       label: ConnectionLabel
-      /** Country of the incoming leg's destination, the airport the connection happens at. */
       hubCountry: string | null
       startCountry: string | null
       finalCountry: string | null
-      /** The hub is in neither the chain's start nor its final country. Only these suggest transit. */
       thirdCountry: boolean
       chainIds: number[]
     }
@@ -43,8 +35,6 @@ const instant = (value: string | null): number | null => {
   return Number.isNaN(parsed) ? null : parsed
 }
 
-// `flights.date` has no DB CHECK. A label that is not YYYY-MM-DD cannot be shifted, so that leg is treated as
-// undated: it never forms or extends a chain (its endpoints still count as ordinary evidence).
 const DATE_LABEL = /^\d{4}-\d{2}-\d{2}$/
 
 const utcDay = (ms: number) => new Date(ms).toISOString().slice(0, 10)
@@ -55,7 +45,6 @@ interface Node {
   arr: number | null
 }
 
-/** Ordered by reliable instant first, then date, with the id as the stable tiebreak. Affects traversal only. */
 const sortKey = (node: Node) =>
   node.dep === null ? `${node.leg.date}T00:00:00.000Z` : new Date(node.dep).toISOString()
 const byTraversal = (a: Node, b: Node) => {
@@ -64,18 +53,12 @@ const byTraversal = (a: Node, b: Node) => {
   return left < right ? -1 : left > right ? 1 : a.leg.id - b.leg.id
 }
 
-/**
- * One decision per leg, keyed by the incoming leg's id. Link A->B exists only when B is A's single candidate
- * and A is B's single candidate in the winning tier (precise outranks estimated); anything else with a
- * candidate is ambiguous. A cycle (an untimed same-date pair that cannot be ordered) is ambiguous too.
- */
 export function connectionChains(allLegs: ConnectionLeg[]): Map<number, ConnectionDecision> {
   const legs = allLegs.filter((leg) => DATE_LABEL.test(leg.date))
   const nodes = legs
     .map<Node>((leg) => ({ leg, dep: instant(leg.departure_utc), arr: instant(leg.arrival_utc) }))
     .sort(byTraversal)
 
-  // Origin airport -> date label -> legs departing there, so candidate search touches a few days only.
   const byOrigin = new Map<string, Map<string, Node[]>>()
   for (const node of nodes) {
     const days = byOrigin.get(node.leg.origin) ?? new Map<string, Node[]>()
@@ -102,8 +85,6 @@ export function connectionChains(allLegs: ConnectionLeg[]): Map<number, Connecti
   for (const a of nodes) {
     const days = byOrigin.get(a.leg.destination)
     if (!days) continue
-    // Label dates that can hold a candidate: the estimate window, plus (for a timed arrival) every day a 24h
-    // window can touch once local-day labels (up to ±1 day from UTC) are allowed for.
     const wanted = new Set([a.leg.date, addDays(a.leg.date, 1)])
     if (a.arr !== null) {
       const arrDay = utcDay(a.arr)
@@ -123,7 +104,6 @@ export function connectionChains(allLegs: ConnectionLeg[]): Map<number, Connecti
     }
   }
 
-  // The winning tier's candidate set: precise when any exists, otherwise estimated.
   const winning = (p: Map<number, Set<number>>, e: Map<number, Set<number>>, id: number) => {
     const exact = p.get(id)
     if (exact?.size) return { tier: 'precise' as const, ids: [...exact].sort((x, y) => x - y) }
@@ -144,7 +124,6 @@ export function connectionChains(allLegs: ConnectionLeg[]): Map<number, Connecti
     }
   }
 
-  // A cycle among unambiguous links cannot be ordered: demote every member to ambiguous.
   const visited = new Set<number>()
   for (const start of links.keys()) {
     if (visited.has(start)) continue
@@ -170,7 +149,7 @@ export function connectionChains(allLegs: ConnectionLeg[]): Map<number, Connecti
   const hasIncoming = new Set([...links.values()].map((link) => link.to))
   const chainOf = new Map<number, { ids: number[]; start: string | null; final: string | null }>()
   for (const { leg } of nodes) {
-    if (hasIncoming.has(leg.id) || !links.has(leg.id)) continue // chains are walked from their head
+    if (hasIncoming.has(leg.id) || !links.has(leg.id)) continue
     const ids = [leg.id]
     let tail = leg
     while (links.has(tail.id)) {
@@ -195,7 +174,6 @@ export function connectionChains(allLegs: ConnectionLeg[]): Map<number, Connecti
         hubCountry: hub,
         startCountry: chain.start,
         finalCountry: chain.final,
-        // An unknown country (unmapped airport) never supports suppression, wherever it sits in the chain.
         thirdCountry:
           hub !== null &&
           chain.start !== null &&

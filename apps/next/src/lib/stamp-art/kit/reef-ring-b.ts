@@ -1,6 +1,3 @@
-// A closed reef ring seen at a low angle (Chagos-type): foam-edged outer reef, a sandy reef flat
-// carrying a chain of palm islets, a pale lagoon with a dark deep-water patch. Neutral nature only.
-// The box is the ring's bounding box; the ocean outside belongs to the backdrop.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, hline, occlude, stroke } from '../grid'
 import { type KitModule, num } from './util'
@@ -26,7 +23,6 @@ export const reefRingB: KitModule = ([x, y, w, h], p) => {
     E((i / 80) * Math.PI * 2, rx - bandX, ry - bandY, Math.sin(i * 1.1) * 0.6),
   )
   out.push(occlude(outer, { halo: 3 }))
-  // Reef flat: fine horizontal strokes in the band, split around the lagoon.
   const span = (ax: number, ay: number, yy: number): number | null => {
     const t = (yy - cy) / ay
     return Math.abs(t) >= 1 ? null : ax * Math.sqrt(1 - t * t)
@@ -40,7 +36,6 @@ export const reefRingB: KitModule = ([x, y, w, h], p) => {
       out.push(hline('fine', cx - o, cx - i - 0.8, yy), hline('fine', cx + i + 0.8, cx + o, yy))
     }
   }
-  // Lagoon: sparse water lines, dark deep patch left of centre.
   for (let yy = cy - ry + bandY + 2; yy < cy + ry - bandY - 1; yy += 3.6) {
     const i = span(rx - bandX - 1.4, ry - bandY - 0.6, yy)
     if (i !== null) out.push(hline('fine', cx - i, cx + i, yy))
@@ -53,7 +48,6 @@ export const reefRingB: KitModule = ([x, y, w, h], p) => {
     }
   }
   out.push(stroke('hair', inner, true), stroke('line', outer, true))
-  // Surf: broken foam arcs just outside the reef, heavier on the near side.
   for (let k = 0; k < 14; k++) {
     const th = 0.15 + k * 0.44 + rand() * 0.2
     const near = Math.sin(th) > 0
@@ -62,7 +56,6 @@ export const reefRingB: KitModule = ([x, y, w, h], p) => {
     )
     out.push(stroke('hair', run))
   }
-  // Islets with palms on the reef flat.
   const islets = [-2.45, -1.95, -1.4, -0.85, -0.3, 0.25, 2.35, 1.2]
   for (const th of islets) {
     const px = cx + Math.cos(th) * (rx - bandX / 2),

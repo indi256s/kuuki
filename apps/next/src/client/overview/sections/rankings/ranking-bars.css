@@ -1,6 +1,6 @@
 .ov3-ranking-bars .ov3-ranking-name {
   color: var(--text);
-  font: 400 15px/20px var(--font-sans);
+  font: 400 0.9375rem/1.25rem var(--font-sans);
   overflow-wrap: anywhere;
 }
 .ov3-ranking-bars .ov3-ranking-place {
@@ -24,7 +24,7 @@
 .ov3-ranking-gap {
   margin: 0 0 var(--space-4);
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   text-wrap: pretty;
 }

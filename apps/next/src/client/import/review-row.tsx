@@ -34,27 +34,20 @@ import {
 
 export interface ReviewRowProps {
   locale: Locale
-  /** The row as shown: the stored draft with the member's unsent change laid over it. */
   draft: Draft
-  /** The stored draft, without the unsent overlay. Discarding an edit goes back to this. */
   stored: Draft
   state?: SaveState
   mobile: boolean
-  /** The member's calendar day (YYYY-MM-DD), what "already flown" is judged against; tests pin it. */
   today?: string
-  /** The import is being saved: corrections and selection are paused so nothing typed now is lost when the review closes. */
   frozen?: boolean
   compact?: boolean
-  /** Onboarding: no confidence chip or verification note. */
   quiet?: boolean
   singleton?: boolean
   implicitSelection?: boolean
   onChange: (change: DraftChange) => void
-  /** Reports whether the form holds a correction the member has typed but not saved. */
   onDirty: (id: string, dirty: boolean) => void
   onRetry: () => void
   onDiscard: () => void
-  /** Compact review only: the row's own questions and save outcome, inside its card above Edit. */
   children?: ReactNode
 }
 
@@ -90,7 +83,6 @@ export function ReviewRow({
   const low = lowFields(draft)
   const [values, setValues] = useState(() => toValues(draft.fields))
   const [seen, setSeen] = useState(draft.version)
-  // What the form started from: a typed value that differs from it is the member's own and survives a newer version.
   const [base, setBase] = useState<{ values: FieldValues; year: boolean }>(() => ({
     values: toValues(draft.fields),
     year: draft.yearConfirmed,
@@ -123,9 +115,7 @@ export function ReviewRow({
   const originLabel = draft.fields.origin || draft.fields.origin_hint || '—'
   const destinationLabel = draft.fields.destination || draft.fields.destination_hint || '—'
   const routeLabel = `${originLabel} → ${destinationLabel}`
-  // An ordinal day is never shown as a month and day: without the year it is only a day to confirm.
   const yearToConfirm = !draft.fields.date && ordinalOf(draft) !== null
-  // Compact rows show a printed day and month while its year question sits right below.
   const monthDay = compact && !draft.fields.date ? monthDayOf(draft) : null
   const dateText = draft.fields.date
     ? formatDateOnly(locale, draft.fields.date, 'medium')
@@ -134,7 +124,6 @@ export function ReviewRow({
       : monthDay
         ? formatMonthDay(locale, monthDay, 'short')
         : S.noDate[locale]
-  // A locally read barcode has no recognition score, so it says where it came from instead.
   const unscored = draft.fields.flown_required
     ? S.readFromBarcode[locale]
     : S.confidenceUnknown[locale]
@@ -142,7 +131,6 @@ export function ReviewRow({
     ? `${draft.fields.airline_iata}${draft.fields.flight_number}`.trim()
     : undefined
   const needsYear = !draft.yearExplicit && !draft.yearConfirmed
-  // Typed but not yet sent: the parent blocks the import and the unload warning is armed until it is saved or discarded.
   const dirty =
     Object.keys(changedFields(draft.fields, values)).length > 0 ||
     (needsYear && yearChecked !== draft.yearConfirmed)
@@ -339,7 +327,6 @@ export function ReviewRow({
           state="upcoming"
           locale={locale}
           statusLabel={
-            // The ticket has no date to show here, and never a made-up one, so the unresolved year goes in its status.
             (!draft.fields.date && (yearToConfirm || monthDayOf(draft))
               ? `${S.yearToConfirm[locale]}${quiet ? '' : ' · '}`
               : '') +
@@ -412,7 +399,6 @@ export function ReviewRow({
     <li
       className="import-row"
       data-selected={chosen ? 'true' : undefined}
-      // Compact rows do not list unsure fields, so an unexplained warning edge is left out.
       data-low={!compact && (confidence === 'check' || low.length > 0) ? 'true' : undefined}
     >
       <div className="import-row-main">

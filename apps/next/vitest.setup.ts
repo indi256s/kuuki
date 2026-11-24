@@ -5,12 +5,10 @@ import { afterEach, beforeEach, expect } from 'vitest'
 
 expect.extend(matchers)
 
-// Component tests opt into jsdom with a docblock; node-environment tests have no document to clean.
 afterEach(() => {
   if (typeof document !== 'undefined') cleanup()
 })
 
-// jsdom has no Web Animations API. Browser suites own motion and layout assertions.
 beforeEach(() => {
   if (typeof Element === 'undefined') return
   if (!Element.prototype.hasPointerCapture) Element.prototype.hasPointerCapture = () => false
@@ -20,6 +18,12 @@ beforeEach(() => {
   if (!Element.prototype.animate)
     Element.prototype.animate = () =>
       ({ cancel() {}, currentTime: 0, onfinish: null }) as unknown as Animation
+  if (!window.ResizeObserver)
+    window.ResizeObserver = class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
   if (!window.matchMedia)
     window.matchMedia = (() => ({
       matches: false,

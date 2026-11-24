@@ -1,6 +1,3 @@
-// Rainforest canopy: rows of rounded crowns on visible trunks, back row smallest, with a few tall
-// emergent crowns standing over the rest. Crowns are lit on the upper left; the lower right of
-// each is hatched along the fall line. The box bottom is the forest floor.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'

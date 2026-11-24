@@ -1,5 +1,3 @@
-// Achievement ladders: which badge rows belong to which ladder, one tile per ladder, and what is next.
-// Pure and client-safe. Legacy rows 1–18, `cities-*` and unknown codes are hidden here, not deleted in D1.
 import type { toUserStats } from '../../../../../../functions/api/_lib/stats'
 import type { EarnedBadge } from '../achievements'
 import type { LadderId } from './figures/types'
@@ -18,12 +16,9 @@ export type LadderStats = Pick<
 
 export type Ladder = {
   id: LadderId
-  /** Badge code prefix including the dash; the rung digit follows. */
   codePrefix: string
-  /** Seed thresholds in the metric's own unit (time aloft: minutes). */
   thresholds: readonly number[]
   metric: (stats: LadderStats) => number
-  /** Display unit: time aloft shows hours although its metric is minutes. */
   unit: 'count' | 'km' | 'hours'
 }
 
@@ -94,7 +89,6 @@ export const LADDERS: readonly Ladder[] = [
 
 const byId = (id: LadderId) => LADDERS.find((ladder) => ladder.id === id) as Ladder
 
-/** The ladder and 1-based rung a badge code belongs to, or null for anything the cabinet hides. */
 export function ladderOf(code: string): { ladder: LadderId; rung: number } | null {
   for (const ladder of LADDERS) {
     if (!code.startsWith(ladder.codePrefix)) continue
@@ -106,7 +100,6 @@ export function ladderOf(code: string): { ladder: LadderId; rung: number } | nul
   return null
 }
 
-/** One tile per ladder at its highest earned rung, founding first. */
 export function toTiles(badges: readonly EarnedBadge[]): LadderTile[] {
   const top = new Map<LadderId, { rung: number; item: EarnedBadge }>()
   let founding: EarnedBadge | null = null
@@ -135,21 +128,18 @@ export function toTiles(badges: readonly EarnedBadge[]): LadderTile[] {
   return tiles
 }
 
-/** The current value in display units: hours for time aloft (fractional), kilometres, counts. */
 export function ladderValue(ladderId: LadderId, stats: LadderStats): number {
   const ladder = byId(ladderId)
   const value = ladder.metric(stats)
   return ladder.unit === 'hours' ? value / 60 : value
 }
 
-/** A rung's threshold in display units: the fallback value when stats are missing. */
 export function rungValue(ladderId: LadderId, rung: number): number {
   const ladder = byId(ladderId)
   const threshold = ladder.thresholds[rung - 1] ?? 0
   return ladder.unit === 'hours' ? threshold / 60 : threshold
 }
 
-/** What is left to the next rung, in display units; null at the top rung, without stats, or when the stat is already past it. */
 export function nextStep(
   ladderId: LadderId,
   rung: number,
@@ -164,10 +154,6 @@ export function nextStep(
   return { rung: rung + 1, remaining }
 }
 
-/**
- * The rung closest to being earned across all ladders: the smallest share of its threshold still missing. A ladder with
- * no rung yet counts from zero; a finished ladder, or one whose stat is already past the next threshold, is skipped.
- */
 export function nearestRung(
   badges: readonly EarnedBadge[],
   stats: LadderStats | null,
@@ -202,12 +188,10 @@ export function nearestRung(
   )
 }
 
-/** Ladder rows and the founding badge; everything else never toasts or unboxes. */
 export function visibleBadges(badges: readonly EarnedBadge[]): EarnedBadge[] {
   return badges.filter((item) => item.badge.code === FOUNDING_CODE || ladderOf(item.badge.code))
 }
 
-/** Up to two upper-case initials from the holder's name (Flights top rung paints them on the tail). */
 export function holderInitials(name: string): string {
   return name
     .split(/[\s._-]+/)

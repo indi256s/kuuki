@@ -1,8 +1,3 @@
-// The awaiting queue (ADR 0001 §5, C4): the member's completed-but-unconfirmed flights with the connection
-// candidate and effective default each one would get, and a candidate token that pins what the member saw.
-//
-// Everything here is derived from `connectionChains` and `effectiveArrivalPolicies` over one evidence snapshot,
-// the same calculation the repair publishes, so the queue, Passport and Overview cannot disagree about a default.
 import { sha256Hex } from '../_lib/crypto'
 import { toOwnFlight, FLIGHT_COLUMNS, type FlightRow } from '../_lib/flights'
 import { connectionChains, type ConnectionDecision } from './connections'
@@ -15,7 +10,6 @@ import {
 import { derivedLabelOf, type DerivedStateRow } from './derivedState'
 import { firstOf, rowsOf } from './stats'
 
-/** The queue shows this many awaiting flights at once; the counts are exact. A confirmation takes at most the same. */
 export const QUEUE_PAGE_LIMIT = 100
 export const DRAFT_SUMMARY_LIMIT = 20
 
@@ -25,7 +19,6 @@ export interface CandidateView {
   legId: number | null
   hubCountry: string | null
   thirdCountry: boolean
-  /** Competing outgoing legs when the connection is ambiguous (review only: never suppresses a country). */
   candidateIds: number[]
   leg: {
     id: number
@@ -43,7 +36,6 @@ export interface AwaitingView {
   effectiveDefault: ArrivalPolicy
 }
 
-/** Candidate and default of every awaiting flight in an evidence snapshot (all states, so upcoming legs can connect). */
 export function describeAwaiting(flights: EvidenceFlight[]): Map<number, AwaitingView> {
   const decisions = connectionChains(flights)
   const policies = effectiveArrivalPolicies(flights, decisions)
@@ -89,10 +81,6 @@ export function describeAwaiting(flights: EvidenceFlight[]): Map<number, Awaitin
   return views
 }
 
-/**
- * Pins what the member saw for one flight: its own route and connection decision, the matched leg's route and
- * the default that follows. Another flight changing never invalidates it; a change to this connection does.
- */
 export function candidateTokenOf(flight: EvidenceFlight, view: AwaitingView): Promise<string> {
   const { decision, candidate, effectiveDefault } = view
   return sha256Hex(
@@ -135,7 +123,6 @@ export interface DraftSummary {
   expiresAt: string
 }
 
-/** Everything `GET /api/me/awaiting` returns. Reads only: no write, no repair, no due transition. */
 export async function readAwaitingQueue(db: D1Database, userId: string, now = new Date()) {
   const instant = now.toISOString()
   const [state, evidenceFlights, page, awaitingCount, batches, draftCount] = await db.batch([

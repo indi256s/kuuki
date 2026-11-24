@@ -1,35 +1,20 @@
 import type { SVGProps } from 'react'
 import type { ChartPoint } from './kuuki-chart'
 
-// Adapted from Arc "ridgeline" (uiarc.dev, MIT, see ../../ui/ARC-LICENSE.txt). Upstream files, SHA256 as fetched 2026-10-08:
-//   ridgeline.tsx        82048bc381bc1755030fad27b0a4c0a97a0fe87913f507d27aaf75cb75c226ae
-//   ridgeline.module.css 5f05deb648fea914e894ee3c3025c987c19bef4d0b1eeeb30c0ce63210edefa9
-// Kept from upstream: stacked rows with a shared baseline per row, a filled ridge with a line on top, and the quartile band + median as the row summary.
-// Removed: raw-value input, Gaussian KDE with Silverman bandwidth, the spring morph, pointer/keyboard handling, tooltip, tint scale, and the figure
-// wrapper. The densities come in already sampled (see sections/fleet/helpers.ts ridgeProfile), so nothing is recomputed or reconstructed here.
-// Only SVG geometry is emitted: the host owns the <g> props (focus, actions, labels) through `mark`, plus the tooltip and the data table.
-
-/** One density sample: `x` is the actual value (minutes), `height` is relative to the row, 0 to 1. */
 export type ArcRidgeSample = { x: number; height: number }
 export type ArcRidgeRow<T> = {
   key: string
   label: string
   profile: readonly ArcRidgeSample[]
-  /** Unscoped baseline drawn behind every row as a thin outline. */
   ghost?: readonly ArcRidgeSample[]
-  /** Summary statistics in the same unit as `profile[].x`. Missing ones (sparse rows) are not drawn. */
   min?: number
   q1?: number
   median?: number
   q3?: number
   max?: number
-  /** A Kuuki colour token reference, e.g. `var(--cat-maker-airbus)`. */
   color?: string
-  /** Leaves one empty slot above this row, as the Fleet narrowbody/widebody split does. */
   gapBefore?: boolean
-  /** Rows without a point are scope-hidden: only their label and `ghost` outline are drawn, with no focus or actions. */
   point?: ChartPoint<T>
-  /** Per-sample points, ascending by `x`. Each gets a transparent midpoint strip over the ridge instead of one row-wide target; takes precedence over `point`. */
   samplePoints?: readonly { x: number; point: ChartPoint<T> }[]
 }
 export type ArcRidgelineProps<T> = {
@@ -38,11 +23,9 @@ export type ArcRidgelineProps<T> = {
   width?: number
   height?: number
   rowHeight?: number
-  /** Labels the fixed axis ticks (minutes). */
   formatTick?: (minutes: number) => string
 }
 
-// Fixed log domain and margins of the Fleet chart this replaces.
 const LOW = Math.log(30),
   HIGH = Math.log(1020)
 const TICKS = [60, 120, 240, 480, 960]
@@ -62,7 +45,6 @@ export function ArcRidgeline<T>({
 }: ArcRidgelineProps<T>) {
   const slots = rows.reduce((count, row, i) => count + (row.gapBefore && i > 0 ? 2 : 1), 0)
   const total = height ?? Math.max(200, slots * rowHeight + MARGIN.top + MARGIN.bottom)
-  // Same spacing as a d3 point scale with padding 0.8: slots sit one step apart, with 0.8 step before the first and after the last.
   const step = (total - MARGIN.top - MARGIN.bottom) / (Math.max(1, slots - 1) + 2 * PADDING)
   const plotWidth = Math.max(40, width - MARGIN.left - MARGIN.right)
   const xOf = (minutes: number) =>
@@ -185,7 +167,6 @@ export function ArcRidgeline<T>({
           </>
         )
         if (samples.length) {
-          // Voronoi-style strips: each sample owns the span up to the midpoint with its neighbours. Flat siblings, never nested interactive groups.
           const edges = samples.map((sample) => xOf(sample.x))
           return (
             <g key={row.key}>

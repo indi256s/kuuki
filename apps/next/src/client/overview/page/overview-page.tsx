@@ -67,10 +67,7 @@ function PageContent() {
     payload.passport.countryCodes.length === 0 &&
     payload.passport.regions === 0
   const zero = scope ? isZeroScope(scope, filter) : false
-  // Every chapter is about flights, so По земле shows none of them.
   const groundOnly = scope?.figures.scope === 'ground'
-  // A section below its gate with no filter leaves the grid and the tiles; it stays in the saved order and hidden lists.
-  // The gate reads the unfiltered scope: a filter that drops a chapter below it leaves the chapter in place, and the chapter says so itself.
   const locked = all
     ? layout.order.filter(
         (id) => id !== 'rankings' && SECTION_GATES[id].gate(all).status === 'below',
@@ -84,7 +81,6 @@ function PageContent() {
   if (openId && (mobile === false || !scope || firstRun || zero || !visible.includes(openId)))
     setOpenId(null)
   const [announcement, setAnnouncement] = useState('')
-  // A scope switch adds or removes whole chapters; say which travel the page now shows. The first render stays quiet.
   const travelScope = scope?.figures.scope ?? null
   const [announcedScope, setAnnouncedScope] = useState(travelScope)
   if (travelScope !== announcedScope) {
@@ -102,8 +98,6 @@ function PageContent() {
       )
   }
   const chaptersShown = !firstRun && !zero && !groundOnly
-  // Desktop chapters wait up to 250 ms for their code, then mount drawn rather than as loading bands; after that they show the bands.
-  // Released once, so a chapter shown later does not hold back the ones already on screen.
   const chapterCode = useChaptersLoaded(visible)
   const [chaptersReleased, setChaptersReleased] = useState(false)
   if (chapterCode && !chaptersReleased) setChaptersReleased(true)
@@ -141,7 +135,6 @@ function PageContent() {
   useEffect(() => {
     const request = pendingFocus.current
     if (!request) return
-    // Radix FocusScope restores the retiring trigger in a zero-delay passive cleanup.
     const timer = setTimeout(() => {
       if (pendingFocus.current !== request) return
       pendingFocus.current = null
@@ -265,28 +258,20 @@ function PageContent() {
         </>
       ) : (
         <>
-          {/* First run has no figures column, so a booked flight keeps its own line above the page. */}
-          {firstRun ? <NextStrip /> : null}
           {!payload.derivedReady ? (
             <p role="status" className="status-note">
               {t(S.countriesUpdating, locale)}
             </p>
           ) : null}
           <div className="ov3-overview-workspace">
-            {/* A journal with nothing in it has nothing to filter; first run offers adding instead. */}
             {!firstRun ? (
               <div className="ov3-common-controls">{!fullscreen ? <FilterBar /> : null}</div>
             ) : null}
-            {firstRun ? <FirstRun /> : null}
-            {/* On very wide screens CSS docks the country list as a third card (page.css); both it and the disclosure render, so the server's first paint is already final. */}
             <div className="ov3-globe-band">
-              {!firstRun ? (
-                <div data-region="figures">
-                  {/* The next flight heads the figures: what is coming over what has been. */}
-                  <NextStrip />
-                  <HeroPanel />
-                </div>
-              ) : null}
+              <div data-region="figures" data-first-run={firstRun ? '' : undefined}>
+                <NextStrip />
+                {firstRun ? <FirstRun /> : <HeroPanel />}
+              </div>
               <section
                 className="ov3-globe-region ov-globe"
                 aria-label={t(S.map, locale)}
@@ -299,10 +284,8 @@ function PageContent() {
               </section>
               {!firstRun ? <CountryList /> : null}
             </div>
-            {/* Under the band, not inside it, so the globe card and the figures end on one line. */}
-            <CountryTreemap key={ownerKey} />
+            {!firstRun ? <CountryTreemap key={ownerKey} /> : null}
           </div>
-          {/* A phone the server took for a larger screen starts the fetch here. */}
           {mobile === false && chaptersShown ? <ChapterPreloads ids={visible} /> : null}
           {zero ? (
             <ZeroResult />
@@ -363,7 +346,6 @@ function PageContent() {
           <div className="ov3-layout-status" role="status" aria-live="polite" aria-atomic="true">
             {announcement}
           </div>
-          {/* Arrives with the chapters, so it never sits where they are about to mount. */}
           {chaptersOut ? (
             <HiddenFooter
               hidden={layout.order.filter((id) => layout.hidden.includes(id))}

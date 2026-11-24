@@ -1,7 +1,3 @@
-// Ziggurat of Ur: three battered mud-brick terraces with a small shrine on top. The lowest wall is
-// dark (fine vertical hatching) so the three lit stairs read against it: one straight flight and
-// two that climb the facade from the corners and converge on the central landing and its gate.
-// The box is the base width by the whole height; the bottom is the ground.
 import {
   type Pt,
   type SvgNode,
@@ -45,7 +41,6 @@ export const ziggurat: KitModule = ([x, y, w, h], p) => {
         [cx + wb / 2, yb],
       ]
       out.push(...toneFill(sh, 'T4', { gap: 3, weight: 'fine', inset: 0.5 }))
-      // Buttress ridges on the lit part.
       const n = Math.max(2, Math.round((wb * 0.6) / 9))
       for (let k = 1; k < n; k++) {
         const t = k / n
@@ -67,7 +62,6 @@ export const ziggurat: KitModule = ([x, y, w, h], p) => {
     yb = yt
   }
   const y1 = tops[0]
-  // Central flight and the gate above its landing.
   const central: Pt[] = [
     [cx - 0.075 * w, base],
     [cx + 0.075 * w, base],
@@ -82,7 +76,6 @@ export const ziggurat: KitModule = ([x, y, w, h], p) => {
     const hw = 0.075 * w + (0.045 * w - 0.075 * w) * t
     out.push(hline('fine', cx - hw + 1.2, cx + hw - 1.2, yy))
   }
-  // Side flights, mirrored.
   for (const s of [-1, 1]) {
     const A: Pt = [cx + s * 0.455 * w, base]
     const B: Pt = [cx + s * 0.335 * w, base]
@@ -97,7 +90,6 @@ export const ziggurat: KitModule = ([x, y, w, h], p) => {
       out.push(stroke('fine', [up, lo]))
     }
   }
-  // Gate on the second terrace, shrine on the top.
   const h2 = h * th[1]
   out.push(fill(rectPts(cx - 0.04 * w, y1 - h2 * 0.5, 0.08 * w, h2 * 0.5)))
   const topY = tops[2]

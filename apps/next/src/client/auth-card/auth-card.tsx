@@ -30,10 +30,6 @@ import { GetBackInStep, type RequestState } from './get-back-in-step'
 import { Tagline } from './taglines'
 import './auth-card.css'
 
-/**
- * The card's static frame: brand panel (left on desktop, the band above the sheet on mobile), corner controls, and the
- * form panel holding `children`. Shared by every auth surface so the top stays put while the content changes.
- */
 export function AuthCardFrame({
   locale,
   brandField,
@@ -48,12 +44,10 @@ export function AuthCardFrame({
   theme?: ReactNode
   onLocaleChange?: (locale: Locale) => void
   cardRef?: Ref<HTMLDivElement>
-  /** Onboarding inside the card: the step drives the card height and the mobile sheet. */
   welcomeStep?: string
   children: ReactNode
 }) {
   const [motionPaused, setMotionPaused] = useMotionPause()
-  // Form focus pauses temporarily; the explicit pause survives blur and later visits.
   return (
     <div
       className="auth-card"
@@ -87,9 +81,6 @@ export function AuthCardFrame({
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-// Onboarding is most of the card's code, and a guest on /signin needs none of it until they create a journal.
-// /welcome/* renders it on the server through next/dynamic. An in-place signup loads it first: the morph commits in
-// flushSync, which would show a fallback for a module still in flight.
 type Onboarding = {
   WelcomeFlow: typeof import('../welcome/welcome-flow').WelcomeFlow
   PassportPreview: typeof import('../welcome/passport/passport-preview').PassportPreview
@@ -110,10 +101,6 @@ const loadOnboarding = () =>
   ))
 const LazyWelcomeFlow = dynamic(() => loadOnboarding().then((loaded) => loaded.WelcomeFlow))
 
-/**
- * Picks its component once per mount: loaded already after a morph, streamed on a /welcome/* document load. The
- * boundary lets the server HTML hydrate on its own while the chunk loads, so React replays an early click on it.
- */
 function Onboarding(props: ComponentProps<Onboarding['WelcomeFlow']>) {
   const [Flow] = useState(() =>
     typeof window !== 'undefined' && onboarding ? onboarding.WelcomeFlow : LazyWelcomeFlow,
@@ -125,11 +112,6 @@ function Onboarding(props: ComponentProps<Onboarding['WelcomeFlow']>) {
   )
 }
 
-/**
- * The card's states (spec "Client state machine").
- * `form` also carries `taken` (409 from Create account) and the `created` notice (account made, session not issued),
- * and client-side `email` / `password` validation, which the spec's shorter list leaves implicit.
- */
 export type CardState =
   | {
       step: 'form'
@@ -151,13 +133,10 @@ export type CardState =
   | { step: 'welcome'; init: WelcomeInit }
   | RequestState
 
-/** Where focus goes after a state change. The heading is the default; the create step and Change are the exceptions. */
 type FocusTarget = 'heading' | 'primary' | 'email-selected' | 'email' | 'password' | 'none'
 
-/** Continue answered `{ next: 'create' }`: no session was issued, so the identity mutation must not navigate. */
 class NoJournal extends Error {}
 
-/** A new account starts onboarding with nothing saved. */
 const freshWelcome = (ownerId: string): WelcomeInit => ({
   ownerId,
   step: 'name',
@@ -166,11 +145,9 @@ const freshWelcome = (ownerId: string): WelcomeInit => ({
   batch: null,
   manual: false,
   saved: null,
-  // Unknown until the first submission answers 202; a fresh account has no batch to resume.
   jobs: false,
 })
 
-/** The signed-in member's own profile, read under the identity lock: finished onboarding or not. */
 async function onboardedAfterSignIn(token: symbol) {
   try {
     const me = await api.get<{ profile?: { onboarded_at?: string | null } | null }>(
@@ -180,12 +157,10 @@ async function onboardedAfterSignIn(token: symbol) {
     )
     return !!me?.profile?.onboarded_at
   } catch {
-    // Unknown: land on the Overview; its gate sends an unfinished member to the card.
     return true
   }
 }
 
-/** Sign-in and signup return a user ID; a 2xx response alone does not establish a session. */
 function sessionReply(reply: unknown) {
   const data = reply as { next?: unknown; user?: { id?: unknown } } | null | undefined
   if (
@@ -203,10 +178,6 @@ function sessionReply(reply: unknown) {
 const codeOf = (error: unknown) => (error instanceof ApiError ? error.code : undefined)
 const statusOf = (error: unknown) => (error instanceof ApiError ? error.status : undefined)
 
-/**
- * The one-form auth card. Continue posts to `/api/auth/continue`: a session lands in the journal, a wrong password
- * stays on the form with an error, and an unknown email turns the card into the create step in place.
- */
 export function AuthCard({
   locale: initialLocale,
   initialEmail = '',
@@ -224,7 +195,6 @@ export function AuthCard({
   initialError?: 'google' | 'google-link'
   googleEnabled?: boolean
   tagline: number
-  /** Set on `/welcome/*`: the card opens at this onboarding step. */
   welcome?: WelcomeInit
 }) {
   const locale = useLocale(initialLocale)
@@ -238,7 +208,6 @@ export function AuthCard({
   const card = useRef<HTMLDivElement>(null)
   const [passport, setPassport] = useState<Preview | null>(null)
   const onPassport = useCallback((preview: Preview) => setPassport(preview), [])
-  // "I'll do this later", "Start empty" and "Open my journal": record it first, then dissolve into the Overview.
   const finish = useCallback(async () => {
     await markOnboarded()
     await dissolve(card.current)
@@ -281,7 +250,6 @@ export function AuthCard({
     }
   }, [state])
 
-  // The create step is one click from onboarding: fetch its code while the password is typed.
   const creating = state.step === 'create'
   useEffect(() => {
     if (creating) loadOnboarding().catch(() => undefined)
@@ -306,20 +274,18 @@ export function AuthCard({
         },
         '/overview',
         {
-          // An unfinished member resumes the card at their step (the server picks it); everyone else dissolves.
           target: ({ onboarded }) => (onboarded ? '/overview' : '/welcome/name'),
           beforeNavigate: ({ onboarded }) => (onboarded ? dissolve(card.current) : undefined),
         },
       )
     } catch (error) {
-      // The create step focuses Create account, the one documented exception to focusing the heading.
       if (error instanceof NoJournal) return go({ step: 'create', email: address }, 'primary')
       const code = codeOf(error)
       if (code === 'INVALID_CREDENTIALS' || code === 'INVALID_EMAIL_OR_PASSWORD')
-        return go({ step: 'form', error: 'invalid' })
+        return go({ step: 'form', error: 'invalid' }, 'password')
       if (code === 'INVALID_EMAIL' || code === 'MISSING_CREDENTIALS')
-        return go({ step: 'form', error: 'email' })
-      if (code === 'MISSING_PASSWORD') return go({ step: 'form', error: 'password' })
+        return go({ step: 'form', error: 'email' }, 'email-selected')
+      if (code === 'MISSING_PASSWORD') return go({ step: 'form', error: 'password' }, 'password')
       go({ step: 'form', error: statusOf(error) === 429 ? 'rate' : 'network' })
     }
   }
@@ -330,7 +296,6 @@ export function AuthCard({
     go({ step: 'google' })
     let operation: ReturnType<typeof beginIdentityOperation> | undefined
     try {
-      // Drain older cookie writes before creating OAuth state; identity changes on the callback.
       operation = beginIdentityOperation()
       await operation.ready
       const result = await api.post<{ url: string }>(
@@ -354,7 +319,6 @@ export function AuthCard({
       return go({ step: 'create', email: address, error: 'short' }, 'password')
     go({ step: 'creating', email: address })
     try {
-      // Before the account exists: offline, the create step says so instead of stranding a new account.
       await loadOnboarding()
       const reply = (await withIdentityMutation(
         async (token) =>
@@ -368,7 +332,6 @@ export function AuthCard({
         '/welcome/name',
         { inPlaceOwner: (result) => (result as { user: { id: string } }).user.id },
       )) as { user: { id: string } }
-      // In place, the URL is already `/welcome/name` and the card morphs; otherwise the page is navigating away.
       if (window.location.pathname === '/welcome/name')
         morph('forward', () => go({ step: 'welcome', init: freshWelcome(reply.user.id) }))
     } catch (error) {
@@ -390,12 +353,9 @@ export function AuthCard({
       const reply = await api.post<unknown>('/api/auth/link/request', { email: address })
       if (!reply || typeof reply !== 'object' || !('ok' in reply) || reply.ok !== true)
         throw new Error('Invalid link response')
-      // A user-typed hint for password managers after reset, never a claim that this account exists.
       try {
         sessionStorage.setItem('kuuki_auth_email', address)
-      } catch {
-        /* The request still succeeds when storage is blocked. */
-      }
+      } catch {}
       go({ step: 'sent', email: address, resendAt: Date.now() + 60_000 })
     } catch (error) {
       const status = statusOf(error)
@@ -426,7 +386,6 @@ export function AuthCard({
 
   const changeEmail = (value: string) => {
     setEmail(value)
-    // The create step is only valid for the email it was checked against; typing keeps focus in the field.
     if (state.step === 'create') go({ step: 'form' }, 'none')
     else if (state.step === 'form' && state.error === 'email') go({ step: 'form' }, 'none')
     else if (state.step === 'request') go({ step: 'request', email: value }, 'none')
@@ -446,7 +405,6 @@ export function AuthCard({
         cardRef={card}
         welcomeStep={passport?.step ?? state.init.step}
         brandField={
-          // The flow reports a passport only once it runs, and it runs only after loadOnboarding.
           passport && onboarding ? (
             <onboarding.PassportPreview preview={passport} locale={locale} />
           ) : undefined

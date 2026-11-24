@@ -39,7 +39,6 @@ function png(width = 1, height = 1) {
   return btoa(String.fromCharCode(...bytes))
 }
 
-// Synthetic image headers exercise admission; image decoding belongs to the provider.
 function imageHeader(
   format: 'jpeg' | 'webp-vp8' | 'webp-vp8l' | 'webp-vp8x',
   width = 1,

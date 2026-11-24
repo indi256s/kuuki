@@ -28,7 +28,6 @@ export const overviewEtag = (
 ): string =>
   `W/"ov5-day-${encodeURIComponent(userId)}-${state.revision}-${state.evidence_revision}"`
 
-/** Places in order as located runs: a place without coordinates ends the current run. */
 function locatedRuns(places: readonly GroundPlaceSnapshot[][]): OverviewGroundJourney['runs'] {
   const runs: OverviewGroundJourney['runs'] = []
   for (const run of places) {
@@ -65,7 +64,6 @@ function groundJourney(
 
 export async function readOverviewData(db: D1Database, userId: string): Promise<OverviewPayload> {
   const passport = passportRead(db, userId, { applyHidden: false })
-  // One batch, one snapshot: the ground journeys must come from the revision the ETag names.
   const groundRead = ownerJourneysRead(db, userId)
   const statements = [
     db

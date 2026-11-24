@@ -1,12 +1,8 @@
-// Rhumsiki Peak: a black volcanic plug spire (lit left face with fracture strata, T4 right face),
-// two lower plugs in T2 behind it, and small round thatched huts at its foot. The box bottom is
-// the savanna floor.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, occlude, quad, stroke, toneFill } from '../grid'
 import { rockMass } from './rock-b'
 import { type KitModule, num } from './util'
 
-/** A plug as a polygon: concave flanks to a narrow rounded top. */
 function plug(
   cx: number,
   base: number,
@@ -21,7 +17,7 @@ function plug(
     R: Pt[] = []
   const n = 22
   for (let i = 0; i <= n; i++) {
-    const t = i / n // 0 top, 1 foot
+    const t = i / n
     const half = topHalf + (footHalf - topHalf) * t ** 1.9
     const c = cx + lean * (1 - t) ** 1.3
     const yy = top + 3 + (base - top - 3) * t
@@ -61,7 +57,6 @@ export const rhumsikiB: KitModule = ([x, y, w, h], p) => {
   const cx = x + w * 0.46
   const out: SvgNode[] = []
 
-  // Lower plugs behind, T2.
   const low = (c: number, topY: number, foot: number, top: number): SvgNode[] => {
     const poly = plug(c, base - 2, topY, foot, top, 0, rand)
     return [
@@ -72,7 +67,6 @@ export const rhumsikiB: KitModule = ([x, y, w, h], p) => {
   }
   out.push(...low(x + w * 0.14, y + h * 0.42, 16, 2.4), ...low(x + w * 0.83, y + h * 0.28, 17, 2))
 
-  // The main plug: a fluted lit left face, T4 on the right, strata and fracture ticks on the lit side.
   const spire = plug(cx, base, y, w * 0.2, w * 0.03, 6, rand)
   out.push(
     ...rockMass(spire, rand, {
@@ -89,7 +83,6 @@ export const rhumsikiB: KitModule = ([x, y, w, h], p) => {
   )
   out.push(stroke('line', spire.slice(23)))
 
-  // Huts at the foot.
   for (const [u, s] of [
     [0.18, 0.8],
     [0.3, 1],

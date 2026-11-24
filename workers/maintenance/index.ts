@@ -13,15 +13,12 @@ interface MaintenanceEnv {
 }
 
 const errorCode = 'MAINTENANCE_CYCLE_FAILED'
-/** Users served per direction and cycle (ADR 0001 §8). Each user is further capped per call inside applyDueTransitions. */
 const DUE_USERS_PER_DIRECTION = 50
-/** A full cycle can dirty up to two lists of users on top of earlier leftovers; the loop must be able to publish them. */
 const REPAIR_USERS = 200
 const DAY_MS = 24 * 60 * 60 * 1000
 
 export default {
   async scheduled(_event: ScheduledEvent, env: MaintenanceEnv): Promise<void> {
-    // 1. The guard runs before any DB access, including the status probe.
     if (env.MAINTENANCE_MODE === 'true') return
     const db = env.DB
     const started = Date.now()
@@ -29,9 +26,6 @@ export default {
       const now = new Date()
       const instant = now.toISOString()
 
-      // 2-3. Due transitions (ADR 0001 §2, §8). Users are chosen by their oldest due stored deadline, which is the
-      // cursor: a backlog or a missed day catches up over successive cycles without moving anyone's eligibility, and a
-      // flight already past both deadlines makes both moves in the one pass. Each user is one capped batch.
       const upcomingUsers = await db
         .prepare(
           `SELECT user_id FROM flights WHERE lifecycle_state = 'upcoming' AND awaiting_after <= ?
@@ -58,11 +52,10 @@ export default {
           awaited += result.awaited
           autoConfirmed += result.autoConfirmed
         } catch {
-          failedUsers += 1 // one account's failure never blocks the others; it fails the cycle below
+          failedUsers += 1
         }
       }
 
-      // 4. Dirty repair publishes steps 2-3 and anything left dirty, including stale evidence stamps.
       const dirty = await db
         .prepare(
           `SELECT user_id FROM user_derived_state
@@ -74,8 +67,6 @@ export default {
         await repairUserDerivedState(db, row.user_id)
       }
 
-      // 5. Leaderboards. A failure must not skip cleanup (ADR 0008 staging expiry, sessions, receipts);
-      // it fails the cycle in step 7 instead.
       let leaderboardFailed = false
       try {
         await refreshLeaderboards(db)
@@ -83,7 +74,6 @@ export default {
         leaderboardFailed = true
       }
 
-      // 6. Cleanup: sessions and tokens, receipts and expired import work.
       const idempotencyCutoff = new Date(now.getTime() - 7 * DAY_MS).toISOString()
       const lifecycleReceiptCutoff = new Date(now.getTime() - 14 * DAY_MS).toISOString()
       const conversionReceiptCutoff = new Date(now.getTime() - 37 * DAY_MS).toISOString()
@@ -99,7 +89,6 @@ export default {
         db
           .prepare('DELETE FROM lifecycle_operation_receipts WHERE created_at < ?')
           .bind(lifecycleReceiptCutoff),
-        // Drafts go at their batch's expiry, the batch row a week later; conversion receipts age from their own creation.
         db
           .prepare(
             'DELETE FROM import_drafts WHERE batch_id IN (SELECT id FROM import_batches WHERE expires_at <= ?)',
@@ -109,15 +98,11 @@ export default {
         db
           .prepare('DELETE FROM import_conversion_receipts WHERE created_at < ?')
           .bind(conversionReceiptCutoff),
-        // ADR 0008: Flighty staging closes 30 days after a run opened; committed rows and tombstones stay.
         ...expireHistoryRunsStatements(db, instant),
-        // Ground-travel receipts expire at their stored instant; tombstones stay for the account's lifetime.
         db.prepare('DELETE FROM ground_operation_receipts WHERE expires_at <= ?').bind(instant),
-        // A batch whose job died: the one shared interrupt definition (see importBatchInterrupt).
         db.prepare(interruptBatchSql('overdue')).bind(instant, instant),
       ])
 
-      // 7. Status. Remaining dirty users, stale stamps or due transitions make the cycle a retryable failure.
       const remaining = await db
         .prepare(
           `SELECT COUNT(*) AS n, MIN(updated_at) AS oldest

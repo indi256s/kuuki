@@ -3,7 +3,6 @@ import { signIn as authenticate, claimUsername, fixtureHeaders } from './helpers
 
 test.use({ viewport: { width: 1100, height: 844 } })
 
-// Share real sessions within this file so the suite stays inside production auth limits.
 let fixtureCookies: Awaited<ReturnType<BrowserContext['cookies']>> | undefined
 let journalCookies: Awaited<ReturnType<BrowserContext['cookies']>> | undefined
 async function signIn(page: Page, origin: string) {
@@ -224,7 +223,6 @@ test('Journal selects the full filtered dataset and preserves deletion across re
   await page.getByRole('button', { name: 'Undo', exact: true }).click()
   await expect(page.locator('[data-kind="flight"]')).toHaveCount(21)
   expect((await (await page.request.get('/api/flights?year=2025')).json()).total).toBe(21)
-  // Scheduling a delete clears the selection, so Undo restores the flights but not the selection.
   await expect(actions).toHaveCount(0)
   await page
     .getByRole('checkbox', { name: /^Select: JFK to BOS/ })
@@ -247,7 +245,6 @@ test('Journal selects the full filtered dataset and preserves deletion across re
   await page.getByRole('button', { name: 'Clear filters', exact: true }).click()
   await expect(page.locator('[data-kind="flight"]')).toHaveCount(1)
   await expect(page.locator('[data-kind="flight"]')).toContainText('KEPT')
-  // Leave this shared account without old country evidence for the confirmation journey.
   expect((await page.request.delete(`/api/flights/${keptId}`, { headers })).status()).toBe(200)
 })
 
@@ -269,7 +266,6 @@ test('review ignores filters, retries the same receipt, and bulk confirmation hi
       }),
     )
   await page.goto('/journal?q=NO-SUCH-FLIGHT&queue=awaiting')
-  // The modal review sheet hides the background ledger from the accessibility tree.
   await expect(
     page.getByRole('heading', {
       name: 'Nothing matches these filters',
@@ -340,7 +336,6 @@ test('leaving the Journal during Undo cancels the delete, and the shell says so'
     .getByRole('region', { name: 'Selection', exact: true })
     .getByRole('button', { name: 'Delete', exact: true })
     .click()
-  // The Undo notice lives in the member shell's toast region, not in the Journal.
   const host = page.locator('.ui-toast-region')
   await expect(host.getByRole('button', { name: 'Undo', exact: true })).toBeFocused()
   await page
@@ -353,7 +348,6 @@ test('leaving the Journal during Undo cancels the delete, and the shell says so'
   await expect(message).toBeVisible()
   await expect(message).toHaveAttribute('aria-live', 'polite')
   await expect(host.getByRole('button', { name: 'Undo', exact: true })).toHaveCount(0)
-  // Past the six-second window nothing was sent and the flight still exists.
   await page.waitForTimeout(7000)
   expect(deletes).toEqual([])
   expect((await page.request.get(`/api/flights/${id}`)).status()).toBe(200)

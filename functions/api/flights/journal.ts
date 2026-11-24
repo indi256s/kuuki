@@ -1,7 +1,3 @@
-// GET /api/flights/journal?owner=<id> — the owner's whole journal payload (every flight, refs, firsts, revisions) for Journal refetches.
-// `owner` binds the read to the account the page was rendered for: after a cross-tab account switch the cookie names
-// someone else, and the read is refused before any private data is loaded, so it can never land in the old page's cache.
-
 import { runHandler, json, HttpError } from '../_lib/http'
 import { requireUser, type RequestData } from '../_lib/auth'
 import { readJournalAll } from '../_services/journal'

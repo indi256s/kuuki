@@ -1,9 +1,3 @@
-/* Alarm clock. Tiles dip the snooze bar and raise the backlight on hover.
-   The chapter figure has no hover pose; its wrapper's data-side says which of the two readings (lit-a, lit-b) is shown. A pick is a press of
-   the snooze bar that sets the clock: data-press (a or b, the side the pick turned to; absent until the first pick) presses the bar and lets
-   it spring back; as it bottoms out the changed segments of the old reading go dark, the new ones light digit by digit from the left, and the
-   backlight swells as the reading lands. Segments the two readings share stay lit. Reduced motion swaps the reading at once and nothing moves. */
-/* The backlight rises by 0.3 (0.4 → 0.7 in light; dark passes 1 and clamps). */
 .iso-clock [data-part='backlight'] .iso-glow {
   opacity: calc(var(--iso-glow) + 0.3 * var(--iso-lit));
 }
@@ -22,8 +16,6 @@
   .iso-clock [data-part='backlight'] .iso-glow {
     transition: opacity var(--iso-dur) var(--iso-ease) var(--iso-delay);
   }
-  /* Going dark is quick and waits only for the press; lighting follows the press, one digit after another. A new pick retargets both from
-     wherever they are. */
   .iso-clock [data-part='cell'] {
     transition: opacity var(--dur-fast) var(--ease-out) 60ms;
   }
@@ -43,7 +35,6 @@
   [data-press='b'] .iso-clock [data-part='lit-both'] .iso-glow {
     animation: clock-swell-b var(--dur-sheet) var(--ease-out) var(--dur-press);
   }
-  /* Two names per animation, so each pick (which flips the side) starts it again. */
   @keyframes clock-press-a {
     25% {
       transform: translateY(var(--press-y));
@@ -65,7 +56,6 @@
     }
   }
 }
-/* Unlit segments: the shared ghost is 1.3:1 against the dark glass, which reads as a blank pane; here a blank clock still reads as a display. The lit segments stay the one lit part. */
 :root[data-theme='dark'] .iso-clock {
   --iso-ghost: color-mix(in srgb, var(--iso-crease) 70%, var(--iso-detail));
 }

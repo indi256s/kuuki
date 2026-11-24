@@ -1,15 +1,12 @@
 import { NextResponse } from 'next/server'
 import { applyUpdate, parseUpdate, serializeReview, type ReviewFile } from '../review-store'
 
-// Development-only: saves the owner's contact-sheet marks to lib/stamp-art/review.json, the one file this route may write.
 export const dynamic = 'force-dynamic'
 
-// Shared across route reloads and tabs served by this development process.
 const queue = globalThis as typeof globalThis & { stampReviewWrite?: Promise<unknown> }
 
 const notFound = () => new NextResponse(null, { status: 404 })
 
-/** The only path this module ever touches. */
 async function reviewPath(): Promise<string> {
   const { existsSync } = await import('node:fs')
   const { join } = await import('node:path')
@@ -29,7 +26,6 @@ export async function POST(request: Request) {
   if (process.env.NODE_ENV === 'production') return notFound()
   const url = new URL(request.url)
   const host = request.headers.get('host')
-  // Next dev uses its listen address in request.url; browser loopback aliases keep the same port.
   if (
     host &&
     ['localhost', '127.0.0.1', '[::1]'].some(

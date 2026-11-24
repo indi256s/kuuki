@@ -1,11 +1,8 @@
-// The ground lanes' kit camera, derived from LaneScene's own projection so wheel contacts, the road's skew and the
-// scale stay the lane's. The car, the locomotive, the yacht and the balloon all build with it.
 import { LaneScene, W } from '../../apps/next/src/client/leaderboard/lanes/draw/lane-scene'
 import { drawing, type Draw } from './airliner/draw'
 import type { Kit } from './airliner/kit'
 import type { Camera, Pt, V3 } from './airliner/surface'
 
-/** Draws at 4× for precision and places back at 1×, levelling the road's slope. `k` is LaneScene's scale at 1×. */
 export function laneCamera(kit: Kit, k: number): { cam: Camera; draw: Draw; place: (p: Pt) => Pt } {
   const zoom = 4
   const scene = new LaneScene(k * zoom)

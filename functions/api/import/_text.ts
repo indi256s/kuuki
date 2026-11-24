@@ -16,11 +16,9 @@ const airportName = (value: string) =>
     .replace(/\s+/g, ' ')
     .trim()
 
-/** Every catalog airport a label can mean: an exact code, or a name, city or alias. Sorted, at most 6. */
 export function airportCandidates(label: string): string[] {
   const value = label.replace(/[.,]$/, '').trim()
   if (/^[A-Z]{3}$/.test(value)) return [value]
-  // The offline catalog shortens this city's name to Rostov.
   const name = airportName(value).replace(/^rostov-on-don$/, 'rostov')
   const matches = airportCatalog.filter((row) =>
     [row.iata, row.city, row.name, ...Object.values(airportAliases[row.iata] ?? {})].some(
@@ -39,10 +37,6 @@ const VERSION_HEADER = /^KUUKI\s+FLIGHTS\s+v\d+$/i
 const FENCE_OPEN = /^```[\w+-]*$/
 const FENCE_CLOSE = /^```$/
 
-/**
- * Only a fully recognised pipe-list bypasses the model. Any unknown prose falls back intact.
- * A leading `KUUKI FLIGHTS v<N>` line (any N) and a wrapping Markdown code fence are ignored.
- */
 export function parseStructuredText(content: string): ParseResponse | null {
   const flights: ExtractedFlight[] = []
   const rejected: RejectedFlight[] = []
@@ -63,7 +57,6 @@ export function parseStructuredText(content: string): ParseResponse | null {
       .map((part) => part.trim())
     if (!/^(?:\d{4}-\d{2}-\d{2}(?: \(calendar entry\))?|Undated)$/i.test(parts[0])) return null
     records++
-    // Exclude this booking's status, never an uncertain refund or a cancelled *other* leg.
     const segments = notes.split(';').map((note) => note.trim())
     const uncertainStatus =
       /\?|\bnot\b|possible|unresolved|uncertain|disputed|conflict|outbound|return/i.test(notes)
@@ -134,7 +127,6 @@ export function parseStructuredText(content: string): ParseResponse | null {
     const knownOrigin = airportCatalog.some((row) => row.iata === origin)
     const knownDestination = airportCatalog.some((row) => row.iata === destination)
     const knownAirline = airlineCatalog.some((row) => row.iata === airline)
-    // Only status or evidence doubt blocks preselection; catalog and year gaps show in field_confidence and the empty fields.
     const review =
       contradictoryArrival ||
       /\(calendar entry\)/i.test(parts[0]) ||

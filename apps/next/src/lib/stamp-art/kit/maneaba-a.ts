@@ -1,8 +1,3 @@
-// I-Kiribati maneaba, the open meeting house (lane A, `-a` until consolidated). Part `lagoon` is a
-// backdrop strip of calm water behind the house. Part `house` is the subject: a steep thatched roof
-// with eaves nearly to the ground (roof is about three quarters of the height), thatch courses and a
-// ragged eave, and an open side of stout coral posts with a dark T5 interior between them. The box
-// bottom is the ground.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, hatchPoly, hline, quad, rectPts, stroke } from '../grid'
 import { type KitModule, num, str } from './util'
@@ -21,7 +16,6 @@ export const maneabaA: KitModule = ([x, y, w, h], p) => {
   const ridgeY = y
   const cx = x + w / 2
   const ridgeHalf = w * 0.2
-  // Roof: concave steep sides, ridge flat, ragged eave.
   const left = quad(
     [x, eaveY],
     [cx - ridgeHalf - w * 0.02, eaveY - (eaveY - ridgeY) * 0.62],
@@ -39,7 +33,6 @@ export const maneabaA: KitModule = ([x, y, w, h], p) => {
   for (let i = 0; i <= n; i++)
     eave.push([x + w - (w * i) / n, eaveY + (i % 2 ? 2.4 : 0) + (rand() - 0.5) * 0.8])
   const roof: Pt[] = [...left, ...right, ...eave]
-  // Interior and posts go in first; the roof overlaps their tops.
   const floorY = ground - 2
   out.push(...body(rectPts(x + w * 0.05, eaveY - 2, w * 0.9, floorY - eaveY + 2), 'hair'))
   const posts = Math.max(5, Math.round(num(p, 'posts', 7)))
@@ -58,7 +51,6 @@ export const maneabaA: KitModule = ([x, y, w, h], p) => {
       [x + w + 2, floorY + 1],
     ]),
   )
-  // Thatch courses: broken fine lines running parallel to the eave, shorter toward the ridge.
   for (let yy = eaveY - 5; yy > ridgeY + 5; yy -= 4.6) {
     const t = (eaveY - yy) / (eaveY - ridgeY)
     const lo = x + w * 0.02 + (cx - ridgeHalf - x) * Math.pow(t, 1.1) * 0.95
@@ -75,10 +67,8 @@ export const maneabaA: KitModule = ([x, y, w, h], p) => {
       px += len + 3 + rand() * 5
     }
   }
-  // Shaded right flank of the roof: T4 verticals above the eave.
   const flank: Pt[] = [...right, [x + w - 1.5, eaveY - 1], [x + w * 0.74, eaveY - 1]]
   out.push(...hatchPoly(flank, { angle: 90, gap: 2.6, weight: 'hair', inset: 0.4 }))
-  // Ridge cap.
   out.push(
     stroke('bold', [
       [cx - ridgeHalf - 1, ridgeY],

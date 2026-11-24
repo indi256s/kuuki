@@ -1,5 +1,3 @@
-// Austria: a long baroque palace front (Schoenbrunn) and the free-standing arcade crowning the
-// hill behind it (Gloriette). Lit walls, T5 mansard slates and window rows; no outline on windows.
 import {
   type Pt,
   type SvgNode,
@@ -16,7 +14,6 @@ import { archPts, windowRow } from './windows'
 
 const slate = (pts: Pt[]): SvgNode[] => [occlude(pts), fill(pts), stroke('hair', pts, true)]
 
-/** Palace front: low wings under a slate band, raised end pavilions, a central block with pediment. */
 export const palace: KitModule = ([x, y, w, h], p) => {
   const out: SvgNode[] = []
   const cw = w * num(p, 'centreW', 0.3)
@@ -70,7 +67,6 @@ export const palace: KitModule = ([x, y, w, h], p) => {
   return out
 }
 
-/** Gloriette: a long arcade between two end pavilions with a raised central bay and pediment. */
 export const gloriette: KitModule = ([x, y, w, h], p) => {
   const out: SvgNode[] = []
   const n = Math.max(3, Math.round(num(p, 'arches', 7)))

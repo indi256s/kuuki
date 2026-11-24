@@ -7,7 +7,6 @@ import { getMemberLanding } from '../../server/gates'
 import { getRequestEnv } from '../../server/identity'
 import { getRequestLocale } from '../../server/locale'
 
-/** `/`, `/signin` and `/signup` share one title; the two aliases point their canonical link at `/`. */
 export async function cardMetadata({ canonical }: { canonical: boolean }): Promise<Metadata> {
   const title =
     (await getRequestLocale()) === 'ru' ? 'Kuuki — журнал перелётов' : 'Kuuki — flight journal'
@@ -16,7 +15,6 @@ export async function cardMetadata({ canonical }: { canonical: boolean }): Promi
   return { title, alternates: { canonical: new URL('/', PAGES_ORIGIN).href } }
 }
 
-/** Members go straight to their journal; everyone else gets the card. A tagline is picked once per page load. */
 export async function CardPage({
   initialEmail = '',
   initialNotice,

@@ -37,7 +37,6 @@ it('drills the country hierarchy without changing scope; an explicit region acti
   expect(screen.getByLabelText('Current filters')).toHaveTextContent('"regions":["asia"]')
   fireEvent.click(screen.getByRole('button', { name: 'All regions' }))
   expect(screen.getByLabelText('Current filters')).toHaveTextContent('"regions":["asia"]')
-  // The applied region keeps its colour and takes the standing filtered cue.
   const applied = screen.getByRole('button', { name: /^Asia:/ })
   expect(applied).toHaveAttribute('data-filtered', 'true')
   expect(applied).toHaveAttribute('aria-pressed', 'true')

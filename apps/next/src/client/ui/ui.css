@@ -1,7 +1,3 @@
-/* Shared interaction primitives. Tokens only: no literal colors, no `transition: all`.
-   Animated properties: transform, opacity, filter. Hover is gated to fine pointers. */
-
-/* ---------- Button ---------- */
 .ui-button-wrap {
   display: inline-grid;
   gap: var(--space-1);
@@ -19,8 +15,8 @@
   background: var(--surface);
   color: var(--text);
   font-weight: 600;
-  font-size: 15px;
-  line-height: 20px;
+  font-size: 0.9375rem;
+  line-height: 1.25rem;
   text-decoration: none;
   cursor: pointer;
   transition:
@@ -54,7 +50,6 @@
 .ui-button .ui-button-hidden {
   visibility: hidden;
 }
-/* Arc popup triggers keep their anchor rectangle still while the layer measures it. */
 .ui-button:is(
     [aria-haspopup]:not([aria-haspopup='false']),
     [data-state],
@@ -62,7 +57,6 @@
   ):active {
   transform: none;
 }
-/* :where keeps this at the specificity of .ui-button:active, so the reduced-motion override below still wins. */
 .ui-button:active:where(:not([aria-disabled='true']):not([data-static='true'])) {
   transform: scale(0.96);
 }
@@ -90,11 +84,10 @@
 .ui-button[aria-busy='true'] {
   cursor: progress;
 }
-/* Dense: 32px visual; the ::after extends the hit area to 40px (44px on coarse pointers). Keep adjacent dense controls >= 8px apart (12px coarse) so hit areas never overlap. */
 .ui-button[data-dense='true'] {
   min-height: 32px;
   padding: 4px 12px;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .ui-button[data-dense='true']::after {
   content: '';
@@ -107,8 +100,8 @@
   gap: var(--space-2);
 }
 .ui-button-reason {
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   color: var(--text-muted);
 }
 @media (pointer: coarse) {
@@ -142,7 +135,6 @@
   outline-offset: 2px;
 }
 
-/* ---------- Field ---------- */
 .ui-field {
   display: grid;
   gap: var(--space-1);
@@ -150,18 +142,18 @@
 }
 .ui-field-label {
   font-weight: 600;
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .ui-field-optional {
   font-weight: 400;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
   margin-inline-start: var(--space-2);
 }
 .ui-field-hint {
   margin: 0;
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   color: var(--text-muted);
 }
 .ui-field-input {
@@ -198,19 +190,17 @@
   outline: 2px solid var(--text);
   outline-offset: 2px;
 }
-/* Reserved line: an error appearing never shifts the layout below it. */
 .ui-field-error {
   display: flex;
   align-items: flex-start;
   gap: var(--space-2);
   min-height: 20px;
   margin: 0;
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   color: var(--danger-text);
 }
 
-/* ---------- Dialog and Sheet shared ---------- */
 .ui-overlay {
   position: fixed;
   inset: 0;
@@ -233,15 +223,15 @@
 }
 .ui-panel-title {
   margin: 0;
-  font-size: 22px;
-  line-height: 28px;
+  font-size: 1.375rem;
+  line-height: 1.75rem;
   font-weight: 600;
   outline: none;
 }
 .ui-panel-description {
   margin: var(--space-1) 0 0;
   color: var(--text-muted);
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 .ui-panel-body {
   flex: 1 1 auto;
@@ -250,8 +240,6 @@
   overscroll-behavior: contain;
   padding: var(--space-2) var(--space-6);
 }
-/* With no footer the body is the panel's last edge: match the header's top padding. Single-class specificity keeps panels that
-   set their own body padding (the fullscreen globe) in charge. */
 :where(.ui-dialog) > .ui-panel-body:where(:last-child) {
   padding-bottom: var(--space-5);
 }
@@ -263,6 +251,10 @@
   gap: var(--space-2);
   padding: var(--space-4) var(--space-6) var(--space-5);
   background: var(--surface-floating);
+}
+.ui-dialog > .ui-panel-footer {
+  border-end-start-radius: var(--radius-lg);
+  border-end-end-radius: var(--radius-lg);
 }
 .ui-icon-button {
   flex: none;
@@ -289,9 +281,6 @@
   }
 }
 
-/* ---------- Dialog ---------- */
-/* Same layer as sheets, so the surface opened last stacks on top: a confirm's scrim dims the sheet that opened it, and a picker
-   sheet opened from a dialog still covers that dialog. */
 .ui-dialog-overlay {
   z-index: 51;
 }
@@ -357,7 +346,6 @@
   }
 }
 
-/* ---------- Sheet ---------- */
 .ui-sheet {
   --sheet-kb: 0px;
   position: fixed;
@@ -407,7 +395,6 @@
     transform: translateX(100%);
   }
 }
-/* The handle is the only drag surface; body scroll and text selection stay native. */
 .ui-sheet-handle {
   flex: none;
   display: grid;
@@ -447,9 +434,6 @@
   padding-bottom: var(--space-4);
 }
 
-/* ---------- Menu ---------- */
-/* Catches presses outside an open menu (menu.tsx MenuShield). It sits under the menu and over toasts, sheets and the
-   page, so a press anywhere else only closes the menu, as the modal menu did. */
 .ui-menu-shield {
   position: fixed;
   inset: 0;
@@ -459,8 +443,6 @@
 .ui-menu-shield[data-state='closed'] {
   pointer-events: none;
 }
-/* The tinted shield is the scrim behind a card-like menu (mobile Add, account): opacity only, and a drag on it never
-   scrolls the page under the menu. A 'mobile' scrim is a plain shield above 700px. */
 .ui-menu-shield[data-scrim] {
   background: var(--scrim);
   touch-action: none;
@@ -523,7 +505,6 @@
 .ui-menu-item svg {
   flex-shrink: 0;
 }
-/* 14px container - 4px padding = 10px concentric item radius. */
 .ui-menu-item {
   min-width: 0;
   overflow-wrap: anywhere;
@@ -534,7 +515,7 @@
   min-height: 40px;
   padding: 8px 12px;
   border-radius: var(--radius-sm);
-  font-size: 15px;
+  font-size: 0.9375rem;
   cursor: pointer;
   user-select: none;
   outline: none;
@@ -578,8 +559,8 @@
 .ui-menu-tray-label {
   flex: 1;
   min-width: 0;
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
   color: var(--text-muted);
 }
 .ui-menu-tray {
@@ -591,8 +572,6 @@
   border-radius: var(--radius-sm);
   background: var(--surface-inset);
 }
-/* One thumb under the selected cell; it slides on a pointer pick and jumps on an arrow key (the menu is
-   data-instant then). The cells share the width equally, so a pick never resizes the tray. */
 .ui-menu-tray-thumb {
   position: absolute;
   z-index: -1;
@@ -619,8 +598,8 @@
   padding-inline: 10px;
   border-radius: 8px;
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
@@ -634,7 +613,6 @@
 .ui-menu-tray-cell[aria-checked='true'] {
   color: var(--text);
 }
-/* Only the selected cell takes focus; the 2px inset ring replaces its outline while focused. */
 .ui-menu-tray .ui-menu-tray-cell[aria-checked]:focus-visible {
   box-shadow: inset 0 0 0 2px var(--focus);
 }
@@ -650,8 +628,8 @@
 }
 .ui-menu-label {
   padding: 8px 12px 4px;
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 0.75rem;
+  line-height: 1rem;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -663,7 +641,6 @@
   }
 }
 
-/* ---------- Segmented control ---------- */
 .ui-segmented {
   position: relative;
   isolation: isolate;
@@ -711,7 +688,6 @@
 .ui-segment[aria-checked='true'] {
   color: var(--text);
 }
-/* The selected shape is visible in server HTML before the measured thumb is ready. */
 .ui-segmented:not([data-ready='true']) .ui-segment[aria-checked='true'] {
   background: var(--surface);
   box-shadow: 0 0 0 1px var(--hairline);
@@ -721,7 +697,6 @@
     color: var(--text);
   }
 }
-/* Dense: 32px outlined control, content-sized cells. The thumb keeps its transform-only slide: its width is the first cell's, and scaleX stretches it to the selected cell. The ::after lifts each option's hit area to 44px on coarse pointers (vertical only, so neighbours never overlap). */
 .ui-segmented[data-dense='true'] {
   display: inline-flex;
   gap: 0;
@@ -744,8 +719,8 @@
   height: 26px;
   padding: 0 12px;
   border-radius: 8px;
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
   white-space: nowrap;
   overflow-wrap: normal;
 }
@@ -753,7 +728,6 @@
   background: var(--surface-inset);
   box-shadow: none;
 }
-/* Toolbar: the standard track trimmed to a 44px Button's height (3px padding around 38px segments). Coarse pointers keep a 44px hit area. */
 .ui-segmented[data-toolbar='true'] .ui-segment {
   min-height: 38px;
   padding-block: 0;
@@ -771,7 +745,6 @@
   }
 }
 
-/* ---------- Switch row ---------- */
 .ui-switch-row {
   width: 100%;
   max-width: 560px;
@@ -793,8 +766,8 @@
 .ui-switch-consequence,
 .ui-switch-reason {
   margin: 0;
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   color: var(--text-muted);
 }
 .ui-switch-consequence {
@@ -864,7 +837,6 @@
   }
 }
 
-/* ---------- Swatch picker ---------- */
 .ui-swatches {
   display: flex;
   flex-wrap: wrap;
@@ -909,7 +881,7 @@
   }
 }
 .ui-swatch-name {
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 @media (hover: hover) and (pointer: fine) {
   .ui-swatch:hover {
@@ -917,7 +889,6 @@
   }
 }
 
-/* ---------- Disclosure ---------- */
 .ui-disclosure-trigger {
   display: flex;
   inline-size: fit-content;
@@ -963,13 +934,13 @@
   min-width: 0;
 }
 .ui-disclosure-summary {
-  font-size: 16px;
-  line-height: 20px;
+  font-size: 1rem;
+  line-height: 1.25rem;
 }
 .ui-disclosure-description {
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
   font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -978,7 +949,6 @@
 .ui-disclosure[data-layout='row'] .ui-disclosure-chevron {
   color: var(--text);
 }
-/* Full-width rows press with a grey wash on touch only; no scale. */
 @media (hover: none) {
   .ui-disclosure[data-layout='row'] .ui-disclosure-trigger:active {
     background: var(--surface-inset);
@@ -1009,8 +979,7 @@
     opacity var(--dur-fast) var(--ease-out),
     visibility 0s;
 }
-/* The open panel bleeds 4px on every side so focus rings at its edges are not clipped by the overflow. */
-.ui-disclosure-panel[data-open='true'] .ui-disclosure-inner {
+.ui-disclosure-panel[data-open='true'] > .ui-disclosure-inner {
   margin: -4px;
   padding: 4px;
   opacity: 1;
@@ -1020,7 +989,6 @@
     visibility 0s;
 }
 
-/* ---------- Toast ---------- */
 .ui-toast-region {
   position: fixed;
   z-index: 70;
@@ -1058,7 +1026,6 @@
   color: var(--text);
   box-shadow: var(--shadow-floating), var(--ring-floating);
 }
-/* Entry, drag and settling share Motion values so a grab preserves the rendered pose. */
 .ui-toast {
   touch-action: pan-y;
 }
@@ -1075,7 +1042,6 @@
     stroke-dashoffset: 0;
   }
 }
-/* Arc's status glyph: a 30px disc tinted from its own colour; neutral for a notice. No coloured rail. */
 .ui-toast-icon {
   flex: none;
   display: inline-grid;
@@ -1100,22 +1066,20 @@
   display: grid;
   gap: 2px;
   min-width: 0;
-  /* Centres the outcome's first line on the 30px glyph. */
   padding-top: 5px;
 }
 .ui-toast-message {
   margin: 0;
   min-width: 0;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
-  line-height: 20px;
+  line-height: 1.25rem;
   overflow-wrap: anywhere;
   transition:
     opacity var(--dur-base) var(--ease-out),
     translate var(--dur-base) var(--ease-out),
     filter var(--dur-base) var(--ease-out);
 }
-/* A new outcome rises in from just below, out of a slight blur (Arc's text swap); the first one rises with the toast. */
 @starting-style {
   .ui-toast[data-state='open'] .ui-toast-message {
     opacity: 0;
@@ -1126,11 +1090,10 @@
 .ui-toast-description {
   margin: 0;
   color: var(--text-muted);
-  font-size: 14px;
-  line-height: 20px;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
   overflow-wrap: anywhere;
 }
-/* One short action sits on the outcome's line, beside the close; a longer one wraps rather than squeezing the outcome. */
 .ui-toast-action {
   flex: none;
   max-inline-size: 40%;
@@ -1146,7 +1109,6 @@
   border-radius: var(--radius-full);
   color: var(--text-muted);
 }
-/* 44px to the finger, 32px to the eye. */
 .ui-toast-close::after {
   content: '';
   position: absolute;
@@ -1163,7 +1125,6 @@
   }
 }
 
-/* ---------- Floating action bar ---------- */
 .ui-action-bar {
   position: sticky;
   z-index: 40;
@@ -1189,8 +1150,12 @@
   flex-wrap: wrap;
   gap: var(--space-2);
 }
+@media (pointer: coarse) {
+  .ui-action-bar-actions {
+    gap: var(--space-3);
+  }
+}
 
-/* ---------- Destructive confirm ---------- */
 .ui-confirm-consequence {
   margin: 0 0 var(--space-3);
   color: var(--text);
@@ -1206,9 +1171,8 @@
   gap: var(--space-2);
   margin: var(--space-3) 0 0;
   color: var(--danger-text);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
-/* On phones the two answers share the row equally, as an alert's do. */
 @media (max-width: 700px) {
   .ui-confirm .ui-panel-footer :is(.ui-button, .ui-button-wrap) {
     flex: 1 1 0;
@@ -1218,7 +1182,6 @@
   }
 }
 
-/* ---------- Reduced motion: gentler, not none. Opacity only; no translate or scale. ---------- */
 @media (prefers-reduced-motion: reduce) {
   .ui-button,
   .ui-icon-button,
@@ -1253,7 +1216,6 @@
   .ui-menu-tray-thumb {
     transition: none;
   }
-  /* [data-side] matches the slide rules' specificity, so the fade wins. */
   .ui-sheet[data-side][data-state='open'] {
     animation: ui-fade-in var(--dur-fast) linear;
   }
@@ -1297,7 +1259,6 @@
   --ticket-backdrop: var(--surface-floating);
 }
 
-/* ---------- Filter chip ---------- */
 .ui-chip {
   display: inline-flex;
   align-items: center;
@@ -1321,8 +1282,8 @@
   border-radius: var(--radius-sm);
   background: transparent;
   color: inherit;
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
 }
 .ui-chip-body {
   flex: 1;
@@ -1351,7 +1312,6 @@
   outline-offset: 2px;
 }
 @media (pointer: coarse) {
-  /* Expand vertically only: the adjacent body and remove targets must never overlap. */
   .ui-chip-body::after,
   .ui-chip-remove::after {
     content: '';
@@ -1375,7 +1335,6 @@
   }
 }
 
-/* ---------- Popover and static skeleton ---------- */
 .ui-popover {
   z-index: 60;
   max-width: min(420px, calc(100vw - 16px));
@@ -1420,7 +1379,6 @@
   }
 }
 
-/* ---------- Native month range ---------- */
 .ui-month-range {
   display: flex;
   flex-wrap: wrap;
@@ -1441,7 +1399,6 @@
   font-weight: 400;
 }
 
-/* ---------- Category marks ---------- */
 .ui-maker-swatch {
   display: inline-block;
   flex: none;
@@ -1464,6 +1421,7 @@
 }
 .ui-airline-mark {
   display: inline-grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   place-items: center;
   flex: none;
   width: 48px;
@@ -1500,7 +1458,6 @@
   display: block;
 }
 
-/* Keyboard actions settle surfaces and selection indicators in the committing frame. */
 .ui-dialog[data-instant],
 .ui-overlay[data-instant],
 .ui-sheet[data-side][data-instant] {

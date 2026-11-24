@@ -1,7 +1,3 @@
-// Profile reads + DTO mappers. SQLite stores booleans as 0/1; the API returns real booleans
-// so the frontend shape matches the old Supabase rows. Public responses use a strict column
-// allowlist — gemini_api_key (and other private fields) must never leave via public endpoints.
-
 export interface ProfileRow {
   id: string
   username: string | null
@@ -21,7 +17,6 @@ export interface ProfileRow {
   onboarded_at?: string | null
 }
 
-/** Full profile (own view) — booleans coerced; includes private fields. */
 export function toOwnProfile(row: ProfileRow) {
   return {
     id: row.id,
@@ -43,7 +38,6 @@ export function toOwnProfile(row: ProfileRow) {
   }
 }
 
-/** Public view — explicit allowlist, NEVER gemini_api_key / home_airport / locale. */
 export function toPublicProfile(row: ProfileRow) {
   return {
     id: row.id,

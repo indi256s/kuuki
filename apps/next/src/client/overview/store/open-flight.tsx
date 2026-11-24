@@ -42,7 +42,6 @@ function useOverviewURL() {
     const target = base.pathname + base.search + base.hash
     if (target === (requested ?? url + window.location.hash)) return
     navigation.request(target)
-    // The server page reads only `year`; native history syncs useSearchParams without refetching it.
     window.history[mode === 'push' ? 'pushState' : 'replaceState'](null, '', target)
   }
   return { params, pathname, change }

@@ -1,6 +1,3 @@
-// Catalog lookups for the Flighty mapper (ADR 0008). One definition for the API and the offline evaluator.
-// Airports come from the offline catalog with its IANA zone; the zone of an airport without one is derived from its
-// coordinates, as flight metrics do. Final airport existence is still checked against D1 when a flight is written.
 import airlineCatalog from '../../../packages/data/src/airlines.json'
 import aircraftCatalog from '../../../packages/data/src/aircraft.json'
 import { findAirport } from '../../../packages/data/src/airport-lookup'

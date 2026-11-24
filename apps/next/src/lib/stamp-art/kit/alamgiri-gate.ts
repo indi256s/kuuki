@@ -1,7 +1,3 @@
-// Alamgiri Gate, Lahore Fort (Pakistan): a tall central gate block with a pointed-arch portal and
-// a row of blind arches, flanked by two half-round bastions crowned with merlons and open kiosks,
-// and fort walls running out to both sides. Right sides of the bastions are shaded. The box is the
-// whole front; its bottom is the ground.
 import { type Pt, type SvgNode, body, fill, hline, rectPts, stroke, toneFill } from '../grid'
 import { kiosk, merlons, pointedArch } from './dome-parts-c'
 import { type KitModule, num } from './util'
@@ -11,12 +7,10 @@ export const alamgiriGate: KitModule = ([x, y, w, h], p) => {
   const cx = x + w / 2
   const out: SvgNode[] = []
   const wallTop = y + h * num(p, 'wallTop', 0.56)
-  // Fort walls with merlons and course lines.
   out.push(...body(rectPts(x, wallTop, w, base - wallTop), 'line'))
   for (let cy = wallTop + 6; cy < base - 3; cy += 6) out.push(hline('fine', x + 1, x + w - 1, cy))
   out.push(...merlons(x + 1, x + w - 4, wallTop, 3, 2.4, 2.8))
   out.push(hline('bold', x, x + w, wallTop))
-  // Bastions.
   const bw = w * 0.2
   const bTop = y + h * 0.3
   for (const s of [-1, 1]) {
@@ -32,7 +26,6 @@ export const alamgiriGate: KitModule = ([x, y, w, h], p) => {
     out.push(hline('bold', bx - bw / 2 - 1, bx + bw / 2 + 1, bTop))
     out.push(...kiosk(bx, bTop, bw * 0.55, h * 0.2))
   }
-  // Central gate block.
   const gw = w * 0.3
   const gTop = y + h * 0.2
   out.push(...body(rectPts(cx - gw / 2, gTop, gw, base - gTop), 'line'))

@@ -10,7 +10,6 @@ type PointerOptions = {
   hover: (position: Position | null) => void
 }
 
-/** A second pointer suppresses selection until every pointer is released. */
 export function attachPointers(canvas: HTMLCanvasElement, options: PointerOptions) {
   const pointers = new Map<number, Pointer>()
   let dragged = false,

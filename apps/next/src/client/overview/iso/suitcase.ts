@@ -1,22 +1,18 @@
 import { Scene, roundRect, type IsoFigureData, type P3, type Paint } from './scene'
 import { NZ, X, Y, cylY, cylZ, rrOn, shadowRect } from './solids'
 
-/** How far the telescopic handle rises on hover, in iso units. */
 const EXT = 22
 const W = 116,
   D = 40,
   H = 82,
   BASE = 10,
   TOP = BASE + H,
-  // The handle housing on the lid; the posts disappear into it.
   HOUSE_H = 4,
   HT = TOP + HOUSE_H,
-  // Rest height of the grip's underside above the housing: the handle is collapsed, a sliver of post shows.
   GRIP_Z = HT + 4,
   GUARD = 14
 
 type Slot = {
-  // Fixed per slot: a sticker never moves or changes shape when another is added or lit.
   shape: 'circle' | 'rect'
   u: number
   v: number
@@ -33,7 +29,6 @@ const SLOTS: readonly Slot[] = [
   { shape: 'rect', u: 64, v: 46, w: 30, h: 20, r: 3, tone: 'ghost', size: 8 },
 ]
 
-/** The shell outline round the visible corners at height z: from the left silhouette, along the front, round the near corner, up the right face to the right silhouette. */
 function wrap(z: number): P3[] {
   const out: P3[] = []
   const arc = (cx: number, cy: number, a0: number, a1: number) => {
@@ -48,7 +43,6 @@ function wrap(z: number): P3[] {
   return out
 }
 
-/** A wheel unit under the case: fork, tyre, rim and axle cap, then the bridge and swivel that meet the shell. */
 function wheel(s: Scene, cx: number, y0: number) {
   const d = 4.5,
     cz = 4.6
@@ -62,7 +56,6 @@ function wheel(s: Scene, cx: number, y0: number) {
   cylZ(s, cx, y0 + d / 2, 9.4, 2.2, 0.6, { top: 'side', body: 'front' }, 10)
 }
 
-/** A corner cap: wraps `path` (plan points) from z0 and rises to GUARD at its apex, flat across the corner. `dir` is 1 up from a bottom edge, -1 down from a top edge. */
 function guard(
   s: Scene,
   path: (t: number) => [number, number],
@@ -83,7 +76,6 @@ function guard(
   s.poly([...low, ...high.reverse()], 'side', 'line', undefined, 0.8)
 }
 
-/** Countries & territories: a hard-shell suitcase on wheels, an IATA sticker per country on its front (the newest lit), and a telescopic handle that rises on hover. Part: `handle`. */
 export function suitcase(
   k: number,
   { stickers, lit }: { stickers: readonly string[]; lit: number | null },
@@ -93,7 +85,6 @@ export function suitcase(
     [extX, extY] = s.vector(0, 0, EXT)
   shadowRect(s, 0, 0, W, D, 3)
 
-  // Wheels hang under the shell, so the shell comes after them and covers their tops.
   for (const [x, y] of [
     [14, 3],
     [14, 33],
@@ -103,7 +94,6 @@ export function suitcase(
     wheel(s, x, y)
   s.rbox(0, 0, BASE, W, D, H, 8, { top: 'top', wall: 'front', side: 'side' })
 
-  // Moulded rim round the lid.
   s.poly(
     roundRect(4, 4, W - 8, D - 8, 4).map(([a, b]) => [a, b, TOP] as P3),
     'none',
@@ -112,7 +102,6 @@ export function suitcase(
     0.8,
   )
 
-  // Front face: ribs from lid edge to base edge, then the zip seam with its teeth.
   const F: P3 = [0, D, TOP],
     at = s.on(F, X, NZ)
   for (const u of [21, 99]) s.line([at(u, 0), at(u, H)], 'detail', 0.8)
@@ -122,7 +111,6 @@ export function suitcase(
   s.line(wrap(tapeB), 'detail', 0.8)
   const rowA = wrap(tapeA),
     teeth: P3[][] = []
-  // Teeth bridge the two tape lines: one tick per sampled step along the seam, ending on both.
   for (let i = 0; i < rowA.length - 1; i++) {
     const [x0, y0] = rowA[i],
       [x1, y1] = rowA[i + 1],
@@ -140,7 +128,6 @@ export function suitcase(
   }
   s.segs(teeth, 'detail', 0.6)
 
-  // Corner guards: caps at the lid and base corners, rivets on the front.
   const arcLen = (Math.PI * 8) / 2
   const nearRight = (t: number): [number, number] => {
     if (t < 12) return [W + g, D - 20 + t]
@@ -173,7 +160,6 @@ export function suitcase(
   ])
     s.poly(s.circle(FG(u, v), X, NZ, 0, 0, 0.9, 8), 'detail', 'line', undefined, 0.5)
 
-  // Right face: carry handle on a mounting plate.
   const R: P3 = [W, 0, TOP]
   s.poly(rrOn(s, R, Y, NZ, 9, 24, 22, 14, 3), 'top', 'line', undefined, 0.8)
   for (const [u, v] of [
@@ -193,7 +179,6 @@ export function suitcase(
     0.8,
   )
 
-  // Stickers: each slot keeps its place; an empty slot draws nothing.
   const sh = (sl: Slot, inset: number): P3[] =>
     sl.shape === 'circle'
       ? s.circle(F, X, NZ, sl.u, sl.v, sl.r - inset, 24)
@@ -227,13 +212,11 @@ export function suitcase(
     })
   })
 
-  // Zip pull: a slider on the seam with a tab hanging below it.
   s.poly(rrOn(s, F, X, NZ, 56.4, 44.2, 3.2, 9, 1.2), 'shadow', 'none')
   s.poly(rrOn(s, F, X, NZ, 55.4, 43, 3.2, 9, 1.2), 'front', 'line', undefined, 0.8)
   s.poly(s.circle(F, X, NZ, 57, 49.5, 0.9, 8), 'glass', 'line', undefined, 0.5)
   s.poly(rrOn(s, F, X, NZ, 54.5, 38, 5, 6, 1.2), 'top', 'line', undefined, 0.8)
 
-  // ID plate low on the front: a window with two written lines, a screw at each end.
   s.poly(rrOn(s, F, X, NZ, 42, 69, 32, 10, 1.5), 'top', 'line', undefined, 0.8)
   s.poly(rrOn(s, F, X, NZ, 48, 71, 20, 6, 0.5), 'glass', 'line', undefined, 0.6)
   s.segs(
@@ -244,14 +227,12 @@ export function suitcase(
   for (const u of [45, 71])
     s.poly(s.circle(F, X, NZ, u, 74, 0.9, 8), 'detail', 'line', undefined, 0.5)
 
-  // Luggage-tag loop: a strap loop standing on a block at the lid's front right.
   s.box(90, 26, TOP, 8, 6, 2.5, { top: 'side', front: 'front', side: 'side' })
   const loop: P3 = [94, 29, TOP + 2.5],
     V: P3 = [0, 0, 1]
   s.poly(s.circle(loop, X, V, 0, 3.6, 3.6, 16), 'side', 'line', undefined, 0.9)
   s.poly(s.circle(loop, X, V, 0, 3.6, 1.7, 12), 'glass', 'line', undefined, 0.6)
 
-  // Handle housing: slots the posts slide into, screws on its face.
   s.rbox(30, 16, TOP, 56, 8, HOUSE_H, 2, { top: 'top', wall: 'front', side: 'side' })
   for (const x of [34.5, 74.5])
     s.poly(
@@ -270,7 +251,6 @@ export function suitcase(
   for (const u of [33, 83])
     s.poly(s.circle(HF(u, 2), X, NZ, 0, 0, 0.8, 8), 'detail', 'line', undefined, 0.5)
 
-  // The handle: posts, the grip and its release button move together. The posts run well below the housing top and are clipped there, so no gap opens as they rise and their hidden length never shows.
   const clip: P3[] = []
   for (const x of [30, 86]) for (const y of [18, 22]) clip.push([x, y, HT])
   for (const x of [26, 90]) for (const y of [12, 28]) clip.push([x, y, HT + 60])
@@ -279,7 +259,6 @@ export function suitcase(
     () => {
       for (const x of [36, 76]) {
         s.box(x, 18, GRIP_Z - 36, 4, 4, 36, { top: 'top', front: 'front', side: 'side' })
-        // Stage rings sit inside the housing at rest and slide into view as the posts rise.
         for (const z of [HT - 8, HT - 16])
           s.line(
             [
@@ -310,7 +289,6 @@ export function suitcase(
     },
     { clip, vars: { '--extend-x': `${extX}px`, '--extend-y': `${extY}px` } },
   )
-  // Bounds cover the raised grip.
   s.include([
     [32, 16, GRIP_Z + 6 + EXT],
     [84, 16, GRIP_Z + 6 + EXT],

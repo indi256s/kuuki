@@ -23,7 +23,6 @@ import {
 
 type Fix = Exclude<Kind, 'other'>
 
-/** One unsure flight with its one-tap fix (boards 15.5, 15.9, 18.x). Resolved rows leave the group, so no state is kept for them. */
 export function UnsureCard({
   locale,
   draft,

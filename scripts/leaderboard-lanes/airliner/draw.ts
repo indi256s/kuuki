@@ -1,5 +1,3 @@
-// What the part builders draw with: pure surface constructors (airfoils, bodies of revolution, rounded outlines) and
-// `drawing`, the item makers bound to a camera and the pinned anatomy kit.
 import { clamp, D2R, stations } from './airframe'
 import type { Ink, Item, Lines, Mat } from './model'
 import type { Kit } from './kit'
@@ -16,7 +14,6 @@ import {
   type V3,
 } from './surface'
 
-/** NACA four-digit half-thickness (closed trailing edge) at chord fraction c, for thickness ratio t. */
 const naca = (c: number, t: number) =>
   5 *
   t *
@@ -26,15 +23,9 @@ const naca = (c: number, t: number) =>
     0.2843 * c * c * c -
     0.1036 * c * c * c * c)
 
-/** Cosine-spaced chord stations for v around an airfoil: TE (v = 0) over the upper skin to the LE, back under to the TE. */
 const chordOf = (v: number) => ({ c: (1 + Math.cos(2 * Math.PI * v)) / 2, upper: v <= 0.5 })
-/** The v of a chord fraction on the upper skin. */
 export const vChord = (c: number) => Math.acos(2 * c - 1) / (2 * Math.PI)
 
-/**
- * Turns a closed tube's normals outward (inward for an intake's inner wall). On every tube here the point at v = 0.25
- * lies across the section from the one at v = 0.75, so outward at the first is away from the second, on either side.
- */
 export const oriented = (s: Surface, u: number, inward = false): Surface => {
   const n = normalAt({ ...s, flip: false }, u, 0.25)
   const across = sub(s.at(u, 0.25), s.at(u, 0.75))
@@ -47,16 +38,12 @@ export const dihedralUp = (sg: number, t: number): [number, number] => {
 }
 export const closed = (rings: Rings): Rings => rings.map((r) => [...r, r[0]])
 
-// ------------------------------------------------------------ foils: wings, tails, pylons, winglets
 export type Foil = {
-  /** Station point (y, z) of the chord plane's leading edge reference, along the span (t over [0, 1]). */
   path: (t: number) => [number, number]
   le: (t: number) => number
   te: (t: number) => number
   tau: (t: number) => number
-  /** Thickness direction in the y–z plane (unit), the foil's "up". */
   up: (t: number) => [number, number]
-  /** Root conformance: lifts each root point onto a host surface (returns the corrected (y, z)). */
   root?: (xg: number, y: number, z: number) => [number, number]
   rows: number
   at?: number[]
@@ -88,7 +75,6 @@ export const foilAt =
 export const foil = (f: Foil): Surface =>
   oriented({ at: foilAt(f), u: stations(f.rows, f.at ?? []), v: 72, closed: true }, 0.5)
 
-/** A body of revolution about the engine axis, (s aft from the intake plane, r) along a meridian m over [0, 1]. */
 export const revolve = (
   ax: { x: number; y: number; z: number },
   meridian: (m: number) => [number, number],
@@ -110,7 +96,6 @@ export const revolve = (
 const curveUV = (n: number, f: (t: number) => [number, number]) =>
   Array.from({ length: n + 1 }, (_, i) => f(i / n))
 
-/** A rounded rectangle in (u, v) around a centre, as a loop of (u, v) points. */
 export const roundedUV = (
   cu: number,
   cv: number,
@@ -136,7 +121,6 @@ export const roundedUV = (
   return out
 }
 
-/** Parses the kit's M/L/Z paths into runs; the serializer decides which close. */
 export function ringsOfPath(d: string): Rings {
   if (!d) return []
   const out: Rings = []
@@ -157,7 +141,6 @@ export function ringsOfPath(d: string): Rings {
   return out
 }
 
-// ------------------------------------------------------------ the item makers, bound to a camera and the kit
 export function drawing(cam: Camera, kit: Pick<Kit, 'G' | 'P'>) {
   const { G, P } = kit
   const solid = (
@@ -191,10 +174,6 @@ export function drawing(cam: Camera, kit: Pick<Kit, 'G' | 'P'>) {
     ink,
     width,
   })
-  /**
-   * A surface in two paints: `base` all over, the livery over u in [from, to] with a seam where the paint ends on the
-   * surface and `seams` (at u) across it; the outline goes on again last, as the paint covers its inner half.
-   */
   const twoTone = (
     s: Surface,
     base: Mat,
@@ -216,7 +195,6 @@ export function drawing(cam: Camera, kit: Pick<Kit, 'G' | 'P'>) {
       },
     ]
   }
-  /** A closed patch on a surface in (u, v): its visible outline as rings, if it faces the viewer by `least`. */
   const patch = (s: Surface, uv: [number, number][], least = 0.08): Rings => {
     const [cu, cv] = uv.reduce((a, b) => [a[0] + b[0] / uv.length, a[1] + b[1] / uv.length], [0, 0])
     if (dot(normalAt(s, cu, cv), cam.V) < least) return []

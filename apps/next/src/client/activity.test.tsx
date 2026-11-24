@@ -92,7 +92,7 @@ describe('ActivityBridge owner sync', () => {
     expect(window.localStorage.getItem('kuuki:lifecycle-sync:u1')).not.toBeNull()
     window.removeEventListener('kuuki:lifecycle-changed', changed)
     first.unmount()
-    await mount() // a remount or another tab: the shared localStorage timestamp holds the throttle
+    await mount()
     await waitFor(() => expect(api.get).toHaveBeenCalledTimes(2))
     await new Promise((resolve) => setTimeout(resolve, 20))
     expect(sync()).toHaveLength(1)
@@ -186,7 +186,6 @@ it("clears the departing owner's capture preferences and deferred deletions when
     token: Symbol(),
     release: vi.fn(),
   } as never)
-  // The departing cookie owner is resolved under the account lock before the mutation runs.
   api.get.mockResolvedValueOnce({ user: { id: 'a' } })
   const { writeCapturePreference, readCapturePreference } =
     await import('./capture/capture-preferences')
@@ -197,7 +196,6 @@ it("clears the departing owner's capture preferences and deferred deletions when
   sessionStorage.setItem('kuuki-journal-delete:a', '[{"key":1,"ids":[1],"remaining":6000}]')
   sessionStorage.setItem('kuuki-journal-delete:b', '[{"key":1,"ids":[2],"remaining":6000}]')
   sessionStorage.setItem('unrelated', 'keep')
-  // jsdom reports document navigation as unimplemented; the cleanup precedes it.
   const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
   try {
     await withIdentityMutation(async () => undefined, '/signin')

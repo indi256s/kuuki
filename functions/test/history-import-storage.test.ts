@@ -1,4 +1,3 @@
-// ADR 0008 storage: migration 0020, deletion paths that must erase private source cells, retention and discard.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   bawRecord,

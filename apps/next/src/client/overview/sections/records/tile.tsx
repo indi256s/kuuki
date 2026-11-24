@@ -13,7 +13,6 @@ export function Tile({ span }: { span: TileSpan }) {
   const lead = scope?.records.status === 'ready' ? scope.records.value.longest : null
   const origin = lead ? payload?.refs.airports[lead.origin] : undefined
   const destination = lead ? payload?.refs.airports[lead.destination] : undefined
-  // The map at rest: the headline route pinned, unlit until the tile is touched.
   const figure = useFigure(
     span,
     `${lead?.origin}|${lead?.destination}|${origin?.lat}|${origin?.lon}|${destination?.lat}|${destination?.lon}`,

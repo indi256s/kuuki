@@ -1,7 +1,3 @@
-// One Flighty CSV import in the browser (ADR 0008). The file is parsed here, sent in digest-checked chunks, and from
-// then on the server run is the only authority: a refresh restores from it. Browser storage holds the run id, the
-// operation id and the manifest digest, never cells or the file. Confirmation walks the ready rows in pages of 50 with
-// keys derived from row id and version, so a retry after a lost answer replays instead of writing twice.
 import { ApiError, getAuthGeneration } from '@kuuki/client/apiClient'
 import type { DerivedAck } from '@kuuki/client/derivedState'
 import type {
@@ -28,43 +24,28 @@ import {
 } from './history-api'
 
 export type HistoryFailure =
-  /** The file is not a readable Flighty export; `code` is the parser's structural reason. */
   | { kind: 'file'; code: string; line?: number; header?: string }
-  /** The re-chosen file is not the one this import started from. */
   | { kind: 'different_file' }
   | { kind: 'too_large' }
   | { kind: 'run_limit' }
   | { kind: 'closed' }
-  /** Someone (another tab) decided first; the summary was re-read. */
   | { kind: 'stale' }
   | { kind: 'offline' }
   | { kind: 'server' }
 
 export interface HistoryState {
-  /** Local reading of a chosen file. */
   reading: boolean
   fileName: string | null
   run: HistoryRunSummary | null
-  /**
-   * Chunks sent in this tab / chunks the run expects, and the calendar years (as the parser reads the Date column) of
-   * the records in the chunks sent in this tab so far; null while none has a readable date.
-   */
   upload: { sent: number; total: number; years: { from: number; to: number } | null } | null
-  /** Rows that need an answer or cannot be read, in file order, as far as they were paged in. */
   exceptions: HistoryRowView[]
   nextCursor: number | null
-  /** Records ready to save, paged in only when the owner asks to look through them. */
   ready: { rows: HistoryRowView[]; nextCursor: number | null } | null
-  /** Ready rows confirmed in this save / ready rows when it started. */
   saving: { done: number; total: number } | null
-  /** Row and group ids with a write in flight. */
   busy: ReadonlySet<string>
   failure: HistoryFailure | null
-  /** Last derived-state acknowledgement of a confirm, for the totals publication follow-up. */
   ack: DerivedAck | null
-  /** Group answers that succeeded in this tab, oldest first. Not persisted; cleared on a new run, discard or forget. */
   settled: Array<{ group: string; token: string; answer: string | boolean | null; rows: number }>
-  /** New passport stamps after a save in this tab. null = no save in this tab, or nothing was created. */
   stamps: { status: 'pending' | 'ready' | 'delayed'; codes: string[] } | null
 }
 
@@ -83,9 +64,7 @@ export interface HistoryTransport {
   confirm: typeof confirmHistoryRows
   discard: typeof discardHistoryRun
   erase: typeof eraseHistorySource
-  /** Pressed countries of the passport, null when unreadable (the regular import's read). */
   pressedCountries: typeof fetchPressedCountries
-  /** Bounded derived-publication wait (the regular import's). */
   awaitPublication: typeof awaitPublication
 }
 
@@ -105,11 +84,9 @@ const httpTransport: HistoryTransport = {
 type Chunk = {
   index: number
   body: { records: Array<[number, number, string[]]> }
-  /** Min and max year of the chunk's readable record dates; read once with the file, never stored. */
   years: { from: number; to: number } | null
 }
 
-/** Min and max year among the readable `Date` cells (a real YYYY-MM-DD after trimming, as the parser reads it). */
 function yearsOf(dates: Array<string | undefined>) {
   let years: { from: number; to: number } | null = null
   for (const cell of dates) {
@@ -154,25 +131,19 @@ export function classifyHistoryError(error: unknown): HistoryFailure {
   return { kind: 'server' }
 }
 
-/** A CSV goes to the history import; the content (the parser) decides whether it is a Flighty export. */
 export const isHistoryCsv = (file: { name: string; type: string }) =>
   file.type === 'text/csv' || /\.csv$/i.test(file.name)
 
-/** Deterministic per row version: a lost answer is retried with the same key and the server replays it. */
 export const historyConfirmKey = (row: { id: string; version: number }) =>
   `h-${row.id}-v${row.version}`
 
 export class HistorySession {
   private state: HistoryState = INITIAL
   private listeners = new Set<() => void>()
-  /** The parsed file of this tab, for sending (or re-sending) chunks. Never stored. */
   private chunks: Chunk[] | null = null
-  /** A run creation whose answer may have been lost, with its manifest digest: Retry repeats it from memory, so blocked storage cannot lose it. */
   private creating: { body: HistoryCreateBody; digest: string } | null = null
   private generation = 0
-  /** Cancels the wait for the stamps' publication when the tab leaves or restarts the import. */
   private stampsWait: AbortController | null = null
-  /** The run's passport baseline and the countries its saves in this tab created (see `save`). */
   private stampLedger: {
     runId: string
     baseline: Promise<Set<string> | null>
@@ -180,7 +151,6 @@ export class HistorySession {
     created: number
   } | null = null
 
-  /** The tab's controller for one owner: sessionStorage keeps only the run id, operation id and manifest digest. */
   static forOwner(ownerId: string, transport?: HistoryTransport) {
     const key = `kuuki-history-import:${ownerId}`
     return new HistorySession(
@@ -188,9 +158,7 @@ export class HistorySession {
         try {
           if (record) sessionStorage.setItem(key, JSON.stringify(record))
           else sessionStorage.removeItem(key)
-        } catch {
-          /* The server run remains the authority. */
-        }
+        } catch {}
       },
       () => {
         try {
@@ -220,7 +188,6 @@ export class HistorySession {
     this.stampsWait = null
   }
 
-  /** The import view closed: stop waiting for the stamps' publication; a stamp still unknown is not shown later. */
   stopStamps() {
     this.cancelStamps()
     if (this.state.stamps?.status === 'pending') this.set({ stamps: null })
@@ -235,7 +202,6 @@ export class HistorySession {
     this.set({ failure: classifyHistoryError(error), reading: false, saving: null })
   }
 
-  /** A superseded run never reports its failure over the current one. */
   private failIfCurrent(error: unknown, generation: number) {
     if (generation === this.generation) this.fail(error)
   }
@@ -247,7 +213,6 @@ export class HistorySession {
     this.set({ busy })
   }
 
-  /** Read a chosen file here, then create (or resume) its run and send what the server still lacks. */
   async choose(file: File) {
     const generation = ++this.generation
     this.cancelStamps()
@@ -289,15 +254,12 @@ export class HistorySession {
       }))
       const prior = this.retained()
       const current = this.state.run
-      // A different file for a run still receiving is refused before it is held, so the owner can choose again.
       if (current && current.status === 'receiving' && prior && prior.digest !== digest) {
-        // The file of the choice this one replaced is dropped too, so the prompt to choose the file stays.
         this.chunks = null
         this.set({ reading: false, failure: { kind: 'different_file' } })
         return
       }
       this.chunks = chunks
-      // Re-choosing the file of a run that still lacks chunks continues it; any other file starts its own run.
       if (current && current.status === 'receiving') {
         this.set({ reading: false })
         await this.send(generation, current)
@@ -333,12 +295,10 @@ export class HistorySession {
     await this.send(generation, run)
   }
 
-  /** Send the chunks the server lacks, one at a time; an admitted chunk resent after a lost answer inserts nothing. */
   private async send(generation: number, run: HistoryRunSummary) {
     const chunks = this.chunks
     if (!chunks) return
     const missing = new Set(run.chunks.missing)
-    // Every chunk arrived but the run never sealed (the last answer was lost mid-seal): a replay seals it.
     const pending = missing.size
       ? chunks.filter((chunk) => missing.has(chunk.index))
       : run.status === 'receiving'
@@ -369,14 +329,12 @@ export class HistorySession {
     this.set({ run: page.run, exceptions: page.rows, nextCursor: page.nextCursor })
   }
 
-  /** Show the failure, then the server's current state: a refused write never leaves a stale screen. */
   private async recover(error: unknown, generation: number) {
     if (generation !== this.generation) return
     this.fail(error)
     await this.refresh(generation).catch(() => undefined)
   }
 
-  /** Restore an import from the server alone (after a refresh or from the URL). */
   async resume(runId: string) {
     const generation = ++this.generation
     this.cancelStamps()
@@ -391,10 +349,8 @@ export class HistorySession {
     }
   }
 
-  /** After a failure: repeat a creation whose answer was lost, or re-read the run and send what this tab holds. */
   async retry() {
     const run = this.state.run
-    // Nothing to repeat: the failure stays, and the owner closes the import and chooses the file again.
     if (!run && !this.creating) return
     const generation = this.generation
     this.set({ failure: null })
@@ -412,10 +368,8 @@ export class HistorySession {
     }
   }
 
-  /** Whether this tab still holds the parsed file (a refresh drops it; the owner then chooses it again). */
   holdsFile = () => this.chunks !== null
 
-  /** Re-read the summary and the first page of exceptions; rows the owner already answered drop out. */
   async refresh(generation = this.generation) {
     const run = this.state.run
     if (!run) return
@@ -443,7 +397,6 @@ export class HistorySession {
     }
   }
 
-  /** Page in the records ready to save, so one can be skipped before Save; `more` continues from the cursor. */
   async showReady(more = false) {
     const run = this.state.run
     if (!run) return
@@ -467,7 +420,6 @@ export class HistorySession {
     this.set({ ready: null })
   }
 
-  /** One answer for every open row of a group, at the revision the owner saw. */
   async answerGroup(group: HistoryGroup, answer: string | boolean | null) {
     const run = this.state.run
     if (!run || this.state.busy.has(group.group)) return
@@ -495,7 +447,6 @@ export class HistorySession {
     }
   }
 
-  /** Answer or skip one record. Other rows and their answers are untouched. */
   async patchRow(row: HistoryRowView, change: { answers?: HistoryRowAnswers; ignore?: boolean }) {
     const run = this.state.run
     if (!run || this.state.busy.has(row.id)) return
@@ -513,22 +464,14 @@ export class HistorySession {
     }
   }
 
-  /**
-   * Confirm every ready row in server pages of 50. The owner presses once; the number of requests grows with the
-   * file, the number of decisions does not. Stops when a page brings no progress (every item refused).
-   */
   async save() {
     const run = this.state.run
-    // A pending answer or Skip must land first: confirming ahead of it could save the record being excluded.
     if (!run || this.state.saving || this.state.busy.size) return
     const total = run.totals.states.ready
     const generation = this.generation
     this.cancelStamps()
     this.set({ saving: { done: 0, total }, failure: null, ready: null, stamps: null })
     let done = 0
-    // One stamp ledger per run in this tab, so a save that failed half-way or ran before the last questions were
-    // answered still counts: the passport before the run's first confirm (read beside the first page; null claims
-    // no stamp) and the route countries of every row created since.
     if (this.stampLedger?.runId !== run.id)
       this.stampLedger = {
         runId: run.id,
@@ -585,11 +528,6 @@ export class HistorySession {
     }
   }
 
-  /**
-   * New stamps, as the regular import decides them: wait for the derived publication of the last confirm's
-   * acknowledgement (ready at once, or the bounded poll; anything else or a timeout is delayed), then read the
-   * passport again and keep the countries this save touched that were not pressed before.
-   */
   private async followStamps(generation: number, before: Set<string>, touched: Set<string>) {
     const ack = this.state.ack
     const controller = new AbortController()
@@ -609,7 +547,6 @@ export class HistorySession {
     const after = await this.transport.pressedCountries(controller.signal).catch(() => null)
     if (!current()) return
     this.stampsWait = null
-    // An unreadable passport claims nothing: no codes, and the passport itself shows what was pressed.
     this.set({
       stamps: { status: 'ready', codes: after ? newlyPressed(before, after, touched) : [] },
     })
@@ -639,7 +576,6 @@ export class HistorySession {
     }
   }
 
-  /** Leave the import: the run stays on the server until it completes or expires. */
   forget() {
     this.generation += 1
     this.cancelStamps()

@@ -48,10 +48,6 @@ const safeSourceUrl = (value: string): string | null => {
   }
 }
 
-/**
- * Suggestions, then one accept per selected flight through the batch endpoint, 20 at a time and never in parallel.
- * Each flight keeps its own outcome: saved, failed, or uncertain when the answer was lost.
- */
 export function AircraftPanel({
   locale,
   targets,
@@ -61,7 +57,6 @@ export function AircraftPanel({
 }: {
   locale: Locale
   targets: AircraftTarget[]
-  /** Called after any confirmed write, including a partial one, so every freshness owner refreshes. */
   onSaved: (run: AircraftRun, unresolved: boolean) => void
   onWorkChange?: (work: { busy: boolean; dirty: boolean }) => void
   api?: AircraftApi
@@ -74,7 +69,6 @@ export function AircraftPanel({
   const [outcomes, setOutcomes] = useState<AircraftRun['rows']>(new Map())
   const [applying, setApplying] = useState(false)
   const [asked, setAsked] = useState<number[]>([])
-  // Counts for the submission that just finished only; cleared when the next one starts so an identical result is announced again.
   const [last, setLast] = useState<AircraftRunCounts | null>(null)
 
   const view = useMemo(() => diagnose(asked, results), [asked, results])
@@ -125,7 +119,6 @@ export function AircraftPanel({
     setAsked(ids)
     setResults(gathered)
     setSearchSuggestions(suggestions)
-    // Older responses omit basis and keep their previous selection behavior.
     setSelected(
       new Set(
         diagnose(ids, gathered)
@@ -154,7 +147,6 @@ export function AircraftPanel({
       for (const [id, outcome] of run.rows) next.set(id, outcome)
       return next
     })
-    // Anything that is not saved stays selected so one press retries exactly those.
     setSelected(
       new Set([...run.rows].filter(([, outcome]) => outcome.status !== 'saved').map(([id]) => id)),
     )

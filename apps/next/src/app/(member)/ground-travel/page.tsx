@@ -7,7 +7,6 @@ import '../../reads.css'
 
 type SearchParams = Record<string, string | string[] | undefined>
 
-/** The raw query as the browser sent it. The client codec (`client/ground/url.ts`) owns parsing; the URL is a mirror. */
 function rawQuery(params: SearchParams) {
   const query = new URLSearchParams()
   for (const [key, value] of Object.entries(params))
@@ -18,7 +17,6 @@ function rawQuery(params: SearchParams) {
 
 export const generateMetadata = () => pageMetadata('Journal · Ground', 'Журнал · По земле')
 
-// The list is read in the browser: its groups depend on the visitor's own "today", which the server cannot know.
 export default async function GroundTravel({
   searchParams,
 }: {

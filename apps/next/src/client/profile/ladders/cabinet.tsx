@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Sheet } from '../../ui/sheet'
+import { useScrollFade } from '../../ui/use-scroll-fade'
 import { useMobile } from '../../ui/use-mobile'
 import { formatDateOnly, type Locale } from '../../../lib/format'
 import { FoundingStub } from '../founding-crew'
@@ -23,7 +24,7 @@ import {
   sarcastic,
   toGo,
 } from './copy'
-import { LadderFigure, useStripK, type RungState } from './ladder-figure'
+import { LadderFigure, STRIP_THUMB, useStripK, type RungState } from './ladder-figure'
 import {
   ladderOf,
   ladderValue,
@@ -39,16 +40,10 @@ import type { LadderId } from './figures/types'
 import '../profile.css'
 import './ladders.css'
 
-/** Mobile shows two rows of three before "Show all" (spec: 3-col grid). */
 const COLLAPSED = 6
 
 const tileKey = (tile: LadderTile) => (tile.kind === 'founding' ? 'founding' : tile.ladder)
 
-/**
- * Earned achievements only: one tile per ladder at its highest rung, plus Founding crew. On the owner's page, tiles whose
- * ladder gained a rung since the last visit press into their slots once (the cabinet keeps its own per-owner baseline,
- * separate from the toast). A first-ever visit only records the baseline.
- */
 export function AchievementCabinet({
   badges,
   stats,
@@ -64,7 +59,6 @@ export function AchievementCabinet({
 }) {
   const mobile = useMobile() === true
   const tiles = toTiles(badges)
-  // Keep the key, not the tile: an award that lands while the sheet is open must show the new rung.
   const [openKey, setOpenKey] = useState<string | null>(null)
   const open = tiles.find((tile) => tileKey(tile) === openKey) ?? null
   const [expanded, setExpanded] = useState(false)
@@ -86,7 +80,6 @@ export function AchievementCabinet({
         ),
       ),
     ].filter(Boolean)
-    // Effects run twice in development; the in-memory baseline makes the second pass empty, so keep the first.
     // oxlint-disable-next-line hooks-compat/set-state-in-effect -- one-shot, derived from device storage that cannot be read during render
     if (keys.length) setFresh(keys)
   }, [ownerId, badges])
@@ -239,7 +232,6 @@ function RungStrip({
 }) {
   const k = useStripK(ladder)
   const strip = useRef<HTMLOListElement>(null)
-  // The strip scrolls sideways. When the next rung would open out of view, start the strip at the current rung instead.
   useEffect(() => {
     const list = strip.current
     const current = list?.children[rung - 1]
@@ -252,6 +244,7 @@ function RungStrip({
       box.left -
       parseFloat(getComputedStyle(list).paddingInlineStart)
   }, [rung, rungs])
+  useScrollFade(strip, rungs)
   return (
     <>
       <ol ref={strip} className="ladder-strip">
@@ -267,6 +260,7 @@ function RungStrip({
                 size="thumb"
                 state={state}
                 k={k}
+                box={STRIP_THUMB}
                 initials={initials}
               />
               <span className="ladder-slot-name">{name}</span>

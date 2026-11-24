@@ -1,5 +1,3 @@
-// Windmill (lane C): a tapered tower with a cap, a gallery and four lattice sails. The box is the
-// tower (base at the bottom); the sails reach `sail` x tower height around the hub near the top.
 import { type Pt, type SvgNode, body, fill, hline, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
 
@@ -17,7 +15,6 @@ export const windmill: KitModule = ([x, y, w, h], p) => {
     [cx + top / 2, hubY + 4],
     [cx + w / 2, baseY],
   ]
-  // sails behind the tower
   for (let k = 0; k < 4; k++) {
     const a = rot + (k * Math.PI) / 2
     const dx = Math.cos(a),

@@ -26,22 +26,18 @@ export const NAV_ITEMS = [
   { href: '/leaderboard', label: 'Leaderboard', ru: 'Рейтинг' },
 ] as const
 
-/** Active for the route itself and anything nested under it (`/journal/<id>/edit`); the query string never matters (`/overview?year=`). */
 export function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`)
 }
 
-/** The Journal destination covers both of its sections: flights (`/journal`) and ground travel (`/ground-travel`). */
 function isJournalSection(pathname: string): boolean {
   return isActive(pathname, '/journal') || isActive(pathname, '/ground-travel')
 }
 
-/** Current-page test for a top-level destination; Journal also owns the ground-travel section. */
 function isCurrent(pathname: string, href: string): boolean {
   return href === '/journal' ? isJournalSection(pathname) : isActive(pathname, href)
 }
 
-/** True when the on-screen keyboard is clearly open: the visual viewport is well below the layout height and not merely pinch-zoomed. */
 export function isKeyboardOpen({
   innerHeight,
   viewportHeight,
@@ -88,7 +84,6 @@ export function PrimaryNav({ locale: initialLocale = 'en' }: { locale?: Locale }
   const pathname = usePathname()
   const journalHref = useJournalHref(pathname)
   const nav = useRef<HTMLElement>(null)
-  // The sticky header wraps on narrow desktops and long labels; sticky content below reads its real height.
   useEffect(() => {
     const header = nav.current?.closest('.site-header')
     if (!header || typeof ResizeObserver !== 'function') return
@@ -129,13 +124,6 @@ export function PrimaryNav({ locale: initialLocale = 'en' }: { locale?: Locale }
   )
 }
 
-/**
- * Keyboard choice: while the keyboard is open the bar is translated off-screen (`html[data-keyboard=true]`)
- * but stays in the DOM and focus order, so keyboard users are never trapped and nothing sits above the keyboard.
- * Limit: with `interactive-widget=resizes-content` (or Android Chrome's default resize in some PWAs) the layout viewport
- * shrinks together with the visual viewport, so innerHeight - viewport.height stays ~0 and the bar is not flagged.
- * The fixed bar then simply rides directly above the keyboard, still reachable and never covering the focused field.
- */
 function useKeyboardFlag() {
   const [open, setOpen] = useState(false)
   useEffect(() => {
@@ -205,11 +193,6 @@ const TABS: readonly {
   { href: '/passport', en: 'Passport', ru: 'Паспорт', Icon: Stamp },
 ]
 
-/**
- * Floating rail: three labeled destinations and the + key, an action that never carries aria-current. The key opens the
- * Add card, the shared Menu anchored above it at the rail's width over a scrim. The rail stays above the scrim and live:
- * a tab tap closes the card at once and navigates. The card also closes on any route change and when the keyboard opens.
- */
 export function TabBar({ locale: initialLocale = 'en' }: { locale?: Locale }) {
   const locale = useLocale(initialLocale)
   const pathname = usePathname()
@@ -217,7 +200,6 @@ export function TabBar({ locale: initialLocale = 'en' }: { locale?: Locale }) {
   const ru = locale === 'ru'
   const titleId = useId()
   const [addOpen, setAddOpen] = useState(false)
-  // A close caused by navigating skips the card's exit, so it never overlaps the page change.
   const [leaving, setLeaving] = useState(false)
   const keyboard = useKeyboardFlag()
   const [cardPath, setCardPath] = useState(pathname)
@@ -253,7 +235,6 @@ export function TabBar({ locale: initialLocale = 'en' }: { locale?: Locale }) {
             side="top"
             align="end"
             sideOffset={8}
-            // The card spans the rail, whose inner edge is the rail padding (6px) past the key.
             alignOffset={-6}
             className="add-card"
             scrim="always"

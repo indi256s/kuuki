@@ -36,16 +36,13 @@ import { entryName, handleOf } from './model'
 import './lanes/vehicles.generated.css'
 
 const PAGE = 50
-/** The API's page cap; a re-read of the shown prefix never asks for more. */
 const MAX_PAGE = 200
 const MEDALS = ['gold', 'silver', 'bronze'] as const
-/** Lanes re-order with FLIP when the board changes: on-screen movement, like the Overview card reorder. */
 const MOVE_MS = 280
 const ENTER_MS = 150
 const EASE_IN_OUT = 'cubic-bezier(.77,0,.175,1)'
 const EASE_OUT = 'cubic-bezier(.23,1,.32,1)'
 
-/** A live read of the board: rows plus the total and publication they came from. */
 type Expansion = { entries: LeaderboardEntry[]; total: number; updatedAt: string | null }
 
 type Gap = { name: string; gap: string }
@@ -55,10 +52,6 @@ const artUrl = (key: LaneVehicleKey) => {
   return typeof asset === 'string' ? asset : asset.src
 }
 
-/**
- * Sky lanes fly the member's most-flown type (or the generic airliner). Trains run the locomotive and Cars the car;
- * ground Countries runs whichever the member covered more kilometres by, the car when unknown.
- */
 export function laneVehicle(
   category: LeaderboardCategory,
   aircraft: string | null,
@@ -72,7 +65,6 @@ export function laneVehicle(
     : 'GENERIC'
 }
 
-/** Distance markers on the taxiway: a round step (1, 2 or 5 × 10ⁿ) giving at most seven marks up to the leader. */
 export function markStep(max: number) {
   if (!(max > 0)) return 0
   const base = 10 ** Math.floor(Math.log10(max / 7))
@@ -97,7 +89,6 @@ function LaneRuler({
     ? Array.from({ length: Math.floor(max / step) + 1 }, (_, index) => index * step)
     : [0]
   if (max > 0 && marks.at(-1) !== max) marks.push(max)
-  // Label count alone cannot prevent collisions: the exact endpoint can be much wider than a round mark.
   useLayoutEffect(() => {
     const element = track.current
     if (!element) return
@@ -149,14 +140,7 @@ function LaneRuler({
   )
 }
 
-function Vehicle({
-  vehicle,
-  frame,
-}: {
-  vehicle: LaneVehicleKey
-  /** A viewBox of its own (the spotter card's close-up); the family's shared one otherwise. */
-  frame?: readonly number[]
-}) {
+function Vehicle({ vehicle, frame }: { vehicle: LaneVehicleKey; frame?: readonly number[] }) {
   const { viewBox } = laneGeometry[vehicle === 'rail' || vehicle === 'road' ? 'ground' : 'air']
   const [x, y, w, h] = viewBox
   return (
@@ -166,10 +150,6 @@ function Vehicle({
   )
 }
 
-/**
- * The viewer's own airliner is the one live thing on the board: its upper anti-collision beacon flashes. An element
- * over the drawing, not inside it, so each flash is a composited opacity change that never repaints the aircraft.
- */
 function Beacon({ type }: { type: (typeof LANE_TYPES)[number] }) {
   const [x0, y0, w, h] = laneGeometry.air.viewBox
   const [x, y] = laneSpots[type].beacon
@@ -181,7 +161,6 @@ function Beacon({ type }: { type: (typeof LANE_TYPES)[number] }) {
   )
 }
 
-/** Hover or keyboard focus on a lane opens a close-up of its airliner with the type's name and measured size. */
 function Spotter({
   type,
   locale,
@@ -222,10 +201,8 @@ function Lane({
   entry: LeaderboardEntry
   category: LeaderboardCategory
   locale: Locale
-  /** The board's top value: every lane shares this one scale. */
   max: number
   own: boolean
-  /** The viewer's last published place while a change is pending: shown to them alone, off the public order. */
   ghost?: boolean
   leadIn?: string
   gap?: Gap
@@ -234,8 +211,6 @@ function Lane({
 }) {
   const ru = locale === 'ru'
   const id = useId()
-  // Escape closes the spotter card until the pointer or focus leaves the lane (WCAG 1.4.13). Hover leaves focus
-  // wherever it was, so while the pointer is on the type the key is heard on the document.
   const [quiet, setQuiet] = useState(false)
   const [hovered, setHovered] = useState(false)
   const [focused, setFocused] = useState(false)
@@ -406,11 +381,6 @@ function Lane({
   )
 }
 
-/**
- * FLIP: when the board changes, each lane that stays slides from its old row and its vehicle from its old distance;
- * a lane that arrives fades in. Offsets are layout positions (offsetTop/offsetLeft), so scrolling between switches
- * never skews them. Reduced motion paints the new board at once.
- */
 function useLaneFlip(
   list: React.RefObject<HTMLOListElement | null>,
   board: string,
@@ -426,7 +396,6 @@ function useLaneFlip(
     const element = list.current
     if (!element) return
     const lanes = [...element.querySelectorAll<HTMLElement>('.lane[data-row]')]
-    // An interrupted switch starts from where each lane is drawn now, not from the end of the move it cut short.
     const drawn = new Map(
       lanes.map((lane) => {
         const vehicle = lane.querySelector<HTMLElement>('.lane-veh')
@@ -481,7 +450,6 @@ function useLaneFlip(
             easing: EASE_IN_OUT,
           }),
         )
-      // The run ends at the nose, so it stretches by the same distance the vehicle travels.
       const run = lane.querySelector<HTMLElement>('.lane-run')
       if (dx && run && now.run > 0)
         running.current.push(
@@ -497,10 +465,6 @@ function useLaneFlip(
   }, [list, board, rows, instant])
 }
 
-/**
- * The race: one lane per participant on one shared scale, the lane's length is the value. Everyone up to 20
- * participants; otherwise the top ten, then the viewer's neighbourhood. Show all reads further pages.
- */
 export function RaceLanes({
   slice,
   place,
@@ -518,7 +482,6 @@ export function RaceLanes({
   locale: Locale
   userId: string | null
   guest: boolean
-  /** The switch came from the keyboard: re-order without motion. */
   instant: boolean
 }) {
   const ru = locale === 'ru'
@@ -532,7 +495,6 @@ export function RaceLanes({
   }
   const alive = useRef(true)
   const focusFrom = useRef<string | null>(null)
-  // Every committed selection invalidates its pending reads, including a switch away and back.
   const generation = useRef(0)
   useLayoutEffect(() => {
     generation.current += 1
@@ -541,7 +503,6 @@ export function RaceLanes({
   const [more, setMore] = useState<(Expansion & { done: boolean }) | null>(null)
   const [loading, setLoading] = useState(false)
   const [failed, setFailed] = useState(false)
-  // A switch drops the expansion, its pending read and its error without remounting the lanes, so FLIP can run.
   const [shownBoard, setShownBoard] = useState(board)
   if (shownBoard !== board) {
     setShownBoard(board)
@@ -567,7 +528,6 @@ export function RaceLanes({
     target?.focus()
   }, [more])
 
-  // Expanded, the list is the live read alone: appending it to the server-rendered head would mix two boards.
   const rows = more ? more.entries : slice.top
   let extras: LeaderboardEntry[] = []
   let showGap = false
@@ -580,7 +540,6 @@ export function RaceLanes({
       showGap = extras[0].rank !== last.rank + sharers
     }
   }
-  // A pending viewer keeps their last published place, drawn as their own ghost lane at the end.
   const listed = new Set([...rows, ...extras].map((entry) => entry.user_id))
   const ghost =
     place?.state === 'pending' && place.entry && !listed.has(place.entry.user_id)
@@ -588,8 +547,6 @@ export function RaceLanes({
       : null
   const max = Math.max(rows[0]?.value ?? 0, ghost?.value ?? 0)
   const next = place?.state === 'ranked' ? place.next : null
-  // The gap sits on the lane to beat; when that lane is outside the list (a tie that spans the neighbourhood), it
-  // moves to the viewer's own lane so it is never lost.
   const gapOwner = next && (listed.has(next.entry.user_id) ? next.entry.user_id : userId)
   const gapFor = (entry: LeaderboardEntry): Gap | undefined =>
     next && entry.user_id === gapOwner
@@ -614,8 +571,6 @@ export function RaceLanes({
     return (await response.json()) as Expansion
   }
 
-  // The first expansion reads from the top. Later pages append only while the board is unchanged (same total and
-  // publication); otherwise the shown prefix is read again, so an opt-out or a rebuild never skips or mixes places.
   const showAll = async () => {
     const from = generation.current
     setLoading(true)
@@ -634,7 +589,6 @@ export function RaceLanes({
       const known = new Set(rows.map((entry) => entry.user_id))
       focusFrom.current =
         fetched.entries.find((entry) => !known.has(entry.user_id))?.user_id ?? null
-      // A read that brings nothing new ends the expansion, whatever the total says.
       setMore({ ...fetched, done: fetched.entries.length <= (more?.entries.length ?? 0) })
     } catch {
       if (alive.current && generation.current === from) setFailed(true)

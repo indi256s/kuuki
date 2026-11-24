@@ -1,6 +1,3 @@
-// Loropeni-style laterite ruin: a long high wall of rough courses with a ragged broken crown, a
-// low doorway with a lintel, a shaded return wall at the right and rubble at the foot. The box
-// bottom is the ground.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, hline, hatch, quad, rectPts, stroke } from '../grid'
 import { type KitModule, bool, num } from './util'
@@ -10,7 +7,6 @@ export const ruinWall: KitModule = ([x, y, w, h], p) => {
   const base = y + h
   const faceW = w * 0.78
   const out: SvgNode[] = []
-  // Broken crown: stepped heights, every step a block wide.
   const steps = 11
   const crown: Pt[] = []
   for (let i = 0; i <= steps; i++) {
@@ -33,7 +29,6 @@ export const ruinWall: KitModule = ([x, y, w, h], p) => {
     crown.splice(0, crown.length, ...rounded)
   }
   const face: Pt[] = [[x, base], ...crown, [x + faceW, base]]
-  // Return wall in shade.
   const rw = w - faceW
   const ret: Pt[] = [
     [x + faceW, base],
@@ -49,7 +44,6 @@ export const ruinWall: KitModule = ([x, y, w, h], p) => {
       if (crown[i][0] <= px && px <= crown[i + 1][0]) return Math.max(crown[i][1], crown[i + 1][1])
     return base
   }
-  // Courses: staggered rough joints.
   const rows = 7
   for (let r = 1; r < rows; r++) {
     const ly = base - ((h * r) / rows) * 0.98
@@ -69,11 +63,9 @@ export const ruinWall: KitModule = ([x, y, w, h], p) => {
           ]),
         )
   }
-  // Doorway with lintel.
   const dx = x + faceW * 0.46
   out.push(...body(rectPts(dx - 1.6, base - h * 0.52, 15.2, 2.4), 'hair'))
   out.push(fill(rectPts(dx, base - h * 0.52 + 2.4, 11.6, h * 0.52 - 2.4)))
-  // Rubble.
   for (let i = 0; i < 6; i++) {
     const rx = x + faceW * (0.02 + 0.2 * i) + rand() * 8
     const s = 2.4 + rand() * 2.4

@@ -1,6 +1,3 @@
-// Ground travel contract shared by the API, the Next client and tests: DTOs, mutation commands, place
-// snapshots, straight-line metrics and list order (.scratch/ground-travel/*-contract.md). Rail and road
-// journeys stay separate types; nothing here mixes modes in one journey.
 import { coordinates, greatCircleKm, type LatLon } from './geo'
 
 export type GroundMode = 'rail' | 'road'
@@ -14,21 +11,13 @@ export const GROUND_LIMITS = {
   station: 200,
   trainNumber: 40,
   operator: 200,
-  /** Receipt lifetime from the first successful commit; replay never extends it. */
   receiptDays: 37,
   searchResults: 10,
-  /** Catalog prefix buckets hold three folded characters, so a shorter query has no bucket to read. */
   searchMinChars: 3,
 } as const
 
-// ---------------------------------------------------------------------------
-// Places
-// ---------------------------------------------------------------------------
-
-/** What a route point stores: identity plus the names/coordinates chosen at selection, never rewritten later. */
 export interface GroundPlaceSnapshot {
   source: 'geonames' | 'manual'
-  /** GeoNames id as a decimal string, or the owner's manual place UUID. */
   id: string
   name: string
   nameRu: string | null
@@ -38,11 +27,9 @@ export interface GroundPlaceSnapshot {
   lat: number | null
   lon: number | null
   timezone: string | null
-  /** Catalog snapshot version for GeoNames places; null for manual places. */
   catalogVersion: string | null
 }
 
-/** A search result: either catalog or the owner's own manual place. */
 export type GroundPlaceOption = GroundPlaceSnapshot & { regionRu?: string | null }
 
 export interface ManualPlaceInput {
@@ -57,7 +44,6 @@ export interface ManualPlaceInput {
 export const placeKey = (place: Pick<GroundPlaceSnapshot, 'source' | 'id'>) =>
   `${place.source}:${place.id}`
 
-/** Consecutive rail legs share a run only when the previous destination is the next origin. */
 export function railRouteRuns<T extends Pick<GroundPlaceSnapshot, 'source' | 'id'> | null>(
   legs: readonly { from: T; to: T }[],
 ): T[][] {
@@ -72,7 +58,6 @@ export function railRouteRuns<T extends Pick<GroundPlaceSnapshot, 'source' | 'id
   return runs
 }
 
-/** Locale display name: language name first, then the source name. ASCII transliteration is not a translation. */
 export function placeLabel(place: GroundPlaceSnapshot, locale: 'ru' | 'en'): string {
   return (locale === 'ru' ? place.nameRu : place.nameEn) ?? place.name
 }
@@ -97,12 +82,10 @@ const optionalText = (value: unknown, max: number): string | null | undefined =>
   if (value === null || value === undefined) return null
   if (typeof value !== 'string') return undefined
   const trimmed = value.trim()
-  // SQLite length() counts characters, so count code points rather than UTF-16 units.
   if ([...trimmed].length > max) return undefined
   return trimmed.length === 0 ? null : trimmed
 }
 
-/** Structural validation of a snapshot; ownership of manual ids is checked by the server against its own rows. */
 export function parsePlaceSnapshot(value: unknown): GroundPlaceSnapshot | null {
   if (!value || typeof value !== 'object') return null
   const v = value as Record<string, unknown>
@@ -138,12 +121,7 @@ export function parsePlaceSnapshot(value: unknown): GroundPlaceSnapshot | null {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Journey input (the full editable content of one journey)
-// ---------------------------------------------------------------------------
-
 export interface RailLegInput {
-  /** Client-generated UUID, stable across edits of the same leg. */
   id: string
   from: GroundPlaceSnapshot
   to: GroundPlaceSnapshot
@@ -155,7 +133,6 @@ export interface RailLegInput {
   departureTime: string | null
   arrivalDate: string | null
   arrivalTime: string | null
-  /** Owner-entered minutes on the train; null lets the server derive a schedule duration when it can. */
   durationMinutes: number | null
 }
 
@@ -171,7 +148,6 @@ export interface RoadPointInput {
 interface JourneyFieldsInput {
   title: string | null
   note: string | null
-  /** Journey start/end; the start date decides year attribution. Unknown stays null. */
   startDate: string | null
   endDate: string | null
 }
@@ -179,10 +155,6 @@ interface JourneyFieldsInput {
 export type RailJourneyInput = JourneyFieldsInput & { mode: 'rail'; legs: RailLegInput[] }
 export type RoadJourneyInput = JourneyFieldsInput & { mode: 'road'; points: RoadPointInput[] }
 export type GroundJourneyInput = RailJourneyInput | RoadJourneyInput
-
-// ---------------------------------------------------------------------------
-// Mutation commands (one atomic, receipt-guarded write each)
-// ---------------------------------------------------------------------------
 
 export type GroundAction =
   | 'create'
@@ -193,11 +165,6 @@ export type GroundAction =
   | 'restore'
   | 'delete'
 
-/**
- * POST /api/ground-journeys (create) and PATCH|DELETE /api/ground-journeys/:id (everything else).
- * `countries` is the complete owner-confirmed list: required (possibly empty) whenever the result is
- * completed — create as completed, complete, and update of a completed journey — and forbidden otherwise.
- */
 export type GroundCommand =
   | {
       action: 'create'
@@ -232,35 +199,21 @@ export type GroundCommand =
 
 export type DerivedPublication = 'ready' | 'pending'
 
-/**
- * Mutation and replay response. `savedVersion` is what this operation committed; `current` is the journey
- * now (null when deleted or gone), so a replay never presents the current content as the original snapshot.
- */
 export interface GroundMutationResult {
   outcome: 'saved' | 'deleted'
   journeyId: string
   action: GroundAction
   savedVersion: number
-  /** Account revision recorded with the commit; publication is sufficient once published_revision >= it. */
   accountRevision: number
   derivedState: DerivedPublication
   replayed: boolean
   current: GroundJourneyDto | null
 }
 
-/** GET /api/ground-journeys/operations/:key. `unknown`: no receipt (never written, other owner or expired). */
 export type GroundOperationStatus =
   | ({ status: 'saved' | 'deleted' } & Omit<GroundMutationResult, 'outcome' | 'replayed'>)
   | { status: 'unknown'; operationKey: string }
 
-// ---------------------------------------------------------------------------
-// Owner DTOs
-// ---------------------------------------------------------------------------
-
-/**
- * `durationMinutes` is the stored effective duration. An editor must send it back only when
- * `durationSource` is 'manual'; echoing a 'schedule' value would turn it into a manual one.
- */
 export interface RailLegDto extends RailLegInput {
   durationSource: 'manual' | 'schedule' | null
   distanceKm: number | null
@@ -274,13 +227,10 @@ export interface Coverage {
 }
 
 export interface JourneyMetrics {
-  /** Straight-line sum between consecutive cities; null unless every segment has coordinates. */
   distanceKm: number | null
   distanceCoverage: Coverage
-  /** Rail only: sum of known on-train minutes (transfers excluded); coverage tells how many legs are known. */
   trainMinutes: number | null
   trainMinutesCoverage: Coverage | null
-  /** Road only: unique place identities including the start. */
   uniqueCities: number | null
 }
 
@@ -295,7 +245,6 @@ interface JourneyDtoBase {
   createdAt: string
   updatedAt: string
   confirmedAt: string | null
-  /** Owner-confirmed crossed countries; empty for plans and cancelled journeys. */
   countries: string[]
   metrics: JourneyMetrics
 }
@@ -307,12 +256,9 @@ export type GroundJourneyDto = RailJourneyDto | RoadJourneyDto
 export interface ModeTotals {
   journeys: number
   distanceKm: number
-  /** Journeys whose distance is fully known / all completed journeys of the mode. */
   distanceCoverage: Coverage
-  /** Rail: known on-train minutes and leg coverage. */
   trainMinutes: number | null
   trainMinutesCoverage: Coverage | null
-  /** Road: unique cities across completed itineraries. */
   uniqueCities: number | null
 }
 
@@ -324,21 +270,15 @@ export interface GroundJourneyList {
   publishedRevision: number
 }
 
-// ---------------------------------------------------------------------------
-// Metrics (pure; same rules in cards, map and totals)
-// ---------------------------------------------------------------------------
-
 const ll = (place: GroundPlaceSnapshot): LatLon | null =>
   coordinates({ lat: place.lat, lon: place.lon })
 
-/** One straight-line segment; null when either end lacks coordinates. Never 0 for unknown. */
 export function segmentKm(a: GroundPlaceSnapshot, b: GroundPlaceSnapshot): number | null {
   const from = ll(a)
   const to = ll(b)
   return from && to ? greatCircleKm(from, to) : null
 }
 
-/** Complete journey distance, rounded once; an unknown endpoint leaves the whole distance unknown. */
 export function journeyDistance(
   pairs: ReadonlyArray<readonly [GroundPlaceSnapshot | null, GroundPlaceSnapshot | null]>,
 ) {
@@ -358,7 +298,6 @@ export function journeyDistance(
   }
 }
 
-/** Minutes between two local times in IANA zones; null if anything needed is unknown or the result is implausible. */
 export function scheduleMinutes(leg: {
   departureDate: string | null
   departureTime: string | null
@@ -456,11 +395,9 @@ export function journeyMetrics(journey: GroundJourneyInput): JourneyMetrics {
   }
 }
 
-/** Year of a journey: its known start date only (a New Year trip counts once, in its start year). */
 export const journeyYear = (journey: { startDate: string | null }): number | null =>
   journey.startDate ? Number(journey.startDate.slice(0, 4)) : null
 
-/** Completed-only totals of one mode. Plans, cancelled journeys and local drafts never count. */
 export function modeTotals(
   journeys: GroundJourneyDto[],
   mode: GroundMode,
@@ -501,13 +438,8 @@ export function modeTotals(
   }
 }
 
-// ---------------------------------------------------------------------------
-// List order (page-flow contract "Списки")
-// ---------------------------------------------------------------------------
-
 export type ListGroup = 'upcoming' | 'past-plan' | 'undated-plan' | 'history' | 'cancelled'
 
-/** todayISO in the browser's zone (UTC fallback); the server uses the same value supplied by the client. */
 export function todayIso(timeZone?: string): string {
   try {
     return new Intl.DateTimeFormat('en-CA', {
@@ -544,10 +476,6 @@ type Sortable = Pick<GroundJourneyDto, 'id' | 'status' | 'startDate' | 'createdA
 const tieBreak = (a: Sortable, b: Sortable) =>
   b.createdAt.localeCompare(a.createdAt) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
 
-/**
- * Plans first (upcoming by nearest date, then past-dated plans newest first, then undated), then history
- * newest first with undated last; cancelled newest first with undated last. Ties: created_at DESC, id ASC.
- */
 export function compareJourneys(today: string) {
   return (a: Sortable, b: Sortable): number => {
     const ga = listGroup(a, today)

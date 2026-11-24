@@ -17,37 +17,22 @@ import { animate, useMotionValue, useMotionValueEvent, useReducedMotion } from '
 import { rubberBand } from './sheet-physics'
 import './swipe-actions.css'
 
-// Adapted from Arc "swipe-actions" (uiarc.dev, MIT, see ARC-LICENSE.txt): the pointer swipe on a row that reveals leading and trailing actions,
-// the 10px axis lock, the full-swipe commit of the outermost action, the release projection and the one-open-row group.
-// Dropped: the row collapse on commit, the built-in
-// "More actions" menu and haptics. Revealed actions are real 44px buttons that are hidden (visibility) until a swipe reveals them.
-//
-// A swipe is a shortcut, never the only path. Callers MUST also give every action here a menu path (a row menu, a context menu or the detail
-// sheet), because keyboard, screen reader and switch users cannot swipe and the revealed buttons are not reachable at rest.
-// Labels are caller copy (EN and RU). `onSelect` runs for a full swipe past the threshold and for a tap on a revealed button; the row then returns
-// home, so a caller that removes the item simply stops rendering it.
-
 export type SwipeAction = {
   label: string
   icon: ReactNode
-  /** Fill of the revealed action. A destructive action names the result in its label. */
   tone?: 'neutral' | 'accent' | 'danger'
   onSelect: () => void
 }
 
 export type SwipeActionsRowProps = {
-  /** Actions under the left edge, revealed by swiping right. The first one is outermost. */
   leading?: SwipeAction[]
-  /** Actions under the right edge, revealed by swiping left. The last one is outermost. */
   trailing?: SwipeAction[]
-  /** A long swipe commits the outermost action without a tap. On by default. */
   fullSwipe?: boolean
   children: ReactNode
   className?: string
 }
 
 type Side = 'leading' | 'trailing'
-/** Keeps one row open: claiming for a row closes whichever row held the claim before. */
 type Group = { claim: (id: string, close: () => void) => void; release: (id: string) => void }
 type Drag = {
   pointer: number
@@ -58,15 +43,10 @@ type Drag = {
   samples: [number, number][]
 }
 
-/** Width of one revealed action; also written to `--swipe-action-w`. */
 const ACTION_W = 80
-/** Movement before a press is read as a swipe or handed to the page as a scroll. */
 const SLOP = 10
-/** Seconds of travel projected from the release velocity. */
 const PROJECTION = 0.1
-/** Release speed in px/s that counts as a flick. */
 const FLICK = 900
-// Physical spring options retain release velocity; duration-based springs discard it.
 const SETTLE = {
   type: 'spring' as const,
   stiffness: 1000,
@@ -99,7 +79,6 @@ function velocityOf(samples: [number, number][]) {
   return elapsed > 0 ? (last[1] - first[1]) / elapsed : 0
 }
 
-/** Optional wrapper: only one row inside stays open at a time. Rows work on their own without it. */
 export function SwipeActions({
   children,
   className = '',
@@ -144,7 +123,6 @@ export function SwipeActionsRow({
   const canCommit = (side: Side) => fullSwipe && actionsOf(side).length > 0
   const threshold = (side: Side) => Math.max(openWidth(side) + 40, width.current * 0.5)
 
-  /** One value owns both pointer tracking and settling, so grabbing a spring keeps its current position. */
   const place = useCallback(
     (value: number, animated: boolean, velocity?: number) => {
       const side = sideOf(value)
@@ -183,7 +161,6 @@ export function SwipeActionsRow({
     [place],
   )
 
-  /** Moves the row to rest at `target` (0 or a signed open width). */
   const settle = useCallback(
     (target: number, velocity?: number) => {
       if (target === 0) {
@@ -206,7 +183,6 @@ export function SwipeActionsRow({
     action.onSelect()
   }
 
-  /** Past the commit distance the outermost action takes over the row; backing off disarms it. */
   const arm = (value: number) => {
     const side = sideOf(value)
     if (!side || !canCommit(side)) {
@@ -218,7 +194,6 @@ export function SwipeActionsRow({
     if (next !== armed.current) setArmed(next, side)
   }
 
-  /** Follows the finger 1:1 up to the reveal limit, then with rubber-band resistance. */
   const constrain = (raw: number) => {
     const side = sideOf(raw)
     if (!side) return 0
@@ -242,7 +217,6 @@ export function SwipeActionsRow({
     const projected = distance + outward * PROJECTION
     const flung =
       canCommit(side) && distance > reveal && outward > FLICK && projected > threshold(side)
-    // A flick back toward home cancels an armed full swipe.
     if (canCommit(side) && ((armed.current && outward > -FLICK) || flung)) {
       commit(side, outermost(side), velocity)
       return
@@ -276,7 +250,6 @@ export function SwipeActionsRow({
         current.locked = 'y'
         return
       }
-      // Measure from here, so crossing the slop never jumps the row.
       current.locked = 'x'
       x.stop()
       current.origin = x.get()
@@ -304,7 +277,6 @@ export function SwipeActionsRow({
       else release(velocityOf(current.samples))
       return
     }
-    // A tap on an open row closes it instead of acting on what is underneath.
     if (current.locked === null && Math.abs(x.get()) > 0.5) {
       swallowClick.current = true
       settle(0)
@@ -318,7 +290,6 @@ export function SwipeActionsRow({
     event.stopPropagation()
   }
 
-  // While open, a press outside the row or Escape puts it away.
   useEffect(() => {
     if (!open) return
     const onDown = (event: PointerEvent) => {

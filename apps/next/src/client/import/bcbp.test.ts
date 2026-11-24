@@ -10,7 +10,6 @@ interface Block {
   conditional?: string
 }
 
-// One 37-character leg block, laid out per Resolution 792, followed by its conditional section.
 function block({
   from = 'YUL',
   to = 'FRA',

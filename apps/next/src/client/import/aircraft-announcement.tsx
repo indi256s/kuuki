@@ -17,7 +17,6 @@ export function AircraftAnnouncement({
 }) {
   const summary = summarizeAircraftRun(locale, counts)
   const saved = (counts?.saved ?? 0) > 0
-  // Keep both regions mounted so each submission can update the appropriate live region.
   return (
     <>
       <p className={statusClassName} role="status">

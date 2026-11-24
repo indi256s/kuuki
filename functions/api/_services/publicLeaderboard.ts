@@ -18,11 +18,6 @@ export const leaderboardCategories = LEADERBOARD_CATEGORIES
 export type { LeaderboardCategory }
 export const isLeaderboardPeriod = (period: string) => period === 'all' || /^\d{4}$/.test(period)
 
-/**
- * Live consent re-check on cached rows (`lc`), so a member who leaves between rebuilds disappears at once.
- * Sky rows keep the five-flight gate; ground rows need all countries published (ADR 0007 refinement) and three
- * completed journeys, so deleting one hides the member before the next rebuild.
- */
 const READ_GATE = `FROM leaderboard_cache lc JOIN profiles p ON p.id = lc.user_id
     LEFT JOIN user_stats us ON us.user_id = lc.user_id ${derivedStateJoin('lc')}
     WHERE p.show_on_leaderboards = 1 AND p.is_public = 1 AND ${PUBLISHED_DERIVED_STATE}
@@ -31,8 +26,6 @@ const READ_GATE = `FROM leaderboard_cache lc JOIN profiles p ON p.id = lc.user_i
         AND (SELECT COUNT(*) FROM ground_journeys gj
              WHERE gj.user_id = lc.user_id AND gj.status = 'completed') >= ${GROUND_MIN_JOURNEYS}))`
 
-// Rank the live eligible set before pagination or selecting one member. Cache values stay published,
-// while places and percentiles reflect the participants visitors can currently see.
 const VISIBLE_BOARD = `SELECT lc.*, COUNT(*) OVER (PARTITION BY lc.category, lc.period) AS total,
     ROW_NUMBER() OVER (PARTITION BY lc.category, lc.period ORDER BY lc.value DESC, lc.id) AS pos,
     RANK() OVER (PARTITION BY lc.category, lc.period ORDER BY lc.value DESC) AS standing
@@ -48,7 +41,6 @@ function toVisibleLeaderboardEntry(row: Ranked) {
   })
 }
 
-/** All-time sky places shared by public profiles and authenticated owner reads. */
 export async function readProfileLeaderboardRankings(db: D1Database, userId: string) {
   const rows = await db
     .prepare(`WITH board AS (${VISIBLE_BOARD} AND lc.period = 'all' AND lc.category IN ${SKY_CATEGORY_SQL})
@@ -87,41 +79,28 @@ export async function readPublicLeaderboard(
 
 export type LeaderboardEntry = ReturnType<typeof toLeaderboardEntry>
 
-/** One category × period board: the top rows (rank ≤ 10, or everyone when 20 or fewer take part). */
 export interface LeaderboardBoardSlice {
   top: LeaderboardEntry[]
   total: number
 }
 
-/** The viewer's standing in one category × period. */
 export type ViewerPlace =
   | {
       state: 'ranked'
       entry: LeaderboardEntry
-      /** Up to two rows either side of the viewer, the viewer included, in board order. */
       neighbours: LeaderboardEntry[]
-      /** The nearest better rank and how much the viewer needs to reach it; null for the leader. */
       next: { entry: LeaderboardEntry; gap: number } | null
     }
-  /** Not enough flights (sky) or completed journeys (ground) yet. */
   | { state: 'progress'; have: number; need: number }
-  /** Ground only: enough journeys, but the Passport does not publish all countries. */
   | { state: 'blocked' }
-  /** Recent changes are still being published; `entry` is the last published place, if any. */
   | { state: 'pending'; entry: LeaderboardEntry | null }
-  /** Private profile or leaderboard participation off. */
   | { state: 'off' }
-  /** Eligible, but no place here (nothing in this category or year, or the next rebuild has not run). */
   | { state: 'unranked' }
 
 export type LeaderboardBoardPayload = Awaited<ReturnType<typeof readLeaderboardBoard>>
 
 const TOP_RANK = 10
 
-/**
- * The whole leaderboard page in one read: every category × period (`all` and the current UTC year) and, for a
- * signed-in viewer, their place, neighbourhood and gap in each. The page switches category and period locally.
- */
 export async function readLeaderboardBoard(
   db: D1Database,
   viewerId: string | null,
@@ -153,11 +132,9 @@ export async function readLeaderboardBoard(
            WHERE p.id = ?`,
         )
         .bind(viewerId),
-      // Own rows without the live gate: a pending viewer still sees the last published place.
       db
         .prepare(`SELECT * FROM leaderboard_cache WHERE user_id = ? AND period IN ('all', ?)`)
         .bind(viewerId, year),
-      // The viewer ±2 by board position, plus the nearest better rank when it lies further up (ties).
       db
         .prepare(
           `WITH board AS (${board}),
@@ -264,7 +241,6 @@ export async function readLeaderboardBoard(
   return { year, periods: [...periods], boards, viewer, updatedAt: summary?.updated_at ?? null }
 }
 
-/** Private status for the authenticated owner. Competition rules remain the existing 5-flight gate. */
 export async function readOwnLeaderboardEligibility(db: D1Database, ownerId: string) {
   const rows = await db.batch([
     db.prepare('SELECT is_public, show_on_leaderboards FROM profiles WHERE id = ?').bind(ownerId),
@@ -287,7 +263,6 @@ export async function readOwnLeaderboardEligibility(db: D1Database, ownerId: str
   }
 }
 
-/** Authenticated owner's current published all-time place, even outside the public first page. */
 export async function readOwnLeaderboardRank(
   db: D1Database,
   ownerId: string,

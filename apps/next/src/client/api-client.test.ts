@@ -66,7 +66,6 @@ it.each(['mutation', 'response'] as const)(
         kind === 'mutation'
           ? api.patch('/api/flights/old', { notes: 'from A' })
           : api.getResponse('/api/me/overview/data')
-      // The peer broadcast has not arrived, so this tab's auth generation is unchanged.
       document.cookie = 'kuuki_csrf=account-b; path=/'
       releaseLock()
       await expect(mutation).rejects.toMatchObject({ name: 'AbortError' })

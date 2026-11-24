@@ -11,17 +11,14 @@ import { S, STAGE_KEY, count, progressLabel, tx } from './copy'
 import type { Batch, BatchStage, Draft } from './import-types'
 
 const ORDER: BatchStage[] = ['accepted', 'recognizing', 'validating', 'review_ready']
-/** The stages shown; `review_ready` is the hand-off to the review page, not a step of its own. */
 export const SHOWN = ORDER.slice(0, 3)
 export type StageState = 'done' | 'active' | 'pending'
-/** Where the shown stage at `position` stands while the batch is at `stage`. */
 export function stageState(position: number, stage: BatchStage | null): StageState {
   if (stage === 'accepted') return position === 0 ? 'done' : 'pending'
   const index = ORDER.indexOf(stage ?? 'accepted')
   return position < index ? 'done' : position === index ? 'active' : 'pending'
 }
 
-/** Spoken progress: every stage change at once, found counts at most every few seconds, and the last one when it settles. */
 function useAnnouncement(stage: BatchStage | null, found: number, locale: Locale): string {
   const [text, setText] = useState('')
   const announcer = useRef(new Announcer(3000))
@@ -70,7 +67,6 @@ export function ProgressStep({
 }) {
   const stage = batch ? (batch.stage ?? 'accepted') : null
   const announcement = useAnnouncement(stage, drafts.length, locale)
-  // The shell's runs exist only where the job worker is bound: there the dock carries the batch once this page is left.
   const bound = useImportRunsStore() !== null
   return (
     <section className="import-progress" aria-labelledby="import-progress-title">

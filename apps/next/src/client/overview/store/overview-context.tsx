@@ -50,7 +50,6 @@ const savePrefs: Saver = (prefs, signal) =>
   )
 type Lifetime = { active: boolean; generation: number; controllers: Set<AbortController> }
 
-/** Cancels the debounce and forgets the unsent change; the in-flight write, if any, is the caller's. */
 function dropPendingSave(save: {
   timer: ReturnType<typeof setTimeout> | undefined
   pending: OverviewPrefs | null
@@ -152,7 +151,6 @@ function useController({
       lifetime.generation = generation
       dropPendingSave(runtime)
       for (const controller of lifetime.controllers) controller.abort()
-      // Keep the write slot until settlement: abort does not undo an accepted UPDATE.
     }
     return lifetime
   }, [runtime])
@@ -233,7 +231,6 @@ function useController({
     if (!live || !initial || store.get()?.etag === initial.etag || !currentLifetime()) return
     let active = true
     void store.revalidate().then(() => {
-      // A refresh already in flight may predate this server publication.
       if (active && currentLifetime() && store.get()?.etag !== initial.etag) void store.revalidate()
     })
     return () => {
@@ -306,7 +303,6 @@ function useController({
       }, 800)
     }
     runtime.schedule = schedule
-    // Leaving for another page unmounts the saver; send a pending change now so the next visit reads it.
     runtime.flush = async () => {
       const deadline = Date.now() + 2000
       clearTimeout(runtime.timer)

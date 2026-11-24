@@ -36,7 +36,6 @@ function Thumb({ file }: { file: File }) {
     )
   return (
     <span className={styles.thumb}>
-      {/* Object URLs stay local and are revoked on replacement/unmount. */}
       {/* oxlint-disable-next-line @next/next/no-img-element */}
       <img
         ref={imageRef}
@@ -50,10 +49,6 @@ function Thumb({ file }: { file: File }) {
   )
 }
 
-// Arc FileDropzone, MIT (../ui/ARC-LICENSE.txt), manually adapted from https://uiarc.dev/r/file-dropzone.json.
-// Keep its selection/thumbnail/removal, sheet-stack composition, drag-depth and clipboard lifecycle;
-// Kuuki owns validation/submission. motion/react is omitted. By default it picks one document and lists it;
-// `multiple` hands every picked or dropped file to the caller, which renders its own per-file rows.
 export function FileDropzone({
   file = null,
   accept,
@@ -71,11 +66,8 @@ export function FileDropzone({
   disabled: boolean
   locale: Locale
   onFilesChange: (files: File[]) => void
-  /** Several files per pick or drop; the dropzone then lists nothing, the caller owns the rows. */
   multiple?: boolean
-  /** Take an image pasted anywhere on the page. A page with other paste targets turns it off. */
   paste?: boolean
-  /** Replace the default title, hint and note. `note: null` removes the note line. */
   title?: string
   hint?: string
   note?: string | null

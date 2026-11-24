@@ -1,6 +1,3 @@
-// Isle of Man: the Laxey Wheel. A tall spoked iron wheel with a double rim and bucket ticks,
-// standing on a stone pier, with a masonry stair tower beside it and a walkway running from the
-// tower top to the rim. The box bottom is the ground; the wheel fills the right two thirds.
 import {
   type Pt,
   type SvgNode,
@@ -27,7 +24,6 @@ export const waterWheelC: KitModule = ([x, y, w, h], p) => {
   const r = Math.min(h / 2, w * 0.3)
   const cx = x + w * num(p, 'axis', 0.62)
   const cy = base - r - 1
-  // stair tower on the left, rising to about the height of the rim top
   const tw = w * 0.17
   const tx = cx - r - tw - w * 0.1
   const tTop = cy - r * 0.92
@@ -46,7 +42,6 @@ export const waterWheelC: KitModule = ([x, y, w, h], p) => {
   }
   out.push(...body(rectPts(tx - 1.5, tTop - 3, tw + 3, 3), 'hair'))
   out.push(fill(rectPts(tx + tw * 0.3, base - 8, 3, 8)))
-  // walkway from the tower top to the rim top
   const wy = tTop - 3
   const wx1 = cx - r * 0.1
   const wy1 = cy - r - 1.5
@@ -62,7 +57,6 @@ export const waterWheelC: KitModule = ([x, y, w, h], p) => {
       [wx1, wy1 + 2.4],
     ]),
   )
-  // stone pier under the axle
   const disc = ring(cx, cy, r)
   out.push(occlude(disc, { halo: 2 }))
   const pierW = r * 0.34
@@ -74,7 +68,6 @@ export const waterWheelC: KitModule = ([x, y, w, h], p) => {
   ]
   out.push(...body(pier, 'line'))
   out.push(...toneFill(pier, 'T4', { inset: 0.4 }))
-  // rim, bucket ticks, spokes, hub
   out.push(stroke('line', disc, true), stroke('hair', ring(cx, cy, r - 4.2), true))
   for (let i = 0; i < 24; i++) {
     const a = (i / 24) * Math.PI * 2
@@ -95,7 +88,6 @@ export const waterWheelC: KitModule = ([x, y, w, h], p) => {
     )
   }
   out.push(fill(ring(cx, cy, 3.6, 14)))
-  // low retaining wall at the foot
   out.push(...body(rectPts(tx - 4, base - 4, cx + r + 6 - (tx - 4), 4), 'hair'))
   out.push(hline('bold', tx - 4, cx + r + 6, base))
   void quad

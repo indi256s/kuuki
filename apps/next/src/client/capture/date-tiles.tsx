@@ -1,15 +1,14 @@
 'use client'
 import { useId, useState, type Ref } from 'react'
+import { CircleAlert } from '@keyline-icons/react'
 import { Calendar } from '../ui/calendar'
 import type { Locale } from '../../lib/format'
 
-/** The device's local calendar day, `offset` days from now, as YYYY-MM-DD. */
 export function localDay(offset = 0, now = new Date()) {
   const day = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset)
   return `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`
 }
 
-/** "Sun 11 Oct" / «вс 11 окт», plus the year, from Intl parts so the order does not follow en-US. */
 const formatters = new Map<Locale, Intl.DateTimeFormat>()
 export function dayParts(locale: Locale, day: string) {
   let formatter = formatters.get(locale)
@@ -41,10 +40,6 @@ const validDay = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value)
 
 type DateChoice = 'today' | 'yesterday' | 'other'
 
-/**
- * Departure date as three native radios: Today, Yesterday, Other. Nothing is checked until the member picks; a relative
- * tile is checked only while its date equals the stored value, so a restored entry keeps its exact day under Other.
- */
 export function DateTiles({
   value,
   onChange,
@@ -66,7 +61,6 @@ export function DateTiles({
   const ru = locale === 'ru'
   const today = localDay(0)
   const yesterday = localDay(-1)
-  // Other picked before a day is chosen. Picking it also opens the month grid.
   const [pickedOther, setPickedOther] = useState(false)
   const choice: DateChoice | null =
     value === today
@@ -97,7 +91,6 @@ export function DateTiles({
   const pick = (key: DateChoice) => {
     if (key === 'other') {
       setPickedOther(true)
-      // Leaving a relative day for Other starts the calendar empty rather than on that day.
       if (value === today || value === yesterday) onChange('')
       return
     }
@@ -144,7 +137,8 @@ export function DateTiles({
       ) : (
         error && (
           <p id={errorId} role="alert">
-            {error}
+            <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+            <span>{error}</span>
           </p>
         )
       )}

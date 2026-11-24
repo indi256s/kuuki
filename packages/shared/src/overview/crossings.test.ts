@@ -80,7 +80,6 @@ it('ignores latitude tangency, endpoint contact and coincident equator arcs', ()
 })
 
 it('uses the deterministic antipodal arc for geometric counts', () => {
-  // The existing fallback from the north pole follows longitude 0 through the equator.
   expect(crossings([row()], route([90, 0], [-90, 0]))).toMatchObject({
     status: 'ready',
     value: { equator: 3, arcticCircle: 3, antarcticCircle: 3, dateLine: 0 },

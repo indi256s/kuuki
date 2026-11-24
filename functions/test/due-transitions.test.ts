@@ -1,5 +1,3 @@
-// T09 / ADR 0001 §2 and §8: the one due-transition function (upcoming -> awaiting -> automatic), the owner sync
-// contract (R1, A9), the revision guard, per-user caps with the stored deadline as the cursor, and A6's boundaries.
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { apiContext, csrfRequest } from './harness'
 import {
@@ -202,7 +200,7 @@ describe('applyDueTransitions', () => {
         await dirtyUserStatement(raw, USER.id).run()
       })
       const first = await applyDueTransitions(db, { userId: USER.id, now: NOW })
-      expect(first).toEqual({ awaited: 1, autoConfirmed: 0, synced: 1, more: true }) // the move to awaiting is unguarded, the confirm lost the race
+      expect(first).toEqual({ awaited: 1, autoConfirmed: 0, synced: 1, more: true })
       expect((await lifecycleOf(raw, 1))!.lifecycle_state).toBe('awaiting')
       await publish(raw)
       expect(await applyDueTransitions(db, { userId: USER.id, now: NOW })).toEqual({
@@ -237,7 +235,7 @@ describe('applyDueTransitions', () => {
           .prepare("SELECT id FROM flights WHERE lifecycle_state = 'upcoming' ORDER BY id")
           .all<{ id: number }>()
       ).results.map((r) => r.id)
-      expect(left).toEqual(Array.from({ length: 20 }, (_, i) => DUE_TRANSITION_LIMIT + i + 1)) // the newest deadlines wait
+      expect(left).toEqual(Array.from({ length: 20 }, (_, i) => DUE_TRANSITION_LIMIT + i + 1))
       expect(await applyDueTransitions(db, { userId: USER.id, now: NOW })).toEqual({
         awaited: 20,
         autoConfirmed: 0,
@@ -249,7 +247,7 @@ describe('applyDueTransitions', () => {
           .prepare('SELECT awaiting_after FROM flights ORDER BY id')
           .all<{ awaiting_after: string }>()
       ).results.map((r) => r.awaiting_after)
-      expect(deadlines).toEqual(flights.map((f) => f.awaitingAfter)) // nothing was recomputed
+      expect(deadlines).toEqual(flights.map((f) => f.awaitingAfter))
     } finally {
       await dispose()
     }
@@ -318,7 +316,6 @@ describe('owner sync (R1) and A9', () => {
         published_revision: body.revision,
         evidence_revision: body.revision,
       })
-      // Nothing due: a quiet call reports zeros and does not touch the publication.
       expect(await (await syncRoute(syncCtx(db))).json()).toEqual({
         synced: 0,
         awaited: 0,
@@ -354,7 +351,7 @@ describe('owner sync (R1) and A9', () => {
       expect(await states(db)).toMatchObject([
         { id: 1, s: 'upcoming' },
         { id: 2, s: 'upcoming' },
-      ]) // nothing moved without the sync
+      ])
       await syncRoute(syncCtx(db))
       expect(await states(db)).toMatchObject([
         { id: 1, s: 'awaiting' },
@@ -405,7 +402,7 @@ describe('owner sync (R1) and A9', () => {
       expect(await states(db)).toMatchObject([
         { id: 1, s: 'awaiting' },
         { id: 2, s: 'upcoming' },
-      ]) // the other member is untouched
+      ])
     } finally {
       await dispose()
     }

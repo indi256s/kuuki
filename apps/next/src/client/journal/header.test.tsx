@@ -31,7 +31,6 @@ function setup(overrides: Partial<JournalHeaderProps> = {}) {
   return { props, ...render(<JournalHeader {...props} />) }
 }
 
-// SlotText keeps the real value in a hidden span; the rolling columns are aria-hidden decoration.
 const values = (container: HTMLElement) =>
   [...container.querySelectorAll('.ui-slot-text-value')].map((node) => node.textContent)
 
@@ -141,7 +140,6 @@ it('counts down to the next flights and opens one', async () => {
     <NextUp flights={[upcoming, ...later]} refs={refs} locale="en" onOpen={onOpen} />,
   )
   expect(screen.getByRole('heading', { level: 2, name: 'Next up' })).toBeInTheDocument()
-  // The lead's split-flap count is settled on first render; the departure time is shown only when recorded.
   const digits = [...container.querySelectorAll('.split-flap-digit')]
   expect(digits.map((node) => node.textContent)).toEqual(['1', '2'])
   expect(digits.some((node) => node.hasAttribute('data-flip'))).toBe(false)
@@ -152,7 +150,6 @@ it('counts down to the next flights and opens one', async () => {
   expect(
     screen.getByRole('button', { name: /Tbilisi \(TBS\) to IST, Oct 21, 2026, TK381, in 12 days/ }),
   ).toBeInTheDocument()
-  // Later flights: quieter, one named button each; tomorrow is a word, a next-year date carries its year.
   expect(screen.getByText('Tomorrow')).toBeInTheDocument()
   expect(screen.getByText('JFK → Tbilisi')).toBeInTheDocument()
   expect(screen.getByText(/Sat, Jan 2, 2027/)).toBeInTheDocument()
@@ -211,7 +208,6 @@ it('flips the count in when it arrives after hydration', async () => {
   const container = document.createElement('div')
   container.innerHTML = renderToString(ui)
   document.body.appendChild(container)
-  // The server knows no today, so its markup has dates but no count.
   expect(container.querySelector('.split-flap-cell')).toBeNull()
   await act(async () => {
     render(ui, { container, hydrate: true })

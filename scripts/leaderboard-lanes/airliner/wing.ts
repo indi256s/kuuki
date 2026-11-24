@@ -1,10 +1,8 @@
-// The main wing: one half with its upper-skin seams and wingtip devices, the one-piece high wing, flap-track fairings.
 import { smooth, stations, tan, type Airframe } from './airframe'
 import type { Item, Lines } from './model'
 import { dihedralUp, foil, foilAt, oriented, revolve, vChord, type Draw, type Foil } from './draw'
 import type { Surface } from './surface'
 
-// The main wing, one side (sg = +1 near, −1 far).
 const wingFoil = (a: Airframe, sg: number): Foil => {
   const { g, high, y0, wingEnd, wingZ, tanD, leAt, teAt, tau, skinY, kink, rake } = a
   const wg = g.wing,
@@ -17,7 +15,6 @@ const wingFoil = (a: Airframe, sg: number): Foil => {
     le: (t) => leAt(Math.max(yAt(t), y0)),
     te: (t) => {
       const y = yAt(t)
-      // Raked and pointed tips: keep a sliver of chord so the tip closes as an edge, not a point.
       return Math.max(teAt(Math.max(y, y0)), leAt(Math.max(y, y0)) + 0.06)
     },
     tau: (t) => tau(yAt(t)),
@@ -36,12 +33,6 @@ const wingFoil = (a: Airframe, sg: number): Foil => {
   }
 }
 
-/**
- * A wingtip device rising (or dropping) from the wing end: a cubic from the end chord, leaving it level, to the blade
- * tip `h` above (below) it and `reach` outboard, arriving at `cant` from vertical. The upper blade's reach takes it
- * to half span (SCHEMA.md: from `rootY`, else the lean `height·tan(cant)`); `blend` is the share of the reach run
- * level before it turns (0: a fence, straight up).
- */
 const tipDevice = (
   a: Airframe,
   sg: number,
@@ -61,7 +52,6 @@ const tipDevice = (
   const P2: [number, number] = [reach - 0.35 * h * tanCant, (blend > 0 ? 0.65 : 2 / 3) * h]
   const P3: [number, number] = [reach, h]
   const pathAt = (t: number): [number, number, number, number] => {
-    // Returns y, z and the unit tangent (ty, tz) along the device, from the wing end.
     const m = 1 - t
     const y = 3 * m * m * t * P1[0] + 3 * m * t * t * P2[0] + t * t * t * P3[0]
     const z = 3 * m * m * t * P1[1] + 3 * m * t * t * P2[1] + t * t * t * P3[1]
@@ -78,12 +68,10 @@ const tipDevice = (
       return [sg * y, z]
     },
     le,
-    // The chord shrinks to chordTipFrac at the blade tip.
     te: (t) => le(t) + c0 * (1 - (1 - chordTipFrac) * smooth(t * 1.15)),
     tau: (t) => 0.1 - 0.02 * t,
     up: (t) => {
       const [, , ty, tz] = pathAt(t)
-      // Thickness lies across the blade: the tangent turned a quarter, toward the inboard/top side.
       return [-sg * tz * dir, ty * dir]
     },
     rows: 18,
@@ -115,13 +103,11 @@ const devices = (a: Airframe, sg: number): Surface[] => {
   }
 }
 
-// Upper-skin seams on either wing: the slat line along the leading edge, the flap and aileron hinge line, spoilers.
 const wingSeams = (a: Airframe, d: Draw, wl: Surface): Lines[] => {
   const { y0, wingEnd, tipY } = a
   const span = (y: number) => (y - y0) / (wingEnd - y0)
   const ail = span(y0 + (tipY - y0) * 0.7)
   const end = Math.min(span(tipY), 1)
-  // Each line runs out to the root, the tip or the aileron's end ticks, and the ticks run back to the trailing edge.
   const out: Lines[] = [
     d.seam(wl, 60, (t) => [t * end, vChord(0.12)], 'faint'),
     d.seam(wl, 40, (t) => [t * ail, vChord(0.74)]),
@@ -134,7 +120,6 @@ const wingSeams = (a: Airframe, d: Draw, wl: Surface): Lines[] => {
   return out
 }
 
-/** One half of the main wing with its upper-skin seams, then its wingtip devices in livery. */
 export function wing(a: Airframe, d: Draw, sg: number): Item[] {
   const wl = foil(wingFoil(a, sg))
   return [
@@ -143,7 +128,6 @@ export function wing(a: Airframe, d: Draw, sg: number): Item[] {
   ]
 }
 
-/** The high wing spans both sides in one piece, on the crown. */
 export function highWing(a: Airframe, d: Draw): Item {
   const { wingEnd, wingZ, leAt, teAt, tau } = a
   const yAt = (t: number) => -wingEnd + 2 * wingEnd * t
@@ -161,13 +145,9 @@ export function highWing(a: Airframe, d: Draw): Item {
     rows: 60,
   }
   const wS = foil(both)
-  return d.solid(wS, 'body', [
-    // The flap and aileron hinge line, tip to tip across the crown.
-    d.seam(wS, 120, (t) => [t, vChord(0.74)]),
-  ])
+  return d.solid(wS, 'body', [d.seam(wS, 120, (t) => [t, vChord(0.74)])])
 }
 
-// Canoe fairings under the trailing edge, standing out behind it: three a side on the jets (estimated stations).
 export function flapFairings(a: Airframe, d: Draw, sg: number): Item[] {
   const { high, y0, tipY, leAt, chordAt, wingZ, tau, teAt } = a
   if (high) return []

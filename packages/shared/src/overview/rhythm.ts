@@ -72,7 +72,6 @@ export function rhythm(
         to: monthLabel(occupied[i] - 1),
       }
   }
-  // Legacy cells accept month prefixes; odometer evidence requires real calendar dates.
   const dated = rows.filter((row) => calendarDay(row.date) !== null)
   const odometer: Rhythm['odometer'] = []
   let km = 0

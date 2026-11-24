@@ -1,6 +1,3 @@
-// Pico Cao Grande: a narrow, near-vertical volcanic needle rising out of a forested mound. The
-// spire is a lit left face and a fluted shaded right face under a rounded crown; the mound is a
-// dark scalloped treeline with a few paler crowns. The box bottom is the foot of the forest.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, hline, occlude, quad, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
@@ -25,7 +22,6 @@ export const volcanicPlug: KitModule = ([x, y, w, h], p) => {
   }
   const crown = quad(left[0], [cx + lean, y - 1.5], right[0], 8)
   const spire: Pt[] = [...left.slice().reverse(), ...crown.slice(1), ...right.slice(1)]
-  // Mound outline.
   const mound: Pt[] = [[x, base]]
   for (let i = 0; i <= 28; i++) {
     const t = i / 28
@@ -38,7 +34,6 @@ export const volcanicPlug: KitModule = ([x, y, w, h], p) => {
   mound.push([x + w, base])
   const out: SvgNode[] = [occlude([...spire]), occlude(mound)]
   out.push(stroke('line', spire))
-  // Shaded right face with fall-line hatching, left stays lit with a few flutes.
   const shade: Pt[] = [
     [cx + lean * 0.9 + 0.4, y + 3],
     ...right,
@@ -60,7 +55,6 @@ export const volcanicPlug: KitModule = ([x, y, w, h], p) => {
     )
   }
   out.push(hline('hair', left[1][0] + 1, right[1][0] - 1, y + 11))
-  // Forest mound: hatched along the fall, dark.
   out.push(
     ...toneFill(
       [

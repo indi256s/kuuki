@@ -1,4 +1,3 @@
-/** Explicit-target read-only Cloudflare CLI D1 adapter. No caller-provided SQL CLI option. */
 import { execFileSync } from 'node:child_process'
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -39,7 +38,6 @@ database_id = "${databaseId}"
   )
   return {
     async read(sql) {
-      // These are fixed internal SELECT/PRAGMA templates, not an external query API.
       if (
         !/^\s*(SELECT|PRAGMA)\b/i.test(sql) ||
         /;|--|\/\*|\*\/|\0/.test(sql) ||

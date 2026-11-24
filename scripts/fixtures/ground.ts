@@ -1,10 +1,8 @@
-// Ground journeys seeded through the API for a@example.test; `request` is the harness fetch against the Worker.
 type GroundRequest = (
   path: string,
   init: { method: string; headers: Record<string, string>; body: string },
 ) => Promise<{ status: number; text(): Promise<string> }>
 
-// [id, name, ISO country, lon, lat]: GeoNames-shaped snapshots the journeys API accepts as given.
 const GROUND_PLACES = {
   paris: ['2988507', 'Paris', 'FR', 2.3522, 48.8566],
   frankfurt: ['2925533', 'Frankfurt', 'DE', 8.6821, 50.1109],

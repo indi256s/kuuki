@@ -1,7 +1,3 @@
-// Build-time sailing-yacht artwork for the "By sea" way. Same pinned anatomy kit, surface renderer, materials and
-// serializer as the car and the airliners; the camera is the car's (derived from LaneScene), so the waterline sits on
-// the lane's level ground. Sails are their own light ramp (--ays*), which stays bright in dark; everything else is the
-// shared `--a*` ramps, and the one accent is the boot stripe (--lane-livery), echoed by the masthead burgee.
 import { roundedUV, type Draw } from '../airliner/draw'
 import { loadKit } from '../airliner/kit'
 import { laneCamera } from '../lane-camera'
@@ -48,7 +44,6 @@ const ellipse = (a: number, b: number, ra: number, rb: number, n = 28): Pt[] =>
     a + ra * Math.cos((i * 2 * Math.PI) / n),
     b + rb * Math.sin((i * 2 * Math.PI) / n),
   ])
-/** Gives a surface the side that faces `hint`. */
 const facing = (s: Surface, hint: V3, u = 0.5, v = 0.5): Surface => ({
   ...s,
   flip: dot(normalAt({ ...s, flip: false }, u, v), hint) < 0,
@@ -73,7 +68,6 @@ export function yacht(d: Draw): Piece[] {
     tag?: Tag,
   ) => push(solid(s, mat, inner, edge), tag)
 
-  // ---- primitives
   const quad = (p0: V3, p1: V3, p2: V3, p3: V3, out: V3, flip = false): Surface =>
     facing(
       {
@@ -89,7 +83,6 @@ export function yacht(d: Draw): Piece[] {
       },
       out,
     )
-  /** An axis-aligned block in boat coordinates; only the faces the camera can see are drawn. */
   const box = (
     a0: number,
     a1: number,
@@ -111,7 +104,6 @@ export function yacht(d: Draw): Piece[] {
     for (const [p, o, m] of faces)
       if (dot(o, cam.V) > 0.02) push(solid(quad(p[0], p[1], p[2], p[3], o), m, [], edge))
   }
-  /** A band between two polylines, over a run of stations. */
   const ribbon = (
     f: (a: number) => [V3, V3],
     a0: number,
@@ -177,7 +169,6 @@ export function yacht(d: Draw): Piece[] {
     }
     fill(pts, mat, edge, width, tag)
   }
-  /** A flat shape lying on the deck: points in (a, y). */
   const onDeck = (pts: Pt[], mat: Mat, edge: Ink = 'seam', width = 0.2, lift = 0.012) =>
     fill(
       pts.map(([a, y]) => at(a, y, deckZ(a, y) + lift)),
@@ -214,7 +205,6 @@ export function yacht(d: Draw): Piece[] {
   const railZ = 0.62
   const cockpit = { a0: 0.9, a1: 3.45 }
 
-  // ============================================================== water cue under everything
   {
     const ring = (sg: number, grow: number) =>
       sample(60, (t) => {
@@ -240,19 +230,15 @@ export function yacht(d: Draw): Piece[] {
     fill([...ring(-1, 0.1), [tip[0] + 0.1, 0, 0], ...ring(1, 0.1).reverse()], 'shadow')
   }
 
-  // ============================================================== stern: swim platform and ladder
   box(-0.42, 0.28, -0.82, 0.82, 0.19, 0.26, 'metal', 'metal', 0.22)
   for (const y of [-0.55, -0.28, 0, 0.28, 0.55])
     line([at(-0.4, y, 0.262), at(0.26, y, 0.262)], 'faint', 0.12)
-  // The ladder is folded up against the transom, rails ending on the platform edge and on the top bracket.
   for (const y of [0.5, 0.74]) {
     line([at(-0.07, y, 0.27), at(-0.07, y, 0.84)], 'line', 0.34)
   }
   for (const z of [0.4, 0.56, 0.72]) line([at(-0.07, 0.5, z), at(-0.07, 0.74, z)], 'seam', 0.28)
 
-  // ============================================================== deck (far side first)
   part(deck, 'metal', [], 0.4)
-  // Deck non-skid panels: closed shapes lying on the deck.
   onDeck(
     [
       [0.7, -1.15],
@@ -264,7 +250,6 @@ export function yacht(d: Draw): Piece[] {
     'faint',
     0.1,
   )
-  // Toe rail along both sheers (far first; the near one comes after the near hull).
   const toe = (sg: number) => {
     const f = (a: number): [V3, V3] => {
       const p = sideAt(a, 1, sg)
@@ -311,7 +296,6 @@ export function yacht(d: Draw): Piece[] {
   for (const a of stanchionAs) stanchion(a, -1)
   lifelines(-1)
 
-  // Chainplates and the far shrouds run behind the mast and sails.
   const chain = [5.8, 6.15, 6.5]
   const chainpoint = (a: number, sg: number): V3 => {
     const y = sg * (hb(a) - 0.09)
@@ -341,7 +325,6 @@ export function yacht(d: Draw): Piece[] {
   ]
   const shrouds = (sg: number) => {
     const mastAt = (z: number, off = 0): V3 => [at(MAST.a, 0, 0)[0] + off, 0, z]
-    // Cap shroud: masthead, over both spreader tips, to the aft chainplate.
     line(
       [
         mastAt(12.5, 0.01),
@@ -352,9 +335,7 @@ export function yacht(d: Draw): Piece[] {
       'faint',
       0.24,
     )
-    // Intermediate: from just above the upper spreader, to the lower tip, to the middle chainplate.
     line([mastAt(8.7, 0.01), spreaderTip(LOW_SPREADER, sg), chainpoint(chain[1], sg)], 'faint', 0.2)
-    // Lower: from below the lower spreader to the forward chainplate.
     line([mastAt(4.3, 0.01), chainpoint(chain[0], sg)], 'faint', 0.22)
   }
   for (const a of chain) chainTab(a, -1)
@@ -364,8 +345,6 @@ export function yacht(d: Draw): Piece[] {
     line([[at(MAST.a, 0, 0)[0] - 0.02, 0, z], tip], 'line', 0.34)
   }
 
-  // ============================================================== foredeck
-  // Hatch, anchor on its roller, cleats.
   onDeck(
     [
       [8.72, -0.27],
@@ -412,7 +391,6 @@ export function yacht(d: Draw): Piece[] {
   cleat(3.9, -1.5)
   cleat(0.9, 1.2)
   cleat(0.9, -1.2)
-  // Stem head fitting and anchor roller, with a plough anchor lying in it.
   box(10.2, 11.12, -0.05, 0.05, deckZ(10.4, 0) - 0.02, deckZ(10.4, 0) + 0.06, 'metal', 'metal', 0.2)
   {
     const z = deckZ(10.6, 0) + 0.075
@@ -431,7 +409,6 @@ export function yacht(d: Draw): Piece[] {
     line([at(10.95, 0, z), at(10.6, 0, z)], 'faint', 0.1)
   }
 
-  // ============================================================== cockpit
   {
     const { a0, a1 } = cockpit
     const soleZ = 0.54
@@ -443,12 +420,9 @@ export function yacht(d: Draw): Piece[] {
     )
     for (let a = a0 + 0.22; a < a1; a += 0.22)
       line([at(a, -0.5, soleZ + 0.004), at(a, 0.5, soleZ + 0.004)], 'faint', 0.1)
-    // Stern seat across the transom, the bridge deck step at the companionway.
     box(0.55, a0 + 0.05, -1.26, 1.26, 0.5, 0.96, 'body', 'metal', 0.28)
-    // Far seat and far coaming.
     box(a0, a1, -1.12, -0.52, 0.54, 0.9, 'body', 'metal', 0.26)
     box(a0 - 0.1, a1 + 0.05, -1.28, -1.12, 0.62, 1.2, 'body', 'metal', 0.28)
-    // Locker lids on the seats.
     for (const sg of [-1, 1]) {
       for (const [x0, x1] of [
         [1.1, 1.9],
@@ -470,7 +444,6 @@ export function yacht(d: Draw): Piece[] {
         true,
       )
     }
-    // Pedestal and wheel, standing on the sole.
     const base: V3 = at(1.65, 0, soleZ)
     {
       const F = G.frameAlong(base, [0, 0, 1])
@@ -494,7 +467,6 @@ export function yacht(d: Draw): Piece[] {
           0.24,
         ),
       )
-      // Compass dome.
       push(kitSolid(G.disc(0, 0.04, 0.1, F, P, { steps: 20 }), 'rubber', [], 0.14))
     }
     const hub = at(1.62, 0, 1.3)
@@ -505,16 +477,12 @@ export function yacht(d: Draw): Piece[] {
       line([G.pointOf(WF, 0.004, 0.06, ang), G.pointOf(WF, 0.004, 0.335, ang)], 'line', 0.42)
     }
     push(kitSolid(G.disc(-0.03, 0.04, 0.075, WF, P, { steps: 20 }), 'metal', [], 0.22))
-    // Near seat and near coaming; winches stand on the coaming cap.
     box(a0, a1, 0.52, 1.12, 0.54, 0.9, 'body', 'metal', 0.26)
     box(a0 - 0.1, a1 + 0.05, 1.12, 1.28, 0.62, 1.2, 'body', 'metal', 0.3)
-    // A step across the companionway and the traveller track on the bridge deck.
     box(a1, a1 + 0.2, -1.0, 1.0, 0.7, 0.98, 'body', 'metal', 0.26)
   }
 
-  // ============================================================== coachroof
   part(cabin, 'body', [], 0.5)
-  // Cabin side windows: rubber frame, then glass inset, each an area on the roof skin.
   const roofPatch = (
     a: number,
     v: number,
@@ -540,10 +508,8 @@ export function yacht(d: Draw): Piece[] {
     roofPatch(a, 0.17, ha + 0.045, 0.098, 'rubber', 'seam', 0.2)
     roofPatch(a, 0.17, ha, 0.075, 'glass', 'faint', 0.1)
   }
-  // Raked forward lights where the roof slopes down to the foredeck.
   roofPatch(7.35, 0.2, 0.34, 0.1, 'rubber', 'seam', 0.2, 0.3)
   roofPatch(7.35, 0.2, 0.3, 0.075, 'glass', 'faint', 0.1, 0.3)
-  // Windscreen across the cabin front.
   onSurface(
     cabin,
     [
@@ -568,7 +534,6 @@ export function yacht(d: Draw): Piece[] {
     'faint',
     0.1,
   )
-  // Roof hatches: a framed lid, an opening line, and the handle.
   roofPatch(5.55, 0.5, 0.36, 0.09, 'rubber', 'seam', 0.2, 0.25)
   roofPatch(5.55, 0.5, 0.31, 0.065, 'glass', 'faint', 0.1, 0.25)
   roofPatch(4.5, 0.5, 0.3, 0.07, 'metal', 'seam', 0.16, 0.25)
@@ -578,7 +543,6 @@ export function yacht(d: Draw): Piece[] {
       'faint',
       0.1,
     )
-  // Rain gutters and the cabin-top grab rails.
   for (const v of [0.31, 0.69])
     line(
       sample(40, (t) => cabinAt(CAB0 + 0.35 + (CAB1 - CAB0 - 1.6) * t, v)),
@@ -591,7 +555,6 @@ export function yacht(d: Draw): Piece[] {
       'seam',
       0.2,
     )
-  // Sprayhood.
   part(hood, 'rubber', [], 0.4)
   const hoodPatch = (
     a: number,
@@ -623,7 +586,6 @@ export function yacht(d: Draw): Piece[] {
     'seam',
     0.12,
   )
-  // Hood zip line along the arch crown.
   line(
     sample(24, (t) => {
       const a = 3.64 + 1.06 * t
@@ -637,9 +599,7 @@ export function yacht(d: Draw): Piece[] {
     0.16,
   )
 
-  // ============================================================== near topsides
   part(hullSide, 'body', [], 0.55)
-  // Boot stripe (the livery), then a thin dark waterline and the sheer cove.
   hullPatch(0.45, LOA - 0.7, 0.012, 0.3, 'livery', 'seam')
   line(
     sample(80, (t) => sideAt(0.4 + (LOA - 0.65) * t, 0.012, 1)),
@@ -651,19 +611,16 @@ export function yacht(d: Draw): Piece[] {
     'faint',
     0.16,
   )
-  // Two oval ports in the forward cabin and a pair of fender cleats.
   for (const a of [8.25, 8.95]) {
     hullLoop(ellipse(a, 0.55, 0.19, 0.2, 24), 'rubber', 'seam', 0.2)
     hullLoop(ellipse(a, 0.55, 0.14, 0.15, 24), 'glass', 'faint', 0.1)
   }
-  // Moulded steps: a faint line where the transom corner rolls into the topsides.
   line(
     sample(14, (t) => sideAt(0.02 + 0.45 * t, 0.97 - 0.5 * t * t, 1)),
     'faint',
     0.12,
   )
   toe(1)
-  // Waterline foam hugging the near hull, and the bow wave.
   line(
     sample(60, (t) => {
       const p = sideAt(0.5 + (LOA - 1) * t, 0, 1)
@@ -673,7 +630,6 @@ export function yacht(d: Draw): Piece[] {
     0.26,
   )
   {
-    // Bow wave: a foam sheet lying on the water, curling off the stem and fading back along the hull.
     const crest = (t: number, k = 1) => {
       const a = 10.95 - 3.0 * t
       const p = sideAt(a, 0, 1)
@@ -709,10 +665,8 @@ export function yacht(d: Draw): Piece[] {
     0.14,
   )
 
-  // ============================================================== mast, boom and the main
   {
     const mx = at(MAST.a, 0, 0)[0]
-    // Mast step collar, then the spar, a masthead fitting and the vane.
     box(
       MAST.a - 0.16,
       MAST.a + 0.16,
@@ -765,7 +719,6 @@ export function yacht(d: Draw): Piece[] {
       'line',
       0.3,
     )
-    // Spreader roots: a metal collar on the mast, then the near spreaders are drawn with the near rigging.
     for (const z of [LOW_SPREADER, UP_SPREADER])
       push(
         kitSolid(
@@ -776,15 +729,12 @@ export function yacht(d: Draw): Piece[] {
         ),
       )
 
-    // Mainsail: far side of the rig behind it is drawn already.
     const sail = facing(mainSail, [0, 1, 0])
     const panels: ReturnType<typeof seam>[] = []
     for (const k of [0.2, 0.37, 0.54, 0.7, 0.85])
       panels.push(seam(sail, 24, (t) => [t, k + 0.03 * t], 'faint', 0.12))
-    // Battens, each ending on a pocket cap at the leech.
     for (const k of [0.24, 0.43, 0.61, 0.78])
       panels.push(seam(sail, 12, (t) => [1 - 0.36 * t, k + 0.022 * (1 - t) - 0.02], 'seam', 0.46))
-    // Reef band with its ties, and the luff and foot tapes.
     const reefV = 0.13
     panels.push(seam(sail, 30, (t) => [0.012 + 0.97 * t, reefV], 'seam', 0.2))
     for (let i = 0; i < 9; i++) {
@@ -795,7 +745,6 @@ export function yacht(d: Draw): Piece[] {
     panels.push(seam(sail, 24, (t) => [t, 0.012], 'seam', 0.4))
     panels.push(seam(sail, 40, (t) => [0.985, t], 'faint', 0.16))
     part(sail, 'glass', panels, 0.5, 'sail')
-    // Cringles at the luff and leech ends of the reef band.
     for (const u of [0.014, 0.975]) {
       const p = mainAt(u, reefV)
       fill(
@@ -805,13 +754,11 @@ export function yacht(d: Draw): Piece[] {
         0.14,
       )
     }
-    // Head board and the tack.
     {
       const h = mainAt(0.02, 0.985),
         k = mainAt(0.16, 0.985)
       fill([h, k, [k[0], k[1], k[2] - 0.24], [h[0], h[1], h[2] - 0.34]], 'metal', 'seam', 0.14)
     }
-    // Boom with its gooseneck and end cap.
     const b0 = boomAt(-0.05),
       b1 = boomAt(BOOM.len)
     tube(b0, b1, 0.065, 'metal', 0.26)
@@ -826,7 +773,6 @@ export function yacht(d: Draw): Piece[] {
       'metal',
       0.18,
     )
-    // Rod vang from the mast foot, topping lift from the boom end to the masthead, mainsheet to the traveller.
     const vangFoot: V3 = [mx - 0.03, 0.05, MAST.base + 0.22]
     const vangBoom = boomAt(1.15)
     line([vangFoot, [vangBoom[0], vangBoom[1], vangBoom[2] - 0.04]], 'line', 0.34)
@@ -849,7 +795,6 @@ export function yacht(d: Draw): Piece[] {
     )
   }
 
-  // Masthead burgee: the livery's one echo, flying to leeward.
   {
     const mx = at(MAST.a, 0, 0)[0],
       z = MAST.top + 0.5
@@ -867,21 +812,17 @@ export function yacht(d: Draw): Piece[] {
     )
   }
 
-  // ============================================================== jib and its sheet
   {
     const sail = facing(jibSail, [0, 1, 0])
     const marks: ReturnType<typeof seam>[] = []
     for (const k of [0.22, 0.42, 0.62, 0.82])
       marks.push(seam(sail, 20, (t) => [t, k - 0.05 * t], 'faint', 0.12))
-    // Luff tape, leech line, foot tape.
     marks.push(seam(sail, 40, (t) => [0.012, t], 'seam', 0.4))
     marks.push(seam(sail, 40, (t) => [0.99, t], 'faint', 0.16))
     marks.push(seam(sail, 24, (t) => [t, 0.012], 'seam', 0.34))
-    // Tell-tales, three pairs up the luff.
     for (const v of [0.3, 0.55, 0.75])
       marks.push(seam(sail, 4, (t) => [0.13 + 0.08 * t, v + 0.012 * t], 'seam', 0.3))
     part(sail, 'glass', marks, 0.5, 'sail')
-    // Tack shackle on the stem fitting and the clew cringle.
     fill(
       ellipse(0, 0, 0.06, 0.06, 10).map(
         ([x, z]) => [JIB.tack[0] + x, JIB.tack[1], JIB.tack[2] + z] as V3,
@@ -898,9 +839,7 @@ export function yacht(d: Draw): Piece[] {
       'seam',
       0.14,
     )
-    // Forestay: masthead to the stem fitting, over the jib's luff.
     line([FORESTAY_TOP, STEM], 'faint', 0.26)
-    // Near jib sheet: clew, fairlead block on the side deck, aft to the winch on the coaming.
     const block = at(4.85, 1.45, deckZ(4.85, 1.45) + 0.06)
     const winch = at(2.45, 1.2, 1.2 + 0.085)
     fill(
@@ -916,7 +855,6 @@ export function yacht(d: Draw): Piece[] {
     )
     line([jibAt(1, 0), block], 'seam', 0.34)
     line([block, [winch[0] + 0.16, winch[1] - 0.02, winch[2] - 0.05]], 'seam', 0.34)
-    // Winch drums on the near coaming cap (the sheet ends on the nearer one).
     for (const [a, z] of [
       [2.45, 1.2],
       [1.55, 1.2],
@@ -953,7 +891,6 @@ export function yacht(d: Draw): Piece[] {
     )
   }
 
-  // ============================================================== near rigging, rails and fittings
   for (const a of chain) chainTab(a, 1)
   shrouds(1)
   for (const z of [LOW_SPREADER, UP_SPREADER]) {
@@ -966,7 +903,6 @@ export function yacht(d: Draw): Piece[] {
       0.1,
     )
   }
-  // Forestay and backstay on the centre line, stern and bow pulpits, then the stanchions and lifelines.
   line([FORESTAY_TOP, STEM], 'faint', 0.26)
   {
     const mx = at(MAST.a, 0, 0)[0]
@@ -995,7 +931,6 @@ export function yacht(d: Draw): Piece[] {
   ])
   lifelines(1)
   for (const a of stanchionAs) stanchion(a, 1)
-  // The near stern light on the pushpit and the boarding gate in the lifelines.
   {
     const y = 1.1,
       z = deckZ(0.2, y) + railZ + 0.02
@@ -1015,7 +950,6 @@ const REMAP: Record<Tag, (s: string) => string> = {
   foam: (s) => s.replace(/style="fill:var\(--agp\)/g, 'style="opacity:.5;fill:var(--ayf)'),
 }
 
-/** Sails get their own light ramp; the water cue its foam tint. Everything else is the shared aircraft ramps. */
 export const YACHT_CSS = `.lane-vehicle{
   --ays4:color-mix(in oklab,var(--iso-top) 70%,white);--ays3:var(--iso-top);
   --ays2:color-mix(in oklab,var(--iso-top) 60%,var(--iso-front));--ays1:color-mix(in oklab,var(--iso-front) 78%,var(--iso-side));
@@ -1031,7 +965,6 @@ export const YACHT_CSS = `.lane-vehicle{
 
 export async function buildYacht(unit = 72) {
   const kit = await loadKit()
-  // The car's camera: the road's projection from LaneScene, so the waterline keeps the lane's level ground.
   const { cam, draw, place } = laneCamera(kit, unit / LOA)
   const pieces = yacht(draw)
   const scale = unit / 90

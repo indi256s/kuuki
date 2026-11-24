@@ -99,7 +99,6 @@ test('the Passport map view drops the retired route-map params and survives a th
   baseURL,
 }) => {
   await signIn(page, baseURL!)
-  // `layer` and `year` belonged to the old route map; the canonical URL keeps only the view.
   await page.goto('/passport?view=map&layer=routes&year=2026')
   await page.waitForURL((url) => url.pathname === '/passport' && url.search === '?view=map')
   const map = page.getByRole('radio', { name: 'Map', exact: true })
@@ -108,7 +107,6 @@ test('the Passport map view drops the retired route-map params and survives a th
   await page.getByRole('button', { name: 'Account menu' }).click()
   await page.getByRole('menuitemradio', { name: 'Dark' }).click()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
-  // A tray pick keeps the account menu open; close it before using the page.
   await page.keyboard.press('Escape')
   await expect(page.getByRole('menu')).toBeHidden()
   await expect(map).toHaveAttribute('aria-checked', 'true')
@@ -141,7 +139,6 @@ test('WebGL failure leaves the Passport map view and the Overview globe usable',
   ).toBe(200)
   await page.goto('/passport?view=map&layer=routes')
   await page.waitForURL((url) => url.pathname === '/passport' && url.search === '?view=map')
-  // The view switch still works without WebGL; the atlas fallback itself is covered by its own lane.
   await page.getByRole('radio', { name: 'Cards', exact: true }).click()
   await expect(page.getByRole('list', { name: 'Stamps' })).toBeVisible()
   await page.goto('/overview')

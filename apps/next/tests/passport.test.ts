@@ -3,8 +3,6 @@ import { claimUsername, fillManualFlight } from './helpers'
 
 let client = 0
 
-// Each journey owns a fresh account, so claims and visits it writes never leak into the shared fixture. Its
-// sign-up uses its own client IP so these accounts never spend the shared per-IP auth budget of later files.
 async function account(page: Page, origin: string) {
   const signup = await page.request.post('/api/auth/sign-up/email', {
     headers: { Origin: origin, 'CF-Connecting-IP': `198.51.100.${++client}` },
@@ -35,7 +33,6 @@ async function account(page: Page, origin: string) {
     expect(result.status()).toBe(201)
     return (await result.json()).id as number
   }
-  /** Created ahead and moved into the past: the flight waits for its arrival confirmation. */
   const awaiting = async (origin: string, destination: string) => {
     const id = await create(day(2), origin, destination)
     const patch = await page.request.patch(`/api/flights/${id}`, {
@@ -66,7 +63,6 @@ test('stamps open by keyboard and deep link, sort in the URL, and a pending slot
 }) => {
   test.setTimeout(60_000)
   const { awaiting, published, write } = await account(page, baseURL!)
-  // The fixture references only JFK and BOS, so the awaiting-only country is the United States.
   const pending = await awaiting('JFK', 'BOS')
   expect((await write('PUT', '/api/passport/claims/GR')).status()).toBe(201)
   expect(
@@ -83,7 +79,6 @@ test('stamps open by keyboard and deep link, sort in the URL, and a pending slot
   await page.goto('/passport')
   const data = page.getByTestId('passport-data')
   await expect(data.getByText('Visited 2 countries')).toBeVisible()
-  // The unpressed slot sits in its own block, apart from the collection, with an entry above the collection.
   await expect(data.getByRole('button', { name: 'Awaiting confirmation · 1' })).toBeVisible()
   await expect(data.locator('#passport-pending .passport-card')).toHaveCount(1)
 
@@ -108,12 +103,10 @@ test('stamps open by keyboard and deep link, sort in the URL, and a pending slot
   await expect(page.getByRole('dialog', { name: 'Switzerland' })).toContainText('2018 · by land')
   await page.keyboard.press('Escape')
 
-  // A well-formed code outside the catalog never opens a sheet with write actions.
   await page.goto('/passport?country=zz&sort=name')
   await page.waitForURL((url) => url.search === '?sort=name')
   await expect(page.getByRole('dialog')).toHaveCount(0)
 
-  // The owner menu's Add country returns focus to the menu button when dismissed.
   const menu = data.getByRole('button', { name: 'Passport menu' })
   await menu.click()
   await page.getByRole('menuitem', { name: 'Add country' }).click()
@@ -146,7 +139,7 @@ test('a country is added from search, claimed, visited by sea, and removed with 
   await expect(
     data.getByRole('heading', { name: '246 countries are waiting for you' }),
   ).toBeVisible()
-  await expect(data.locator('.passport-ghost')).toHaveCount(6)
+  await expect(data.getByRole('region', { name: 'Map of visited countries' })).toBeVisible()
 
   const opener = data.getByRole('button', { name: 'Add country', exact: true })
   await opener.click()
@@ -166,10 +159,8 @@ test('a country is added from search, claimed, visited by sea, and removed with 
 
   await sheet.getByRole('button', { name: 'Claim without a visit' }).click()
   await expect(sheet.getByRole('status').filter({ hasText: 'Country claimed.' })).toBeVisible()
-  // The modal sheet hides the page from the accessibility tree, so the new stamp is found by its markup.
   await expect(data.locator('.passport-card[data-code="IS"]')).toBeAttached()
 
-  // Claimed, the country is in the passport: its record leads and Add visit opens the form.
   await sheet.getByRole('button', { name: 'Add visit', exact: true }).click()
   await sheet.getByRole('radio', { name: 'By sea' }).click()
   await sheet.getByRole('textbox', { name: /^Year/ }).fill('2019')

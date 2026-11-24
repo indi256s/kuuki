@@ -1,5 +1,3 @@
-// GET /api/passport/claims — all country claims for the user (user_id stripped).
-
 import { runHandler, json } from '../../_lib/http'
 import { requireUser, type RequestData } from '../../_lib/auth'
 

@@ -2,9 +2,6 @@
 
 import { useLocale } from '../preferences'
 
-// The floating import dock: the batches this tab follows while the member is elsewhere, in the shell's toast corner.
-// It only follows reading. Ready runs call the member back to /import, where review and saving stay (decision 1).
-// It announces stage and state transitions, never every found count.
 import { Check, Circle, CircleAlert, X } from '@keyline-icons/react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { formatNumber, type Locale } from '../../lib/format'
@@ -31,26 +28,20 @@ export type DockKind = 'reading' | 'need' | 'stopped' | 'failed' | 'sorted'
 export interface DockItem {
   key: string
   kind: DockKind
-  /** The main line: what is happening, or what is waiting. */
   line: string
-  /** The member's name for the source: the file name, or "your file" / "your text". */
   label: string
   found: number
   need: number
   stage: BatchStage | null
-  /** The last three found routes, newest last. */
   routes: string[]
-  /** Where the action goes: the batch's review, or a fresh /import after a failure. */
   href: string | null
   actionLabel: string | null
 }
 
 type CancelState = 'busy' | 'failed' | 'readFailed'
 
-/** Needs-you (and stopped, which also waits on a review) first, then failed, reading, and sorted last. */
 const URGENCY: Record<DockKind, number> = { need: 0, stopped: 0, failed: 1, reading: 2, sorted: 3 }
 
-/** One dock row for a run, or null when it has nothing to show (a finished batch with nothing left in review). */
 export function itemOf(
   entry: RunEntry,
   key: string,
@@ -119,7 +110,6 @@ export function itemOf(
 export const byUrgency = (items: DockItem[]) =>
   [...items].sort((a, b) => URGENCY[a.kind] - URGENCY[b.kind])
 
-/** The leading mark: spinner while reading, the need count, a check, or an alert. Layers crossfade, nothing else moves. */
 function DockMark({ kind, need, locale }: { kind: DockKind; need: number; locale: Locale }) {
   return (
     <span className="import-dock-mark" data-kind={kind} aria-hidden="true">
@@ -169,7 +159,6 @@ function Stages({ stage, locale }: { stage: BatchStage | null; locale: Locale })
 interface ViewProps {
   items: DockItem[]
   locale: Locale
-  /** Gallery only: render in place instead of in the toast region, and pick the layout. */
   inline?: boolean
   mobile?: boolean | null
   announcement?: string
@@ -280,7 +269,6 @@ function Detail({
 
 const EXIT_MS = 200
 
-/** The dock as shown for a list of items: the most urgent one on the collapsed line, every one in the detail. */
 export function ImportDockView({
   items,
   locale,
@@ -296,7 +284,6 @@ export function ImportDockView({
   const mobile = mobileProp === undefined ? detected : mobileProp
   const [expanded, setExpanded] = useState(false)
   const [sheet, setSheet] = useState(false)
-  // The last items stay on screen while the dock leaves, so it fades out instead of vanishing.
   const open = items.length > 0
   const [held, setHeld] = useState<{
     open: boolean
@@ -317,7 +304,6 @@ export function ImportDockView({
     return () => window.clearTimeout(timer)
   }, [current.leaving])
   const shown = open ? items : current.leaving
-  // Nothing left to open (the dock is leaving, or a lone finished run remains): forget an open panel or sheet.
   const openable = open && (items.length > 1 || items[0].kind === 'reading')
   if (!openable && (expanded || sheet)) {
     setExpanded(false)
@@ -335,7 +321,6 @@ export function ImportDockView({
     </div>
   )
   const host = (card: ReactNode) => {
-    // The live region stays mounted in one place, so screen readers have it before the first transition.
     const body = (
       <div className="import-dock-host">
         {card}
@@ -427,7 +412,6 @@ export function ImportDockView({
   )
 }
 
-/** Stable keys for runs: a run has no batch id until the server accepts its upload. */
 const keys = new WeakMap<BatchRun, string>()
 let nextKey = 1
 const keyOf = (run: BatchRun) => {
@@ -439,7 +423,6 @@ const keyOf = (run: BatchRun) => {
   return key
 }
 
-/** One item per run state and locale: a change to one run never rebuilds the others' review counts. States are immutable. */
 const itemCache: Record<Locale, WeakMap<RunEntry['state'], DockItem | null>> = {
   en: new WeakMap(),
   ru: new WeakMap(),
@@ -451,7 +434,6 @@ function cachedItem(entry: RunEntry, locale: Locale, today: string) {
   return cache.get(entry.state) ?? null
 }
 
-/** Mounted inside the shell's import runs: shows every run no page is showing. */
 export function ImportDock({ locale: initialLocale }: { locale: Locale }) {
   const locale = useLocale(initialLocale)
   const store = useImportRunsStore()
@@ -468,7 +450,6 @@ export function ImportDock({ locale: initialLocale }: { locale: Locale }) {
   }, [docked, locale])
   const runOf = (key: string) => docked.find((entry) => keyOf(entry.run) === key)?.run ?? null
 
-  // Stage and state transitions only. Found counts are never spoken.
   const [heard, setHeard] = useState<{
     items: DockItem[]
     states: Map<string, string>
@@ -504,7 +485,6 @@ export function ImportDock({ locale: initialLocale }: { locale: Locale }) {
       setCancelFor(key, 'failed')
       return
     }
-    // Cancelling keeps the rows already found: read them back. A run that kept none leaves the dock by itself.
     try {
       await run.reload()
       setCancelFor(key, null)
@@ -516,7 +496,6 @@ export function ImportDock({ locale: initialLocale }: { locale: Locale }) {
     const run = runOf(key)
     if (run) store?.dismiss(run)
   }
-  // "Try again" starts over on /import: the failed run has nothing more to show.
   const onAction = (item: DockItem) => {
     if (item.kind === 'failed') onDismiss(item.key)
   }

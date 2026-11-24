@@ -16,25 +16,18 @@ export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
 
 export type ButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> & {
   variant?: ButtonVariant
-  /** 32px visual; the hit area extends to 40px (44px on coarse pointers). Keep neighbours >= 8px apart. */
   dense?: boolean
-  /** Shows `loadingLabel` as static text (no spinner), keeps the width, sets aria-busy and ignores clicks. */
   loading?: boolean
   loadingLabel?: ReactNode
-  /** Opt-in short text feedback; element-bearing labels keep the ordinary rendering path. */
   morphText?: boolean
-  /** Reserve both localized copy states, including the idle label after a copy succeeds. */
   textAlternatives?: readonly string[]
   instantText?: boolean
   icon?: ReactNode
-  /** Visible helper text under a disabled button, linked with aria-describedby. Implies disabled. */
   disabledReason?: ReactNode
-  /** Rows and cards: no press scale. */
   static?: boolean
   children: ReactNode
 }
 
-// Blocked buttons use aria-disabled instead of `disabled` so they stay focusable and their reason is announced.
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   {
     variant = 'secondary',
@@ -66,7 +59,6 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     (typeof label === 'string' || typeof label === 'number')
   const [previous, setPrevious] = useState({ label, loading, animate: true })
   if (textOnly && (previous.label !== label || previous.loading !== loading)) {
-    // Idle selection counts swap instantly; entry/exit from pending still morphs.
     setPrevious({
       label,
       loading,

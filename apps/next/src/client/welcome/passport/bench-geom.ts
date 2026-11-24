@@ -1,7 +1,3 @@
-// The passport bench's geometry: shared by the generator (scripts/generate-passport-bench.mjs, which draws the static
-// figure) and the live layer (bench-live.ts, which redraws the swinging leaf and the pressing plungers). Units are
-// world units on the bench; the passport's spine is x = 0 and its right (visa) page lies on +x.
-// Node runs this file directly with type stripping, so it uses explicit extensions and erasable TypeScript only.
 import {
   cameraOf,
   cylinder,
@@ -16,33 +12,27 @@ import {
   type Vec3,
 } from './iso-kit.generated.js'
 
-/** One page is W × D; HS is each half's thickness, TC the board's, OVER the board's overhang past the pages. */
 export const PP = {
   W: 92,
   D: 124,
   HS: 3.6,
   TC: 0.9,
   OVER: 1.5,
-  /** Visa-page slots, filled column by column so a batch of up to three shares one bridge stop. */
   COLS: [26, 52, 78],
   ROWS: [20, 50, 80],
   STAMP_R: 10.5,
-  /** The entry stamp's die on the visa page: centre and size. */
   ENTRY: { x: 46, y: 109, w: 40, h: 20 },
-  /** Bridge: beam bottom, head geometry (foot rest height, bushing) and its parking spot over the ink pad. */
   BEAM_Z: 20,
   BEAM_H: 4,
   FOOT_REST: 8,
   BUSH_Z: 15,
   PARK: 140,
-  /** Cross-slide travel of the beam along y, so overflow stamps can land off the three rows. */
   SLIDE: 15,
   TURNS: [-9, 6, -4, 8, -6, 3, -11, 7, -3],
   STROKE: 8 - 3.6,
   HEADS: [20, 50, 80, 109],
 } as const
 
-/** The front cover's board and the data page's block, in the open pose (left of the spine). */
 export const BOARD_L: Plan = {
   x: -PP.W - PP.OVER,
   y: -PP.OVER,
@@ -58,7 +48,6 @@ export const viewOf = (P: Projection): Vec3 => {
   return [cosA * cosE, sinA * cosE, sinE]
 }
 
-/** Rotates an open-pose point about the hinge (x = 0, z = HS, along y). a = θ − π: −π closed, 0 open. */
 export function turn([x, y, z]: Vec3, a: number): Vec3 {
   const c = Math.cos(a),
     s = Math.sin(a),
@@ -91,11 +80,6 @@ function hull(points: Pt[]): Pt[] {
   return lower.slice(0, -1).concat(upper.slice(0, -1))
 }
 
-/**
- * A rounded slab given in the open pose (plan in x–y, z0..z1), turned by `a` about the hinge. It keeps the kit's solid
- * anatomy (paper fill, four side shades by facing, the big face as top, creases where the big face meets visible sides,
- * the hull as outline), so a board that swings over shades like any slab. `seams` are page lines on the visible sides.
- */
 export function leafSlab(
   plan: Plan,
   z0: number,
@@ -166,7 +150,6 @@ export function leafSlab(
   }
 }
 
-/** The affine matrix that maps a plane's local (u, v) to the screen, for printed art drawn in that plane. */
 export function planeMatrix(o: Vec3, u: Vec3, v: Vec3, P: Projection) {
   const O = iso(o, P)
   const U = iso([o[0] + u[0], o[1] + u[1], o[2] + u[2]], P)
@@ -175,7 +158,6 @@ export function planeMatrix(o: Vec3, u: Vec3, v: Vec3, P: Projection) {
   return `matrix(${r(U[0] - O[0])} ${r(U[1] - O[1])} ${r(Vv[0] - O[0])} ${r(Vv[1] - O[1])} ${r(O[0])} ${r(O[1])})`
 }
 
-/** The open leaf's data page (u from its outer edge, v from its top) and the front cover (u from the spine), at turn a. */
 export function leafPlanes(a: number, P: Projection) {
   const page = planeMatrix(turn([-PP.W, 0, PP.HS], a), turnVec([1, 0, 0], a), [0, 1, 0], P)
   const cover = planeMatrix(turn([0, -PP.OVER, 0], a), turnVec([-1, 0, 0], a), [0, 1, 0], P)
@@ -185,7 +167,6 @@ export function leafPlanes(a: number, P: Projection) {
   return { page, cover, pageSide }
 }
 
-/** A vertical coil spring around (cx, cy) from z0 down to z1, split into the halves behind and in front of its rod. */
 export function vcoil(
   cx: number,
   cy: number,
@@ -222,7 +203,6 @@ export function vcoil(
   return { back: back.join(''), front: front.join('') }
 }
 
-/** A head's plunger at foot height f (bridge-local, x = 0): coil behind, rod, coil in front, all rebuilt as it presses. */
 export function plungerSvg(y: number, f: number, P: Projection) {
   const top = f + 5
   const rod = cylinder(0, y, 1.1, top, PP.BUSH_Z - top, P, 16)
@@ -239,12 +219,6 @@ const hash = (n: number, k: number) => {
   return v - Math.floor(v)
 }
 
-/**
- * Where stamp i lands. The first nine fill the 3 × 3 grid column by column. After that, every three stamps share one
- * bridge stop at a deterministic x (anywhere a head can reach without leaning over the gutter) and cross-slide offset,
- * one per head row, each with its own small turn, so a well-used page fills up rather than piling onto nine spots.
- * Returns the bridge stop (x, slide), the head (row) and the impression's centre and turn.
- */
 export function slotOf(i: number) {
   if (i < 9) {
     const c = Math.floor(i / 3),
@@ -261,8 +235,6 @@ export function slotOf(i: number) {
   }
   const g = Math.floor((i - 9) / 3),
     r = (i - 9) % 3
-  // Golden-ratio steps spread the stops along the rails; the slide alternates sides and
-  // reaches into the gaps between rows, so overflow lands between the first nine, not on them.
   const x = PP.COLS[0] + (PP.COLS[2] - PP.COLS[0]) * ((0.31 + g * 0.618034) % 1)
   const slide = (g % 2 ? 1 : -1) * (9 + 6 * hash(g + 1, 2))
   return {
@@ -280,7 +252,6 @@ const INK_NAMES = ['shu', 'ai', 'matcha', 'asagi', 'sakura']
 const escape = (text: string) =>
   text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
-/** One country impression in visa-page coordinates: a double ring, two chord bars, the code and the date. */
 export function impressionSvg(i: number, code: string, date: string) {
   const { cx, cy, rot } = slotOf(i)
   const R = PP.STAMP_R - 0.4,

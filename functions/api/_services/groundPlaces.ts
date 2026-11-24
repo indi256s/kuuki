@@ -1,7 +1,3 @@
-// Ground-travel place picker: bounded prefix search over the GeoNames catalog (ground_places /
-// ground_place_names) plus the owner's private manual places (ground_manual_places).
-// Contract: .scratch/ground-travel/places-contract.md. Keep the key helpers free of runtime imports other
-// than the shared folding, because scripts/generate-geonames-places.ts builds the catalog keys with them.
 import {
   GROUND_LIMITS,
   isUuid,
@@ -13,19 +9,11 @@ import { foldSearchText } from '../../../packages/shared/src/airportSearch'
 import { nowIso } from '../_lib/time'
 
 const BUCKET_MAX_CHARS = 3
-/** Longest key stored or queried; longer input is cut so one request cannot build an unbounded range. */
 const MAX_KEY_CHARS = 64
-/** Highest code point: every real key starting with the query sorts below `query + MAX_CODE_POINT`. */
 const MAX_CODE_POINT = '\u{10FFFF}'
-/** Rows read per catalog bucket query. Aliases of one place collapse afterwards, so over-fetch ×5. */
 const BUCKET_FETCH = GROUND_LIMITS.searchResults * 5
 const MANUAL_LIST_LIMIT = 1000
 
-/**
- * Search/storage key of a place name: case- and diacritic-folded (`foldSearchText`), punctuation and
- * hyphens turned into single spaces ("Coeur d'Alene" → "coeur d alene"), trimmed. Catalog rows and queries
- * must use this same function.
- */
 export function placeNameKey(text: string): string {
   return Array.from(
     foldSearchText(text)
@@ -36,7 +24,6 @@ export function placeNameKey(text: string): string {
     .join('')
 }
 
-/** Bucket of a key: its first three characters (the whole key when shorter). */
 export function placePrefix(key: string): string {
   return Array.from(key).slice(0, BUCKET_MAX_CHARS).join('')
 }
@@ -71,7 +58,6 @@ interface ManualPlaceRow {
   timezone: string | null
 }
 
-/** Statements behind one catalog lookup. Exported so tests can EXPLAIN the exact SQL that runs. */
 export const catalogSql = {
   exact:
     'SELECT geoname_id FROM ground_place_names WHERE name_key = ? ORDER BY population DESC LIMIT ?',
@@ -114,13 +100,6 @@ const manualSnapshot = (row: ManualPlaceRow): GroundPlaceSnapshot => ({
   catalogVersion: null,
 })
 
-/**
- * Up to GROUND_LIMITS.searchResults places for a typed query: the owner's own manual places and catalog
- * matches, exact-name matches first (manual before catalog), then prefix matches (manual, then by
- * population). One catalog bucket is read per keystroke; an empty or unloaded catalog just yields manual
- * matches. A query under GROUND_LIMITS.searchMinChars (3, the catalog bucket width) folded characters returns
- * nothing, manual matches included: one gate keeps the picker's "keep typing" state consistent.
- */
 export async function searchGroundPlaces(
   db: D1Database,
   ownerId: string,
@@ -131,9 +110,6 @@ export async function searchGroundPlaces(
   if (Array.from(key).length < GROUND_LIMITS.searchMinChars) return []
   const upper = key + MAX_CODE_POINT
 
-  // Up to three characters a bucket holds every match in population order, so the scan stops after the
-  // limit. Longer keys narrow the bucket to a handful of rows, so seek the key range instead: it reads
-  // only the matches (worst measured: ~2.3k keys for "sant") where the bucket walk could read all ~7.6k.
   const narrow = Array.from(key).length >= BUCKET_MAX_CHARS + 1
   const [exact, bucket, manual] = await db.batch([
     db.prepare(catalogSql.exact).bind(key, limit),
@@ -176,7 +152,6 @@ export async function searchGroundPlaces(
   return out
 }
 
-/** The owner's manual places for reselection, by name. */
 export async function listManualPlaces(
   db: D1Database,
   ownerId: string,
@@ -202,7 +177,6 @@ function validTimezone(value: string): boolean {
   }
 }
 
-/** Validate a POST body into a ManualPlaceInput; the error is a safe client-facing message. */
 export function parseManualPlaceInput(
   body: unknown,
 ): { ok: true; input: ManualPlaceInput } | { ok: false; error: string } {
@@ -258,10 +232,6 @@ export type ManualPlaceResult =
   | { kind: 'created' | 'existing'; place: GroundPlaceSnapshot }
   | { kind: 'conflict' }
 
-/**
- * Idempotent create by client id. The same owner replaying the same payload gets the stored place; a
- * different payload, or an id held by anyone else, is a conflict that discloses nothing about the other row.
- */
 export async function createManualPlace(
   db: D1Database,
   ownerId: string,

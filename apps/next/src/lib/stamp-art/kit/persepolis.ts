@@ -1,6 +1,3 @@
-// Persepolis (Iran): a long ashlar terrace wall, a wide stair rising through it between relief
-// parapets, and a row of tall slender columns on top, each crowned with a double bull capital.
-// Some shafts are broken to jagged stumps. The box is the whole view; its bottom is the ground.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, hline, rectPts, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
@@ -11,7 +8,6 @@ export const persepolis: KitModule = ([x, y, w, h], p) => {
   const cx = x + w / 2
   const out: SvgNode[] = []
   const top = base - h * num(p, 'terrace', 0.22)
-  // Columns first, so the terrace wall hides their feet.
   const heights = [0.55, 1, 0.38, 0.72, 0.46]
   const n = heights.length
   const cw = 6
@@ -35,7 +31,6 @@ export const persepolis: KitModule = ([x, y, w, h], p) => {
           weight: 'hair',
         }),
       )
-      // Double bull capital.
       out.push(
         fill([
           [px - 8, ty + 5],
@@ -67,7 +62,6 @@ export const persepolis: KitModule = ([x, y, w, h], p) => {
       )
     }
   }
-  // Terrace wall.
   out.push(...body(rectPts(x, top, w, base - top), 'line'))
   for (let cy = top + 5.4; cy < base - 1; cy += 5.4) out.push(hline('fine', x + 1, x + w - 1, cy))
   out.push(
@@ -77,7 +71,6 @@ export const persepolis: KitModule = ([x, y, w, h], p) => {
     }),
   )
   out.push(hline('bold', x - 1, x + w + 1, top))
-  // Stair with relief parapets.
   const sx = cx - w * 0.1
   const stair: Pt[] = [
     [sx - w * 0.15, base],

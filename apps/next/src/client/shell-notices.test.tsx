@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, render, screen } from '@testing-library/react'
 import { useEffect, useRef } from 'react'
-import { expect, it } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { ShellNotices, announceShellNotice } from './shell-notices'
 
 const settle = () =>
@@ -25,7 +25,6 @@ it('shows an announced notice in the polite region of the owner shell host, with
 
 it('hands a notice announced while one host unmounts to the next host of the same owner', async () => {
   function Shell({ group }: { group: 'member' | 'public' }) {
-    // A different route-group layout remounts the whole shell, as it does between /journal and /leaderboard.
     return group === 'member' ? (
       <ShellNotices key="member" ownerId="owner-b" locale="en">
         <Leaving />
@@ -58,7 +57,6 @@ it('never shows a notice in another owner shell', async () => {
 })
 
 function LeaveNotice({ ownerId, message }: { ownerId: string; message: string }) {
-  // Announce from an unmount cleanup, exactly as the Journal does when a pending delete is dropped.
   useUnmount(() => announceShellNotice(ownerId, { message }))
   return <p>Journal</p>
 }
@@ -69,3 +67,28 @@ function useUnmount(run: () => void) {
   })
   useEffect(() => () => latest.current(), [])
 }
+
+it('shows one offline notice while the browser is offline and removes it when it returns', async () => {
+  render(
+    <ShellNotices ownerId="owner-off" locale="ru">
+      <p>Page</p>
+    </ShellNotices>,
+  )
+  await settle()
+  const onLine = vi.spyOn(navigator, 'onLine', 'get')
+  onLine.mockReturnValue(false)
+  act(() => {
+    window.dispatchEvent(new Event('offline'))
+    window.dispatchEvent(new Event('offline'))
+  })
+  expect(screen.getAllByText('You are offline.')).toHaveLength(1)
+  onLine.mockReturnValue(true)
+  act(() => {
+    window.dispatchEvent(new Event('online'))
+  })
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 300))
+  })
+  expect(screen.queryByText('You are offline.')).toBeNull()
+  onLine.mockRestore()
+})

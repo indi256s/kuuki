@@ -1,17 +1,12 @@
-// Peranakan shophouses (Singapore): a terrace of narrow two-storey houses sharing party walls. Each
-// has a five-foot-way arcade (a round arch, dark), a pair of shuttered windows above (louvres as
-// vertical hatching), a string course and a front parapet; bays alternate a low pediment and a
-// shallow tile roof. The box is the whole row; its bottom is the ground.
 import { type Pt, type SvgNode, body, hline, quad, rectPts, stroke, toneFill, vline } from '../grid'
 import { type KitModule, num, nums } from './util'
 
 function bay(x0: number, w: number, base: number, ht: number, kind: number): SvgNode[] {
   const out: SvgNode[] = []
   const top = base - ht
-  const eave = top + ht * 0.2 // underside of the parapet band
+  const eave = top + ht * 0.2
   const floorY = base - ht * 0.4
   out.push(...body(rectPts(x0, eave, w, base - eave), 'line'))
-  // Ground floor: one wide round arch of the five-foot way, dark.
   const aw = w * 0.7
   const ax0 = x0 + (w - aw) / 2
   const spring = floorY + ht * 0.14
@@ -24,7 +19,6 @@ function bay(x0: number, w: number, base: number, ht: number, kind: number): Svg
   out.push(...toneFill(arch, 'T4', { angle: 90, gap: [3.8, 3.8], weight: 'hair', inset: 0.4 }))
   out.push(stroke('fine', arch))
   out.push(hline('line', x0, x0 + w, floorY))
-  // Upper floor: a pair of shuttered windows, wider than tall, louvres as vertical hatching.
   const ww = w * 0.27
   const wy0 = eave + ht * 0.09
   const wy1 = floorY - ht * 0.07
@@ -34,7 +28,6 @@ function bay(x0: number, w: number, base: number, ht: number, kind: number): Svg
     out.push(...toneFill(win, 'T4', { angle: 90, gap: [3.8, 3.8], weight: 'fine', inset: 0.3 }))
     out.push(stroke('hair', win, true))
   }
-  // Parapet band, then a low pediment (kind 0) or a shallow tile roof (kind 1).
   out.push(hline('line', x0 - 0.6, x0 + w + 0.6, eave))
   if (kind === 0) {
     const ped: Pt[] = [
@@ -81,7 +74,6 @@ export const shophouseRow: KitModule = ([x, y, w, h], p) => {
     const ht = h * heights[i % heights.length]
     out.push(...bay(x + bw * i, bw, base, ht, i % 2))
   }
-  // Kerb and plinth.
   out.push(hline('bold', x - 2, x + w + 2, base))
   out.push(hline('hair', x - 2, x + w + 2, base + 2.4))
   for (let px = x + 1; px < x + w; px += 3.6) out.push(vline('fine', px, base + 0.6, base + 2))

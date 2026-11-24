@@ -25,13 +25,10 @@ function setPaused(value: boolean) {
   try {
     localStorage.setItem(KEY, String(value))
     unsaved = undefined
-  } catch {
-    // Storage may be blocked; the pause still lasts for this page.
-  }
+  } catch {}
   window.dispatchEvent(new Event('kuuki:auth-motion'))
 }
 
 export function useMotionPause() {
-  // Keep the decoration stopped until the saved choice is available after hydration.
   return [useSyncExternalStore(subscribe, snapshot, () => true), setPaused] as const
 }

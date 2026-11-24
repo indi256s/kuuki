@@ -1,6 +1,3 @@
-// Charles Bridge (lane C): a long low stone bridge on many segmental arches with pointed
-// cutwaters, a parapet, a steep Gothic gate tower at the left end and a low tower pair on the
-// right bank (CZ). The box base is the waterline.
 import {
   type Pt,
   type SvgNode,
@@ -29,11 +26,9 @@ export const charlesBridge: KitModule = ([x, y, w, h], p) => {
   const bridgeTo = x + w
   const n = Math.round(num(p, 'arches', 7))
   const pitch = (bridgeTo - bridgeFrom) / n
-  // deck mass
   out.push(...body(rectPts(bridgeFrom, deckY, bridgeTo - bridgeFrom, base - deckY), 'line'))
   out.push(hline('bold', bridgeFrom, bridgeTo, deckY))
   out.push(hline('hair', bridgeFrom, bridgeTo, deckY + 3))
-  // parapet ticks
   for (let px = bridgeFrom + 2; px < bridgeTo - 1; px += 4)
     out.push(
       stroke('hair', [
@@ -42,7 +37,6 @@ export const charlesBridge: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   out.push(hline('hair', bridgeFrom, bridgeTo, deckY - 2.4))
-  // arches
   for (let i = 0; i < n; i++) {
     const cx = bridgeFrom + (i + 0.5) * pitch
     const rx = pitch * 0.36
@@ -52,7 +46,6 @@ export const charlesBridge: KitModule = ([x, y, w, h], p) => {
     out.push(occlude(open))
     out.push(...hatchPoly(open, { angle: 0, gap: 3.2, weight: 'hair' }))
     out.push(stroke('line', top))
-    // cutwater: pointed pier foot on the left of each arch
     const px = bridgeFrom + i * pitch
     out.push(
       stroke('hair', [
@@ -61,7 +54,6 @@ export const charlesBridge: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // gate tower at the left end: shaft, gallery, steep hip roof, corner pinnacles
   const tw = w * 0.17
   const tx = x + w * 0.1
   const tTop = y + h * 0.18
@@ -95,7 +87,6 @@ export const charlesBridge: KitModule = ([x, y, w, h], p) => {
     ]
     out.push(occlude(pin), fill(pin))
   }
-  // two small towers at the far end
   for (const [fx, up] of [
     [0.86, 0.3],
     [0.95, 0.22],

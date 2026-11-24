@@ -26,7 +26,6 @@ const copy = {
   },
 }
 
-// Swipe and the card menu share the guarded confirmation transport with bulk/review actions.
 export function useMobileConfirmation({
   locale,
   queue,

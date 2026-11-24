@@ -14,7 +14,6 @@ import { copy, filterLabel, flights, number } from '../rankings/display'
 import { ridgeProfile } from './helpers'
 import './fleet.css'
 
-/** Narrowbody and widebody flights as bands by manufacturer; a band filters by that body class and maker. */
 export function FleetBodies() {
   const { scope, locale, actions, isCurrent } = useOverview()
   if (!scope || scope.fleet.status !== 'ready') return null
@@ -56,7 +55,6 @@ export function FleetBodies() {
   )
 }
 
-/** Details of the Aircraft card: the flight length of every type family (ridgelines). */
 export function FleetRidgelines({ span }: { span: Span }) {
   const { scope, all, locale, actions, isCurrent } = useOverview()
   if (!scope || !all) return null
@@ -72,7 +70,6 @@ export function FleetRidgelines({ span }: { span: Span }) {
       .filter((row) => ghostOf.has(row.key))
       .map((row) => [row.key, { row, profile: ridgeProfile(row.minutes) }]),
   )
-  // One chart point per precomputed ridge sample, keyed family:index, so hover, keys and touch report the actual rounded minute.
   const sampleOf = new Map(
     [...live.values()].map(({ row, profile }) => [
       row.key,
@@ -86,7 +83,6 @@ export function FleetRidgelines({ span }: { span: Span }) {
       })),
     ]),
   )
-  // Keyboard steps one family at a time, at the sample nearest its median, labelled with that typical length; hover still reads every sample.
   const stops = [...live.values()]
     .map(({ row }) => {
       const samples = sampleOf.get(row.key) ?? [],

@@ -39,7 +39,6 @@ export function setScope(
 ): OverviewFilter {
   return scope ? { ...filter, scope } : removeFacet(filter, 'scope')
 }
-/** Reset clears facets and the period; the page-level scope stays. */
 export function clearAll(filter: OverviewFilter): OverviewFilter {
   return filter.scope ? { scope: filter.scope } : {}
 }

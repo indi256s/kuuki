@@ -1,6 +1,3 @@
-/* The security lane figure. Each tray is drawn at the lane's mouth and stands at its place by a transform, so a source
-   that changes phase makes its tray travel. At rest nothing moves: rollers run only while a file is over the page or a
-   tray is travelling. */
 .security-lane {
   display: grid;
   place-items: center;
@@ -31,7 +28,6 @@
     animation-play-state: paused;
   }
 }
-/* One roller pitch, so the loop has no seam. */
 @keyframes security-lane-roll {
   to {
     transform: translate(var(--roll-x), var(--roll-y));

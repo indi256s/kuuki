@@ -2,7 +2,6 @@ import airlines from '@kuuki/data/airlines'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
-// The shared package has no `./theme/*` export entry yet; consumers switch to the package path once it does.
 import {
   ACCENT_KEYS,
   HOLDER,
@@ -21,8 +20,6 @@ import { airlineColor } from '../lib/airline'
 import { contrast, oklchToRgb, parseHex, rgbToOklch, toHex, type Rgb } from '../lib/color'
 import { NEUTRAL_INK, SURFACE_COLOR, THEME_COLOR } from '../lib/theme-colors'
 
-// --- styles.css -> resolved token sets ---------------------------------------------------------
-
 const css = readFileSync(fileURLToPath(new URL('./styles.css', import.meta.url)), 'utf8').replace(
   /\/\*[\s\S]*?\*\//g,
   '',
@@ -30,7 +27,6 @@ const css = readFileSync(fileURLToPath(new URL('./styles.css', import.meta.url))
 
 type Decls = Map<string, string>
 
-/** Declarations of every rule whose selector is exactly `selector`, merged in source order. */
 function rulesFor(selector: string): Decls {
   const decls: Decls = new Map()
   for (const [, rawSelector, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
@@ -43,7 +39,6 @@ function rulesFor(selector: string): Decls {
   return decls
 }
 
-/** Cascade of the root element for a mode and accent: :root → dark → accent → dark + accent. */
 function cascade(mode: Mode, accent: AccentKey): Decls {
   const layers = [
     rulesFor(':root'),
@@ -89,8 +84,6 @@ const surfacesOf = (decls: Decls) => ({
   inset: hexOf(decls, '--surface-inset'),
 })
 
-// --- CSS equals the design-system spec ----------------------------------------------------------
-
 type PaletteSpec = { themes: Record<string, Record<string, string>> }
 const spec = JSON.parse(
   readFileSync(
@@ -110,8 +103,6 @@ describe.each(combos)('$mode / $accent against design-system/palette.json', ({ m
     expect(drift).toEqual([])
   })
 })
-
-// --- CSS equals the shared table ---------------------------------------------------------------
 
 describe.each(combos)('$mode / $accent tokens', ({ mode, accent }) => {
   const decls = cascade(mode, accent)
@@ -296,8 +287,6 @@ describe.each(MODES)('%s mode tokens', (mode) => {
   })
 })
 
-// --- non-CSS consumers -------------------------------------------------------------------------
-
 describe('non-CSS colour constants', () => {
   it.each(MODES)('THEME_COLOR, SURFACE_COLOR and NEUTRAL_INK mirror the %s tokens', (mode) => {
     const decls = cascade(mode, 'shu')
@@ -309,8 +298,6 @@ describe('non-CSS colour constants', () => {
     expect(NEUTRAL_INK[mode]).toBe(SURFACES[mode].muted)
   })
 })
-
-// --- airline brands ----------------------------------------------------------------------------
 
 describe.each(MODES)('airline brand colours in %s mode', (mode) => {
   const decls = cascade(mode, 'shu')

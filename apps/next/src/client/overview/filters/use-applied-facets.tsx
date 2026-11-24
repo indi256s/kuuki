@@ -11,14 +11,12 @@ import { buildFacetIndex, FACET_ORDER } from './facet-index'
 
 export type AppliedFacet = {
   facet: FilterFacet
-  /** `name · values`, with `+N` when more values are applied than the chip names. */
   label: string
   swatch?: ReactNode
   removeLabel: string
   remove: () => void
 }
 
-/** The applied facets as chips, in facet order: the page's filter bar and the mobile sheet's filter row draw the same list. */
 export function useAppliedFacets(): AppliedFacet[] {
   const { filter, payload, locale, actions, isCurrent } = useOverview()
   const labels = useMemo(() => referenceLabels(locale, payload?.refs), [locale, payload?.refs])

@@ -1,7 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-// Static admission proves configuration consistency, never live write isolation.
 const argument = (flag, fallback) => {
   const index = process.argv.indexOf(flag)
   return index < 0 ? fallback : resolve(process.argv[index + 1] ?? '')
@@ -59,8 +58,6 @@ const pagesDb = databases(config, 'Pages')
 const cronDb = databases(maintenance, 'Maintenance')
 if (pagesDb.prod !== cronDb.prod || pagesDb.prev !== cronDb.prev)
   problems.push('Maintenance DB bindings must align with Pages in each environment')
-// The import job Worker writes drafts straight to D1, so it must share each environment's database, and each
-// environment's IMPORT_JOBS binding must reach that environment's import Worker.
 const importWorker = readFileSync(
   argument('--import-config', new URL('../workers/import/wrangler.toml', import.meta.url)),
   'utf8',
@@ -106,7 +103,6 @@ for (const [label, vars] of [
 }
 if (prodVars.ACTIVATION_ORIGIN && prodVars.ACTIVATION_ORIGIN === previewVars.ACTIVATION_ORIGIN)
   problems.push('Preview activation origin must differ from production')
-// No KV is required. If declared, every preview cache must be distinct and aligned.
 for (const [name, source] of [
   ['Pages', config],
   ['Maintenance', maintenance],
@@ -125,7 +121,6 @@ for (const [name, source] of [
   }
   caches.push({ name, production, preview })
 }
-// A declared maintenance cache must target the matching application cache.
 for (const environment of ['production', 'preview']) {
   for (const row of caches[1][environment]) {
     if (!caches[0][environment].some((app) => app.binding === row.binding && app.id === row.id)) {

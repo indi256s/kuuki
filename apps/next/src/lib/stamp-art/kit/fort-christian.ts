@@ -1,6 +1,3 @@
-// Fort Christian (Charlotte Amalie): a long low fort block with a flat parapet and a row of arched
-// windows, a battered bastion wing at each end, and a squat square clock tower rising from the
-// middle under a solid hip roof. The box is the whole fort; its bottom is the ground.
 import {
   type Pt,
   type SvgNode,
@@ -30,7 +27,6 @@ export const fortChristian: KitModule = ([x, y, w, h], p) => {
   const towerTop = y + h * 0.1
   const out: SvgNode[] = []
 
-  // Wings: battered bastion walls at both ends, a step lower than the block.
   const wingTop = blockTop + h * 0.07
   const wl: Pt[] = [
     [x + 1, wingTop],
@@ -62,7 +58,6 @@ export const fortChristian: KitModule = ([x, y, w, h], p) => {
   )
   for (let i = 0; i < 3; i++) out.push(fill(rectPts(x + 5 + i * 8, wingTop + 3.5, 2.6, 4.2)))
 
-  // Main block with a bold parapet line and a row of arched windows; right end shaded.
   const bx0 = x + w * 0.2
   const bx1 = x + w * 0.82
   out.push(...body(rectPts(bx0, blockTop, bx1 - bx0, blockH), 'line'))
@@ -93,7 +88,6 @@ export const fortChristian: KitModule = ([x, y, w, h], p) => {
     ]),
   )
 
-  // Tower: square shaft with a clock stage, cornice and hip roof.
   const tx0 = cx - tw / 2
   const roofH = h * 0.16
   const shaftTop = towerTop + roofH

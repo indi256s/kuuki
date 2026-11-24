@@ -9,28 +9,19 @@ import { Field } from './field'
 export type DestructiveConfirmProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  /** Names the object: «Удалить рейс JFK → BOS, 3 янв 2026?» */
   title: ReactNode
-  /** What will happen, in plain words. */
   consequence: ReactNode
-  /** Verb plus object: «Удалить рейс». */
   confirmLabel: string
   cancelLabel: string
-  /** Static text shown while pending (no spinner). */
   pendingLabel?: string
-  /** Rejecting keeps the dialog open and shows `errorMessage`. */
   onConfirm: () => void | Promise<void>
   errorMessage?: string
-  /** Blocks the action with a visible reason (for example offline). It can appear while the dialog is already open. */
   confirmDisabledReason?: ReactNode
-  /** Optional typed confirmation for irreversible actions (the user must type this exactly). */
   typedConfirmation?: { phrase: string; label: string; mismatchReason: string }
   trigger?: ReactNode
-  /** Runs when focus is about to return to where it was; `preventDefault()` lets the caller place focus instead. */
   onCloseAutoFocus?: (event: Event) => void
 }
 
-/** Dialog composition: Cancel has initial focus and is the only way out besides Escape (no ×), the danger button never doubles as an icon, and closing is blocked while pending. */
 export function DestructiveConfirm({
   open,
   onOpenChange,
@@ -50,7 +41,6 @@ export function DestructiveConfirm({
   const [pending, setPending] = useState(false)
   const [failed, setFailed] = useState(false)
   const [typed, setTyped] = useState('')
-  // Reset whenever the dialog closes, whichever path closed it (adjusting state during render, not in an effect).
   const [wasOpen, setWasOpen] = useState(open)
   if (wasOpen !== open) {
     setWasOpen(open)

@@ -6,7 +6,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { draft, snapshot } from './fixtures'
 import type { Snapshot } from './import-types'
 
-// The real create helper and receipt store run here; only the network answers are stood in.
 const post = vi.fn()
 const refresh = vi.fn()
 const discardBatch = vi.fn(async () => ({ deleted: true }))
@@ -19,7 +18,7 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
 vi.mock('../write-feedback', () => ({
   useWriteFeedback: () => ({ acknowledge: vi.fn(), status: 'idle' }),
 }))
-vi.mock('../signature/stamp', () => ({ Stamp: () => null }))
+vi.mock('../stamps', () => ({ CountryStamp: () => null }))
 vi.mock('@kuuki/client/apiClient', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@kuuki/client/apiClient')>()),
   api: { post: (...args: unknown[]) => post(...args) },
@@ -62,7 +61,6 @@ const sentKeys = () =>
 const RECEIPT = 'kuuki-flight-create-operation:'
 const DAY = 24 * 60 * 60 * 1000
 
-/** The server commits each key once; a replayed key answers `replayed`. */
 const serverCommits = () =>
   post.mockImplementationOnce(async (_path: string, body: { items: Array<{ key: string }> }) => {
     const key = body.items[0].key
@@ -70,7 +68,6 @@ const serverCommits = () =>
     committed.add(key)
     return ok(status)
   })
-/** The server commits the key, then the answer is lost. */
 const commitThenLose = () =>
   post.mockImplementationOnce(async (_path: string, body: { items: Array<{ key: string }> }) => {
     committed.add(body.items[0].key)
@@ -85,7 +82,6 @@ const flight = (over: Partial<ReturnType<typeof emptyValues>> = {}) =>
     destination: 'BOS',
     ...over,
   })
-/** A manual save written the way main writes it (a plain UUID operation id) whose committed answer was lost. */
 async function loseOldFormatSave(
   owner = 'u1',
   over: Partial<ReturnType<typeof emptyValues>> = {},
@@ -95,7 +91,6 @@ async function loseOldFormatSave(
   await createFlights(owner, [{ operationId, flight: flight(over) }])
   return operationId
 }
-/** Ages a stored receipt past the six-day safe-retry window, as if it had been written a week ago. */
 function age(owner: string, operationId: string) {
   const stored = JSON.parse(localStorage.getItem(`${RECEIPT}${owner}:${operationId}`)!) as {
     createdAt: number
@@ -148,7 +143,7 @@ describe('R3-C1 an unresolved save in the earlier plain-UUID format is recoverab
       </StrictMode>,
     )
     await screen.findByRole('heading', { name: /review flights/i })
-    expect(entries()).toHaveLength(1) // listed once, also under StrictMode
+    expect(entries()).toHaveLength(1)
     expect(within(entries()[0]).getByText(/JFK → BOS · Mar 1, 2026/)).toBeInTheDocument()
     expect(within(entries()[0]).getByText(/may or may not be saved/i)).toBeInTheDocument()
 
@@ -171,7 +166,7 @@ describe('R3-C1 an unresolved save in the earlier plain-UUID format is recoverab
       await addManual(user)
       await user.click(screen.getByRole('button', { name: /import 1/i }))
       expect(await screen.findByText(/same flight is still unconfirmed/i)).toBeInTheDocument()
-      expect(post).toHaveBeenCalledTimes(1) // only the lost original
+      expect(post).toHaveBeenCalledTimes(1)
       expect(committed.size).toBe(1)
 
       await user.click(screen.getByRole('button', { name: /^back to review$/i }))
@@ -198,7 +193,7 @@ describe('R3-C1 an unresolved save in the earlier plain-UUID format is recoverab
         serverCommits()
         await user.click(screen.getByRole('button', { name: /import 1/i }))
         await screen.findByRole('heading', { name: /import finished/i })
-        expect(committed.size).toBe(2) // The changed route is a different flight, not a recovered alias.
+        expect(committed.size).toBe(2)
       } else {
         expect(screen.queryByRole('button', { name: /import 1/i })).toBeNull()
         expect(screen.queryByText('Flight added by hand')).toBeNull()
@@ -225,7 +220,7 @@ describe('R3-I1 recovery does not depend on the batch that wrote the save', () =
       within(await screen.findByRole('dialog')).getByRole('button', { name: /^discard import$/i }),
     )
     await screen.findByRole('radio', { name: /paste text/i })
-    expect(entries()).toHaveLength(1) // the discarded batch's save is still listed on Source
+    expect(entries()).toHaveLength(1)
     first.unmount()
 
     render(
@@ -254,7 +249,7 @@ describe('R3-I1 recovery does not depend on the batch that wrote the save', () =
     await user.click(screen.getByRole('button', { name: /import 1/i }))
     expect(await screen.findByRole('heading', { name: /import finished/i })).toBeInTheDocument()
     expect(post).toHaveBeenCalledTimes(2)
-    expect(new Set(sentKeys()).size).toBe(2) // a new key only after the member settled the old one
+    expect(new Set(sentKeys()).size).toBe(2)
   })
 
   it('an expired batch still lists the unresolved save on Source', async () => {
@@ -332,7 +327,7 @@ describe('R3-I2 a completed batch keeps restored saves settleable', () => {
     await user.click(within(entries()[0]).getByRole('button', { name: /i checked the journal/i }))
     expect(within(recovery()).getByText(/marked as checked: lhr → cdg/i)).toBeInTheDocument()
     expect(within(recovery()).queryAllByRole('listitem')).toHaveLength(0)
-    expect(committed.size).toBe(2) // two different flights, each under its own single key
+    expect(committed.size).toBe(2)
     expect(new Set(sentKeys()).size).toBe(2)
     expect(screen.getByRole('heading', { name: /import finished/i })).toBeInTheDocument()
   })
@@ -343,7 +338,7 @@ describe('R3-I2 a completed batch keeps restored saves settleable', () => {
     const completed = snapshot([draft({ id: 'a', status: 'dismissed' })], { status: 'completed' })
     render(<ImportClient ownerId="u1" locale="en" initialBatchId="b1" batchApi={batchApi} />)
     await addManual(user)
-    vi.mocked(batchApi.readBatch).mockResolvedValue(completed) // the stored batch completed meanwhile
+    vi.mocked(batchApi.readBatch).mockResolvedValue(completed)
     commitThenLose()
     await user.click(screen.getByRole('button', { name: /import 1/i }))
     await screen.findByRole('heading', { name: /some flights were not saved/i })
@@ -394,7 +389,7 @@ describe('owner isolation', () => {
     expect(post).toHaveBeenCalledTimes(2)
     expect(Object.keys(localStorage).filter((key) => key.startsWith(`${RECEIPT}u1:`))).toHaveLength(
       1,
-    ) // u1's save is untouched
+    )
   })
 })
 
@@ -516,7 +511,6 @@ describe('original retry after cross-flow settlement', () => {
       const user = userEvent.setup()
       const id = crypto.randomUUID()
       const key = crypto.randomUUID()
-      // Freshly loaded owner: this intact receipt has never populated this module's fallback map.
       localStorage.setItem(
         `${RECEIPT}u1:${id}`,
         JSON.stringify({ key, payload: JSON.stringify(flight()), createdAt: Date.now() }),

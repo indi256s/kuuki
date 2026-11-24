@@ -1,4 +1,3 @@
-// Local-only transport: identity is injected; real API handlers, D1 and DO execute in workerd.
 import { ImportJob, type ImportEnv } from '../../workers/import/ImportJob'
 import { importJobRequest } from '../api/import/jobs'
 import { onRequestPatch as patch } from '../api/import/drafts/[id]'
@@ -50,7 +49,6 @@ export default {
       return new Response(null, { status: 204 })
     }
     if (url.pathname === '/__test/racing-duplicate') {
-      // The original submission's batch is visible as `accepted`, then its job completes before this duplicate's handshake lands.
       const body = (await request.clone().json()) as { submissionOperationId: string; type: 'text' }
       const batchId = crypto.randomUUID()
       await createProcessingBatch(

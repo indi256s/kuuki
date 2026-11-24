@@ -39,7 +39,7 @@ describe('SegmentedControl', () => {
     expect(screen.getByRole('radio', { name: 'Dark' })).toHaveAttribute('aria-checked', 'true')
     expect(screen.getByRole('radio', { name: 'Dark' })).toHaveFocus()
     await user.keyboard('{ArrowLeft}{ArrowLeft}')
-    expect(onChange).toHaveBeenLastCalledWith('system') // wraps
+    expect(onChange).toHaveBeenLastCalledWith('system')
   })
 
   it('keeps radio semantics and keyboard selection when dense', async () => {

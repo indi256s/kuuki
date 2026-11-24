@@ -1,5 +1,3 @@
-// Shared fixture and call helpers for the Flighty history import tests (ADR 0008). Every call goes through the real
-// route handlers against local D1; the CSV is parsed, chunked and digested with the same shared code the browser uses.
 import { readFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -53,13 +51,11 @@ export const fixtureCsv = () =>
   )
 
 const HEADERS = parseFlightyCsv(fixtureCsv()).headers
-/** A CSV in the observed header order from partial records (cells not named stay empty, none may contain a comma). */
 export const csvOf = (records: Array<Record<string, string>>) =>
   [
     HEADERS.join(','),
     ...records.map((record) => HEADERS.map((h) => record[h] ?? '').join(',')),
   ].join('\n')
-/** One clean completed JFK-LHR record with PNR SYN777; override any column. */
 export const bawRecord = (over: Record<string, string> = {}): Record<string, string> => ({
   Date: '2026-05-01',
   Airline: 'BAW',
@@ -75,7 +71,6 @@ export const bawRecord = (over: Record<string, string> = {}): Record<string, str
   ...over,
 })
 
-/** [iata, country code, latitude, longitude] for every airport a confirmed fixture flight touches. */
 const AIRPORTS: Array<[string, string, number, number]> = [
   ['JFK', 'US', 40.64, -73.78],
   ['LHR', 'GB', 51.47, -0.45],
@@ -161,7 +156,6 @@ export interface PreparedCsv {
   chunkBody: (index: number) => HistoryChunkBody
 }
 
-/** Parse, chunk and digest a CSV exactly as the browser does before opening a run. */
 export async function prepareCsv(csvText: string): Promise<PreparedCsv> {
   const doc = parseFlightyCsv(csvText)
   const chunks = chunkFlightyRecords(doc.records)
@@ -211,7 +205,6 @@ export async function putChunk(
   )
 }
 
-/** Open a run for `csvText` and PUT every chunk. Returns the run id, its last summary and every chunk reply. */
 export async function uploadCsv(
   db: D1Database,
   csvText: string,
@@ -330,7 +323,6 @@ export async function postConfirm(
   return { status, body: body as { results: HistoryConfirmResult[]; run: HistoryRunSummary } }
 }
 
-/** Every row of a state filter, following the keyset cursor. */
 export async function allRows(
   db: D1Database,
   runId: string,
@@ -352,7 +344,6 @@ export async function allRows(
   return rows
 }
 
-/** Confirm every `ready` row, 50 at a time, until none remain. Throws on any per-item failure. */
 export async function confirmAllReady(db: D1Database, runId: string, user: Who = USER) {
   const done: HistoryConfirmResult[] = []
   for (let round = 0; round < 250; round++) {
@@ -372,7 +363,6 @@ export async function confirmAllReady(db: D1Database, runId: string, user: Who =
   throw new Error('confirmAllReady did not converge')
 }
 
-/** Every row of the run in ordinal order, whatever its state. */
 export async function snapshot(db: D1Database, runId: string, user: Who = USER) {
   const rows = [
     ...(await allRows(db, runId, 'open', user)),
@@ -421,7 +411,6 @@ export async function bulkDelete(db: D1Database, ids: number[], user: Who = USER
   )
 }
 
-/** A manual flight through the ordinary create route. */
 export async function createFlight(
   db: D1Database,
   body: Record<string, unknown>,

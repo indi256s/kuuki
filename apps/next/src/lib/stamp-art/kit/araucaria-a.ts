@@ -1,7 +1,3 @@
-// Norfolk Island pine (lane A, motif-specific): a straight trunk under regular whorls of short
-// horizontal branches. Each tier is a flat, slightly upturned wedge with a scalloped underside in
-// dark hatching, tiers widening evenly toward the foot, a bare trunk below the lowest one and a
-// short leader on top. The box is the tree (ground at its bottom).
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, hline, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
@@ -15,7 +11,6 @@ export const araucariaA: KitModule = ([x, y, w, h], p) => {
   const crownBot = y + h - bare
   const pitch = (crownBot - crownTop) / tiers
   const out: SvgNode[] = []
-  // Trunk, drawn first so the tiers overlap it.
   const tw = Math.max(2.4, w * 0.06)
   out.push(
     stroke('line', [
@@ -32,7 +27,6 @@ export const araucariaA: KitModule = ([x, y, w, h], p) => {
     ]),
   )
   out.push(hline('bold', cx - w * 0.25, cx + w * 0.25, y + h))
-  // Tiers from the top (narrow, small) to the foot (wide), later tiers overlap earlier ones.
   for (let i = 0; i < tiers; i++) {
     const f = i / (tiers - 1)
     const half = (w / 2) * (0.22 + 0.78 * Math.pow(f, 0.92)) * (0.96 + rand() * 0.08)
@@ -40,10 +34,8 @@ export const araucariaA: KitModule = ([x, y, w, h], p) => {
     const th = pitch * 1.05
     const up = pitch * 0.18
     const pts: Pt[] = []
-    // Upper edge: from the left tip up to the trunk and down to the right tip.
     pts.push([cx - half, ty + th * 0.55 - up], [cx - half * 0.5, ty + th * 0.18], [cx, ty])
     pts.push([cx + half * 0.5, ty + th * 0.18], [cx + half, ty + th * 0.55 - up])
-    // Scalloped underside, right to left.
     const n = Math.max(3, Math.round(half / 4.2))
     for (let k = 0; k <= n; k++) {
       const t = k / n

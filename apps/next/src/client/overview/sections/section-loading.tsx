@@ -2,7 +2,6 @@
 
 import { ChapterCard } from '../layout/chapter-card'
 
-/** While a chapter's code loads: the card's own loading bands, so nothing moves when the chapter arrives. */
 export function SectionLoading() {
   return (
     <ChapterCard

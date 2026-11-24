@@ -79,7 +79,6 @@ it('a merged card is hidden only when every legacy card it absorbed was hidden',
   expect(hidden(['fleet', 'manufacturers'])).toEqual(['aircraft'])
   expect(hidden(['clock', 'manufacturers', 'fleet', 'timeline'])).toEqual(['clock', 'aircraft'])
   expect(hidden(['rhythm', 'timeline'])).toEqual(['rhythm'])
-  // Already-migrated layouts keep their hidden ids.
   expect(hidden(['aircraft', 'rhythm'])).toEqual(['aircraft', 'rhythm'])
 })
 

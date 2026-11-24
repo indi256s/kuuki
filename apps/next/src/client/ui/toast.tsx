@@ -22,26 +22,18 @@ type ToastCopy = string | Record<Locale, string>
 
 export type ToastKind = 'info' | 'success' | 'error'
 export type ToastInput = {
-  /** State the outcome («Ссылка скопирована»), not the action. */
   message: ToastCopy
-  /** Detail under the outcome, one line each (the saved route and date, then the totals state). */
   description?: ToastCopy
   kind?: ToastKind
-  /** ms; default 5000 (8000 for errors). 0 keeps it until dismissed. */
   duration?: number
   actionLabel?: ToastCopy
   onAction?: () => void
-  /** Controls of the caller's own under the outcome (the Passport stamp's year and Undo). The toast grows to fit them. */
   content?: (controls: ToastControls) => ReactNode
-  /** Called once when the toast starts to leave, however it was closed. */
   onClose?: () => void
 }
-/** What a toast's own `content` may do to it. */
 export type ToastControls = {
   dismiss: () => void
-  /** A new outcome or description: the old line leaves and the new one rises in. */
   update: (patch: ToastPatch) => void
-  /** Holds the dismissal timer while true (a wheel open in the toast). */
   hold: (held: boolean) => void
 }
 export type ToastPatch = Partial<Pick<ToastInput, 'message' | 'description'>>
@@ -53,7 +45,6 @@ type ToastApi = {
 }
 
 const ToastContext = createContext<ToastApi | null>(null)
-/** The provider's notice slot; `undefined` when no provider is mounted. */
 const SlotContext = createContext<HTMLElement | null | undefined>(undefined)
 const EXIT_MS = 200
 
@@ -63,10 +54,6 @@ export function useToast(): ToastApi {
   return api
 }
 
-/**
- * Places a notice its caller owns (its own live region, controls and lifetime) in the toast region, so it sits with the
- * shell's toasts instead of inside the page. Without a provider it renders in place.
- */
 export function ToastSlot({ children }: { children: ReactNode }) {
   const slot = useContext(SlotContext)
   if (slot === undefined) return children
@@ -79,11 +66,9 @@ const DEFAULT_KIND_LABELS: KindLabels = {
   success: 'Success',
   error: 'Error',
 }
-/** Arc toast: a swipe past this distance (px) or speed (px/ms) throws the toast off in that direction. */
 const SWIPE = { distance: 80, velocity: 0.48 }
 const SETTLE = { type: 'spring', stiffness: 650, damping: 46, mass: 0.8 } as const
 
-/** Arc's success check, drawn in once the toast has risen. */
 function DrawnCheck() {
   return (
     <svg width={16} height={16} viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -106,15 +91,10 @@ const ICONS = {
   error: <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />,
 } as const
 
-/**
- * Arc's height frame: follows its content, and when the content changes (a line swapped, a wheel opened) springs from
- * the old height to the new one, then returns to auto so a passive reflow follows at once. It clips only while moving.
- */
 function HeightFrame({ morphKey, children }: { morphKey: string; children: ReactNode }) {
   const frame = useRef<HTMLDivElement>(null)
   const content = useRef<HTMLDivElement>(null)
   const reduced = useReducedMotion()
-  /** The key changed and the next resize is its own: spring to it. Any other resize (a reflow, a font swap) follows at once. */
   const morph = useRef(false)
   const mounted = useRef(false)
   useLayoutEffect(() => {
@@ -138,7 +118,6 @@ function HeightFrame({ morphKey, children }: { morphKey: string; children: React
       const owned = morph.current
       morph.current = false
       if (reduced || !owned || from === undefined || from === next) return settle()
-      // Pin the old height before this frame paints, then spring to the new one.
       Object.assign(outer.style, { overflow: 'hidden', height: `${from}px` })
       controls = animate(from, next, {
         ...SETTLE,
@@ -177,7 +156,6 @@ export function ToastProvider({
   const [slot, setSlot] = useState<HTMLElement | null>(null)
   const nextId = useRef(1)
   const exits = useRef(new Set<number>())
-  /** Each open toast's `onClose`, taken when it starts to leave so it runs once. */
   const closers = useRef(new Map<number, () => void>())
   useEffect(() => {
     const pending = exits.current
@@ -227,7 +205,6 @@ export function ToastProvider({
       <SlotContext.Provider value={slot}>
         {children}
         <div className="ui-toast-region">
-          {/* Both live regions stay mounted so screen readers register them before the first message. */}
           <div className="ui-toast-live" role="status" aria-live="polite">
             {polite.map((item) => (
               <ToastView
@@ -402,7 +379,6 @@ function ToastView({
     }
   }, [sync, stop])
 
-  // The content's hold is state, so the controls handed to it during render touch no refs.
   const [contentHeld, setContentHeld] = useState(false)
   useEffect(() => {
     holds.current.content = contentHeld
@@ -430,7 +406,6 @@ function ToastView({
         if (item.leaving || (event.target as Element).closest('button')) return
         if (reduced || drag.current || event.isPrimary === false) return
         if (event.pointerType === 'mouse' && event.button !== 0) return
-        // One set of motion values owns entry, drag and settling. A grab freezes the actual pose.
         x.stop()
         y.stop()
         scale.stop()
@@ -508,9 +483,7 @@ function ToastView({
         {ICONS[item.kind]}
         <span className="sr-only">{kindLabels[item.kind]}: </span>
       </span>
-      {/* Arc: the copy column follows its content, so a swapped line or an opened control grows the toast smoothly. */}
       <HeightFrame morphKey={`${message}\n${description ?? ''}`}>
-        {/* Keyed by its text: a new outcome rises in (CSS) where the old one was. */}
         <p className="ui-toast-message" key={message}>
           {message}
         </p>

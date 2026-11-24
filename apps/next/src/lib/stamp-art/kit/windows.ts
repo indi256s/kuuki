@@ -1,7 +1,5 @@
-// Shared helpers for the lane C building modules: window rows, arched openings and polyline lookup.
 import { type Pt, type SvgNode, fill, rectPts } from '../grid'
 
-/** Centred row of dark windows between x0 and x1 at y, `pitch` apart. */
 export function windowRow(
   x0: number,
   x1: number,
@@ -18,7 +16,6 @@ export function windowRow(
   return out
 }
 
-/** Round-headed opening: a rectangle with a semicircular top, base at y + h. */
 export function archPts(x: number, y: number, w: number, h: number): Pt[] {
   const r = w / 2
   const pts: Pt[] = [[x, y + h]]
@@ -31,7 +28,6 @@ export function archPts(x: number, y: number, w: number, h: number): Pt[] {
   return pts
 }
 
-/** Linear interpolation on a polyline sorted by x ascending. */
 export function lerpLine(line: Pt[], x: number): number {
   if (x <= line[0][0]) return line[0][1]
   for (let i = 0; i + 1 < line.length; i++) {

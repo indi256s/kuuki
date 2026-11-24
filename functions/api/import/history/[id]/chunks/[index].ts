@@ -1,5 +1,3 @@
-// PUT /api/import/history/:id/chunks/:index — one manifest chunk of parsed records (ADR 0008). The server recomputes
-// the digest, re-maps every record and inserts them once; a replay inserts nothing. The last chunk opens review.
 import { json, readJson, runHandler } from '../../../../_lib/http'
 import { rateLimit } from '../../../../_lib/ratelimit'
 import { requireCsrf, requireUser, type RequestData } from '../../../../_lib/auth'

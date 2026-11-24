@@ -1,4 +1,3 @@
-// Theme color options for profiles
 export type ThemeColor =
   | 'teal'
   | 'red'
@@ -11,7 +10,6 @@ export type ThemeColor =
   | 'gray'
   | 'green'
 
-// User profile
 export interface Profile {
   id: string
   username: string
@@ -26,7 +24,6 @@ export interface Profile {
   updatedAt: string
 }
 
-// User stats (denormalized for performance)
 export interface UserStats {
   userId: string
   totalFlights: number
@@ -41,7 +38,6 @@ export interface UserStats {
   updatedAt: string
 }
 
-// Public profile data (for /fly/:username pages)
 export interface PublicProfile {
   username: string
   displayName: string | null
@@ -56,10 +52,8 @@ export interface PublicProfile {
   memberSince: string
 }
 
-// Aircraft enrichment status
 export type EnrichmentStatus = 'pending' | 'enriched' | 'failed' | 'skipped'
 
-// Flight record
 export type DurationSource = 'times' | 'route_median' | 'schedule' | 'estimate'
 
 export interface Flight {
@@ -82,7 +76,6 @@ export interface Flight {
   createdAt: string
 }
 
-/** Own-flight API projection. Ownership and D1-only bookkeeping stay on the server. */
 export type OwnFlight = {
   id: number
   date: string
@@ -115,7 +108,6 @@ export type OwnFlight = {
   arrival_transit_leg_id: number | null
 }
 
-// Visited place (computed from flights)
 export interface Visit {
   userId: string
   countryCode: string
@@ -127,10 +119,8 @@ export interface Visit {
   visitCount: number
 }
 
-// Leaderboard categories
 export type LeaderboardCategory = 'countries' | 'cities' | 'flights' | 'distance' | 'airlines'
 
-// Leaderboard entry
 export interface LeaderboardEntry {
   category: LeaderboardCategory
   userId: string
@@ -144,7 +134,6 @@ export interface LeaderboardEntry {
   }
 }
 
-// User's ranking in a specific category
 export interface LeaderboardRanking {
   category: LeaderboardCategory
   rank: number
@@ -152,7 +141,6 @@ export interface LeaderboardRanking {
   percentile: number
 }
 
-// Badge categories
 export type BadgeCategory =
   | 'flights'
   | 'distance'
@@ -161,10 +149,8 @@ export type BadgeCategory =
   | 'achievement'
   | 'secret'
 
-// Badge tiers
 export type BadgeTier = 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond' | null
 
-// Badge definition
 export interface Badge {
   id: number
   code: string
@@ -178,7 +164,6 @@ export interface Badge {
   flavorText?: string
 }
 
-// User's earned badge
 export interface UserBadge {
   userId: string
   badgeId: number
@@ -186,7 +171,6 @@ export interface UserBadge {
   badge: Badge
 }
 
-// Airport reference
 export interface Airport {
   iata: string
   icao: string | null
@@ -199,7 +183,6 @@ export interface Airport {
   timezone: string
 }
 
-// Airline reference
 export interface Airline {
   iata: string
   icao: string | null
@@ -212,14 +195,13 @@ export interface Airline {
   callsign: string | null
 }
 
-// Aircraft reference
 export interface Aircraft {
-  icao: string // "B738" - primary key
-  iata: string | null // "738"
-  manufacturer: string // "Boeing"
-  model: string // "737-800"
+  icao: string
+  iata: string | null
+  manufacturer: string
+  model: string
   family: string
-  name: string // "Boeing 737-800"
+  name: string
   type: AircraftType
   engineType: EngineType
   engineCount: number
@@ -235,23 +217,14 @@ export type AircraftType =
   | 'piston'
 export type EngineType = 'jet' | 'turboprop' | 'piston'
 
-// ============================================================================
-// Passport Feature Types
-// ============================================================================
-
-// Continent identifier
 export type Continent = 'europe' | 'asia' | 'americas' | 'africa' | 'oceania' | 'antarctica'
 
-// Stamp shape (regional variation)
 export type StampShape = 'circle' | 'rectangle'
 
-// Entry method for manual visits; air evidence does not create a flight.
 export type EntryMethod = 'air' | 'land' | 'sea' | null
 
-// How a land visit crossed; only a land visit names one
 export type GroundVisitMode = 'rail' | 'road' | null
 
-// Country data from countries.json
 export interface CountryData {
   name: string
   nativeName: string
@@ -262,7 +235,6 @@ export interface CountryData {
   timezone: string
 }
 
-// Manual country claim (lightweight stamp - "I've been here")
 export interface CountryClaim {
   id: string
   userId: string
@@ -270,7 +242,6 @@ export interface CountryClaim {
   claimedAt: string
 }
 
-// Individual ground visit record (trip details)
 export interface GroundVisit {
   id: string
   userId: string
@@ -283,7 +254,6 @@ export interface GroundVisit {
   createdAt: string | null
 }
 
-// Unified passport entry (from flights or claims)
 export interface PassportEntry {
   countryCode: string
   countryName: string
@@ -292,14 +262,13 @@ export interface PassportEntry {
   stampShape: StampShape
   dominantColor: string
   flagColors: string[]
-  firstVisit: string // ISO date
-  lastVisit: string // ISO date
+  firstVisit: string
+  lastVisit: string
   visitCount: number
-  source: 'flight' | 'claim' | 'both' // How this country was added
-  airports: string[] // Airport IATA codes visited (empty for claims-only)
+  source: 'flight' | 'claim' | 'both'
+  airports: string[]
 }
 
-// Stats for individual country popup
 export interface CountryStats {
   countryCode: string
   countryName: string
@@ -316,7 +285,6 @@ export interface CountryStats {
   groundVisits: GroundVisit[]
 }
 
-// Extended user stats (passport-related fields)
 export interface ExtendedUserStats extends UserStats {
   timeZonesCount: number
   mostVisitedCountry: string | null

@@ -112,7 +112,6 @@ it('breaks list ties by id in binary order, whatever the locale', () => {
     startDate: '2026-01-01',
     createdAt: '2026-01-01T00:00:00Z',
   })
-  // localeCompare puts 'a' before 'B'; code-unit order puts 'B' first.
   expect([j('a'), j('B')].sort(compareJourneys('2026-10-13')).map((row) => row.id)).toEqual([
     'B',
     'a',

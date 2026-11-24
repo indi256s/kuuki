@@ -1,7 +1,3 @@
-// Journal search: one text field parsed into AND-ed terms, then matched against the in-memory flight list.
-// Parse once, match many: everything that depends on `refs` is built once per refs object (`indexFor`),
-// so a keystroke only costs a few lookups and each flight a handful of set checks. The server keeps the
-// same semantics for its fallback (`buildFlightWhere`): every word must be found, folded and literal.
 import {
   airportAliases,
   airportSearchText,
@@ -9,13 +5,10 @@ import {
 } from '../../../../../packages/shared/src/airportSearch'
 import type { JournalFlight, JournalRefs } from './model'
 
-// Both languages are always accepted, so `locale` does not change what matches.
 export type SearchContext = { refs: JournalRefs; locale: 'en' | 'ru' }
 
-/** Airports (by IATA code) and countries (by ISO code) a place word stands for. A flight matches at either endpoint. */
 export type Place = { codes: ReadonlySet<string>; countries: ReadonlySet<string> }
 
-/** One way a single word can be read. */
 export type SearchAlt =
   | { kind: 'flight'; number: string }
   | { kind: 'period'; prefix: string }
@@ -25,7 +18,6 @@ export type SearchAlt =
   | { kind: 'aircraft'; codes: ReadonlySet<string> }
   | { kind: 'text'; needle: string }
 
-/** A flight must satisfy every term; a term is satisfied by any of its alternatives. */
 export type SearchTerm =
   | { kind: 'route'; text: string; from: Place; to: Place }
   | (SearchAlt & { text: string })
@@ -34,22 +26,18 @@ export type SearchTerm =
 export type JournalSearch = { terms: SearchTerm[] }
 
 type Index = {
-  /** Folded code, city, name and aliases per airport; the substring haystack for places and the fallback. */
   airportText: Map<string, string>
-  /** Whole folded words of `airportText` to the airports that carry them. */
   airportWords: Map<string, Set<string>>
   airlineCodes: Set<string>
   airlineNames: Array<[code: string, name: string]>
   aircraft: Array<[icao: string, name: string, family: string]>
   countryCodes: Set<string>
-  /** Folded words of the English and Russian country names, with their ISO code. */
   countryWords: Array<[word: string, code: string]>
 }
 
 const MAX_QUERY_LENGTH = 100
 const WORDS = /[^\p{L}\p{N}]+/u
 
-// DisplayNames now says "Türkiye" and the like; people still type the older names and abbreviations.
 const countryNicknames: Record<string, string[]> = {
   TR: ['Turkey'],
   US: ['USA', 'America', 'США'],
@@ -114,9 +102,7 @@ function buildIndex(refs: JournalRefs): Index {
       try {
         const label = display?.of(code)
         if (label && label !== code) labels.push(label)
-      } catch {
-        /* malformed region code: only the ISO code itself can match */
-      }
+      } catch {}
     }
     for (const label of labels)
       for (const word of foldSearchText(label).split(WORDS))
@@ -152,7 +138,6 @@ function indexFor(refs: JournalRefs): Index {
 
 let monthTable: Map<string, string> | undefined
 
-/** Folded month words in English and Russian, every prefix of 3+ letters included ("mar", "сент"), to "01".."12". */
 function months(): Map<string, string> {
   if (monthTable) return monthTable
   const forms: string[][] = Array.from({ length: 12 }, (_, month) => [russianGenitiveMonths[month]])
@@ -196,7 +181,6 @@ const normalizeFlightNumber = (value: string) => value.replace(/\s+/g, '').toUpp
 const HYPHENATED_WORDS = /^(\p{L}+)-(\p{L}+)$/u
 const FLIGHT_NUMBER = /^(?:[A-Za-z][A-Za-z0-9]|\d[A-Za-z]|[A-Za-z]{3})\d{1,4}$/
 
-/** Numeric date forms: "2024-03", "2024/03/15", "03/2024". Returns a YYYY-MM[-DD] prefix of the flight date. */
 function numericDatePrefix(word: string): string | null {
   const iso = /^(\d{4})[-/.](\d{1,2})(?:[-/.](\d{1,2}))?$/.exec(word)
   if (
@@ -277,7 +261,6 @@ function wordAlts(word: string, index: Index, place: Place): SearchAlt[] {
       aircraft.add(code)
   if (aircraft.size) alts.push({ kind: 'aircraft', codes: aircraft })
 
-  // A number under a known airline code is a flight number only: "TK381" must read like "TK 381".
   if (
     !isFlightNumber ||
     !(index.airlineCodes.has(upper.slice(0, 2)) || index.airlineCodes.has(upper.slice(0, 3)))
@@ -286,7 +269,6 @@ function wordAlts(word: string, index: Index, place: Place): SearchAlt[] {
   return alts
 }
 
-/** Parse the field text. An empty search has no terms and matches everything. */
 export function parseJournalSearch(text: string, ctx: SearchContext): JournalSearch {
   const index = indexFor(ctx.refs)
   const tokens = text
@@ -305,8 +287,6 @@ export function parseJournalSearch(text: string, ctx: SearchContext): JournalSea
     return found
   }
 
-  // Two words that each name an airport (a code, or a whole word of a city or airport name), with no airport
-  // in common, are origin and destination in either order. Overlap ("Istanbul IST", "New York") is not a pair.
   const route = (first: string, second: string, text: string): SearchTerm | null => {
     const a = place(first)
     const b = place(second)
@@ -396,7 +376,6 @@ function matchesAlt(flight: JournalFlight, alt: SearchAlt, index: Index, memo: M
     case 'flight': {
       if (!flight.flight_number) return false
       const number = normalizeFlightNumber(flight.flight_number)
-      // Prefix match, so the list narrows while the number is typed: "TK38" keeps TK381 and TK3810 until "TK381" is complete.
       return (
         number.startsWith(alt.number) ||
         (flight.airline_iata !== null &&
@@ -414,14 +393,12 @@ function matchesAlt(flight: JournalFlight, alt: SearchAlt, index: Index, memo: M
     case 'aircraft':
       return flight.aircraft_icao !== null && alt.codes.has(flight.aircraft_icao)
     case 'text': {
-      // The server's haystack: the row's own fields, then each airport's city, name and aliases.
       memo.haystack ??= `${foldSearchText(`${flight.origin} ${flight.destination} ${flight.flight_number ?? ''} ${flight.airline_iata ?? ''} ${flight.date}`)} ${index.airportText.get(flight.origin) ?? ''} ${index.airportText.get(flight.destination) ?? ''}`
       return memo.haystack.includes(alt.needle)
     }
   }
 }
 
-/** True when the flight satisfies every term. Call with the same `refs` the search was parsed with. */
 export function matchesJournalSearch(
   flight: JournalFlight,
   search: JournalSearch,

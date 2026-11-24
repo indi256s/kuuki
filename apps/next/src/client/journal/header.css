@@ -36,13 +36,13 @@
 }
 .journal-summary dt {
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
 }
 .journal-summary dd {
   margin: 0;
-  font-size: 24px;
-  line-height: 32px;
+  font-size: 1.5rem;
+  line-height: 2rem;
   font-variant-numeric: tabular-nums;
 }
 .journal-summary .ui-slot-text {
@@ -63,8 +63,8 @@
   align-items: center;
   min-height: 44px;
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -87,8 +87,8 @@
     gap: var(--space-3) var(--space-5);
   }
   .journal-summary dd {
-    font-size: 17px;
-    line-height: 24px;
+    font-size: 1.0625rem;
+    line-height: 1.5rem;
   }
   /* The title and Add share a row while both fit; Add drops below the title rather than squeeze it. */
   .journal-header-actions {

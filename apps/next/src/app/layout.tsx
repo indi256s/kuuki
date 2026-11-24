@@ -37,7 +37,6 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           </span>
         </a>
         <RouteTransitions>{children}</RouteTransitions>
-        {/* Outside the route stage: a transformed ancestor would pin these to it instead of the viewport. */}
         <div className="edge-top" aria-hidden="true" />
         <div className="edge-bottom" aria-hidden="true" />
         <Suspense fallback={null}>

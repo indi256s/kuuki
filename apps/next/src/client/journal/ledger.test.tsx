@@ -96,7 +96,6 @@ function setup(overrides: Partial<JournalLedgerProps> = {}) {
 it('renders flight rows with their status, the connector band and no per-row unit in the cells', () => {
   setup()
   expect(screen.getByRole('table', { name: 'Flights' })).toBeInTheDocument()
-  // Header row, two flights and the connector band.
   expect(screen.getAllByRole('row')).toHaveLength(4)
   expect(
     screen.getByRole('button', { name: /IST to AMS, To confirm, Mar 12, 2024/ }),
@@ -283,7 +282,6 @@ it('mobile card swipes and the accessible menu invoke the same actions, and the 
     fireEvent.pointerMove(card, { ...touch, clientX: 300 + direction * 20 })
     fireEvent.pointerMove(card, { ...touch, clientX: 300 + direction * 240 })
     fireEvent.pointerUp(card, { ...touch, clientX: 300 + direction * 240 })
-    // These are separate action shortcuts; let the row return before the opposite swipe.
     await waitFor(() => expect(card.closest('.ui-swipe-row')).not.toHaveAttribute('data-reveal'))
   }
   expect(confirm).toHaveBeenCalledTimes(2)

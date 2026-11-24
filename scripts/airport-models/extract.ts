@@ -1,4 +1,3 @@
-/** One-time import of an explicitly supplied official OSM snapshot. No network access. */
 import { readFileSync, writeFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { adapter, type Config, type Element } from './normalize'

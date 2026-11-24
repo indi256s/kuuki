@@ -2,7 +2,6 @@
 
 import { useLayoutEffect, useState, type RefObject } from 'react'
 
-/** Radix Presence waits for animations, so transition exits retain the portal explicitly. */
 export function useTransitionPresence(
   ref: RefObject<HTMLDivElement | null>,
   open: boolean,
@@ -23,9 +22,7 @@ export function useTransitionPresence(
     const finish = () => {
       if (!cancelled) setPresent(false)
     }
-    // Cancellation (including reduced motion changing mid-exit) also releases the portal.
     void Promise.allSettled(transitions.map((transition) => transition.finished)).then(finish)
-    // A detached document or interrupted browser lifecycle must not strand the layer.
     const timeout = window.setTimeout(finish, 350)
     return () => {
       cancelled = true

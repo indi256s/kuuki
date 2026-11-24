@@ -40,10 +40,6 @@ const sizeText = (locale: Locale, bytes: number) =>
     maximumFractionDigits: 1,
   }).format(bytes / (bytes < 1024 * 1024 ? 1024 : 1024 * 1024))
 
-/**
- * The OCR panel mounted in the rail form's slot. Files are read one request each; every answer lands as editable
- * previews. Nothing reaches the route except through "Add to route", "Replace route" or "Replace this leg".
- */
 export function RailOcrPanel({ api, locale }: { api: RailOcrSlotApi; locale: Locale }) {
   const ru = locale === 'ru'
   const l = ru ? 'ru' : 'en'
@@ -52,8 +48,6 @@ export function RailOcrPanel({ api, locale }: { api: RailOcrSlotApi; locale: Loc
   const [refused, setRefused] = useState(false)
   const headingId = useId()
   const root = useRef<HTMLElement>(null)
-  // After Remove, focus goes to a surviving row's Remove (the one that took its place, else the one before),
-  // else back to the file picker, so the keyboard position never falls to the page.
   const focusAfterRemove = useRef<string | 'picker' | null>(null)
   const { onUnaddedChange } = api
   const unadded = useMemo(() => unaddedRows(ocr.rows), [ocr.rows])
@@ -80,7 +74,6 @@ export function RailOcrPanel({ api, locale }: { api: RailOcrSlotApi; locale: Loc
     `${T.legName[l]} ${index + 1}${leg.from || leg.to ? `: ${leg.from ? placeLabel(leg.from, locale) : '?'} → ${leg.to ? placeLabel(leg.to, locale) : '?'}` : ''}`
 
   const give = (list: Preview[], mode: 'append' | 'replace', legId?: string) => {
-    // Replace this leg starts from the old leg, so its places, id and typed duration stay.
     const base = legId === undefined ? undefined : api.legs.find((leg) => leg.id === legId)
     const taken = api.onCandidates(
       list.map((preview) => legFromPreview(preview, base)),
@@ -127,7 +120,6 @@ export function RailOcrPanel({ api, locale }: { api: RailOcrSlotApi; locale: Loc
       {ocr.rows.length > 0 && (
         <>
           <div className="gt-ocr-bar">
-            {/* The one polite region of the panel: progress and the cut-off note. Rows below are plain text. */}
             <p className="gt-muted" role="status">
               {ocr.busy
                 ? `${T.summaryReading[l]} ${done}/${ocr.rows.length}`
@@ -306,7 +298,6 @@ function PreviewCard({
   ].filter(Boolean)
   const legend = `${fileName} · ${T.train[l]} ${index + 1}`
   const targetId = legs.some((leg) => leg.id === target) ? target : ''
-  // Cards the reader is sure of read as one line; a "Check this" card opens so the doubtful field is in view.
   const unclear =
     preview.uncertain.length > 0 ||
     dateNeedsYear(preview.departureDate) ||
@@ -444,7 +435,6 @@ function PreviewCard({
   )
 }
 
-/** A whole date is a date input; a partial one shows what the ticket printed and asks for the year it did not. */
 function DateInput({
   label,
   date,
@@ -472,7 +462,6 @@ function DateInput({
       </div>
     )
   const printed = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long' }).format(
-    // 2000 is a leap year, so 29 February prints; the year is never shown or used.
     new Date(2000, date.partial.month - 1, date.partial.day),
   )
   const typed = date.year.trim() !== ''

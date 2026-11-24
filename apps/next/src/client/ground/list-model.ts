@@ -1,5 +1,3 @@
-// Pure list shaping for the ground-travel page: filter, order and group by the shared contract.
-
 import {
   compareJourneys,
   listGroup,
@@ -12,7 +10,6 @@ import {
 
 export type Section = { id: 'plans' | 'history' | 'cancelled'; journeys: GroundJourneyDto[] }
 
-/** Journeys of the chosen mode (all when null), in contract order for `today`. */
 export function visibleJourneys(
   journeys: readonly GroundJourneyDto[],
   mode: GroundMode | null,
@@ -21,7 +18,6 @@ export function visibleJourneys(
   return journeys.filter((journey) => !mode || journey.mode === mode).sort(compareJourneys(today))
 }
 
-/** Plans first, then history; the cancelled view is one section. Empty sections are omitted. */
 export function sectionsOf(journeys: readonly GroundJourneyDto[], today: string): Section[] {
   const buckets: Record<Section['id'], GroundJourneyDto[]> = {
     plans: [],
@@ -42,7 +38,6 @@ export function sectionsOf(journeys: readonly GroundJourneyDto[], today: string)
 export const groupOf = (journey: GroundJourneyDto, today: string): ListGroup =>
   listGroup(journey, today)
 
-/** First and last city of a journey, in route order. */
 export function endpoints(journey: GroundJourneyDto) {
   if (journey.mode === 'rail') {
     const first = journey.legs[0]
@@ -57,14 +52,9 @@ export function endpoints(journey: GroundJourneyDto) {
 export type RouteStop = {
   place: GroundPlaceSnapshot
   role: 'start' | 'via' | 'end'
-  /** The previous stop is not connected to this one: a rail leg starts somewhere the last one did not end. */
   afterGap: boolean
 }
 
-/**
- * Stops in travel order for the card's schematic: order and connection only, no geography or scale. A round trip
- * keeps its repeated city; disjoint rail legs keep their gap instead of drawing a continuous route.
- */
 export function routeStops(journey: GroundJourneyDto): RouteStop[] {
   const runs =
     journey.mode === 'rail'

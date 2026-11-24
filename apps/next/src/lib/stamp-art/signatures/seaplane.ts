@@ -1,5 +1,3 @@
-// MV: a small high-wing floatplane on twin floats on flat water, with a short jetty and a mooring
-// post at the right. The box is plane plus jetty; its bottom is the waterline.
 import { type Pt, type SvgNode, body, fill, hline, rectPts, stroke, toneFill } from '../grid'
 import type { KitModule } from '../kit'
 
@@ -8,7 +6,6 @@ export const seaplane: KitModule = ([x, y, w, h]) => {
   const poly = (pts: Pt[]) => pts.map(at)
   const out: SvgNode[] = []
   const water = y + h * 0.9
-  // Far float, then struts, near float.
   const float: Pt[] = poly([
     [0.06, 0.88],
     [0.09, 0.8],
@@ -23,7 +20,6 @@ export const seaplane: KitModule = ([x, y, w, h]) => {
   }
   out.push(...body(float, 'line'))
   out.push(...toneFill(float, 'T4', { angle: 0, gap: [1.8, 1.8], weight: 'hair', inset: 0.3 }))
-  // Fuselage.
   const fus: Pt[] = poly([
     [0.7, 0.62],
     [0.69, 0.5],
@@ -38,7 +34,6 @@ export const seaplane: KitModule = ([x, y, w, h]) => {
   ])
   out.push(...body(fus, 'line'))
   for (const fx of [0.46, 0.53, 0.6]) out.push(fill(rectPts(...at([fx, 0.5]), 0.05 * w, 0.07 * h)))
-  // Tail fin and stabiliser.
   out.push(
     ...body(
       poly([
@@ -61,7 +56,6 @@ export const seaplane: KitModule = ([x, y, w, h]) => {
       'hair',
     ),
   )
-  // High wing with struts, drawn as a slab seen from below.
   for (const fx of [0.38, 0.62]) out.push(stroke('line', [at([fx, 0.44]), at([fx + 0.06, 0.3])]))
   out.push(
     ...body(
@@ -86,7 +80,6 @@ export const seaplane: KitModule = ([x, y, w, h]) => {
       { gap: [1.8, 1.8], inset: 0.2, weight: 'hair' },
     ),
   )
-  // Propeller disc.
   out.push(
     fill([
       ...[0, 1, 2, 3, 4, 5, 6, 7].map((i): Pt =>
@@ -97,7 +90,6 @@ export const seaplane: KitModule = ([x, y, w, h]) => {
       ),
     ]),
   )
-  // Jetty at the right: planks on posts, a mooring post.
   const dy = y + h * 0.75
   out.push(...body(rectPts(x + w * 0.76, dy, w * 0.24, 2.2), 'line'))
   for (let px = x + w * 0.78; px < x + w * 0.99; px += 6)

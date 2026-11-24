@@ -1,4 +1,3 @@
-// Ash column with an irregular lit edge; tone defines the billows without circle outlines.
 import { mulberry32 } from '../hash'
 import { type Pt, occlude } from '../grid'
 import { hatchMass } from './mass-b'

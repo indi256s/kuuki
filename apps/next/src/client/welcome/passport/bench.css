@@ -1,7 +1,3 @@
-/* The passport bench (bench-live.ts). The kit's rules are in bench.generated.css; this file maps its colour roles onto
-   Kuuki's tokens, as concorde.css does for the sign-in figure: the bench in the --iso-* faces and lines, the cover in
-   the accent, the data page in --holder-*, and stamps in the five accent swatches. Light is the default; dark swaps the
-   roles whose light and dark tokens sit at different steps of the ramp. */
 .wp-bench {
   --anatomy-paper: var(--surface);
   --anatomy-face: var(--surface-inset);
@@ -51,7 +47,6 @@
 .wp-bench .pp-ink-rim.iso-line {
   stroke: var(--wp-ink-nap);
 }
-/* The covers are the accent material: the same anatomy with its own roles. */
 .wp-bench .pp-cover {
   --anatomy-paper: var(--accent);
   --anatomy-top: var(--accent);
@@ -71,7 +66,6 @@
   --anatomy-top: var(--wp-ink-pad);
 }
 
-/* ---------- Printed art, drawn in the page plane ---------- */
 .wp-bench .pp-print text {
   font-family: var(--font-sans);
 }
@@ -139,7 +133,7 @@
   fill: var(--anatomy-strong);
 }
 .wp-bench .pp-ghost {
-  font-size: 26px;
+  font-size: 1.625rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   fill: color-mix(in oklab, var(--wp-guilloche) 75%, var(--wp-page));
@@ -175,7 +169,6 @@
 .wp-bench .pp-imp text {
   fill: var(--ink);
 }
-/* Each impression knocks the page out under itself, so a newer stamp lies over an older one instead of tangling with it. */
 .wp-bench .pp-imp-paper {
   fill: color-mix(in oklab, var(--ink) 6%, var(--wp-page));
   opacity: 0.88;
@@ -230,7 +223,6 @@
   fill: var(--accent-foreground);
   stroke: none;
 }
-/* The head being pressed is the figure's one lit part, and it glows (DESIGN Illustration). */
 .wp-bench .pp-head[data-lit] .pp-foot {
   filter: drop-shadow(0 0 2.5px color-mix(in oklab, var(--accent) 70%, transparent));
 }
@@ -244,7 +236,6 @@
       stroke var(--dur-fast) var(--ease-out);
   }
 }
-/* Reduced motion: stamps and the entry fade in instead of being pressed (DESIGN: the press becomes a 200ms fade). */
 @media (prefers-reduced-motion: reduce) {
   .wp-bench .pp-imp {
     transition: opacity var(--dur-base) linear;

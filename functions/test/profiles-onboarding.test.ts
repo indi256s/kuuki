@@ -107,7 +107,6 @@ it('only onboarded members without an address get a lazy one on save', async () 
     expect((await read(await patch(users[0], { is_public: true }))).username).toBeNull()
     const lazy = await read(await patch(users[1], { is_public: true }))
     expect(lazy.username).toBe('alex-mor')
-    // Once set, a later save leaves it alone.
     expect((await read(await patch(users[1], { display_name: 'Someone Else' }))).username).toBe(
       'alex-mor',
     )
@@ -148,7 +147,6 @@ it('stores only canonical accent names in theme_color and keeps the stored one o
     const saved = await patch(users[0], { theme_color: 'sakura' })
     expect(saved.status).toBe(200)
     expect(await saved.json()).toMatchObject({ theme_color: 'sakura' })
-    // Retired names, other colours and the empty string are all refused; the client maps legacy names before writing.
     for (const theme_color of ['terracotta', 'blue', '#c23417', 'Shu', '', 7]) {
       const res = await patch(users[0], { theme_color })
       expect(res.status).toBe(400)

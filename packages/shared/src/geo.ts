@@ -61,7 +61,6 @@ function greatCircleArc(a: LatLon, b: LatLon) {
   return { start, tangent, angle }
 }
 
-/** Shortest spherical arc, including endpoints. Antipodes use a deterministic perpendicular. */
 export function greatCirclePoints(a: LatLon, b: LatLon, maxStepKm = 50): LatLon[] {
   if (!Number.isFinite(maxStepKm) || maxStepKm <= 0)
     throw new RangeError('maxStepKm must be positive and finite')
@@ -80,10 +79,8 @@ export function greatCirclePoints(a: LatLon, b: LatLon, maxStepKm = 50): LatLon[
   })
 }
 
-/** Internal side changes on the same arc as greatCirclePoints; boundary contact is excluded. */
 export function greatCircleCrossings(a: LatLon, b: LatLon) {
   const { start, tangent, angle } = greatCircleArc(a, b)
-  // Suppress floating-point boundary noise, including indeterminate longitude at a pole.
   const epsilon = 1e-12
   const extrema: number[] = []
   const phase = Math.atan2(tangent[2], start[2])

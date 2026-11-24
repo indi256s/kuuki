@@ -12,7 +12,6 @@ import '../../iso/passes.css'
 export function Tile({ span }: { span: TileSpan }) {
   const { scope, locale } = useOverview()
   const data = scope?.routes.status === 'ready' ? scope.routes.value : null
-  // The headline route is the most-flown one, the same row the sheet's hero and figure open on.
   const top = scope?.rankings.routes[0] ?? null
   const figure = usePassFigure(
     span,

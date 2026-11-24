@@ -1,4 +1,3 @@
-// Spec D2: journal firsts over the whole journal, ordered by date, departure instant and id.
 import { describe, expect, it } from 'vitest'
 import { journalFirsts, type FirstsFlight, type FirstsInput } from '../api/_services/firsts'
 
@@ -177,7 +176,6 @@ describe('journalFirsts', () => {
       },
     )
     expect(result[1]).toBeUndefined()
-    // The undatable flight still supports GE and TR in the Passport, so the dated flight cannot claim GE first.
     expect(result[2]).toEqual({ countries: ['GB'], airline: true, aircraft: false, pending: false })
   })
 })

@@ -1,4 +1,3 @@
-/* Payout and retraction use the shared figure timing from iso.css. */
 @media (prefers-reduced-motion: no-preference) {
   .iso-tape :is([data-part='blade'], [data-part='blade-end']) {
     transform: translate(

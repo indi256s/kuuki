@@ -50,7 +50,6 @@ it('keeps a cleared entry stamp off when reduced motion snaps the bench', () => 
   const bench = mountBench(stage, INPUT)
   return Promise.resolve().then(() => {
     bench.update({ ...INPUT, ready: true })
-    // Run the bridge, the press and the scan to rest.
     for (let now = 16; queued.length && now < 20_000; now += 16) {
       const frames = queued
       queued = []

@@ -1,4 +1,3 @@
-/** Reads a duration token (`--dur-moment`) from the root, in milliseconds. */
 function tokenMs(name: string, fallback: number) {
   const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
   const ms = value.endsWith('ms')
@@ -9,12 +8,6 @@ function tokenMs(name: string, fallback: number) {
   return Number.isFinite(ms) ? ms : fallback
 }
 
-/**
- * The card's exit into the Overview: opacity, scale and blur over `--dur-moment` with `--ease-out`.
- * Reduced motion keeps only the crossfade. Resolves half way through, so the caller starts the navigation while the
- * fade finishes: the old document keeps painting it until the Overview's first paint, instead of a blank wait after
- * an empty card. Resolves at once without WAAPI.
- */
 export async function dissolve(card: HTMLElement | null): Promise<void> {
   if (!card || typeof card.animate !== 'function') return
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -34,7 +27,6 @@ export async function dissolve(card: HTMLElement | null): Promise<void> {
     },
   )
   const halfway = new Promise<void>((resolve) => setTimeout(resolve, duration / 2))
-  // A cancelled animation still leaves.
   await Promise.race([animation.finished.then(noop, noop), halfway])
 }
 

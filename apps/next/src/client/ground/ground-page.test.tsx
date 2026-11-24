@@ -20,7 +20,6 @@ vi.mock('../activity', () => ({ trackPrivateOperation: () => () => {} }))
 vi.mock('../ui/use-mobile', () => ({ useMobile: () => false }))
 vi.mock('../shell-notices', () => ({ announceShellNotice: vi.fn() }))
 vi.mock('./api', async (importOriginal) => ({
-  // The tab memo is real: returning to the page must start from it.
   rememberedLists: (await importOriginal<typeof import('./api')>()).rememberedLists,
   rememberList: (await importOriginal<typeof import('./api')>()).rememberList,
   listJourneys: vi.fn(),
@@ -30,7 +29,6 @@ vi.mock('./api', async (importOriginal) => ({
   exportJourneysUrl: '/api/ground-journeys/export',
 }))
 
-// Dates far from any real "today", so the groups never depend on when the suite runs.
 const upcoming = rail({ id: 1, status: 'planned', startDate: '2999-01-01' })
 const pastPlan = road({ id: 2, status: 'planned', startDate: '2000-01-01' })
 const undatedPlan = rail({ id: 3, status: 'planned', startDate: null })
@@ -45,7 +43,6 @@ const undatedDone = rail({
 const all = [older, undatedDone, upcoming, recent, undatedPlan, pastPlan]
 
 const user = () => userEvent.setup()
-// The page mirrors the URL, so the address must carry the query the server would have rendered from.
 const mount = (query = '') => {
   window.history.replaceState(null, '', query ? `/ground-travel?${query}` : '/ground-travel')
   return render(<GroundTravelPage ownerId="owner" locale="en" initialQuery={query} />)
@@ -59,7 +56,6 @@ beforeEach(() => {
   vi.clearAllMocks()
   window.history.replaceState(null, '', '/ground-travel')
   vi.mocked(api.listJourneys).mockResolvedValue(listOf(all))
-  // Each test starts as a first visit: the memo belongs to another owner.
   api.rememberList('someone-else', '2000-01-01', 'active', listOf([]))
 })
 
@@ -149,7 +145,6 @@ describe('list', () => {
       query.cancelled ? listOf([cancelled]) : listOf(all),
     )
     mount()
-    // The totals open the History section, so their heading sits one level under it.
     await screen.findByRole('heading', { level: 3, name: 'Totals of completed journeys' })
     await u.click(screen.getByRole('button', { name: 'Cancelled' }))
     await screen.findByRole('heading', { level: 2, name: 'Cancelled' })
@@ -285,7 +280,6 @@ describe('detail sheet', () => {
     vi.mocked(api.readJourney).mockResolvedValue(journey)
     mount(`journey=${journey.id}`)
     const dialog = await screen.findByRole('dialog')
-    // Tbilisi → Kars, then Baku → Tbilisi: four stops, and the second run starts after a gap, not a line.
     await waitFor(() => expect(dialog.querySelectorAll('.gt-stop')).toHaveLength(4))
     expect(dialog.querySelectorAll('.gt-stop[data-gap]')).toHaveLength(1)
     expect(dialog.querySelectorAll('.gt-sketch-svg polyline')).toHaveLength(2)
@@ -349,7 +343,6 @@ describe('detail sheet', () => {
     await u.click(within(dialog).getByRole('button', { name: 'Cancel plan' }))
     await within(dialog).findByText('We could not confirm that change')
     const first = vi.mocked(api.sendCommand).mock.calls[0][0]
-    // No second, different command can be started while this one is unresolved.
     expect(within(dialog).getByRole('button', { name: 'Cancel plan' })).toHaveAttribute(
       'aria-disabled',
       'true',
@@ -495,7 +488,6 @@ describe('detail sheet', () => {
     vi.mocked(api.readJourney).mockRejectedValue(new ApiError(404, 'nope', 'NOT_FOUND'))
     mount(`journey=${uuid(99)}`)
     const dialog = await screen.findByRole('dialog')
-    // The dialog mounts before the detail read rejects and before the list answers: wait for both outcomes.
     expect(await within(dialog).findByText('This journey is not in your list.')).toBeInTheDocument()
     await waitFor(() => expect(cards().length).toBe(6))
   })

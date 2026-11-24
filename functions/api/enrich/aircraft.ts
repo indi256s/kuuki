@@ -13,32 +13,25 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = async (con
   const { request, env, data } = context
   const cors = corsHeaders(request, env, 'POST, OPTIONS')
 
-  // Handle preflight
   if (request.method === 'OPTIONS') {
     return corsPreflight(request, env, 'POST, OPTIONS')
   }
 
   return runHandler(
     async () => {
-      // CSRF: state-changing, paid-quota endpoint — require same-origin + double-submit token.
       requireCsrf(request)
-      // Auth gate — burns paid Gemini quota, so reject anonymous callers
       const user = requireUser(data)
-      // Per-user rate limit — paid Gemini quota. Prevents one user from running up cost
-      // (security finding: AI quota / cost abuse — no per-user limit).
       await rateLimit(env.DB, `import-enrich:${user.id}`, 30, 3600)
 
       const body = await readJson<Partial<EnrichmentRequest>>(request, { maxBytes: 50_000 })
       const flights = body?.flights
 
-      // Validate input
       if (!flights || !Array.isArray(flights) || flights.length === 0) {
         throw new HttpError(400, 'flights array is required and cannot be empty')
       }
       if (flights.length > MAX_BATCH_SIZE)
         throw new HttpError(400, `Maximum ${MAX_BATCH_SIZE} flights per request`)
 
-      // Validate each flight has required fields
       for (const flight of flights) {
         if (
           !flight ||

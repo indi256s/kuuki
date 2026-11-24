@@ -23,7 +23,6 @@ const TOP = 5,
   REST = '__more',
   UNKNOWN = '__unknown'
 
-/** The ring's segments in order: the top five airlines, the rest of the known ones together, then flights without an airline. */
 export function airlineSegments(rows: readonly RankRow[], unknown: number) {
   const top = rows.slice(0, TOP),
     rest = rows.slice(TOP),
@@ -50,7 +49,6 @@ export function AirlineRing({
   span: Span
   plan: DotRingPlan
   segments: AirlineSegments
-  /** The whole journal's airlines in rank order: slots follow these, not the current cohort. */
   seedOrder: readonly string[]
   selectedKey: string | null
   appliedKeys: readonly string[]
@@ -112,7 +110,6 @@ export function AirlineRing({
       label: copy(locale, 'Unknown', 'Не указана'),
     },
   ]
-  // The ring skips empty segments (the plan keeps their place); the host and the legend list only the ones with flights.
   const present = every.filter((segment) => segment.count > 0)
   const picked = top.find((row) => row.key === selectedKey)
   const centre = picked
@@ -154,7 +151,6 @@ export function AirlineRing({
                   segments={every}
                   plan={plan}
                   mark={(point) => {
-                    // Wedge and legend row light up together; neither picks until clicked.
                     const props = mark(point)
                     return {
                       ...props,
@@ -181,7 +177,6 @@ export function AirlineRing({
           )}
         </LazyChart>
       </div>
-      {/* A pointer shortcut to the wedges, which carry the keyboard and screen-reader model; the table lists the same numbers. */}
       <ul className="ov3-airline-legend" aria-hidden="true">
         {present.map((segment) => {
           const key = segment.point.key,

@@ -9,7 +9,6 @@ import { awaitPublication } from './publication'
 
 export { awaitPublication }
 
-/** Canonical success is independent of the bounded derived-publication check. */
 export function useWriteFeedback(ownerId: string) {
   const router = useRouter()
   const [status, setStatus] = useState<'idle' | 'ready' | 'pending' | 'delayed'>('idle')
@@ -56,10 +55,6 @@ export function useWriteFeedback(ownerId: string) {
   return { acknowledge, status }
 }
 
-/**
- * Follows totals publication after the writer is gone (a form that closed on its confirmed save) and calls `onReady`
- * once totals are published. Stops on sign-out or account switch.
- */
 export function followPublication(ack: DerivedAck, onReady: () => void) {
   if (ack.derived_state === 'ready') return onReady()
   if (ack.derived_state !== 'pending' || typeof ack.revision !== 'number') return
@@ -68,7 +63,6 @@ export function followPublication(ack: DerivedAck, onReady: () => void) {
   })
 }
 
-/** Polls for the revision's totals as a tracked private operation, reporting only while the same session is current. */
 function trackPublication(
   revision: number,
   onResult: (result: 'ready' | 'delayed') => void,

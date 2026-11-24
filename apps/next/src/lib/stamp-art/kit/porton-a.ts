@@ -1,7 +1,3 @@
-// Squat fortified town gate (Portón de Campo): a raised central gatehouse with a tall arched
-// timber gate and a drawbridge leaf standing up in front of it on two chains, flanked by thick
-// battered whitewashed walls with a sloping stone cap. The box is the whole gate and the wall
-// stubs either side; bottom is the ground.
 import { type Pt, type SvgNode, body, fill, hline, rectPts, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
 
@@ -13,7 +9,6 @@ export const portonA: KitModule = ([x, y, w, h], p) => {
   const wallH = h * num(p, 'wall', 0.52)
   const out: SvgNode[] = []
   const batter = 3
-  // Flanking walls: battered, with a sloped cap and stone courses.
   for (const s of [-1, 1]) {
     const xa = s < 0 ? x : gx + gateW
     const xb = s < 0 ? gx : x + w
@@ -43,7 +38,6 @@ export const portonA: KitModule = ([x, y, w, h], p) => {
           ]),
         )
     }
-    // Shaded outer foot (batter) on the far end.
     const far =
       s < 0
         ? [xa, base - wallH, xa + 7, base - wallH, xa + 7, base, xa, base]
@@ -56,7 +50,6 @@ export const portonA: KitModule = ([x, y, w, h], p) => {
     ]
     out.push(...toneFill(farPts, 'T4', { gap: 2.4, inset: 0.3 }))
   }
-  // Gatehouse block: taller, with a low pitched cap, plus the arched timber gate.
   const gTop = y + h * 0.1
   const block: Pt[] = [
     [gx, base],
@@ -92,7 +85,6 @@ export const portonA: KitModule = ([x, y, w, h], p) => {
   }
   opening.push([ox + ow, base - oh + ow / 2], [ox + ow, base])
   out.push(fill(opening))
-  // Raised drawbridge leaf: a paper plank panel over the opening, chains to the gate top.
   const lf = ow * 0.78
   out.push(...body(rectPts(cx - lf / 2, base - oh * 0.88, lf, oh * 0.88), 'line'))
   for (let k = 1; k < 4; k++)

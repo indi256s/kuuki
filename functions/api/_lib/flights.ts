@@ -1,13 +1,7 @@
-// Flight row + DTO mappers (mirrors _lib/profiles.ts). SQLite stores is_upcoming as 0/1; the API
-// returns a real boolean to match the old Supabase row shape. toOwnFlight is a strict allowlist:
-// it drops `user_id` (always the requester) and `aircraft_lookup_attempts` (a D1-only internal
-// enrichment counter never present in the Supabase types the frontend was generated from).
-
 import type { DurationSource, OwnFlight } from '../../../packages/shared/src/types'
 import type { LifecycleState } from '../_services/countryEvidence'
 import type { ConfirmationSource } from '../_services/lifecycle'
 
-// Explicit FlightRow column allowlist (never SELECT *) — drives both SELECT and INSERT/UPDATE RETURNING.
 export const FLIGHT_COLUMNS =
   'id, user_id, date, origin, destination, airline_iata, aircraft_icao, flight_number, ' +
   'departure_time, arrival_time, departure_utc, arrival_utc, origin_tz, dest_tz, distance_km, ' +
@@ -34,7 +28,6 @@ export interface FlightRow {
   duration_minutes: number | null
   duration_source: DurationSource | null
   times_from_schedule: 0 | 1
-  /** 1 when the UTC instants are explicit source evidence (ADR 0008); server-owned, never in DTOs. */
   utc_explicit: 0 | 1
   zones_overflown: number | null
   source: string
@@ -52,10 +45,6 @@ export interface FlightRow {
   arrival_transit_leg_id: number | null
 }
 
-/**
- * Full own-flight DTO: the 19 original columns (no user_id / aircraft_lookup_attempts; is_upcoming →
- * boolean compatibility projection), lifecycle fields of ADR 0001 §1 and metrics of ADR 0002.
- */
 export function toOwnFlight(row: FlightRow): OwnFlight {
   return {
     id: row.id,
@@ -90,7 +79,6 @@ export function toOwnFlight(row: FlightRow): OwnFlight {
   }
 }
 
-/** Lightweight route row for the map — 6 columns only. */
 export interface FlightRouteRow {
   id: number
   origin: string

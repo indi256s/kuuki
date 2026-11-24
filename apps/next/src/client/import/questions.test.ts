@@ -12,7 +12,6 @@ import { isChosenOn, lowFields, readiness, withUnsent } from './review-model'
 
 const TODAY = '2026-10-12'
 
-/** A barcode row: only the day of the year is known, so the date is empty until the member picks a year. */
 const ordinal = (id: string, day: number, over: Partial<Draft> = {}): Draft =>
   draft({
     id,
@@ -31,7 +30,6 @@ const ordinal = (id: string, day: number, over: Partial<Draft> = {}): Draft =>
     ...over,
   })
 
-/** A Quick Add row that already has a calendar date. */
 const dated = (id: string, date: string, fields: Partial<DraftFields> = {}): Draft =>
   draft({
     id,
@@ -74,7 +72,6 @@ describe('ordinal day to date', () => {
 
 describe('year suggestions for ordinal days', () => {
   it('offers the latest year in which the day has happened by today plus two days, and the one before', () => {
-    // 2026-10-14 is day 287, the last day a pass issued two days early could print.
     expect(suggestedYears([{ ordinal: 287 }], TODAY)).toEqual([2026, 2025])
     expect(suggestedYears([{ ordinal: 288 }], TODAY)).toEqual([2025, 2024])
   })

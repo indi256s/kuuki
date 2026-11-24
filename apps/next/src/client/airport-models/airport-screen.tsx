@@ -254,7 +254,6 @@ export function AirportScreen({
             ...window.history.state,
             kuukiAirportCompare: { ownerId, iata: entry.iata },
           }
-          // Next copies its own fields and publishes the URL for external History calls.
           delete state.__NA
           delete state._N
           if (compareCode) window.history.replaceState(state, '', next)
@@ -809,10 +808,7 @@ export function AirportScreen({
             <AirportComparison
               plans={plans.pair}
               locale={locale}
-              names={[
-                entry.name,
-                catalog.find((item) => item.iata === plans.reference)?.name ?? plans.reference,
-              ]}
+              names={[entry.iata, plans.reference]}
             />
             <div className="airport-comparison-sources">
               {[entry, catalog.find((item) => item.iata === plans.reference)!].map(
@@ -833,10 +829,8 @@ export function AirportScreen({
                   return (
                     <div key={item.iata}>
                       <span>
-                        {item.iata} ·{' '}
-                        {captured
-                          ? formatInstantDate(locale, captured, 'medium', 'UTC')
-                          : copy('Snapshot date unknown', 'Дата снимка неизвестна')}
+                        {item.iata}
+                        {captured && ` · ${formatInstantDate(locale, captured, 'medium', 'UTC')}`}
                       </span>
                       <a href={source.sourceUrl} target="_blank" rel="noreferrer">
                         {copy('OpenStreetMap source', 'Источник OpenStreetMap')}

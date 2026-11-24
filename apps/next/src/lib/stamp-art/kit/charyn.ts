@@ -1,4 +1,3 @@
-// Valley of Castles: layered sandstone turrets enclosing a dry canyon floor.
 import { type Pt, type SvgNode, body, hline, stroke, toneFill } from '../grid'
 import type { KitModule } from './util'
 
@@ -14,7 +13,6 @@ export const charyn: KitModule = ([x, y, w, h]) => {
   ]
   out.push(...body(floor, 'hair'), ...toneFill(floor, 'T1', { gap: 5 }))
   for (const side of [-1, 1]) {
-    // Distant walls first; near towers grow wider and taller towards the frame edges.
     for (const [distance, width, height] of [
       [0.13, 0.12, 0.44],
       [0.25, 0.18, 0.68],

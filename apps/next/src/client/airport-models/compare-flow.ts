@@ -1,4 +1,3 @@
-/** The comparison the screen is showing, derived from what was asked for and what has settled. */
 export type CompareFlow =
   | { kind: 'off' }
   | { kind: 'invalid'; code: string }
@@ -6,7 +5,6 @@ export type CompareFlow =
   | { kind: 'failed'; code: string }
   | { kind: 'ready'; code: string }
 
-/** Settled outcomes only; the requested code is never stored here, so a stale failure cannot outlive it. */
 export type CompareSettled = { failedCode: string | null; attempt: number }
 
 export type CompareSettledEvent =

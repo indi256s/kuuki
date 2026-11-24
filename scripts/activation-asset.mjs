@@ -1,4 +1,3 @@
-/** Compile the isolated asset with tokens from the sole palette authority; no font or stylesheet requests under its CSP. */
 export function compileActivationAsset(html, styles) {
   const tokens = styles.match(/:root(?:\[[^\]]+\])*\s*\{[^}]*\}/g)
   if (!tokens?.length || !html.includes('<style id="activation-tokens"></style>'))

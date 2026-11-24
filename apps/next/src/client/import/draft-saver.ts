@@ -1,6 +1,3 @@
-// Version-checked persistence of review edits. Unsent text never leaves memory (no browser storage): a failed PATCH
-// keeps the change here, the form keeps showing it, and the member can retry, re-apply after a conflict or discard.
-// Edits to one draft are serialised so each request carries the version the previous one returned.
 import { classifyRequestFailure, type Failure } from './import-errors'
 import type { Draft, DraftPatchBody } from './import-types'
 
@@ -16,7 +13,6 @@ export interface SaveState {
   status: 'saving' | 'error' | 'conflict'
   unsent: DraftChange
   failure: Failure | null
-  /** The server refused the value itself (4xx other than a version conflict): retrying the same text cannot help. */
   rejected: boolean
 }
 
@@ -78,7 +74,6 @@ export class DraftSaver {
     })
   }
 
-  /** Queue a change. Resolves when this draft has nothing in flight (saved, or parked in an error/conflict state). */
   save(current: Draft, change: DraftChange): Promise<void> {
     if (this.disposed) return Promise.resolve()
     const entry = this.entry(current.id)
@@ -113,10 +108,6 @@ export class DraftSaver {
     this.publish(id, entry)
   }
 
-  /**
-   * The batch this saver belonged to is gone (discarded, cancelled, replaced). Parked and queued edits are dropped and
-   * a request still in flight can no longer report a draft or a state, so nothing leaks into the next import.
-   */
   dispose() {
     this.disposed = true
     this.entries.clear()

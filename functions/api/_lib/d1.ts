@@ -1,4 +1,3 @@
-/** Fail loudly when D1 reports an unsuccessful or partial read instead of rendering empty rows. */
 export function assertRows(
   result: D1Result | D1Result[],
   failure: string,

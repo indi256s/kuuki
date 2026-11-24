@@ -12,8 +12,6 @@ import {
 } from '../../apps/next/src/lib/airport-models/geometry'
 import type { PointM } from '../../apps/next/src/lib/airport-models/model'
 
-// Primary owner of import topology/units/projection contracts; existing app tests
-// cannot exercise raw OSM data or offline preparation failures.
 const geometry = (p: number[][]) => p.map(([lon, lat]) => ({ lon: lon!, lat: lat! }))
 const way = (id: number, p: number[][], tags: Record<string, string> = {}): Element => ({
   type: 'way',
@@ -248,7 +246,6 @@ test('building parts replace parent volume, preserve min height, and qualify est
     assert.equal(part.height.metres, 18.288)
   }
 })
-// Regression owner: relation assembly must retain observed outline classifications.
 test('building relations inherit unambiguous outline tags, preserving canonical relation fields', () => {
   const source = JSON.parse(readFileSync('scripts/airport-models/sources/BER.osm.json', 'utf8'))
   const realConfig = JSON.parse(
@@ -473,7 +470,6 @@ test('observed TBS control tower tags belong to the tower layer, preserving heig
   assert.deepEqual(tower.height, { metres: 14, source: 'levels', raw: '4' })
 })
 
-// Regression owner: 2D clipping cannot erase ground-floor mass below a floating roof.
 test('BER elevated roof parts preserve canonical building volume below their minimum height', () => {
   const model = realModel('BER')
   const parent = model.features.find((f) => f.id === 'osm:relation/14410944')!

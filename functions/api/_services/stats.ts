@@ -1,19 +1,11 @@
-// Core write-path services — ported from the live PL/pgSQL (see db/_extracted/LOGIC_SPEC.md).
-// Stats and badge statements below are composed by derivedState.repairUserDerivedState.
-//
-// Parity notes (do not "fix"): recompute does NOT set most_visited_*, world_completion_pct,
-// or time_zones_count.
-
 import { nowIso } from '../_lib/time'
 import { continentOf7 } from '../_lib/continents'
 
-/** Reads that share one D1 batch; `derive` receives their results in statement order. */
 export interface BatchedRead<T> {
   statements: D1PreparedStatement[]
   derive(results: D1Result[]): T
 }
 
-/** Concatenate reads into one batch and split the results back by position. */
 export function combineReads<T extends unknown[]>(
   ...reads: { [K in keyof T]: BatchedRead<T[K]> }
 ): BatchedRead<T> {
@@ -37,7 +29,6 @@ interface BadgeRow {
   criteria: string | null
 }
 
-/** The complete proposed visit row, calculated before any derived table is changed. */
 export interface DerivedVisit {
   airport_iata: string
   country_code: string
@@ -61,12 +52,6 @@ export interface ComputedUserStats {
   has_night_departure: number
 }
 
-/**
- * Read canonical flights; stats are calculated against the proposed visits (airports) and the proposed
- * country-evidence countries (ADR 0001 §4), never old visits. Airports keep both endpoints of a transit
- * stop; `countries_count` and `continents_count` come from the one country calculation. The continent
- * rule is `continentOf7`, versioned as `badge-continents-v1`: badge eligibility is award-only and unchanged.
- */
 export function computeStatsForVisits(
   db: D1Database,
   userId: string,
@@ -119,7 +104,6 @@ export function computeStatsForVisits(
   }
 }
 
-/** Upsert only recalculated fields; historical/unowned fields survive. */
 export function computedStatsStatement(
   db: D1Database,
   userId: string,
@@ -158,14 +142,12 @@ export function computedStatsStatement(
     )
 }
 
-/** Award-only badge evaluation from the new stats row; existing awards are never revoked. */
 export function computedBadgeStatements(
   db: D1Database,
   userId: string,
 ): BatchedRead<(stats: ComputedUserStats) => D1PreparedStatement[]> {
   return {
     statements: [
-      // Signup order counts only earlier rows through idx_profiles_created_at.
       db
         .prepare(
           `SELECT COUNT(*) + 1 AS n FROM profiles
@@ -200,9 +182,7 @@ function badgeStatements(
     let criteria: Record<string, unknown> = {}
     try {
       criteria = badge.criteria ? JSON.parse(badge.criteria) : {}
-    } catch {
-      /* malformed criteria earn nothing */
-    }
+    } catch {}
     const n = (name: string) => Number(criteria[name])
     let earned = false
     if ('flights' in criteria) earned = stats.total_flights >= n('flights')

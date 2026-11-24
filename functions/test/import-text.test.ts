@@ -1,4 +1,3 @@
-// parseStructuredText: the deterministic reader that lets a KUUKI FLIGHTS list skip the model.
 import { describe, expect, it } from 'vitest'
 import { parseStructuredText } from '../api/import/_text'
 

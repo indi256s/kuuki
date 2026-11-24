@@ -16,7 +16,6 @@ import { FileDropzone } from './file-dropzone'
 export const MAX_FILE_BYTES = IMPORT_MAX_FILE_BYTES
 export const ACCEPT = 'application/pdf,image/png,image/jpeg'
 
-/** Base64 of the file, built in memory for the request body only. It is never written to browser storage. */
 export async function fileToBase64(file: Blob): Promise<string> {
   const bytes = new Uint8Array(await file.arrayBuffer())
   let binary = ''
@@ -41,7 +40,6 @@ export function SourceStep({
   locale: Locale
   busy: boolean
   initialMode: 'file' | 'text' | null
-  /** The operation id stays the same while the source is unchanged, so a retry never calls the service twice. */
   onSubmit: (source: ImportSource, operationId: string) => void
   notice?: string | null
 }) {
@@ -134,7 +132,6 @@ export function SourceStep({
       await navigator.clipboard.writeText(S.prompt[locale])
       setCopied('ok')
     } catch {
-      // No clipboard permission: the prompt stays on screen, selected, so the member can copy it by hand.
       prompt.current?.focus()
       prompt.current?.select()
       setCopied('failed')

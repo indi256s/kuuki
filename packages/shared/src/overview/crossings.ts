@@ -24,7 +24,6 @@ export interface Crossings {
 }
 type PathCrossings = Pick<Crossings, 'equator' | 'dateLine' | 'arcticCircle' | 'antarcticCircle'>
 
-// Legacy weighted rows cannot recover actual instants from their representative dates.
 export function crossingTime(row: OverviewRow): OverviewRow['crossingTime'] {
   if (row.crossingTime) return { ...row.crossingTime, offsets: [...row.crossingTime.offsets] }
   if (row.weight !== 1 || row.recordExtrema || row.recordFlights) return undefined
@@ -128,7 +127,6 @@ export function crossings(
         ['lastDateLine', path.dateLine],
       ] as const) {
         const previous = value[field]
-        // value is this actual flight's positive route crossing count, independent of distance/weight.
         if (
           count > 0 &&
           (!previous ||

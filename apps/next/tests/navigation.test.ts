@@ -41,9 +41,7 @@ test('read-route navigation settles on authorized content', async ({ page, baseU
     page.locator(`nav:is([aria-label="Primary"], [aria-label="Tabs"]) a[href="${href}"]:visible`)
   for (const [route, heading] of [
     ['journal', 'Journal · Flights'],
-    // Ground travel is the Journal's second section, reached through its section switch.
     ['ground-travel', 'Journal · Ground'],
-    // The Passport's H1 is the holder's name, so only its presence is asserted.
     ['passport', null],
     ['overview', 'Overview'],
   ] as const) {
@@ -60,7 +58,6 @@ test('read-route navigation settles on authorized content', async ({ page, baseU
     await expect(
       route === 'overview' ? page.locator('.ov-globe') : page.getByTestId(`${route}-data`),
     ).toBeVisible()
-    // The Journal link leads to the section in view and is current on both.
     await expect(navLink(`/${route}`)).toHaveAttribute('aria-current', 'page')
   }
 })
@@ -89,7 +86,6 @@ test('phone: the + card adds from any screen and Journal sections swap instantly
   await expect(card).toBeHidden()
   await expect(add).toBeFocused()
 
-  // On a filtered ground list the ground rows carry the view, so Cancel comes back to it.
   await page.goto('/ground-travel?mode=rail')
   await expect(page.getByTestId('ground-travel-data')).toBeVisible()
   await expect(tabs.getByRole('link', { name: 'Journal' })).toHaveAttribute('aria-current', 'page')
@@ -100,7 +96,6 @@ test('phone: the + card adds from any screen and Journal sections swap instantly
   await page.waitForURL((url) => url.pathname === '/ground-travel' && url.search === '?mode=rail')
   await routeSettled(page)
 
-  // Ground → Flights keeps the stage's boundary node (no fade), focuses the heading and moves aria-current.
   await page.evaluate(() => {
     const boundary = document.querySelector('.route-stage > *')!
     ;(window as Window & { boundary?: Element; faded?: boolean }).boundary = boundary
@@ -128,7 +123,6 @@ test('phone: the + card adds from any screen and Journal sections swap instantly
     }),
   ).toEqual({ same: true, faded: false })
 
-  // The Journal tab remembers the section last viewed in this browser tab.
   await sections.getByRole('link', { name: 'Ground' }).click()
   await page.waitForURL((url) => url.pathname === '/ground-travel')
   await tabs.getByRole('link', { name: 'Overview' }).click()
@@ -281,7 +275,7 @@ test('fresh documents, RSC and API reads isolate account data without response c
   await page.goto('/overview')
   await expect(page.locator('.ov-globe')).toBeVisible()
   await expect(page.locator('.ov3-first-run')).toBeVisible()
-  await expect(page.getByLabel('Flights', { exact: true })).toHaveCount(0) // first run has no fabricated figure
+  await expect(page.getByLabel('Flights', { exact: true })).toHaveCount(0)
 })
 
 test.describe('entry behavior', () => {

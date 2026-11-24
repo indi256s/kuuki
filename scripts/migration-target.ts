@@ -1,4 +1,3 @@
-/** Explicit, isolated local D1 access and observable schema admission for migration tools. */
 import { createHash } from 'node:crypto'
 import { mkdtempSync, readFileSync, rmSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -57,7 +56,6 @@ export function applicationSchemaRows(
   return rows.filter((row) => {
     const name = String(row.name ?? '')
     const owner = String(row.tbl_name ?? '')
-    // D1 reserves the `_cf_` prefix for internal objects (hosted `_cf_KV`, local `_cf_METADATA`).
     return (
       !name.startsWith('sqlite_') &&
       !name.startsWith('_cf_') &&
@@ -73,7 +71,6 @@ export function schemaRowsSha256(rows: Array<Record<string, unknown>>): string {
     type: row.type,
     name: row.name,
     table: row.tbl_name,
-    // SQL literals can contain significant whitespace; text drift requires admission.
     sql: typeof row.sql === 'string' ? row.sql : null,
   }))
   return createHash('sha256').update(JSON.stringify(normalized)).digest('hex')
@@ -99,7 +96,6 @@ const REVIEW_DIMENSIONS = [
   'checks',
 ]
 
-/** Exact schema by default; a pinned, recent human semantic review admits only SQL-text variants. */
 export function assessSchemaAdmission(
   observedRows: Array<Record<string, unknown>>,
   expectedRows: Array<Record<string, unknown>>,
@@ -170,7 +166,6 @@ export async function expectedSchemaRows(): Promise<Array<Record<string, unknown
   }
 }
 
-/** Build the expected hash by actually applying this checkout's migrations to fresh D1. */
 export async function expectedSchemaSha256(): Promise<string> {
   return schemaRowsSha256(await expectedSchemaRows())
 }
@@ -184,7 +179,6 @@ export async function openLocalTarget(
     const db = await mf.getD1Database('DB')
     let accountId = 'local'
     if (schemaAdmissionPath) {
-      // A local D1 namespace has no Cloudflare account; the reviewed restore evidence supplies it.
       const evidence = JSON.parse(readFileSync(schemaAdmissionPath, 'utf8')) as SchemaAdmission
       if (typeof evidence.accountId !== 'string' || !/^[a-f0-9]{32}$/i.test(evidence.accountId))
         throw new Error('Invalid schema admission account ID')
@@ -207,7 +201,6 @@ export async function openLocalTarget(
   }
 }
 
-/** An isolated schema fixture for functional tests, never the default Wrangler state. */
 export async function createLocalSchemaFixture(): Promise<{
   options: LocalTargetOptions
   cleanup(): void

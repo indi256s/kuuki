@@ -1,5 +1,3 @@
-// Ground travel: journey country evidence, Passport journey contributions, JSON export, account deletion and
-// receipt cleanup. Journeys are inserted with SQL; the journeys API has its own tests.
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { accountWith, publish, userStats, USER, type FixtureFlight } from './country-fixture'
 import { apiContext, csrfRequest } from './harness'
@@ -42,7 +40,6 @@ interface Journey {
   title?: string | null
 }
 
-/** Journey parent, one route and its confirmed countries, as the journeys API would leave them. */
 function journeyStatements(db: D1Database, journey: Journey) {
   const status = journey.status ?? 'completed'
   const user = journey.user ?? USER.id
@@ -209,7 +206,6 @@ describe('journey country evidence', () => {
     )
     try {
       expect(await pressed(db)).toEqual(['AM', 'GB', 'GE', 'US'])
-      // Reopen: the journey keeps its route but loses its confirmed countries (and stops being completed).
       await db.batch([
         db.prepare("DELETE FROM ground_journey_countries WHERE journey_id = 'a'"),
         db.prepare(
@@ -221,7 +217,6 @@ describe('journey country evidence', () => {
       expect((await rows(db)).find((row) => row.country_code === 'GE')).toMatchObject({
         journeys: 1,
       })
-      // Flight evidence keeps its own dates.
       expect((await rows(db)).find((row) => row.country_code === 'US')).toMatchObject({
         first_visit: '2025-05-01',
         last_visit: '2025-05-01',
@@ -320,7 +315,6 @@ describe('journey evidence survives manual edits and loses only its own support'
         .run()
       await publish(db)
       expect(await pressed(db)).toEqual(['AM', 'DE', 'FR', 'GE', 'TR'])
-      // Journey deletion as the API leaves it: children gone, parent reduced to a tombstone.
       for (const id of ['only', 'with-flight', 'with-visit', 'shared-1']) {
         await db.batch([
           db.prepare('DELETE FROM ground_journey_countries WHERE journey_id = ?').bind(id),

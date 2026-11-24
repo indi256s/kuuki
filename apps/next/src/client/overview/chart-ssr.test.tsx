@@ -10,7 +10,6 @@ import { ArcRidgeline } from './charts/arc-ridgeline'
 import { KuukiChart } from './charts/kuuki-chart'
 import { ridgeProfile } from './sections/fleet/helpers'
 
-// Rendering proof lives with the client renderer; the shared engine remains DOM-free.
 it('engine rows server-render deterministic local Arc SVG without a DOM or browser data reads', () => {
   expect(typeof document).toBe('undefined')
   const payload = fixture as OverviewPayload,

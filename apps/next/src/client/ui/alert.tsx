@@ -5,20 +5,13 @@ import { CircleCheck, CircleX, Info, TriangleAlert } from '@keyline-icons/react'
 import type { HTMLAttributes, ReactNode } from 'react'
 import './alert.css'
 
-// Adapted from Arc "alert" (uiarc.dev, MIT, see ARC-LICENSE.txt): the four tones (named `variant` here, like Button), the icon beside a title and an optional description.
-// Dropped: `motion` (presence collapse, text swaps, height spring) and the dismiss button; an alert here is in the layout or it is not rendered. Added: an action slot under the copy.
-// Arc gives only `danger` role="alert". Here every alert is a polite `status` unless the caller says it is `urgent`.
-
 export type AlertVariant = 'info' | 'warning' | 'danger' | 'success'
 
 export type AlertProps = Omit<HTMLAttributes<HTMLDivElement>, 'title' | 'role'> & {
   variant?: AlertVariant
   title: ReactNode
-  /** The detail under the title. */
   children?: ReactNode
-  /** A control under the copy, e.g. a dense Button ("Try again"). */
   action?: ReactNode
-  /** Announces assertively (`role="alert"`). Leave it off for anything the member did not just trigger. */
   urgent?: boolean
 }
 

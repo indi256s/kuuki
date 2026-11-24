@@ -156,7 +156,6 @@ it.each(['cancel', 'discard', 'account deletion'])(
     } else if (action === 'discard')
       expect((await dispatch(`/api/import/batches/${id}`, 'DELETE')).status).toBe(200)
     else expect((await dispatch('/__test/delete-account', 'POST')).status).toBe(204)
-    // This provider deliberately ignores the abort signal and delivers a late chunk.
     try {
       send(',' + JSON.stringify(providerFlight({ origin: 'TBS' })) + ']}')
       feed.close()
@@ -257,7 +256,6 @@ it('bounds drafts and event replay, instructs snapshots on gaps and scopes forei
   const replay = await response.text()
   expect(replay.match(/event: rows/g)).toHaveLength(104)
   expect(replay).toContain('event: end')
-  // A revision owned by another mutation cannot be replayed from the DO's notifications.
   await db.prepare('UPDATE import_batches SET sequence = sequence + 2 WHERE id = ?').bind(id).run()
   const gap = await dispatch(
     `/api/import/batches/${id}/events?after=${(await batch(id))!.sequence - 1}`,
@@ -350,7 +348,7 @@ it('a duplicate whose handshake meets an already finished job replays the batch 
   const { batchId } = (await response.json()) as { batchId: string }
   expect(await batch(batchId)).toMatchObject({ status: 'review', error_code: null })
   expect((await db.prepare('SELECT COUNT(*) AS n FROM import_batches').first())?.n).toBe(1)
-  expect(calls()).toBe(0) // the refused handshake never reached the provider
+  expect(calls()).toBe(0)
 })
 it('enforces the shared application rate budget before dispatch and separates it from provider quota', async () => {
   const { db, calls } = await runtime()
@@ -502,7 +500,6 @@ it.each(['cancel with failed abort', 'account deletion', 'discard'])(
     const { send, start, batch, rows } = await runtime(action === 'cancel with failed abort')
     const id = await start()
     send('{"flights":[' + JSON.stringify(providerFlight()))
-    // Extraction is setup; subscriber closure below retains its separate 2 s deadline.
     await expect.poll(async () => (await rows(id)).results.length, { timeout: 10_000 }).toBe(1)
     const response = await dispatch(
       `/api/import/batches/${id}/events?after=${(await batch(id))!.sequence}`,
@@ -512,7 +509,6 @@ it.each(['cancel with failed abort', 'account deletion', 'discard'])(
     else if (action === 'discard')
       expect((await dispatch(`/api/import/batches/${id}`, 'DELETE')).status).toBe(200)
     else expect((await dispatch('/__test/delete-account', 'POST')).status).toBe(204)
-    // Force the active writer to observe the D1 fence even if the abort transport failed.
     try {
       send(',' + JSON.stringify(providerFlight({ origin: 'TBS' })))
     } catch {}

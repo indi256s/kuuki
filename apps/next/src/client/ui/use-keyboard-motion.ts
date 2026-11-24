@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 
-/** Keyboard-triggered surfaces settle instantly; a pointer starts a new motion session once closed. */
 export function useKeyboardMotion(open: boolean, initialKeyboard?: boolean) {
   const [keyboard, setKeyboard] = useState(
     () =>

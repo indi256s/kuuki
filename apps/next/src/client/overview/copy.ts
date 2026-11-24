@@ -1,5 +1,3 @@
-// Every Overview string in English and Russian together (Russian addresses the member as «вы»).
-// Counts take real plural forms through the shared formatter; nothing here is a joke or a promise about stamping.
 import type { CountForms, Locale } from '../../lib/format'
 
 type Pair = { en: string; ru: string }
@@ -363,7 +361,6 @@ export const S = {
   noYearHint: p('Choose another period above.', 'Выберите другой период выше.'),
 } as const
 
-/** The globe legend and the country list title name the same scope; without ground journeys there is none to name. */
 export const legendFor = (hasGround: boolean, scope: 'all' | 'flights' | 'ground') =>
   !hasGround
     ? S.legend

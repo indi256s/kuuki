@@ -15,7 +15,6 @@ export interface BlockTimeSample {
   minutes: number
 }
 
-// Scale kilometres to thousands for the five-term least-squares system.
 function terms(distanceKm: number, east: number): number[] {
   return [
     1,
@@ -57,7 +56,6 @@ export function fitBlockTimeModel(samples: BlockTimeSample[]): BlockTimeModel {
       rows.reduce((sum, row, k) => sum + row[i] * (j === 5 ? samples[k].minutes : row[j]), 0),
     ),
   )
-  // Partial-pivot elimination on X'X | X'y. Unidentifiable fits retain the fixed prior.
   for (let col = 0; col < 5; col++) {
     let pivot = col
     for (let i = col + 1; i < 5; i++)

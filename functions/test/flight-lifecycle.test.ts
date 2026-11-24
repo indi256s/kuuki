@@ -1,5 +1,3 @@
-// ADR 0001 §1/§2 (T07): lifecycle assignment on create, bulk create, edit and the owner sync, plus A2's
-// "no lifecycle-aware writer fires adapters 1-3" and A6's deadline arithmetic.
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { apiContext, count, createApiDatabase, csrfRequest } from './harness'
 import { countAdapterFirings, lifecycleOf, type LifecycleRow } from './lifecycle-fixture'
@@ -126,7 +124,7 @@ describe('create', () => {
     const { db, dispose } = await createApiDatabase()
     try {
       await seed(db)
-      setNow(NOW) // 2026-10-05 12:00Z is 10-06 02:00 in Kiritimati (+14) and 10-05 01:00 in Pago Pago (-11)
+      setNow(NOW)
       const ahead = await create(db, {
         ...flight,
         date: '2026-10-06',
@@ -193,8 +191,8 @@ describe('create', () => {
       )
       expect(replay.response.status).toBe(200)
       expect(replay.json.id).toBe(first.json.id)
-      expect(replay.json.lifecycle_timezone).toBe('Asia/Tbilisi') // the captured zone is never rewritten
-      const legacy = await create(db, { ...flight, date: '2026-10-09' }, 'replay-key-0001') // an old client's retry
+      expect(replay.json.lifecycle_timezone).toBe('Asia/Tbilisi')
+      const legacy = await create(db, { ...flight, date: '2026-10-09' }, 'replay-key-0001')
       expect(legacy.response.status).toBe(200)
       expect(await count(db, 'flights')).toBe(1)
     } finally {
@@ -239,7 +237,7 @@ describe('bulk create', () => {
       expect(body.results[0].flight).toMatchObject({
         lifecycle_state: 'logged',
         lifecycle_timezone: 'Pacific/Kiritimati',
-      }) // 10-06 is today there
+      })
       expect(body.results[1].flight).toMatchObject({
         lifecycle_state: 'logged',
         confirmation_source: 'save',
@@ -286,7 +284,6 @@ describe('bulk create', () => {
 })
 
 describe('edit', () => {
-  /** An awaiting flight: created in the future, then moved by the owner sync after its morning-after boundary. */
   async function awaitingFlight(db: D1Database, date = '2026-10-06') {
     setNow(NOW)
     const created = await create(db, { ...flight, date })
@@ -478,7 +475,6 @@ describe('edit', () => {
       setNow(NOW)
       expect((await patch(db, 999, { flight_number: 'KU3' })).status).toBe(404)
       const { json } = await create(db, { ...flight, date: '2026-10-10' })
-      // A confirmation or sync lands after the handler read the row and before its guarded UPDATE.
       const racing = {
         prepare: (sql: string) => db.prepare(sql),
         batch: async (statements: D1PreparedStatement[]) => {
@@ -506,7 +502,7 @@ describe('edit', () => {
       expect(await lifecycleOf(db, json.id)).toMatchObject({
         lifecycle_state: 'awaiting',
         is_upcoming: 0,
-      }) // not overwritten
+      })
       expect(
         (
           await db
@@ -525,8 +521,6 @@ describe('edit', () => {
     try {
       await seed(db)
       setNow(NOW)
-      // A historical flight, logged by an old writer: the lifecycle state stays `logged` across a transit review,
-      // so the state guard alone would not notice it.
       const { json } = await create(db, { ...flight, date: '2026-03-01' })
       expect(await lifecycleOf(db, json.id)).toMatchObject({
         lifecycle_state: 'logged',
@@ -548,7 +542,6 @@ describe('edit', () => {
           .bind(id)
           .first<any>()
 
-      // 1. NULL -> 1 with a leg (the apply). The edit's snapshot says NULL.
       const decided = await patchRoute(
         context(
           racing(
@@ -568,7 +561,6 @@ describe('edit', () => {
       })
       expect(await read(json.id)).toEqual({ t: 1, leg: 77, n: null })
 
-      // 2. Only the leg changes under an existing decision.
       const moved = await patchRoute(
         context(
           racing('UPDATE flights SET arrival_transit_leg_id = 78 WHERE id = ?'),
@@ -582,7 +574,6 @@ describe('edit', () => {
       expect(moved.status).toBe(409)
       expect(await read(json.id)).toEqual({ t: 1, leg: 78, n: null })
 
-      // Without a race the edit still goes through and keeps the decision (the route did not change).
       const plain = await patch(db, json.id, { flight_number: 'KU7' })
       expect(plain.status).toBe(200)
       expect(await read(json.id)).toEqual({ t: 1, leg: 78, n: 'KU7' })
@@ -603,7 +594,7 @@ describe('owner sync', () => {
         (await (await syncRoute(context(db, '/api/flights/sync-upcoming', 'POST'))).json()) as {
           synced: number
         }
-      setNow('2026-10-06T23:59:59.999Z') // departure day; the old UTC rule would flip here
+      setNow('2026-10-06T23:59:59.999Z')
       expect((await sync()).synced).toBe(0)
       expect((await lifecycleOf(db, json.id))?.lifecycle_state).toBe('upcoming')
       setNow('2026-10-07T00:00:00.000Z')
@@ -624,7 +615,6 @@ describe('owner sync', () => {
         )?.total_flights,
       ).toBe(1)
       setNow('2026-10-20T00:00:00.000Z')
-      // A late sync never restarts or moves the deadlines; the stored 7-day boundary has passed, so it auto-confirms (T09).
       expect(await sync()).toMatchObject({ synced: 1, awaited: 0, autoConfirmed: 1 })
       expect(await lifecycleOf(db, json.id)).toMatchObject({
         lifecycle_state: 'logged',
@@ -649,7 +639,7 @@ describe('maintenance cron', () => {
       const late = (
         await create(db, { ...flight, date: '2026-10-09', timezone: 'Pacific/Pago_Pago' })
       ).json.id
-      setNow('2026-10-06T23:59:59.999Z') // departure day: the old UTC rule would flip `early` here
+      setNow('2026-10-06T23:59:59.999Z')
       await maintenance.scheduled({} as ScheduledEvent, { DB: db })
       expect((await lifecycleOf(db, early))?.lifecycle_state).toBe('upcoming')
       setNow('2026-10-07T00:00:00.000Z')
@@ -659,7 +649,7 @@ describe('maintenance cron', () => {
         is_upcoming: 0,
         confirmation_source: null,
       })
-      expect((await lifecycleOf(db, late))?.lifecycle_state).toBe('upcoming') // 10-09 in Pago Pago ends at 10-10T11:00Z
+      expect((await lifecycleOf(db, late))?.lifecycle_state).toBe('upcoming')
       expect(
         (
           await db
@@ -699,19 +689,18 @@ describe('adapters 1-3 stay quiet for lifecycle-aware writers (A2)', () => {
           timezone: 'Asia/Tbilisi',
         }),
       )
-      await patch(db, future, { date: '2026-10-12' }) // upcoming future -> future
-      await patch(db, future, { date: '2026-10-04' }) // upcoming -> awaiting
-      await patch(db, future, { date: '2026-09-20' }) // awaiting past -> past
-      await patch(db, future, { date: '2026-11-01' }) // awaiting -> upcoming
-      await patch(db, past, { date: '2026-09-01' }) // logged past -> past
-      await patch(db, past, { destination: 'LHR' }) // route edit
-      await patch(db, past, { date: '2026-12-01' }) // logged -> upcoming
+      await patch(db, future, { date: '2026-10-12' })
+      await patch(db, future, { date: '2026-10-04' })
+      await patch(db, future, { date: '2026-09-20' })
+      await patch(db, future, { date: '2026-11-01' })
+      await patch(db, past, { date: '2026-09-01' })
+      await patch(db, past, { destination: 'LHR' })
+      await patch(db, past, { date: '2026-12-01' })
       setNow('2026-12-03T00:00:00.000Z')
       expect(
         await (await syncRoute(context(db, '/api/flights/sync-upcoming', 'POST'))).json(),
       ).toMatchObject({ synced: 3 })
       expect(await firings()).toEqual({})
-      // Control: a pre-lifecycle write still fires the adapter, so the counter is armed.
       await db
         .prepare(
           'UPDATE flights SET is_upcoming = 1 WHERE id = (SELECT MIN(id) FROM flights WHERE is_upcoming = 0)',
@@ -726,7 +715,6 @@ describe('adapters 1-3 stay quiet for lifecycle-aware writers (A2)', () => {
 
 describe('deadline arithmetic (A6)', () => {
   it('counts the 7-day window in calendar days of the captured zone, across DST-at-midnight', () => {
-    // Santiago springs forward at local midnight on 2026-09-06: a calendar week there is 167 hours.
     const santiago = deadlinesFor('2026-09-05', 'America/Santiago')
     expect(santiago).toEqual({
       awaiting_after: '2026-09-06T04:00:00.000Z',
@@ -735,7 +723,6 @@ describe('deadline arithmetic (A6)', () => {
     expect(Date.parse(santiago.auto_confirm_after) - Date.parse(santiago.awaiting_after)).toBe(
       167 * 3_600_000,
     )
-    // Havana falls back on 2026-11-01: that week is 169 hours.
     const havana = deadlinesFor('2026-10-31', 'America/Havana')
     expect(havana).toEqual({
       awaiting_after: '2026-11-01T04:00:00.000Z',

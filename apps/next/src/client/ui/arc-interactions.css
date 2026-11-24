@@ -1,12 +1,10 @@
-/* Journal unknown-field notice and context menu. */
 .arc-inline-unknown {
   margin: 0;
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
   color: var(--warning-text);
 }
 
-/* Context menu */
 .arc-context-anchor {
   position: fixed;
   width: 0;
@@ -19,8 +17,8 @@
 .arc-context-reason {
   margin: var(--space-1) 0 0;
   padding: var(--space-2) var(--space-3);
-  font-size: 13px;
-  line-height: 18px;
+  font-size: 0.8125rem;
+  line-height: 1.125rem;
   color: var(--text-muted);
 }
 .arc-context-button {

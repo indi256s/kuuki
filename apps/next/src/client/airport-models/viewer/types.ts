@@ -26,7 +26,6 @@ export type ViewerCallbacks = {
   onHover?: (hit: { id: string; x: number; y: number } | null) => void
   onStatus?: (status: ViewerStatus) => void
 }
-/** Commands are instant, including keyboard actions. State remains owned by the caller. */
 export type AirportViewerHandle = {
   zoom: (factor: number) => void
   reset: () => void

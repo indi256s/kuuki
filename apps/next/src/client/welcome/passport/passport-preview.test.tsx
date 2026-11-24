@@ -12,7 +12,6 @@ const base: Preview = {
   reading: false,
 }
 
-// A desktop viewport with motion allowed, so the bench loads; jsdom never intersects, so nothing animates.
 beforeEach(() => {
   vi.stubGlobal('matchMedia', (query: string) => ({
     matches: query.includes('min-width'),
@@ -95,7 +94,6 @@ describe('PassportPreview', () => {
         preview={{ ...preview, found: { flights: 14, countries: ['GE', 'JP', 'PT'] } }}
       />,
     )
-    // The new country waits for the bridge's press; the two already there stay inked.
     expect(stamp(svg, 2)).toHaveTextContent('GE')
     expect(stamp(svg, 2)).toHaveAttribute('opacity', '0')
     expect(stamp(svg, 0)).toHaveAttribute('opacity', '1')
@@ -192,7 +190,6 @@ describe('PassportPreview', () => {
     rerender(<PassportPreview preview={{ ...base, step: 'flights', open: true, reading: true }} />)
     expect(passport).toHaveAttribute('data-bench')
     await drawing(container)
-    // Once mounted it stays, but the strip stands alone again when the batch is no longer being read.
     rerender(<PassportPreview preview={{ ...base, step: 'review', open: true }} />)
     expect(passport).not.toHaveAttribute('data-bench')
     expect(container.querySelector('.wp-bench svg')).not.toBeNull()

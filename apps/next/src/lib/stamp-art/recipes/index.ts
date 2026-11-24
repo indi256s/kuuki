@@ -246,7 +246,6 @@ import za from './za.json'
 import zm from './zm.json'
 import zw from './zw.json'
 
-/** Raw recipes by lowercase iso2. check:stamps fails when a recipes/*.json file is missing here. */
 export const RECIPE_FILES: Record<string, unknown> = {
   ad,
   ae,

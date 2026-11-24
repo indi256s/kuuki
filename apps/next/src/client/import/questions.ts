@@ -1,7 +1,3 @@
-// Review questions: what holds review rows back, grouped so one answer settles every row with the same cause.
-// Questions are derived from the drafts on every render and never stored. An answer is an ordinary draft change, so
-// a reload, another tab or an expired batch behaves exactly as it does for row edits, and an answered question is
-// simply gone. Kuuki never answers for the member: suggestions are buttons, never defaults.
 import type { DraftChange } from './draft-saver'
 import type { Draft } from './import-types'
 import {
@@ -22,7 +18,6 @@ export type Endpoint = 'origin' | 'destination'
 export interface YearQuestion {
   kind: 'year'
   key: string
-  /** What the document printed: a day and month, or the barcode's day of the year. */
   evidence: 'monthDay' | 'ordinal'
   drafts: Draft[]
   years: [number, number]
@@ -56,7 +51,6 @@ export type Question =
   | StatusQuestion
 
 const MONTH_DAY = /^(\d{2})-(\d{2})$/
-/** A day and month printed without a year, as MM-DD; null when absent or not a real day (29 February is allowed). */
 export function monthDayOf(draft: Draft): { month: number; day: number } | null {
   const match = MONTH_DAY.exec(
     draft.fields.date_month_day ??
@@ -69,13 +63,11 @@ export function monthDayOf(draft: Draft): { month: number; day: number } | null 
   return probe.getUTCMonth() === month - 1 && probe.getUTCDate() === day ? { month, day } : null
 }
 
-/** The barcode's day of the year (1–366), kept while the date is empty; null when absent or out of range. */
 export function ordinalOf(draft: Draft): number | null {
   const day = draft.fields.date_ordinal_day
   return typeof day === 'number' && Number.isInteger(day) && day >= 1 && day <= 366 ? day : null
 }
 
-/** What a document said about the day without saying the year: a printed day and month, or a day of the year. */
 export type DayEvidence = { month: number; day: number } | { ordinal: number }
 const evidenceOf = (draft: Draft): DayEvidence | null => {
   const monthDay = monthDayOf(draft)
@@ -93,10 +85,6 @@ const realDate = (value: string) => {
   return date.getUTCFullYear() === y && date.getUTCMonth() === m - 1 && date.getUTCDate() === d
 }
 
-/**
- * The calendar date (YYYY-MM-DD) the evidence names in `year`; null when that year has no such day (29 February, or
- * day 366, in a non-leap year). An ordinal day is turned into a month and day only here, with the member's year.
- */
 export function dateFor(evidence: DayEvidence, year: number): string | null {
   if ('ordinal' in evidence) {
     const date = new Date(Date.UTC(year, 0, evidence.ordinal))
@@ -117,7 +105,6 @@ const needsAirport = (draft: Draft, endpoint: Endpoint) =>
   !draft.fields[endpoint] && optionsFor(draft, endpoint).length > 0
 const needsStatus = (draft: Draft) => draft.fields.review_required === true && !draft.selected
 
-/** Causes a question can settle, for one review row. */
 export function openCauses(draft: Draft, today: string = localToday()): Question['kind'][] {
   const causes: Question['kind'][] = []
   if (needsYear(draft)) causes.push('year')
@@ -128,10 +115,6 @@ export function openCauses(draft: Draft, today: string = localToday()): Question
   return causes
 }
 
-/**
- * The latest year in which every given day has happened by `today` (plus two days, for a boarding pass issued the
- * day before), and the year before it. These are offered as buttons; neither is preselected.
- */
 export function suggestedYears(days: DayEvidence[], today: string): [number, number] {
   const limit = Date.parse(`${today}T00:00:00Z`) + 2 * 86_400_000
   let year = Number(today.slice(0, 4)) + 1
@@ -145,7 +128,6 @@ export function suggestedYears(days: DayEvidence[], today: string): [number, num
   return [year, year - 1]
 }
 
-/** Where in the calendar year a day falls, as a month (1–12) for printed days and a day of the year for barcodes. */
 const lateYear = (evidence: DayEvidence) =>
   'ordinal' in evidence ? evidence.ordinal >= 305 : evidence.month >= 11
 const earlyYear = (evidence: DayEvidence) =>
@@ -153,10 +135,6 @@ const earlyYear = (evidence: DayEvidence) =>
 const secondHalf = (evidence: DayEvidence) =>
   'ordinal' in evidence ? evidence.ordinal >= 183 : evidence.month >= 7
 
-/**
- * Days that straddle New Year (Nov–Dec with Jan–Feb; day 305 onwards with day 60 and before) split into two questions:
- * one year cannot be right for both.
- */
 function splitAcrossNewYear(drafts: Draft[]): Draft[][] {
   const days = drafts.map((draft) => evidenceOf(draft)!)
   if (!(days.some(lateYear) && days.some(earlyYear))) return [drafts]
@@ -166,10 +144,6 @@ function splitAcrossNewYear(drafts: Draft[]): Draft[][] {
   ]
 }
 
-/**
- * Questions for the review rows, largest first. A single row still gets its question: one boarding pass is the common
- * case, and two year buttons beat typing a full date the document already half-printed.
- */
 export function buildQuestions(drafts: Draft[], today: string): Question[] {
   const review = [...drafts]
     .filter((draft) => draft.status === 'review')
@@ -177,7 +151,6 @@ export function buildQuestions(drafts: Draft[], today: string): Question[] {
   const open = review.filter((draft) => !isDuplicate(draft))
   const questions: Question[] = []
 
-  // Printed days and barcode days of the year are different evidence, so they are asked separately.
   for (const evidence of ['monthDay', 'ordinal'] as const) {
     const withEvidence = open.filter(
       (draft) => needsYear(draft) && 'ordinal' in evidenceOf(draft)! === (evidence === 'ordinal'),
@@ -198,9 +171,6 @@ export function buildQuestions(drafts: Draft[], today: string): Question[] {
     }
   }
 
-  // The date is known by now (a row without one is still on its year question), so this asks only what is left.
-  // A duplicate is asked too: its "Save anyway" stays blocked until the flight is confirmed, and only the member can
-  // acknowledge the duplicate itself.
   const flown = review.filter((draft) => needsFlown(draft, today))
   if (flown.length > 0) questions.push({ kind: 'flown', key: 'flown', drafts: flown })
 
@@ -227,13 +197,11 @@ export function buildQuestions(drafts: Draft[], today: string): Question[] {
   return questions.sort((a, b) => size(b) - size(a))
 }
 
-/** Every review row a question touches. */
 export const questionDrafts = (question: Question): Draft[] =>
   question.kind === 'airport'
     ? [...new Map(question.items.map((item) => [item.draft.id, item.draft])).values()]
     : question.drafts
 
-/** Review rows still waiting on a question; skipped and answered ones have no open cause left. */
 export const needCount = (drafts: Draft[], today: string) =>
   new Set(
     buildQuestions(drafts, today).flatMap((question) =>
@@ -243,17 +211,12 @@ export const needCount = (drafts: Draft[], today: string) =>
 
 const REQUIRED: FieldName[] = ['date', 'origin', 'destination', 'airline_iata']
 
-/**
- * The row is ready to import once this change lands: nothing left to ask, the shared validator accepts it, and every
- * required field the source was unsure about has now been stated by the member.
- */
 function readyAfter(
   draft: Draft,
   change: DraftChange,
   stated: FieldName[],
   today: string,
 ): boolean {
-  // Source verification is informational; it never holds a row back from selection.
   const after = withUnsent(draft, change)
   if (openCauses(after, today).length > 0) return false
   if (!after.fields.date || (!after.yearExplicit && !after.yearConfirmed)) return false
@@ -262,7 +225,6 @@ function readyAfter(
   return !lowFields(draft).some((name) => REQUIRED.includes(name) && !stated.includes(name))
 }
 
-/** Select a row only when the answer made it ready; never unselect one the member chose, or choose a duplicate. */
 const withSelection = (
   draft: Draft,
   change: DraftChange,
@@ -273,7 +235,6 @@ const withSelection = (
     ? { ...change, selected: true }
     : change
 
-/** The chosen year's date and the year decision, or null when the year does not have the document's day. */
 export const answerYear = (
   draft: Draft,
   year: number,
@@ -285,7 +246,6 @@ export const answerYear = (
   return withSelection(draft, { fields: { date }, yearConfirmed: true }, ['date'], today)
 }
 
-/** The flight is saved without an airline; the member can add one later in the journal. */
 export const answerNoAirline = (draft: Draft, today: string = localToday()): DraftChange =>
   withSelection(draft, { fields: { airline_iata: null } }, ['airline_iata'], today)
 
@@ -296,12 +256,9 @@ export const answerAirport = (
   today: string = localToday(),
 ): DraftChange => withSelection(draft, { fields: { [endpoint]: code } }, [endpoint], today)
 
-/** «Да, летел(а)»: the member says they took this flight, which a barcode or a date cannot say for them. */
 export const answerTookFlight = (draft: Draft, today: string = localToday()): DraftChange =>
   withSelection(draft, { flownConfirmed: true }, [], today)
 
-/** «Летал»: the member vouches for the flight, which is what the source could not. */
 export const answerFlown = (): DraftChange => ({ selected: true })
-/** «Не летал»: the row is skipped, and can be brought back. */
 export const answerNotFlown = (): DraftChange => ({ dismissed: true })
 export const answerRestore = (): DraftChange => ({ dismissed: false })

@@ -1,6 +1,3 @@
-// Cable-car line: two pylons, a drooping cable and a small gondola. The box spans pylon to pylon;
-// the left pylon foot is at the bottom-left, the right pylon foot at the bottom-right (heights vary
-// by `left` and `right`, fractions of the box height).
 import { type Pt, type SvgNode, fill, hline, quad, rectPts, stroke, vline } from '../grid'
 import { type KitModule, num } from './util'
 
@@ -22,7 +19,6 @@ export const cableCar: KitModule = ([x, y, w, h], p) => {
   const sag = num(p, 'sag', 2.5)
   const cable = quad(a, [(a[0] + b[0]) / 2, Math.max(a[1], b[1]) + sag], b, 18)
   out.push(stroke('hair', cable))
-  // Gondola hung from the cable at `at` along its length.
   const at = Math.round(num(p, 'at', 0.45) * 18)
   const [gx, gy] = cable[at]
   out.push(vline('hair', gx, gy, gy + 3.2))

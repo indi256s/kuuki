@@ -1,17 +1,8 @@
-// Roman amphitheatre seen from outside (Colosseum): an elliptical wall of arcade storeys topped by
-// an attic, drawn bay by bay so the arches foreshorten toward the ends. The wall can be broken on
-// one side: `profile` gives the number of standing storeys per bay, and where the wall is lower
-// the taller inner ring shows behind it in shade.
 import { type Pt, type SvgNode, body, fill, occlude, rectPts, stroke, toneFill } from '../grid'
 import { type KitModule, nums, num } from './util'
 
-/** Cumulative storey heights (fraction of the wall): three arcades and the attic. */
 const CUM = [0, 0.25, 0.5, 0.75, 1]
 
-/**
- * `arcade`: one arched storey over a straight run, used by the amphitheatre bay by bay. Returns the
- * dark openings (solid) for a bay whose floor is at `yb`, ceiling at `yt`, centred on `xm`.
- */
 export function arcade(xm: number, yb: number, yt: number, width: number, rise: number): SvgNode[] {
   const h = yb - yt
   const r = width / 2
@@ -29,12 +20,6 @@ export function arcade(xm: number, yb: number, yt: number, width: number, rise: 
   return [fill(pts)]
 }
 
-/**
- * The box is the whole ellipse: its width is the wall length, its height runs from the highest
- * point of the top rim to the lowest point of the base curve. `bays` equal angular bays, `profile`
- * standing storeys (0-4) for each bay from left to right, `ryBase` and `ryTop` the vertical bulge of
- * the base and top curves, `open` the arch width as a share of the bay.
- */
 export const amphitheatre: KitModule = ([x, y, w, h], p) => {
   const bays = Math.max(6, Math.round(num(p, 'bays', 15)))
   const ryb = num(p, 'ryBase', 4)
@@ -53,7 +38,6 @@ export const amphitheatre: KitModule = ([x, y, w, h], p) => {
     const i = Math.min(3, Math.floor(s))
     return CUM[i] + (CUM[i + 1] - CUM[i]) * (s - i)
   }
-  /** y at storey level `s` on the curve at angle index `j` (may be fractional). */
   const yAt = (s: number, j: number) => {
     const c = Math.cos(phi(j))
     const yb = baseY + ryb * c
@@ -62,7 +46,6 @@ export const amphitheatre: KitModule = ([x, y, w, h], p) => {
   }
   const out: SvgNode[] = []
 
-  // Inner ring behind the broken bays, in shade.
   const low = profile.map((s) => s < innerLevel - 0.3)
   const innerPts: Pt[] = []
   const lowIdx = low.flatMap((v, j) => (v ? [j] : []))
@@ -75,7 +58,6 @@ export const amphitheatre: KitModule = ([x, y, w, h], p) => {
     out.push(...toneFill(innerPts, 'T4', { gap: 2.4 }))
   }
 
-  // Wall silhouette bay by bay.
   const top: Pt[] = []
   for (let j = 0; j < bays; j++) {
     top.push([px(j), yAt(profile[j], j)], [px(j + 1), yAt(profile[j], j + 1)])
@@ -84,7 +66,6 @@ export const amphitheatre: KitModule = ([x, y, w, h], p) => {
   for (let j = bays; j >= 0; j--) bottom.push([px(j), yAt(0, j)])
   out.push(...body([...top, ...bottom], 'line'))
 
-  // Storey courses and openings.
   for (const s of [1, 2, 3]) {
     let run: Pt[] = []
     const flush = () => {
@@ -116,7 +97,6 @@ export const amphitheatre: KitModule = ([x, y, w, h], p) => {
       out.push(fill(rectPts(xm - ww / 2, wy - 1.6, ww, 3.2)))
     }
   }
-  // Pilasters: a full-height rib on every `ribs`-th pier, so the wall breaks into separate cells.
   const ribs = Math.max(0, Math.round(num(p, 'ribs', 3)))
   for (let j = ribs; ribs > 0 && j < bays; j += ribs) {
     const s = Math.min(profile[j - 1], profile[j])
@@ -128,7 +108,6 @@ export const amphitheatre: KitModule = ([x, y, w, h], p) => {
         ]),
       )
   }
-  // Heavy cornice over the full attic.
   let run: Pt[] = []
   const flushTop = () => {
     if (run.length > 1) out.push(stroke('bold', run))

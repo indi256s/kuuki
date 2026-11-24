@@ -1,35 +1,24 @@
-// A modern four-axle electric locomotive (Bo'Bo') in metres, with a Vectron's proportions. `a` is the distance from the
-// rear buffer face, so the nose buffer face stands at a = LENGTH and the world x of a point is a - LENGTH: the nose is the
-// lane anchor (x = 0), as for the car. Envelope, bogie centres and wheel size are the type's published dimensions; cab
-// glazing, doors, grilles and roof equipment are drawn for a generic type, not one railway's.
 import { profile } from '../car/model'
 import type { Surface, V3 } from '../airliner/surface'
 
-/** Over buffers. The lane contract (scene-art.ts reads it as LOCO_LENGTH from the app's lane draw). */
 export const LENGTH = 18.98
-/** Half the standard gauge, m: the rails' offset from the track's centre line (the lane's RAIL). */
 export const RAIL = 0.7175
 export const MID = LENGTH / 2
 export const HW = 1.5
 export const ROOF = 4.05
 export const WHEEL_R = 0.625
-/** Tread centre of a wheel from the centre line; its outer face stands at RAIL + 0.08, the lane's `gear`. */
 export const WHEEL_Y = RAIL + 0.03
 export const TREAD = 0.135
-/** Bogie centres and the wheelbase of each. */
 export const BOGIES = [MID - 4.75, MID + 4.75] as const
 export const AXLE_OFF = 1.5
-/** The body's ends stand this far in from the buffer faces. */
 export const BUF = 0.62
 export const BODY0 = BUF
 export const BODY1 = LENGTH - BUF
-/** Body floor (its lower edge), and the shoulder radius of the roof. */
 export const Z0 = 1.5
 export const RS = 0.55
 
 export const at = (a: number, y: number, z: number): V3 => [a - LENGTH, y, z]
 
-/** Height of the body's top from the end: vertical front to 2.62 m, a raked screen, the roof bend. */
 const roofE = profile([
   [0, 2.62],
   [0.18, 3.08],
@@ -40,10 +29,6 @@ const roofE = profile([
 ])
 export const roofAt = (a: number) => roofE(Math.min(a - BODY0, BODY1 - a))
 
-/**
- * The body section at `a`, round once from the floor's centre: near floor half, near wall, shoulder, roof, shoulder,
- * far wall, far floor half. The wall stays vertical; the roof is flat inside the shoulders.
- */
 export function sectionYZ(a: number, v: number): [number, number] {
   const zt = roofAt(a)
   const wall = zt - RS - Z0
@@ -73,7 +58,6 @@ export function sectionYZ(a: number, v: number): [number, number] {
   s -= k(5)
   return [-HW + s, Z0]
 }
-/** v samples round the section: even, fine enough for the 0.55 m shoulders at every station. */
 const vGrid = Array.from({ length: 145 }, (_, i) => i / 144)
 const uGrid = (() => {
   const out: number[] = []
@@ -86,7 +70,6 @@ const uGrid = (() => {
   for (let a = a1 - 1.8; a <= a1 + 1e-9; a += 0.06) add(a)
   return out
 })()
-/** The v range of the roof's section at `a`, from the near wall's top, over the shoulders and roof, to the far wall's top. */
 export function roofV(a: number): [number, number] {
   const zt = roofAt(a)
   const segs = [
@@ -101,7 +84,6 @@ export function roofV(a: number): [number, number] {
   const total = segs.reduce((n, s) => n + s, 0)
   return [(segs[0] + segs[1]) / total, (total - segs[5] - segs[6]) / total]
 }
-/** `a` as the body surface's u. */
 export const bodyU = (a: number) => (a - BODY0) / (BODY1 - BODY0)
 export const bodyAt = (a: number, v: number): V3 => {
   const [y, z] = sectionYZ(a, v)
@@ -115,7 +97,6 @@ export const body: Surface = {
   flip: true,
 }
 
-/** The wall plane of a cab end, under the section's outline: y spans the width, z from the floor to the roof line. */
 const topOfY = (zt: number, y: number) => {
   const ay = Math.abs(y)
   if (ay <= HW - RS) return zt

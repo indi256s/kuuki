@@ -1,7 +1,3 @@
-// Qasr al-Farid, Hegra: a single free-standing sandstone block in the desert with a Nabataean tomb
-// facade carved high in its face: four pilasters under an entablature and a pediment, a central
-// doorway. The lower third is left as raw rock. The block's right flank is shaded in vertical
-// hatching, low outcrops flank its foot. The box is the block; the bottom is the desert floor.
 import { mulberry32 } from '../hash'
 import {
   type Pt,
@@ -36,7 +32,6 @@ export const qasrFarid: KitModule = ([x, y, w, h], p) => {
   const rand = mulberry32(Math.round(num(p, 'seed', 8)))
   const base = y + h
   const out: SvgNode[] = []
-  // Low outcrops behind the block's feet (drawn first so the block occludes them).
   for (const [t0, t1, s] of [
     [-0.12, 0.14, 0.15],
     [0.86, 1.1, 0.13],
@@ -53,7 +48,6 @@ export const qasrFarid: KitModule = ([x, y, w, h], p) => {
     out.push(...body(m, 'line'))
     out.push(...toneFill(m, 'T4', { gap: 2.4, weight: 'fine', inset: 0.5 }))
   }
-  // The block: jagged crown, vertical flanks.
   const top: Pt[] = []
   for (let i = 0; i + 1 < CROWN.length; i++) {
     const [t0, s0] = CROWN[i],
@@ -69,7 +63,6 @@ export const qasrFarid: KitModule = ([x, y, w, h], p) => {
   top.push([x + w, base])
   const block: Pt[] = [...top]
   out.push(...body(block, 'line'))
-  // Shaded right flank and a lit left rim of bedding ticks.
   const flank: Pt[] = block.filter(([px]) => px >= x + w * 0.8)
   out.push(
     ...toneFill(
@@ -84,14 +77,12 @@ export const qasrFarid: KitModule = ([x, y, w, h], p) => {
     const yy = y + h * (0.3 + 0.11 * k)
     out.push(hline('fine', x + w * (0.05 + rand() * 0.04), x + w * (0.14 + rand() * 0.06), yy))
   }
-  // Facade recess.
   const fw = w * 0.56
   const fx = x + w * 0.2
   const fy = y + h * 0.26
   const u = (t: number) => fx + fw * t
   const v = (s: number) => fy + (base - fy) * s
   out.push(...body(rectPts(u(0), v(0.18), fw, (base - fy) * 0.66), 'line'))
-  // Pediment and entablature.
   const ped: Pt[] = [
     [u(-0.04), v(0.2)],
     [u(-0.04), v(0.08)],
@@ -109,16 +100,13 @@ export const qasrFarid: KitModule = ([x, y, w, h], p) => {
   out.push(...body(ped, 'line'))
   out.push(hline('bold', u(-0.04), u(1.04), v(0.2)))
   out.push(hline('line', u(0), u(1), v(0.3)))
-  // Four pilasters, doorway between the middle pair.
   for (const c of [0.05, 0.31, 0.57, 0.83]) {
     out.push(...body(rectPts(u(c), v(0.32), fw * 0.12, (base - fy) * 0.5), 'hair'))
   }
   out.push(fill(rectPts(u(0.44) + 0.4, v(0.5), fw * 0.12, (base - fy) * 0.34)))
   out.push(hline('hair', u(0.4), u(0.6), v(0.47)))
-  // Step and the rough, uncarved plinth.
   out.push(hline('line', u(0.02), u(0.98), v(0.86)))
   out.push(hline('hair', u(-0.06), u(1.06), v(0.92)))
-  // Floor rubble in front.
   const rub: Pt[] = [[x - 2, base + 1]]
   for (let t = 0; t <= 1.001; t += 0.05)
     rub.push([x - 2 + (w + 4) * t, base - 2 + Math.sin(t * 15) * 1.4])

@@ -1,6 +1,3 @@
-// Murchison-type falls: the whole river squeezed through a narrow rock cleft, dropping as a single
-// white plume into a boiling pool. Two close walls, the left lit with ledge lines, the right
-// shaded in vertical hatching. The box bottom is the pool surface.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, hline, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
@@ -39,7 +36,6 @@ export const cleftFallsB: KitModule = ([x, y, w, h], p) => {
     ...re.slice().reverse(),
   ]
   const out: SvgNode[] = [occlude([...lw]), occlude([...rw])]
-  // Cleft interior: paper with the plume's own streaks and a shaded left lip.
   out.push(occlude([...le, ...re.slice().reverse()]))
   for (let k = 0; k < 5; k++) {
     const f = -0.55 + k * 0.28
@@ -54,7 +50,6 @@ export const cleftFallsB: KitModule = ([x, y, w, h], p) => {
     )
   }
   out.push(...toneFill(lw, 'T3', { angle: 66, gap: 3, weight: 'fine', inset: 1 }))
-  // Lit left wall: ledge lines; shaded right wall: vertical hair hatching.
   for (let ly = lip + 6; ly < base - 3; ly += 6 + rand() * 4) {
     const xe = le[Math.min(8, Math.round(((ly - lip) / (fallEnd - lip)) * 8))][0]
     out.push(
@@ -72,7 +67,6 @@ export const cleftFallsB: KitModule = ([x, y, w, h], p) => {
       inset: 0.6,
     }),
   )
-  // Mist banks drifting over the lower walls: scalloped paper blobs outlined with hair strokes.
   const mist = (mx: number, my: number, r: number): void => {
     const blob: Pt[] = Array.from({ length: 17 }, (_, i) => {
       const a = (i / 16) * Math.PI * 2
@@ -90,7 +84,6 @@ export const cleftFallsB: KitModule = ([x, y, w, h], p) => {
     stroke('line', [...roof(x, le[0][0] - 2, 1), ...le]),
     stroke('line', [...re, ...roof(re[0][0] + 2, x + w, 1)].reverse().reverse()),
   )
-  // Spray at the foot and the pool.
   const spray: Pt[] = []
   for (let i = 0; i <= 14; i++) {
     const a = Math.PI * (i / 14)

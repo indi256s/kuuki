@@ -1,6 +1,3 @@
-/* The brand panel's Concorde (concorde-field.tsx). The kit's rules are in concorde.generated.css; this file maps its
-   colour roles onto Kuuki's iso tokens, so the model follows both themes and every accent like the Overview figures:
-   quiet faces and lines, and the cabin windows and engine openings lit in the accent. */
 .auth-concorde {
   --anatomy-paper: var(--iso-side);
   --anatomy-top: var(--iso-top);
@@ -23,9 +20,6 @@
   left: 0;
   right: 0;
   bottom: 24px;
-  /* Its own layer, sized by the stage's aspect (set in concorde.generated.css) so size containment holds: a turning
-     frame restyles, lays out and repaints only this box, never the panel or the page. The drawing stays inside the
-     viewBox at every heading. */
   contain: strict;
   will-change: transform;
   opacity: 0;
@@ -34,8 +28,6 @@
 .auth-concorde[data-ready] {
   opacity: 1;
 }
-/* Cabin windows and engine openings share the live accent; while reheat burns in dark (reheat.ts writes --cn-reheat,
-   0…1 on the stage), the openings run white-hot like the streams' cores. */
 .auth-concorde [data-name='air.barrel'] [data-tone='lit'] circle {
   fill: var(--accent);
   opacity: 1;
@@ -52,8 +44,6 @@
 :root[data-theme='dark'] .auth-concorde :is(.cn-engine-light, .cn-engine-glow) {
   fill: color-mix(in oklab, var(--accent), #fff calc(var(--cn-reheat, 0) * 50%));
 }
-/* The reheat proxies only order the streams among the parts; the canvas draws them in its colour, the accent. In dark
-   they add light. */
 .auth-concorde [data-name^='air.plume'] {
   display: none;
 }
@@ -63,8 +53,6 @@
 :root[data-theme='dark'] .auth-concorde .cn-reheat {
   mix-blend-mode: screen;
 }
-/* A click on the model lights reheat (concorde-field.tsx), so the stage takes the pointer the brand field otherwise
-   passes through, while the streams can draw (data-gl, set by reheat.ts) and motion is allowed. */
 @media (prefers-reduced-motion: no-preference) {
   .auth-concorde .iso-stage[data-gl] {
     pointer-events: auto;
@@ -89,8 +77,6 @@
     transition: none;
   }
 }
-/* Theme switch (styles.css): the model is its own view-transition layer, so it keeps turning in the new colours instead
-   of freezing in the old page's snapshot. */
 @media (prefers-reduced-motion: no-preference) {
   :root[data-theme-switching] .auth-concorde {
     view-transition-name: auth-concorde;
@@ -104,7 +90,6 @@
   animation: none;
 }
 
-/* Mobile: the model fills the band under the 52px header row, centred, at the band's height. */
 @media (max-width: 700px) {
   .auth-concorde {
     top: 44px;

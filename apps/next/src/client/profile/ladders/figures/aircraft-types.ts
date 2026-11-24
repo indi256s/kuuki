@@ -21,15 +21,7 @@ import {
 } from './parts'
 import type { LadderFigureDef } from './types'
 
-// Aircraft types: the stretch. One narrowbody airframe on a hangar floor, seen exactly side-on along its length (the camera
-// sits abeam, so the barrel runs level across the frame, unlike Flights' diagonal), its barrel lengthened by fuselage plugs
-// spliced in ahead of the wing. Each plug joint is a butt strap with doubled rivet rows either side; the newest plug is the
-// lit part (accent outline, a faint accent wash, its joints and its door outlines) and rests on jig cradles.
-// Build frame ("local"): the nose points +x, the near flank faces +y, z is up; W() turns it so +x runs level to the right
-// on screen and +y points at the viewer. The thumb squashes local x so a long body still reads at 56px.
-
 const GROUND = 3
-/** Camera azimuth off the beam: the barrel runs almost level across the frame (Flights' runs at 30°), and the nose turns just enough towards the viewer to show the intakes. */
 const PHI = 32 * D2R
 const CP = Math.cos(PHI),
   SP = Math.sin(PHI)
@@ -37,14 +29,11 @@ const X: P3 = [1, 0, 0],
   Y: P3 = [0, 1, 0],
   Z: P3 = [0, 0, 1]
 
-/** One barrel section between two joints, with the doors on its near flank (local x of each door centre). */
 type Barrel = { x0: number; x1: number; doors: readonly number[]; plug?: boolean }
 
 const AFT: Barrel = { x0: 0, x1: 36, doors: [4] }
 const run = (from: number, n: number, step: number) =>
   Array.from({ length: n }, (_, i) => from + i * step)
-/** Hero barrels per rung: aft barrel with the wing box, the plugs (the last is the newest), forward barrel. The first plug is a short
- * windows-only stretch; the second adds a door pair; the third adds far too many. */
 const HERO_LAYOUTS: Barrel[][] = [
   [AFT, { x0: 36, x1: 48, doors: [], plug: true }, { x0: 48, x1: 70, doors: [65] }],
   [
@@ -61,7 +50,6 @@ const HERO_LAYOUTS: Barrel[][] = [
     { x0: 224, x1: 246, doors: [241] },
   ],
 ]
-/** Thumb barrels: the same story with fewer, wider doors on a squashed body. */
 const THUMB_LAYOUTS: Barrel[][] = [
   [
     { x0: 0, x1: 36, doors: [5] },
@@ -83,7 +71,6 @@ const THUMB_LAYOUTS: Barrel[][] = [
   ],
 ]
 
-/** The narrowbody's fixed parts (local units; R is the barrel radius). Wing rows: [y, LE x, TE x, thickness], root first. */
 type Spec = {
   q: number
   R: number
@@ -130,7 +117,6 @@ const THUMB_SPEC: Spec = {
   door: { w: 2.8, d0: -42, d1: 56 },
 }
 
-/** Where the top rung's frame cuts the tail off (local x): only a sliver of the fin's leading edge stays in. */
 const CROP_X = -16
 
 export const aircraftTypes: LadderFigureDef = {
@@ -143,14 +129,11 @@ export const aircraftTypes: LadderFigureDef = {
     const q = P.q
     const s = new Scene(k)
 
-    /** Local to world: x runs level to the right on screen (squashed by q), y towards the viewer. */
     const W = ([x, y, z]: P3): P3 => [CP * q * x + SP * y, CP * y - SP * q * x, z]
-    /** A local direction in world space (not normalised). */
     const V = W
     const latheX = (o: P3, sec: (x: number) => Section, x0: number, x1: number, opts: LatheOpts) =>
       lathe(s, frameAlong(W(o), V(X)), (t) => sec(t / q), q * x0, q * x1, opts)
 
-    // ---------------------------------------------------------------- fuselage profile
     const R = P.R,
       A = P.aspect
     const tanD = Math.tan(P.dihedral * D2R)
@@ -163,7 +146,6 @@ export const aircraftTypes: LadderFigureDef = {
       const u = (y - y0) / (y1 - y0)
       return { le: l0 + (l1 - l0) * u, te: t0 + (t1 - t0) * u, t: h0 + (h1 - h0) * u }
     }
-    // Heights follow from the engine: it hangs `clear` above the floor, the pylon reaches the wing, the wing sits low on the barrel.
     const E = P.eng
     const nacZ = GROUND + E.clear + E.r
     const W0 = nacZ + E.r * 1.42 + row(E.y).t - tanD * E.y
@@ -206,8 +188,6 @@ export const aircraftTypes: LadderFigureDef = {
     const plugs = layout.filter((b) => b.plug)
     const newest = plugs[plugs.length - 1]
 
-    // ---------------------------------------------------------------- floor, shadow, cradles
-    /** The hangar floor strip runs under the barrel from FY0 (far) to FY1 (near); the wingtips overhang it. */
     const FY0 = -24,
       FY1 = 30
     if (hero) {
@@ -220,14 +200,12 @@ export const aircraftTypes: LadderFigureDef = {
         FY1 - FY0,
         GROUND,
       )
-      // Expansion joints across the floor, edge to edge, and a painted stand line along it.
       const segs: P3[][] = []
       for (let x = Math.ceil(x0 / 40) * 40; x < x1 - 4; x += 40)
         segs.push([W([x, FY0, GROUND]), W([x, FY1, GROUND])])
       const yl = FY1 - 5
       segs.push([W([x0, yl, GROUND]), W([x1, yl, GROUND])])
       s.segs(segs, 'crease', 0.6)
-      // Stand line markings: short bars across the stand line at each plug joint, so the floor records where the cuts went.
       s.segs(
         plugs
           .flatMap((p) => [p.x0, p.x1])
@@ -235,7 +213,6 @@ export const aircraftTypes: LadderFigureDef = {
         'crease',
         0.6,
       )
-      // The aircraft's shadow: its near-side plan outline mirrored, laid on the floor and slid away from the light.
       const h = Zc - GROUND
       const dx = 0.2 * h,
         dy = -0.45 * h
@@ -255,7 +232,6 @@ export const aircraftTypes: LadderFigureDef = {
         [st.le - st.chord, R * 0.4],
         [tailTip, 0.7],
       ]
-      // The floor ends at its edges, so the shadow does too.
       const fl = (y: number) => Math.min(FY1, Math.max(FY0, y))
       s.poly(
         [
@@ -265,8 +241,6 @@ export const aircraftTypes: LadderFigureDef = {
         'shadow',
         'none',
       )
-      // Jig cradles under the newest plug: a foot on the floor, a screw-jack post with its collar, and a saddle block
-      // whose near edge meets the belly (the rest of its top is inside the barrel's shadow, hidden by the fuselage).
       const n = Math.max(1, Math.round((newest.x1 - newest.x0) / 40))
       const yN = 0.5 * R
       const zContact = Zc - R * A * Math.sqrt(1 - 0.25)
@@ -301,7 +275,6 @@ export const aircraftTypes: LadderFigureDef = {
             up: Z,
           },
         )
-        // Rubber pad along the saddle's near top edge.
         s.line(
           [W([xc - 1.6, yN, zContact - 0.5]), W([xc + 1.6, yN, zContact - 0.5])],
           'crease',
@@ -310,7 +283,6 @@ export const aircraftTypes: LadderFigureDef = {
       }
     }
 
-    // ---------------------------------------------------------------- parts, each for one side
     const wingSt = (y: number): FoilStation => {
       const r = row(Math.abs(y))
       const z = zTop(y) - r.t / 2
@@ -323,7 +295,6 @@ export const aircraftTypes: LadderFigureDef = {
       if (!hero) return
       const n = sts.length - 1
       const i = (t: number) => (sg > 0 ? t : n - t)
-      // Flap and aileron hinge lines, their cuts to the trailing edge, a spoiler panel and the front spar line.
       w.line(i(0), 0.76, i(n * 0.62), 0.76)
       w.line(i(n * 0.64), 0.78, i(n * 0.94), 0.78)
       for (const t of [0.3, 0.62, 0.64, 0.94])
@@ -359,7 +330,6 @@ export const aircraftTypes: LadderFigureDef = {
         { up: V(Y), nose: 2 },
       )
     }
-    /** Flap-track fairings: pods under the trailing edge, poking out behind it. */
     const fairings = (sg: number) => {
       if (!hero) return
       for (const f of [0.28, 0.5, 0.72]) {
@@ -388,7 +358,6 @@ export const aircraftTypes: LadderFigureDef = {
       const y = sg * E.y,
         xr = E.x - E.len,
         r = E.r
-      // Exhaust plug and core cowl, then the fan cowl with its seams and the inlet lip.
       const plug = spline([
         [0, 0.5 * r],
         [0.4 * r, 0.42 * r],
@@ -438,13 +407,11 @@ export const aircraftTypes: LadderFigureDef = {
         nb.seam(q * E.len * 0.8)
         nb.seam(q * (E.len - lip), 'crease', 0.5)
         nb.along(-30, q * E.len * 0.42, q * E.len * 0.8)
-        // Fan-cowl latches along the lower cowl, between its seams.
         for (const f of [0.52, 0.62, 0.72]) {
           const p = nb.at(q * E.len * f, -30, 0.02)
           screw(s, p, nb.normal(q * E.len * f, -30), 0.18)
         }
       }
-      // Intake: the fan face just inside the lip, its blades and the spinner (the nose turns a little towards the viewer).
       const ax = unit(V(X))
       const fc = W([E.x - 0.15, y, nacZ])
       s.poly(circleOn(fc, ax, r * 0.84, hero ? 32 : 16), 'shade', 'crease', undefined, 0.6)
@@ -476,7 +443,6 @@ export const aircraftTypes: LadderFigureDef = {
           },
         )
       }
-      // Pylon: from the nacelle's crown up into the wing, its leading edge slanting back to the wing's.
       const rw = row(E.y)
       foil(
         s,
@@ -495,7 +461,6 @@ export const aircraftTypes: LadderFigureDef = {
         { up: V(Y), nose: hero ? 2 : 1 },
       )
     }
-    /** A gear leg: oleo from the airframe, piston to the axle, twin wheels on a cross axle, torque link. */
     const gearLeg = (top: P3, axle: P3, o: { r: number; w: number; leg: number }) => {
       const { r, w, leg } = o
       const gap = w / 2 + leg * 1.6
@@ -544,7 +509,6 @@ export const aircraftTypes: LadderFigureDef = {
       if (hero) f.line(0, 0.7, 1, 0.7)
     }
 
-    // ---------------------------------------------------------------- far side, under the barrel
     stab(-1)
     engine(-1)
     fairings(-1)
@@ -558,14 +522,12 @@ export const aircraftTypes: LadderFigureDef = {
       leg: G.leg * 0.8,
     })
 
-    // ---------------------------------------------------------------- fuselage
     const L = noseTip - tailTip
     const b = latheX([0, 0, 0], sec, tailTip, noseTip, {
       steps: Math.round(L / (hero ? 2.4 : 5)),
       ring: hero ? 40 : 18,
       shade: hero,
     })
-    /** Body helpers in local x. */
     const at = (x: number, deg: number, lift = 0) => b.at(q * x, deg, lift)
     const patch = (
       corners: readonly (readonly [number, number])[],
@@ -579,7 +541,6 @@ export const aircraftTypes: LadderFigureDef = {
         stroke,
         w,
       )
-    /** A rounded rectangle on the near flank: x0..x1 along the barrel, d0..d1 degrees round it, corner radius rr (local x units). */
     const panel = (
       x0: number,
       x1: number,
@@ -603,7 +564,6 @@ export const aircraftTypes: LadderFigureDef = {
     const lim = b.limbs(q * (AFT.x1 / 2))!
     const [LO, HI] = lim
 
-    /** A ring of rivet dots at x across the visible flank, fading out towards the limbs. */
     const rivets = (x: number, paint: Paint) => {
       const step = 1.15 / R / D2R
       for (let a = LO + step / 2; a < HI; a += step) {
@@ -612,7 +572,6 @@ export const aircraftTypes: LadderFigureDef = {
         s.poly(circleOn(at(x, a, 0.01), b.normal(q * x, a), 0.16 * f, 6), paint, 'none')
       }
     }
-    /** A plug joint: the skin butt line, the strap's two edges and two rivet rows either side of the butt. */
     const splice = (x: number, line: Paint, crease: Paint, lit = false) => {
       b.seam(q * x, line, lit ? 1.2 : 0.8)
       if (!hero) return
@@ -627,30 +586,25 @@ export const aircraftTypes: LadderFigureDef = {
       panel(xc - hw, xc + hw, D.d0, D.d1, 0.55 / q, 'none', stroke, w)
     }
     const doorDetail = (xc: number) => {
-      // The door's own window, its handle recess and the hinge side's two hinge marks.
       panel(xc - 0.55, xc + 0.55, 15, 29, 0.4, 'glass', 'crease', 0.5)
       panel(xc - 0.5, xc + 0.5, -6, -1, 0.2, 'side', 'crease', 0.4)
       for (const d of [-26, 38]) screw(s, at(xc - 0.85, d, 0.01), b.normal(q * xc, d), 0.14)
     }
     const doors = layout.flatMap((sec) => sec.doors)
 
-    // Production joints (tail cone, nose section) are plain seams; plug joints are splices.
     const plugJoints = [...new Set(plugs.flatMap((p) => [p.x0, p.x1]))].filter(
       (x) => x !== newest.x0 && x !== newest.x1,
     )
     b.seam(0, 'crease', 0.6)
     b.seam(q * noseStart, 'crease', 0.6)
     if (hero) {
-      // Frame lines on the tail cone and the nose, and the forward barrel's own production joint.
       for (const x of [-10, -22]) b.seam(q * x, 'crease', 0.5)
       b.seam(q * (noseStart + P.nose * 0.3), 'crease', 0.5)
-      // Lap joint along the barrel above the window belt, clear of the door tops.
       b.along(58, 0, q * noseStart, 'crease', 0.5)
     }
     for (const x of plugJoints) splice(x, 'line', 'crease')
 
     if (hero) {
-      // Cabin windows, evenly pitched in each barrel, clear of doors and joints.
       const per = R * D2R
       for (const bar of layout) {
         const a = bar.x0 + 2.4,
@@ -664,20 +618,17 @@ export const aircraftTypes: LadderFigureDef = {
           panel(x - 0.65, x + 0.65, 20 - 0.9 / per, 20 + 0.9 / per, 0.45, 'glass', 'crease', 0.6)
         }
       }
-      // Overwing exit hatch, forward cargo door and its hinge line.
       panel(18.6, 21.4, 2, 36, 0.4, 'none', 'crease', 0.6)
       panel(20 - 0.6, 20 + 0.6, 20 - 0.9 / per, 20 + 0.9 / per, 0.45, 'glass', 'crease', 0.6)
       const fwd = layout[layout.length - 1]
       panel(fwd.x0 + 3.5, fwd.x0 + 9.5, -50, -22, 0.5, 'none', 'crease', 0.6)
       b.along(-22, q * (fwd.x0 + 4.2), q * (fwd.x0 + 8.8), 'crease', 0.4)
-      // Wing-to-body fairing: a closed lens on the lower flank over the wing root.
       const lens = (sign: 1 | -1) =>
         Array.from({ length: 11 }, (_, i) => {
           const u = i / 10
           return [AFT.x1 - 34 * u - 1, -38 + sign * 10 * Math.sin(Math.PI * u)] as const
         })
       patch([...lens(1), ...lens(-1).reverse()], 'none', 'crease', 0.5)
-      // Anti-collision beacon on the crown, a blade antenna ahead of it, and the static-port plate under the cockpit.
       disc(s, W([12, 0, crownZ(12) + 0.2]), Z, R * 0.09, 0.5, { shade: true })
       foil(
         s,
@@ -699,7 +650,6 @@ export const aircraftTypes: LadderFigureDef = {
       for (const d of [-11, -5])
         screw(s, at(noseStart + 2.9, d, 0.01), b.normal(q * (noseStart + 2.9), d), 0.16)
     } else {
-      // Thumb: the window belt as one line per barrel, broken at the doors.
       for (const bar of layout) {
         const cuts = [
           bar.x0 + 2,
@@ -710,7 +660,6 @@ export const aircraftTypes: LadderFigureDef = {
           if (cuts[i + 1] - cuts[i] > 2) b.along(20, q * cuts[i], q * cuts[i + 1], 'crease', 0.8)
       }
     }
-    // Doors outside the newest plug.
     for (const bar of layout)
       if (bar !== newest)
         for (const d of bar.doors) {
@@ -719,7 +668,6 @@ export const aircraftTypes: LadderFigureDef = {
         }
     if (hero) for (const d of newest.doors) doorDetail(d)
 
-    // Cockpit glazing: windscreen and side panes, with the eyebrow frame between them.
     const nl = P.nose
     patch(
       [
@@ -743,19 +691,16 @@ export const aircraftTypes: LadderFigureDef = {
       'crease',
     )
     if (hero) {
-      // Radome joint and the pitot probe below the side pane.
       b.seam(q * (noseStart + nl * 0.8), 'crease', 0.5)
       const pp = at(noseStart + nl * 0.24, 8)
       tube(s, pp, add(pp, V([1.6, 0.6, -0.1])), 0.13)
     }
 
-    // ---------------------------------------------------------------- the newest plug, lit
     s.group('lit', () => {
       const x0 = newest.x0,
         x1 = newest.x1
       const lineAlong = (deg: number) =>
         Array.from({ length: 25 }, (_, i) => at(x0 + ((x1 - x0) * i) / 24, deg))
-      // A faint wash over the plug's visible skin (never a slab), then its outline: both joints and the silhouette between them.
       s.poly(
         [...lineAlong(LO + 0.5), ...lineAlong(HI - 0.5).reverse()],
         'accent',
@@ -776,7 +721,6 @@ export const aircraftTypes: LadderFigureDef = {
       for (const d of newest.doors) door(d, 'accent', hero ? 1 : 1.3)
     })
 
-    // ---------------------------------------------------------------- tail, near side
     const F = P.fin
     const finRoot = (x: number) => crownZ(x, F.t / 2) - 0.1
     const tipLE = F.le - Math.tan(F.sweep * D2R) * F.h
@@ -794,7 +738,6 @@ export const aircraftTypes: LadderFigureDef = {
       { up: V(Y), nose: hero ? 3 : 1 },
     )
     if (hero) {
-      // Rudder hinge line and its tab, and the dorsal fillet's joint.
       fin.line(0, 0.7, 1, 0.68)
       fin.line(0.12, 0.7, 0.12, 1)
       fin.line(0.55, 0.7, 0.55, 1)
@@ -813,8 +756,6 @@ export const aircraftTypes: LadderFigureDef = {
 
     const data = s.done()
     if (rung < 3) return data
-    // Top rung: the frame cuts the tail off, so only the fin's leading edge peeks in. The figure's box starts at the cut,
-    // and the drawing is clipped to it.
     const cut = s.project(W([CROP_X, 0, 0]))[0]
     const [vx, vy, vw, vh] = data.viewBox.split(' ').map(Number)
     if (cut <= vx) return data

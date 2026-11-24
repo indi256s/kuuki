@@ -1,7 +1,3 @@
-// Tash Rabat (Kyrgyzstan): a low stone caravanserai. A long ashlar block with slit windows, a
-// shallow projecting portal with a pointed arch, and a row of low domes of varied size on the
-// roof. The right face of each dome is hatched along the fall line. The box is the whole
-// building; its bottom is the ground.
 import { type Pt, type SvgNode, body, fill, hline, quad, rectPts, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
 
@@ -12,7 +8,6 @@ export const tashRabat: KitModule = ([x, y, w, h], p) => {
   const portalW = w * 0.24
   const portalTop = base - h * 0.7
   const out: SvgNode[] = []
-  // Domes first so the block overlaps their drums.
   const domes: [number, number, number][] = [
     [0.1, 0.14, 0.14],
     [0.25, 0.17, 0.19],
@@ -46,7 +41,6 @@ export const tashRabat: KitModule = ([x, y, w, h], p) => {
     ]
     out.push(...toneFill(sh, 'T4', { inset: 0.5, gap: [2.2, 2.2] }))
   }
-  // Long block with ashlar courses.
   out.push(...body(rectPts(x, blockTop, w, base - blockTop), 'line'))
   for (let yy = blockTop + 5; yy < base - 2; yy += 5) {
     out.push(
@@ -63,12 +57,10 @@ export const tashRabat: KitModule = ([x, y, w, h], p) => {
     }),
   )
   out.push(hline('bold', x, x + w, blockTop))
-  // Slit windows either side of the portal.
   for (const fx of [0.08, 0.2, 0.64, 0.76]) {
     const wx = x + w * fx
     out.push(fill(rectPts(wx, blockTop + (base - blockTop) * 0.3, 2.6, (base - blockTop) * 0.34)))
   }
-  // Portal block and pointed arch.
   out.push(...body(rectPts(portalX, portalTop, portalW, base - portalTop), 'line'))
   for (let yy = portalTop + 5; yy < base - 2; yy += 5) {
     out.push(

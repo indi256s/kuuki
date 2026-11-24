@@ -1,5 +1,3 @@
-// GET /api/me/rankings — the requester's leaderboard_cache entries (empty for ineligible users).
-
 import { runHandler, json } from '../_lib/http'
 import { requireUser, type RequestData } from '../_lib/auth'
 import { readProfileLeaderboardRankings } from '../_services/publicLeaderboard'

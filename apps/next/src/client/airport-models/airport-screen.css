@@ -38,7 +38,7 @@
 }
 .airport-code {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 .airport-heading h1 {
@@ -86,7 +86,7 @@
 }
 .airport-panel-header h2 {
   margin-block: 9px 12px;
-  font-size: 18px;
+  font-size: 1.125rem;
   line-height: 1.35;
 }
 .airport-scope {
@@ -95,7 +95,7 @@
   gap: 4px;
 }
 .airport-scope .ui-button {
-  font-size: 12px;
+  font-size: 0.75rem;
   padding-inline: 8px;
 }
 .airport-scope .ui-button[aria-pressed='true'] {
@@ -104,11 +104,11 @@
 }
 .airport-history-total {
   margin-block: 16px;
-  font-size: 28px;
+  font-size: 1.75rem;
   font-weight: 600;
 }
 .airport-history-total span {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 400;
   color: var(--text-muted);
 }
@@ -122,12 +122,12 @@
   display: grid;
   gap: 2px;
   padding-block: 10px;
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-muted);
 }
 .airport-flight-route {
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text);
 }
 .airport-object-list .ui-button {
@@ -139,7 +139,7 @@
 .airport-feature-kind,
 .airport-properties dt {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .airport-properties {
   margin-block: 12px;
@@ -149,7 +149,7 @@
 }
 .airport-properties dd {
   margin: 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .airport-object-actions {
   display: flex;
@@ -195,7 +195,7 @@
   border-radius: var(--radius-sm);
   background: var(--surface-floating);
   box-shadow: var(--shadow-floating);
-  font-size: 12px;
+  font-size: 0.75rem;
   transform: translate(-50%, -100%);
 }
 .airport-compare-status {
@@ -216,7 +216,7 @@
   flex-wrap: wrap;
   justify-content: space-around;
   gap: 16px;
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 .airport-credits {
   flex-wrap: wrap;
@@ -224,7 +224,7 @@
   gap: 12px;
   padding: 12px;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 .airport-credits a {
   color: inherit;
@@ -240,7 +240,7 @@
     gap: 0;
   }
   .airport-topbar .ui-button {
-    font-size: 12px;
+    font-size: 0.75rem;
     padding-inline: 8px;
   }
   .airport-heading {
@@ -248,7 +248,7 @@
     padding-inline: 8px;
   }
   .airport-heading h1 {
-    font-size: 26px;
+    font-size: 1.625rem;
   }
   .airport-stage {
     block-size: max(390px, calc(100svh - 300px));
@@ -265,7 +265,7 @@
   }
   .airport-controls .ui-button {
     padding-inline: 8px;
-    font-size: 12px;
+    font-size: 0.75rem;
   }
   .airport-controls-start,
   .airport-zoom {

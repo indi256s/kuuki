@@ -3,21 +3,12 @@ import { DAY_MS, dayToEpoch, epochToDay } from '@kuuki/shared/overview/range'
 import { formatDateOnly, formatNumber, type Locale } from '../../../lib/format'
 import type { ChartPoint } from './kuuki-chart'
 
-/** `missing` marks a day the journal has no evidence for (see `activityPoints`); its `count` of 0 is then not a known zero. */
 type ActivityDay = { date: string; count: number; missing: boolean }
-/** Absolute daily levels: 0 flights, then 1, 2, 3 and 4 or more, whatever the year or filter. */
 export type DailyLevel = 0 | 1 | 2 | 3 | 4
 export const dailyLevel = (count: number): DailyLevel =>
   count > 0 ? (Math.min(4, Math.ceil(count)) as 1 | 2 | 3 | 4) : 0
-/** Levels 1–3 can sit under 3:1 on the card surface (level 3 for Matcha and Asagi in light), so their cells carry `--heat-contour`. A known zero is the quiet `--heat-0` fill and a missing day is the dashed outline, so neither is contoured. */
 export const heatIsWeak = (level: number) => level >= 1 && level <= 3
 
-// Arc Activity heatmap calendar model, MIT; see the source inventory and ui/ARC-LICENSE.txt. Levels are Kuuki's own absolute scale.
-/**
- * One point per day of `year`. A day inside `known` (first dated flight of the whole journal through today, inclusive)
- * with no completed flight is a known zero. A day outside it is missing: the journal does not say whether anything
- * happened. A day with a completed flight is never missing. `known: null` treats every empty day as missing.
- */
 export function activityPoints(
   year: number,
   days: readonly Pick<ActivityDay, 'date' | 'count'>[],
@@ -40,15 +31,12 @@ export function activityPoints(
   })
 }
 
-// Calendar geometry in CSS pixels: cells sit on a square pitch that grows with the host up to MAX, never below MIN (the host scrolls instead). A tight pitch narrows the gap.
 const CAL = { left: 20, right: 4, top: 30, gap: 3, min: 10, max: 21 }
 const calendarGap = (pitch: number) => (pitch < 13 ? 2 : CAL.gap)
 const leadDays = (points: readonly ChartPoint<ActivityDay>[], locale: Locale) =>
   (new Date(dayToEpoch(points[0].datum.date)!).getUTCDay() - (locale === 'ru' ? 1 : 0) + 7) % 7
-/** Number of week columns the year needs, including the partial first and last weeks. */
 export const calendarColumns = (points: readonly ChartPoint<ActivityDay>[], locale: Locale) =>
   points.length ? Math.ceil((leadDays(points, locale) + points.length) / 7) : 0
-/** Natural SVG width for `columns` weeks inside `available` pixels. */
 export const calendarWidth = (columns: number, available: number) =>
   CAL.left +
   CAL.right +
@@ -67,7 +55,7 @@ export function ArcActivityHeatmap({
 }: {
   points: readonly ChartPoint<ActivityDay>[]
   locale: Locale
-  /** SVG width in CSS pixels, from `calendarWidth`. */ width: number
+  width: number
   mark: (point: ChartPoint<ActivityDay>) => SVGProps<SVGGElement>
 }) {
   if (!points.length) return null
@@ -114,7 +102,6 @@ export function ArcActivityHeatmap({
                 } else props.onKeyDown?.(event)
               }}
             >
-              {/* Missing days are an empty dashed outline (transparent, not none, so the cell keeps its hit area); known zeros are filled. */}
               {missing ? (
                 <rect
                   x={x}

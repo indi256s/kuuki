@@ -49,7 +49,6 @@ function journey(
   status: 'planned' | 'completed' | 'cancelled',
   startDate: string,
   countries: string[] = [],
-  // Places in order, [lat, lon] or null for one without coordinates: rail legs join neighbours, road points list them.
   stops: Array<[number, number] | null> = [],
 ) {
   const id = `j${++journeyId}`
@@ -133,7 +132,6 @@ it('ranks public members only, shares a place on equal values and skips the next
       { user_id: 'tie-late', value: 10, rank: 2, percentile: 50 },
       { user_id: 'last', value: 5, rank: 4, percentile: 0 },
     ])
-    // The public read agrees with the cache: no gap where the hidden member used to sit.
     const read = await readPublicLeaderboard(db, 'flights')
     expect(read.entries.map((e) => e.rank)).toEqual([1, 2, 2, 4])
     expect(read.total).toBe(4)
@@ -175,7 +173,6 @@ it('ranks ground categories only for members who publish all countries with thre
       ['all', 3],
       ['roadie', 2],
     ])
-    // The year counts journeys starting in 2026 only; thresholds stay all-time.
     expect((await board(db, 'rail', '2026')).map((r) => [r.user_id, r.value])).toEqual([['all', 1]])
     expect((await board(db, 'road', '2026')).map((r) => [r.user_id, r.value])).toEqual([
       ['roadie', 3],
@@ -184,9 +181,7 @@ it('ranks ground categories only for members who publish all countries with thre
       ['all', 2],
       ['roadie', 2],
     ])
-    // Ground members without flights never reach the sky boards.
     expect(await board(db, 'flights')).toEqual([])
-    // Eligibility is live: cancelling a journey after the rebuild drops the member below three before the next pass.
     await db
       .prepare(
         "UPDATE ground_journeys SET status = 'cancelled', confirmed_at = NULL WHERE user_id = 'roadie' AND start_date = '2026-03-10'",
@@ -206,7 +201,6 @@ it('counts only public members in the ranked total', async () => {
       ...member(db, { id: 'later-private', flights: 7 }),
     ])
     await refreshLeaderboards(db, NOW)
-    // Turning private after the rebuild removes the member from the count straight away.
     await db.prepare("UPDATE profiles SET is_public = 0 WHERE id = 'later-private'").run()
     const response = await totalUsers({ env: { DB: db } } as never)
     expect(await response.json()).toEqual({ total: 1 })
@@ -263,7 +257,6 @@ it('counts only the current year in year rows, from that year flights and airpor
       { category: 'distance', user_id: 'flyer', value: 151, rank: 1 },
       { category: 'flights', user_id: 'flyer', value: 2, rank: 1 },
     ])
-    // All-time sky rows keep the parity rule: every eligible member ranks, from user_stats.
     expect((await board(db, 'flights')).map((r) => [r.user_id, r.value])).toEqual([
       ['idle', 9],
       ['flyer', 6],
@@ -312,7 +305,6 @@ it('keeps every insert under the 100-variable limit and writes every row', async
 it('reads the whole page at once: top rows for a guest, the neighbourhood and gap for a viewer', async () => {
   const { db, dispose } = await createApiDatabase()
   try {
-    // 25 members, flights 54 down to 30; m14 sits at place 15, outside the top ten.
     await db.batch(
       Array.from({ length: 25 }, (_, i) =>
         member(db, { id: `m${String(i).padStart(2, '0')}`, flights: 54 - i, publication: 'all' }),
@@ -350,7 +342,6 @@ it('reads the whole page at once: top rows for a guest, the neighbourhood and ga
 it('keeps the top of a board whose cached leaders have since left it', async () => {
   const { db, dispose } = await createApiDatabase()
   try {
-    // 31 members ranked 1–31; the first ten turn private after the rebuild, leaving 21 with cached ranks 11–31.
     await db.batch(
       Array.from({ length: 31 }, (_, i) =>
         member(db, { id: `m${String(i).padStart(2, '0')}`, flights: 60 - i }),
@@ -422,11 +413,9 @@ it('gives each sky row the normalized most-flown aircraft type of its period, in
       ...member(db, { id: 'typed', flights: 6, publication: 'all' }),
       ...member(db, { id: 'odd', flights: 5 }),
       ...member(db, { id: 'untyped', flights: 5 }),
-      // All time: two B738 beat one A320. This year: only the A320.
       flight('typed', '2024-05-01', 'b738'),
       flight('typed', '2025-05-01', 'B738'),
       flight('typed', '2026-02-01', 'A320'),
-      // A type the lanes do not draw.
       flight('odd', '2026-04-01', ' b739 '),
       flight('untyped', '2026-04-01', null),
       ...journey(db, 'typed', 'rail', 'completed', '2026-05-01'),
@@ -441,7 +430,6 @@ it('gives each sky row the normalized most-flown aircraft type of its period, in
       )
     expect(aircraft('all')).toEqual({ typed: 'B738', odd: 'B739', untyped: null })
     expect(aircraft('2026')).toMatchObject({ typed: 'A320', odd: 'B739' })
-    // Ground rows never carry a type, even for a member who has one in the sky.
     expect(read.boards.rail.all.top).toEqual([
       expect.objectContaining({ user_id: 'typed', aircraft: null }),
     ])
@@ -460,14 +448,12 @@ it('runs each ground Countries lane on the mode its member covered more kilometr
       ...member(db, { id: 'trains', publication: 'all' }),
       ...member(db, { id: 'cars', publication: 'all' }),
       ...member(db, { id: 'blank', publication: 'all' }),
-      // Two short drives lose to one long train all time; this year only the drives count.
       ...journey(db, 'trains', 'road', 'completed', '2026-03-01', ['DE'], [BERLIN, POTSDAM]),
       ...journey(db, 'trains', 'road', 'completed', '2026-03-02', ['DE'], [POTSDAM, BERLIN]),
       ...journey(db, 'trains', 'rail', 'completed', '2025-03-03', ['DE'], [BERLIN, MUNICH]),
       ...journey(db, 'cars', 'rail', 'completed', '2026-04-01', ['DE'], [BERLIN, POTSDAM]),
       ...journey(db, 'cars', 'rail', 'completed', '2026-04-02', ['DE'], [POTSDAM, BERLIN]),
       ...journey(db, 'cars', 'road', 'completed', '2026-04-03', ['DE'], [BERLIN, MUNICH]),
-      // No coordinates anywhere: the car, whatever the journeys.
       ...journey(db, 'blank', 'rail', 'completed', '2026-05-01', ['DE'], [null, BERLIN]),
       ...journey(db, 'blank', 'rail', 'completed', '2026-05-02', ['DE']),
       ...journey(db, 'blank', 'rail', 'completed', '2026-05-03', ['DE']),
@@ -484,7 +470,6 @@ it('runs each ground Countries lane on the mode its member covered more kilometr
       blank: 'road',
     })
     expect(vehicles('ground_countries', '2026')).toMatchObject({ trains: 'road', cars: 'road' })
-    // Only ground Countries carries the choice; Trains and Cars draw their own vehicle.
     expect(Object.values(vehicles('rail', 'all'))).toEqual([null, null, null])
   } finally {
     await dispose()
@@ -496,7 +481,6 @@ it('excludes an incomplete rail journey from the Countries vehicle distance', as
   try {
     await db.batch([
       ...member(db, { id: 'incomplete', publication: 'all' }),
-      // The known Berlin–Munich leg must not make the incomplete rail journey beat a 27 km drive.
       ...journey(
         db,
         'incomplete',

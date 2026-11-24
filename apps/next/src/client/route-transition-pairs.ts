@@ -1,14 +1,9 @@
 import { useEffect, useState } from 'react'
 
-/**
- * The only route changes allowed to animate (DESIGN.md "Route transitions"). A stage remounts its transition boundary
- * for these pairs alone; every other navigation keeps the boundary and swaps the page instantly.
- */
 export type StageKind = 'page'
 
 const isProfile = (path: string) => /^\/fly\/[^/]+$/.test(path)
 
-/** The member pages reached from the header, the tab rail and the account menu. Sheets (`/add`, a Journal flight) are not among them. */
 export const TAB_ROUTES = [
   '/overview',
   '/journal',
@@ -18,23 +13,16 @@ export const TAB_ROUTES = [
   '/settings',
 ]
 
-/** The Journal's two sections: switching between them is an instant swap inside one destination, not a tab switch. */
 const JOURNAL_SECTIONS = ['/journal', '/ground-travel']
 
-/** One top-level member page to another, either way, Back and Forward included. */
 export const isTabSwitch = (from: string, to: string) =>
   from !== to &&
   TAB_ROUTES.includes(from) &&
   TAB_ROUTES.includes(to) &&
   !(JOURNAL_SECTIONS.includes(from) && JOURNAL_SECTIONS.includes(to))
 
-/** Import done → Passport, forward only. */
 export const isStampHero = (from: string, to: string) => from === '/import' && to === '/passport'
 
-/**
- * Leaderboard → a public profile, and Back. Back onto a profile, or a link from one to the leaderboard, stays instant.
- * `back` is null for a Back or Forward the browser cannot tell apart, which drills neither way.
- */
 export const isProfileDrill = (from: string, to: string, back: boolean | null) =>
   back === null
     ? false
@@ -54,8 +42,6 @@ export function isApprovedPair(
   )
 }
 
-// The last Back or Forward, until the stage renders a pathname change: where it landed and whether it went back. Only
-// the Navigation API tells Back from Forward; without it the direction is unknown (null).
 type HistoryNavigation = EventTarget & { currentEntry: { index: number } | null }
 type EntryChange = Event & { navigationType: string | null; from: { index: number } }
 let traversal: { pathname: string; back: boolean | null } | null = null
@@ -78,8 +64,6 @@ else if (typeof window !== 'undefined')
     traversal = { pathname: location.pathname, back: null }
   })
 
-// Where the last activated link was heading, when the keyboard activated it (a click with `detail` 0, as in
-// `ui/button.tsx`). A tab switch to that pathname swaps instantly; any later click replaces it.
 let keyboardTarget: string | null = null
 if (typeof document !== 'undefined')
   document.addEventListener(
@@ -92,10 +76,6 @@ if (typeof document !== 'undefined')
     true,
   )
 
-/**
- * The boundary keeps its key, and so its DOM node, unless the pathname change is an approved pair. ssgoi
- * then sees no outgoing page, so every other navigation stays an instant swap with no scroll reset.
- */
 export function useTransitionKey(stage: StageKind, pathname: string) {
   const [state, setState] = useState({ pathname, key: 0 })
   useEffect(() => {

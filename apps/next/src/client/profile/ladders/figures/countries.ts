@@ -25,23 +25,17 @@ import {
 } from './parts'
 import type { LadderFigureDef } from './types'
 
-// Countries: a passport page and a hinged ink-pad tin on a desk, with a rubber stamp standing on the pad.
-// The page fills with impressions rung by rung; at the top rung they overflow onto the inside of the open lid.
-
 type Kind = 'round' | 'oval' | 'notch' | 'tri'
 type Mark = { u: number; v: number; kind: Kind; deg: number; size: number }
 type At = (u: number, v: number) => P3
 
-/** Passport half: cover board, page block, top (visa) page; x 0..SW, y SY0..SY0 + sd. */
 const SW = 92,
   SD = 100,
   SY0 = 40,
   CV = 1,
   PZ = 3.6,
-  /** The top page's near-left corner curls up: lift reaches CURL at the corner and fades out CL along the diagonal. */
   CL = 30,
   CURL = 6.5
-/** The tin: x PX..PX + PW, y 0..PD, TIN tall; the felt sits FELT_D under the rim. */
 const PX = 102,
   PW = 54,
   PD = 44,
@@ -49,7 +43,6 @@ const PX = 102,
   BEAD = 1.2,
   RIM = 2.4,
   FELT_Z = TIN - 1.8
-/** The lid: hinged on a barrel behind the tin's back wall, opened past upright. */
 const HY = -2,
   HZ = TIN - 0.2,
   OPEN = (108 * Math.PI) / 180,
@@ -57,12 +50,10 @@ const HY = -2,
   LW = PW + 1.2,
   LD = PD + 1,
   LH = 3.4
-/** The stamp stands on the pad at (STX, STY). */
 const STX = PX + PW - 17,
   STY = PD / 2 + 1,
   BLOCK = 21
 
-/** Impressions per rung, in the order they were stamped: 15 on the page, then 2 on the lid. The thumb page holds 9, so its steps are 1, 3, 5, 7, then all 9 and the lid. */
 const COUNTS = [1, 3, 6, 10, 17]
 const THUMB_COUNTS = [1, 3, 5, 7, 11]
 const THUMB_SCALE = 1.2
@@ -101,8 +92,6 @@ const KINDS: Kind[] = [
   'oval',
 ]
 
-/** Fixed pseudo-random in [0, 1). */
-
 const SHEET_MARKS: Mark[] = CELLS.map(([c, r], i) => ({
   u: 17 + c * 29 + (((i * 13) % 7) - 3) * 1.1,
   v: 12 + r * 19 + (((i * 5) % 5) - 2) * 0.9,
@@ -110,12 +99,10 @@ const SHEET_MARKS: Mark[] = CELLS.map(([c, r], i) => ({
   deg: ((i * 47) % 29) - 14,
   size: (KINDS[i] === 'tri' ? 0.84 : 0.86) + (KINDS[i] === 'tri' ? 0.08 : 0.2) * hash(i * 7 + 3),
 }))
-/** Lid marks in lid-floor coordinates: u along the hinge, v down from the lid's top edge. */
 const LID_MARKS: Mark[] = [
   { u: 24, v: 16, kind: 'notch', deg: 7, size: 0.88 },
   { u: 37, v: 31, kind: 'round', deg: -11, size: 0.95 },
 ]
-/** The 56px slot: nine bigger cells on a shorter page, so each impression stays a readable ring. */
 const THUMB_MARKS: Mark[] = CELLS.map(([c, r], i): [number, number, number] => [c, r, i])
   .filter(([, r]) => r < 3)
   .map(([c, r, i]) => ({
@@ -126,9 +113,6 @@ const THUMB_MARKS: Mark[] = CELLS.map(([c, r], i): [number, number, number] => [
     size: 1,
   }))
 
-// ---------------------------------------------------------------- plan geometry
-
-/** Subdivides a closed loop so no edge is longer than `step`. */
 function densify(loop: readonly Pt[], step: number): Pt[] {
   const out: Pt[] = []
   loop.forEach(([x0, y0], i) => {
@@ -139,7 +123,6 @@ function densify(loop: readonly Pt[], step: number): Pt[] {
   return out
 }
 
-/** Unit normals of a closed loop, from each point's neighbours. */
 function normalsOf(loop: readonly Pt[]): Pt[] {
   const n = loop.length
   return loop.map((_, i) => {
@@ -150,8 +133,6 @@ function normalsOf(loop: readonly Pt[]): Pt[] {
   })
 }
 
-// ---------------------------------------------------------------- stamp shapes (local units, v grows towards the stamp's foot)
-
 const arc = (cx: number, cy: number, r: number, a0: number, a1: number, n: number): Pt[] =>
   Array.from({ length: n + 1 }, (_, i) => {
     const a = a0 + ((a1 - a0) * i) / n
@@ -161,7 +142,6 @@ const ellipse = (rx: number, ry: number, n: number): Pt[] =>
   arc(0, 0, 1, 0, 2 * Math.PI, n)
     .slice(0, n)
     .map(([a, b]) => [a * rx, b * ry])
-/** A rectangle with its four corners bitten out as quarter circles. */
 function notched(hw: number, hh: number, nr: number): Pt[] {
   const P = Math.PI
   return [
@@ -171,7 +151,6 @@ function notched(hw: number, hh: number, nr: number): Pt[] {
     ...arc(-hw, -hh, nr, P / 2, 0, 5),
   ]
 }
-/** An upright triangle (apex at −v) with rounded corners: circumradius `R`, corner radius `rr`. */
 function triangle(R: number, rr: number): Pt[] {
   const out: Pt[] = []
   for (let i = 0; i < 3; i++) {
@@ -183,9 +162,7 @@ function triangle(R: number, rr: number): Pt[] {
 }
 
 type Shape = {
-  /** Outer and inner rims of the double ring, dense. */
   rims: [Pt[], Pt[]]
-  /** Dashes inside: date rows, an arrow, the rim lettering as broken arcs. Hero only. */
   dashes: Pt[][]
 }
 function shapeOf(kind: Kind): Shape {
@@ -256,10 +233,6 @@ const SHAPES: Record<Kind, Shape> = {
   tri: shapeOf('tri'),
 }
 
-/**
- * Uneven ink along a closed rim: the rim as a filled band of varying width, cut into pieces, each piece its own opacity, with a skipped piece or two where the rubber missed.
- * `press` gives the ink at a local point (one side of each stamp is pressed harder).
- */
 function inkBands(loop: readonly Pt[], w: number, seed: number, press: (p: Pt) => number) {
   const n = loop.length,
     nrm = normalsOf(loop),
@@ -285,8 +258,6 @@ function inkBands(loop: readonly Pt[], w: number, seed: number, press: (p: Pt) =
   return out
 }
 
-// ---------------------------------------------------------------- figure
-
 export const countries: LadderFigureDef = {
   id: 'countries',
   rungs: 5,
@@ -302,7 +273,6 @@ export const countries: LadderFigureDef = {
     const n = hero ? 32 : 16
     const Y1 = SY0 + sd
 
-    /** A plane frame: O + u·U + v·V + w·N, with N = U × V. */
     type Plane = { o: P3; U: P3; V: P3; N: P3 }
     const on =
       (F: Plane) =>
@@ -311,7 +281,6 @@ export const countries: LadderFigureDef = {
     const dot3 = (x: number, y: number, z: number, r: number, paint: Paint = 'line') =>
       s.poly(s.circle([x, y, z], X, [0, 1, 0], 0, 0, r, 8), paint, 'none')
 
-    /** A slab of a convex plan (counter-clockwise in U, V) on a plane, from w0 to w1: walls toned by the light, the cap at w1, one silhouette. */
     const slab = (
       F: Plane,
       plan: readonly Pt[],
@@ -348,7 +317,6 @@ export const countries: LadderFigureDef = {
       if (facing(up)) s.poly2(hi2, cap ?? toneOf(up), 'crease', hero ? 0.6 : undefined)
       s.poly2(outline, 'none', 'line')
     }
-    /** A recess in a plane's surface at w = wTop down to wFloor: far inner walls toned by the light, the floor it shows, the opening's edge. Returns the opening. */
     const well = (F: Plane, plan: readonly Pt[], wTop: number, wFloor: number, floor: Paint) => {
       const at = on(F),
         top = plan.map((p) => at(p, wTop)),
@@ -379,9 +347,6 @@ export const countries: LadderFigureDef = {
       return top
     }
 
-    // ---- impressions -------------------------------------------------------------------------
-
-    /** One impression on the plane `at`: a double ring of uneven ink and the dashes inside. The freshest is accent. */
     const print = (at: At, m: Mark, i: number, isFresh: boolean) => {
       const a = (m.deg * Math.PI) / 180,
         c = Math.cos(a),
@@ -394,7 +359,6 @@ export const countries: LadderFigureDef = {
         s.poly(rim.map(loc), 'none', isFresh ? 'accent' : 'crease', undefined, isFresh ? 2.6 : 1.8)
         return
       }
-      // The side pressed hardest, and how much the rest fades.
       const pa = hash(i * 13 + 5) * 2 * Math.PI,
         pd: Pt = [Math.cos(pa), Math.sin(pa)],
         floorInk = isFresh ? 0.72 : 0.3
@@ -417,7 +381,6 @@ export const countries: LadderFigureDef = {
         isFresh ? 1 : 0.7,
       )
     }
-    /** Draws marks from `from` to `to` (exclusive) on one surface; the freshest, if among them, sits in the lit group. */
     const stamp = (at: At, from: number, to: number) => {
       for (let i = from; i < Math.min(to, count); i++) {
         if (i === fresh) s.group('lit', () => print(at, marks[i], i, true))
@@ -425,13 +388,10 @@ export const countries: LadderFigureDef = {
       }
     }
 
-    // ---- cast shadows ------------------------------------------------------------------------
     shadowRect(s, -1.4, SY0 - 1.4, SW + 2.8, sd + 2.8, 3)
     shadowRect(s, PX - 0.5, -0.5, PW + 1, PD + 1, 3)
     shadowRect(s, PX + 2, -15, PW - 4, 12, 2)
 
-    // ---- the passport page --------------------------------------------------------------------
-    // Cover board, the page block with its page edges, then the top page with its corner curling up.
     s.rbox(-1.4, SY0 - 1.4, 0, SW + 2.8, sd + 2.8, CV, 5.4, {
       top: 'side',
       wall: 'side',
@@ -446,13 +406,11 @@ export const countries: LadderFigureDef = {
           0.4,
         )
 
-    /** How far into the curl a plan point is: 0 outside, 1 at the corner. */
     const curlT = (x: number, y: number) => Math.max(0, 1 - (x + (Y1 - y)) / CL)
     const lift = (x: number, y: number) => CURL * curlT(x, y) ** 2
     const sheetAt: At = (u, v) => [u, SY0 + v, PZ + lift(u, SY0 + v)]
     const onPage = (p: Pt): P3 => sheetAt(p[0], p[1] - SY0)
     const pagePlan = densify(roundRect(0, SY0, SW, sd, 4), hero ? 2 : 4)
-    // The lower page shows under the curl, shaded where the top page lifts off it.
     s.poly(
       cutBy(pagePlan, ([x, y]) => curlT(x, y) - 0.12).map(([x, y]): P3 => [x, y, PZ]),
       'shadow',
@@ -466,7 +424,6 @@ export const countries: LadderFigureDef = {
           s.poly(densify(region, 2).map(onPage), 'front', 'none', undefined, undefined, 0.2)
       }
 
-    // Security print: a ruled border, a braided guilloche band inside it, a rosette under the stamps, the perforated number, the gutter stitching.
     const border = (inset: number, r: number) =>
       densify(roundRect(inset, SY0 + inset, SW - 2 * inset, sd - 2 * inset, r), 1.5)
     s.poly(border(3.2, 2.4).map(onPage), 'none', 'detail', undefined, hero ? 0.6 : 0.9)
@@ -499,19 +456,15 @@ export const countries: LadderFigureDef = {
     stamp(sheetAt, 0, Math.min(fresh, sheetMarks.length))
     if (fresh < sheetMarks.length) stamp(sheetAt, fresh, fresh + 1)
 
-    // ---- the lid, open past upright on its hinge ---------------------------------------------
     const d: P3 = [0, Math.cos(OPEN), Math.sin(OPEN)],
       nIn: P3 = [0, Math.sin(OPEN), -Math.cos(OPEN)]
-    // w grows out of the lid's inside, towards the viewer.
     const IN: Plane = { o: [PX - 0.6, HY, HZ], U: X, V: d, N: nIn }
-    // Hinge leaf on the lid's back, showing between the barrel and the lid.
     slab(IN, roundRect(8, -0.4, LW - 16, V0 + 2.4, 0.6), -0.9, -0.6)
     if (hero)
       for (const u of [12, LW - 12]) {
         const p = on(IN)([u, 1.8], -0.6)
         s.poly(s.circle(p, X, d, 0, 0, 0.42, 8), 'line', 'none')
       }
-    // The barrel: three knuckles on a pin.
     const barrel: Body = tube(s, [PX + 5, HY, HZ], [PX + PW - 5, HY, HZ], 2, {
       steps: 1,
       ring: hero ? 20 : 12,
@@ -524,7 +477,6 @@ export const countries: LadderFigureDef = {
       const [ex, ey, ez] = [PX + PW - 5, HY, HZ]
       s.poly(s.circle([ex, ey, ez], [0, 1, 0], [0, 0, 1], 0, 0, 0.5, 8), 'line', 'none')
     }
-    // The lid itself: a shallow inverted tray, its rolled rim and the inside panel.
     const lidPlan = roundRect(0, V0, LW, LD, 5)
     slab(IN, lidPlan, -0.6, LH, 'top')
     const lidOpen = well(
@@ -550,11 +502,9 @@ export const countries: LadderFigureDef = {
         0.5,
       )
     }
-    // Impressions that missed the page: lid-floor coordinates, v measured down from the lid's top edge.
     const lidAt: At = (u, v) => on(IN)([u, V0 + LD - v], 0)
     s.group('lid-ink', () => stamp(lidAt, sheetMarks.length, fresh + 1), { clip: lidOpen })
 
-    // ---- the tin: foot, pressed body, rolled bead, the felt pad sunk inside -----------------------
     s.rbox(PX + 1, 1, 0, PW - 2, PD - 2, 0.8, 4, { top: 'side', wall: 'side', side: 'side' })
     s.rbox(PX, 0, 0.8, PW, PD, TIN - BEAD - 0.8, 4.5, { top: 'front' })
     if (hero) {
@@ -563,7 +513,6 @@ export const countries: LadderFigureDef = {
         'crease',
         0.6,
       )
-      // Pressed panels on the two walls that face the viewer.
       s.poly(
         [
           [PX + 9, PD, 3.4],
@@ -602,7 +551,6 @@ export const countries: LadderFigureDef = {
     const padPlan = roundRect(PX + RIM, RIM, PW - 2 * RIM, PD - 2 * RIM, 3.4)
     const padOpen = well(BASE, padPlan, TIN, FELT_Z, 'side')
     if (hero) {
-      // The felt: a stitched edge, the inked middle, the ghost of an earlier press.
       s.line(
         [
           ...densify(
@@ -633,7 +581,6 @@ export const countries: LadderFigureDef = {
       )
     }
 
-    // ---- the rubber stamp, standing on the pad ----------------------------------------------------
     s.group(
       'in-well',
       () => {
@@ -647,7 +594,6 @@ export const countries: LadderFigureDef = {
           undefined,
           0.8,
         )
-        // Rubber die, foam cushion, the wooden mount with a routed top edge.
         s.rbox(x0 + 1.2, y0 + 1.2, FELT_Z, BLOCK - 2.4, BLOCK - 2.4, 1.2, 1.6, {
           top: 'side',
           wall: 'side',
@@ -668,7 +614,6 @@ export const countries: LadderFigureDef = {
         })
         const zl = zt + 0.7
         if (hero) {
-          // The index label: a paper slip printed with the stamp's own design.
           s.poly(
             roundRect(x0 + 3, y0 + 3, BLOCK - 6, BLOCK - 6, 0.8).map(([a, b]): P3 => [a, b, zl]),
             'top',
@@ -692,7 +637,6 @@ export const countries: LadderFigureDef = {
           ])
             dot3(STX + dx, STY + dy, zl, 0.45)
         }
-        // Ferrule: a flanged brass sleeve on the mount, holding the turned handle.
         const Z: P3 = [0, 0, 1]
         lathe(s, frameAlong([STX, STY, zl], Z), () => ({ r: 5 }), 0, 0.8, {
           steps: 1,

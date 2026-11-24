@@ -35,7 +35,6 @@ function subscribeOnline(callback: () => void) {
 const readOnline = () => navigator.onLine !== false
 const serverOnline = () => true
 
-/** Keep the newer of two copies of a draft, the same rule the batch hook applies to per-row updates. */
 function keepNewer(store: Map<string, Draft>, draft: Draft) {
   const known = store.get(draft.id)
   if (!known || draft.version >= known.version) store.set(draft.id, draft)
@@ -51,15 +50,9 @@ export function ReviewStep({
   onFound,
 }: StepProps & {
   batch: string
-  /**
-   * The batch has just finished reading in this session (not a URL resume or Back): with nothing unsure it saves on
-   * its own.
-   */
   fresh?: boolean
   onSaved: (summary: SavedSummary) => void
-  /** "Start empty" when nothing is left to save: behaves like "I'll do this later". */
   onStartEmpty: () => Promise<void>
-  /** Flights and countries that Save would keep, for the passport. */
   onFound: (found: Found) => void
 }) {
   const t = (entry: { en: string; ru: string }) => entry[locale]
@@ -77,16 +70,13 @@ export function ReviewStep({
   const [expanded, setExpanded] = useState(false)
   const [reloading, setReloading] = useState(false)
   const active = useRef(true)
-  // Rows the server refused on Save: unsure again until the member changes them or leaves them out.
   const [rejected, setRejected] = useState<ReadonlySet<string>>(new Set())
-  // Latest copy of every draft, so a save started right after an edit sees the version the edit returned.
   const store = useRef(new Map<string, Draft>())
   const pending = useRef(new Set<Promise<void>>())
   const retry = useRef<string[] | null>(null)
   const busy = useRef(false)
   const unsureList = useRef<HTMLUListElement>(null)
   const bar = useRef<HTMLDivElement>(null)
-  // Set when an action is taken inside an unsure card that holds focus: where focus goes once that card is gone.
   const refocus = useRef<{ id: string; ids: string[] } | null>(null)
 
   const [saver] = useState(
@@ -112,7 +102,6 @@ export function ReviewStep({
     active.current = true
     return () => {
       active.current = false
-      // Allow React's effect replay to reactivate before retiring the saver.
       queueMicrotask(() => {
         if (!active.current) saver.dispose()
       })
@@ -146,19 +135,15 @@ export function ReviewStep({
   const left = groups.left.length
   const chosen = included.length
 
-  // The passport counts what Save would keep.
   const signature = included.map((draft) => draft.id).join(',')
   const sent = useRef<string | null>(null)
   useEffect(() => {
     if (state.drafts.length === 0 || sent.current === signature) return
     sent.current = signature
     onFound(foundOf(included.map(factOf)))
-    // `included` is keyed by `signature`: the passport follows the set, not each re-render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signature, state.drafts.length, onFound])
 
-  // A fresh batch with nothing unsure and something right is saved without a stop here. Only the first settled
-  // state decides, once: a member who later resolves the last card presses Save themselves.
   const decided = useRef(false)
   const settled = state.phase === 'ready' && state.drafts.length > 0
   useEffect(() => {
@@ -172,11 +157,9 @@ export function ReviewStep({
       groups.right.length > 0
     )
       void save()
-    // Runs once, when the batch first settles; `save` reads the state of that render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settled])
 
-  // Resolving an unsure card removes it, and with it the control that had focus: hand focus to the next card.
   const unsureIds = groups.unsure.map((draft) => draft.id)
   const unsureKey = unsureIds.join(',')
   useEffect(() => {
@@ -193,7 +176,6 @@ export function ReviewStep({
     const action = card?.querySelector<HTMLElement>('button:not(:disabled), input:not(:disabled)')
     const save = bar.current?.querySelector<HTMLElement>('button:not(:disabled)')
     ;(action ?? save ?? headingRef.current)?.focus()
-    // `unsureIds` is keyed by `unsureKey`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unsureKey, headingRef])
 
@@ -232,7 +214,6 @@ export function ReviewStep({
       }
       const drafts = [...store.current.values()]
       const wanted = retry.current ? new Set(retry.current) : null
-      // Rows already saved keep their receipts and are never sent again.
       const items = group(drafts, rejected)
         .right.filter(
           (draft) =>
@@ -250,7 +231,6 @@ export function ReviewStep({
         (draft) => draft.status === 'converted' || rows.get(draft.id)?.status === 'saved',
       )
       const flights = savedIds.map(factOf)
-      // A row the server refused for good is not retried as it stands: it goes back to unsure, with a fresh read on a conflict.
       const refused = items
         .map((item) => item.draftId)
         .filter((id) => {
@@ -267,12 +247,9 @@ export function ReviewStep({
         if (conflict)
           try {
             await reload()
-          } catch {
-            // The next Save reads again through the version the server answers with.
-          }
+          } catch {}
       }
       if (anyUnsaved) {
-        // Only rows worth another try are resent; the rest wait for the member.
         retry.current = again.length > 0 ? again : null
         setFailed(true)
         return
@@ -348,7 +325,6 @@ export function ReviewStep({
                 try {
                   await reload()
                 } catch {
-                  // Keep the retry available when the read is still unavailable.
                 } finally {
                   if (active.current) setReloading(false)
                 }
@@ -413,8 +389,6 @@ export function ReviewStep({
     </li>
   )
 
-  // Nothing chosen yet but flights still unanswered: the answer is in the cards, so Start empty steps down to
-  // secondary.
   const mode: 'failed' | 'offline' | 'empty' | 'waiting' | 'ready' =
     failed || stuck
       ? 'failed'

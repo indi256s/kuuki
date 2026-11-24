@@ -86,7 +86,6 @@ describe('Sheet', () => {
   })
 
   it('stays mounted, closed, while its exit animation plays', async () => {
-    // Presence reads the Content node's animation; a dropped ref made the sheet vanish before its exit could play.
     const style = document.createElement('style')
     style.textContent =
       ".ui-sheet[data-state='open'] { animation-name: ui-sheet-in-r } .ui-sheet[data-state='closed'] { animation-name: ui-sheet-out-r }"
@@ -153,7 +152,6 @@ describe('Sheet', () => {
     screen.getByRole('button', { name: 'Section options' }).focus()
     await user.keyboard('{Enter}')
     await screen.findByRole('menu')
-    // Radix starts listening for outside presses a task after the menu mounts.
     await new Promise((resolve) => setTimeout(resolve))
     const shield = document.querySelector('.ui-menu-shield')!
     fireEvent.pointerDown(shield)
@@ -172,7 +170,7 @@ describe('Sheet', () => {
     const handle = await screen.findByTestId('sheet-handle')
     pointer(handle, 'pointerDown', 100, 1000)
     pointer(handle, 'pointerMove', 130, 1050)
-    pointer(handle, 'pointerUp', 160, 1100) // 60px in 100ms = 0.6 px/ms
+    pointer(handle, 'pointerUp', 160, 1100)
     expect(onChange).toHaveBeenLastCalledWith(false)
   })
 
@@ -209,7 +207,7 @@ describe('Sheet', () => {
     pointer(handle, 'pointerDown', 100, 1000)
     pointer(handle, 'pointerMove', 130, 2000)
     expect(sheet.style.transform).toBe('translateX(30px)')
-    pointer(handle, 'pointerUp', 140, 3000) // 40px of 500, ~0.01 px/ms
+    pointer(handle, 'pointerUp', 140, 3000)
     expect(onChange).not.toHaveBeenCalledWith(false)
     expect(sheet.style.transform).toBe('translateX(0px)')
     expect(screen.getByRole('dialog')).toBeInTheDocument()

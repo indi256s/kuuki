@@ -1,5 +1,3 @@
-// Every import string, written in English and Russian together (Russian addresses the member as «вы»).
-// Counts use real plural forms. Server messages are never shown: causes come from import-errors.ts kinds and codes.
 import { formatCount, type CountForms, type Locale } from '../../lib/format'
 import { AIRCRAFT_RESULT } from './aircraft-result-copy'
 import type { FailureAction, FailureKind } from './import-errors'
@@ -10,10 +8,6 @@ import type { BatchStage } from './import-types'
 type Pair = { en: string; ru: string }
 const p = (en: string, ru: string): Pair => ({ en, ru })
 
-/**
- * The reply shape the prompt asks for, kept as one string so the prompt and the parser grammar
- * (functions/api/import/_text.ts) are tested against the same text (prompt-contract.test.ts).
- */
 export const PROMPT_EXAMPLE = p(
   [
     'KUUKI FLIGHTS v2',
@@ -120,7 +114,6 @@ export const S = {
   qaManual: p('Enter manually', 'Ввести вручную'),
   qaGeneral: p('Upload a booking or PDF', 'Загрузить бронь или PDF'),
   emailHelp: p('How to export flights from your email', 'Как выгрузить перелёты из почты'),
-  // Provider-neutral: assistants rename their mail and calendar features often, so the help names the assistants, not the features.
   emailHelpBody: p(
     'Works with ChatGPT, Claude or Gemini. First connect your email and calendar to the assistant, then send it the prompt below and paste its reply under Paste text.',
     'Подойдёт ChatGPT, Claude или Gemini. Сначала подключите к нему почту и календарь, затем отправьте запрос ниже и вставьте ответ в режиме «Вставить текст».',
@@ -136,8 +129,6 @@ export const S = {
     'Не удалось скопировать. Выделите текст и скопируйте вручную.',
   ),
   promptLabel: p('Prompt text', 'Текст запроса'),
-  // The reply format is the one the server extraction reads most reliably (functions/api/import/_shared.ts):
-  // a written year, IATA codes, one segment per line, no private booking details.
   prompt: p(
     `Find every flight I have taken or booked, across all years, in my email and calendar: booking confirmations, e-tickets, itineraries, check-in and boarding pass emails, and flight events in the calendar.
 
@@ -485,6 +476,7 @@ ${PROMPT_EXAMPLE.ru}
   ),
   unsentRow: p('Not sent yet.', 'Ещё не отправлено.'),
   backToReview: p('Back to review', 'Назад к проверке'),
+  moreStamps: p('+{count} in Passport', '+{count} в паспорте'),
   passport: p('Open Passport', 'Открыть паспорт'),
   journal: p('Go to Journal', 'В журнал'),
   importMore: p('Import more', 'Импортировать ещё'),
@@ -557,7 +549,6 @@ ${PROMPT_EXAMPLE.ru}
   ),
 } as const
 
-/** The floating import dock in the member shell. Counts are in COUNTS. */
 export const DOCK = {
   label: p('Imports', 'Импорт'),
   readingSub: p(
@@ -1093,7 +1084,6 @@ export type ManualFailureKind =
   | 'unconfirmed'
   | 'expired'
   | 'settled'
-/** What happened to a flight added by hand, in the words the member needs to choose the next step. */
 export const MANUAL_FAILURE: Record<ManualFailureKind, Pair> = {
   settled: p(
     'The original save was settled or replaced elsewhere. Check your journal before starting a new save.',

@@ -1,6 +1,3 @@
-// Duplicate matching over the member's whole flight history (ADR 0001 §6). One json_each tuple query, independent
-// of any list paging: a candidate (date, origin, destination) matches the lowest-id owned flight with the same
-// tuple, optionally excluding one flight (the one being edited, or the flight a draft already became).
 import { assertRows } from '../_lib/d1'
 
 export interface DuplicateCandidate {

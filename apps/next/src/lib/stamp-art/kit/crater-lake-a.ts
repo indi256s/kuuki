@@ -1,5 +1,3 @@
-// Dominica: the Boiling Lake. A wide lit lake in a forested valley under a ridge, with billowing
-// steam columns rising from the water. The box is the whole view; its bottom is the near shore.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, hline, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
@@ -15,7 +13,6 @@ export const craterLakeA: KitModule = ([x, y, w, h], p) => {
   const cx = x + w / 2
   const lakeY = y + h * 0.72
   const out: SvgNode[] = []
-  // Ridge behind: lighter diagonal hatching.
   const ridge: Pt[] = [[x, lakeY]]
   for (let i = 0; i <= 24; i++) {
     const t = i / 24
@@ -24,7 +21,6 @@ export const craterLakeA: KitModule = ([x, y, w, h], p) => {
   }
   ridge.push([x + w, lakeY])
   out.push(occlude(ridge), ...body(ridge, 'hair'), ...toneFill(ridge, 'T2', { inset: 1 }))
-  // Lake.
   const lake: Pt[] = Array.from({ length: 28 }, (_, i): Pt => {
     const a = (i / 28) * Math.PI * 2
     return [cx + Math.cos(a) * w * 0.44, lakeY + h * 0.02 + Math.sin(a) * h * 0.085]
@@ -34,7 +30,6 @@ export const craterLakeA: KitModule = ([x, y, w, h], p) => {
     const hw = w * 0.38 * (1 - Math.abs(dy) * 4)
     out.push(hline('fine', cx - hw, cx + hw, lakeY + h * 0.02 + dy * h))
   }
-  // Steam: stacked billows widening upwards.
   for (const [fx, n, r0] of [
     [-0.14, 4, 5.4],
     [0.06, 5, 6.2],
@@ -48,7 +43,6 @@ export const craterLakeA: KitModule = ([x, y, w, h], p) => {
       out.push(occlude(c), stroke('hair', c, true))
     }
   }
-  // Near forest band along the shore.
   const band: Pt[] = [[x, y + h]]
   for (let i = 0; i <= 30; i++) {
     const t = i / 30

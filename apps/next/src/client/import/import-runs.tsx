@@ -1,8 +1,5 @@
 'use client'
 
-// The member shell's import runs: every batch this tab is following, kept alive across member routes so reading carries
-// on while the member is elsewhere. Only reading happens in the background; review and saving stay on /import. A page
-// that shows a run "views" it, and the dock leaves viewed runs to the page. Nothing here is written to browser storage.
 import {
   createContext,
   useContext,
@@ -26,14 +23,9 @@ import {
 export interface RunEntry {
   run: BatchRun
   state: BatchState
-  /** A page shows this run, so the dock does not. */
   viewed: boolean
 }
 
-/**
- * Runs that end with nothing to look at leave without a word: a cancel that kept no rows, an expired batch, or a
- * finished batch with no rows left in review.
- */
 const silent = (state: BatchState) =>
   state.phase === 'cancelled' ||
   state.phase === 'idle' ||
@@ -48,9 +40,7 @@ interface Held {
 
 export class ImportRuns {
   readonly api: BatchApi
-  /** Every run this tab follows, in the order it started following them. */
   private runs = new Map<BatchRun, Held>()
-  /** Every batch this tab has held: a stale awaiting read never brings back a run that ended or was dismissed. */
   private seen = new Set<string>()
   private listeners = new Set<() => void>()
   private entries: RunEntry[] = []
@@ -68,7 +58,6 @@ export class ImportRuns {
   }
   getEntries = () => this.entries
 
-  /** Called whenever a run stops being read. */
   whenFinished(callback: () => void) {
     this.onTerminal = callback
   }
@@ -78,7 +67,6 @@ export class ImportRuns {
     return null
   }
 
-  /** Follow batches the server is still reading. Batches already in review are the header queue's, not the dock's. */
   seed(
     drafts: ReadonlyArray<{
       batchId: string
@@ -100,7 +88,6 @@ export class ImportRuns {
     }
   }
 
-  /** A page shows `run` until the returned release. A run still being read when the page lets go stays with the dock. */
   view(run: BatchRun) {
     this.add(run).views++
     this.publish()
@@ -108,19 +95,16 @@ export class ImportRuns {
       const held = this.runs.get(run)
       if (!held) return
       held.views = Math.max(0, held.views - 1)
-      // Opening a finished run's review is what clears it from the dock.
       if (held.views === 0 && !isReading(run.getState().phase)) this.remove(run)
       else this.publish()
     }
   }
 
-  /** Hide a finished run. A run still being read can only be cancelled. */
   dismiss(run: BatchRun) {
     if (isReading(run.getState().phase)) return
     this.remove(run)
   }
 
-  /** Drops every run. A remount (Strict Mode, a new owner) starts clean and seeds again. */
   dispose() {
     for (const run of [...this.runs.keys()]) this.remove(run)
     this.seen.clear()
@@ -178,7 +162,6 @@ export class ImportRuns {
 
 const Context = createContext<ImportRuns | null>(null)
 
-/** The shell's runs, or null outside the member shell (welcome card, tests) and where the job worker is not bound. */
 export const useImportRunsStore = () => useContext(Context)
 
 const NO_ENTRIES: RunEntry[] = []
@@ -192,10 +175,6 @@ export function useImportRuns(): RunEntry[] {
   )
 }
 
-/**
- * Mounted by the member shell only when the job worker is bound, and keyed by the owner, so signing out drops every run.
- * Seeds itself from `/api/me/awaiting` and asks it to reload when a run finishes, so the header count agrees with the dock.
- */
 export function ImportRunsProvider({
   api = defaultBatchApi,
   children,

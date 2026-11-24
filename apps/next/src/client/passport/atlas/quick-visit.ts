@@ -1,5 +1,4 @@
 'use client'
-// The write behind a torn sticker: one ground visit with the tab's way, optimistic, with the year, Undo and Retry on the toast.
 
 import { createElement, useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { getAuthGeneration } from '@kuuki/client/apiClient'
@@ -14,27 +13,16 @@ import { visitFlightHref, wayPayload, type VisitWay } from '../visit-ways'
 import { RecordedToast, recordedMessage } from './recorded-toast'
 import { seaRemark } from './sea-remark'
 
-/** How long the recorded toast, and with it the landed stamp, stays (held while its year wheel is open). */
 const RECORDED_TOAST_MS = 8000
-/** A reverted sticker fades back over the inked country for this long before the fill goes. */
 export const REVERT_MS = 150
 
-/** The atlas's side of a write: what to draw when the write is taken back, and when a retry lands it. */
 export type TearView = {
-  /** Undo or failure: the sticker fades back over the country; the fill and the stamp leave. */
   revert: () => void
-  /** A retry started without a tear: land the country's stamp; the returned call takes it away with the toast. */
   land: () => (() => void) | undefined
 }
 
-/** Sets or clears the year of the visit a write created. */
 export type SetYear = (year: number | null) => void
 
-/**
- * Starts the write at once; `announce` shows the toast, called by the atlas at the stamp's impact, and `onClose` runs
- * when that toast leaves. `setYear` (the toast's year wheel) waits for the write, then edits the row it created; it
- * does nothing after Undo or a failed write.
- */
 export type RecordVisit = (
   code: string,
   way: VisitWay,
@@ -43,18 +31,11 @@ export type RecordVisit = (
 
 export type QuickWrites = {
   record: RecordVisit
-  /** Countries with a quick write in flight or awaiting the refresh: inked on the map and never lifted again. */
   recording: ReadonlySet<string>
 }
 
 const names = { en: countryNamer('en'), ru: countryNamer('ru') }
 
-/**
- * Owner-only, held by the page so it outlives the atlas. Starts the POST at the tear, marks the country seen so the
- * cards never replay it, refreshes the passport on the ack and offers Undo. Undo waits for a POST still in flight (and a
- * year edit after it), then deletes exactly the row it created. A later tear of the same country retires an earlier write's Retry.
- * Try again repeats the write with the same visit id, so a write whose answer was lost is not recorded twice.
- */
 export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): QuickWrites {
   const toast = useToast()
   const feedback = useWriteFeedback(ownerId)
@@ -82,7 +63,6 @@ export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): Q
           else next.delete(code)
           return next
         })
-      // Only the latest write of a country clears its mark.
       const unmark = () => {
         if (attempts.current.get(code) === attempt) mark(false)
       }
@@ -109,7 +89,6 @@ export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): Q
               () => null,
             )
           : undefined
-      // Year edits run one after another on the created row; Undo waits for them so its delete is the last word.
       let yearQueue: Promise<void> = Promise.resolve()
       let yearEdit = 0
 
@@ -117,7 +96,6 @@ export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): Q
         const edit = ++yearEdit
         yearQueue = yearQueue.then(async () => {
           const visit = await write.catch(() => null)
-          // Signed out or switched account while queued: this edit belongs to a session that is gone.
           if (!visit || undone || !current()) return
           try {
             const ack = await updateGroundVisit(ownerId, visit.id, { visitYear: year })
@@ -126,7 +104,6 @@ export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): Q
             await latest.current.refresh().catch(() => undefined)
           } catch {
             if (undone || !current()) return
-            // The visit itself stays recorded; only its year did not save.
             latest.current.toast.show({
               kind: 'error',
               message: {
@@ -135,7 +112,6 @@ export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): Q
               },
               actionLabel: { en: 'Try again', ru: 'Повторить' },
               onAction: () => {
-                // A newer year speaks for the visit.
                 if (edit === yearEdit) setYear(year)
               },
             })
@@ -160,7 +136,6 @@ export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): Q
             },
             async () => {
               if (!current()) return
-              // The row stayed: show the truth again rather than a reverted map.
               await latest.current.refresh().catch(() => undefined)
               latest.current.toast.show({
                 kind: 'error',
@@ -193,7 +168,6 @@ export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): Q
             if (undone) return
             if (current()) {
               latest.current.feedback.acknowledge(ack)
-              // A failed refresh is the page's own "could not refresh" note; the visit is saved either way.
               await latest.current.refresh().catch(() => undefined)
             }
             unmark()
@@ -212,7 +186,6 @@ export function useRecordVisit(ownerId: string, refresh: () => Promise<void>): Q
               },
               actionLabel: { en: 'Try again', ru: 'Повторить' },
               onAction: () => {
-                // Superseded by a later tear of the same country: that write already speaks for it.
                 if (attempts.current.get(code) !== attempt) return
                 const retry = record(code, way, view, visitId)
                 retry.announce(view.land())

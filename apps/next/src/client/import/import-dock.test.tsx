@@ -34,7 +34,6 @@ const api: BatchApi = {
   sleep: vi.fn(async () => {}),
 }
 
-/** Stands in for /import?batch=<id>: the page that shows the run. */
 function Page({ batch }: { batch: string }) {
   const state = useImportBatch({ initialBatchId: batch })
   return <p>page {state.phase}</p>

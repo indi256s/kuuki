@@ -6,7 +6,6 @@ import { Button } from '../../ui/button'
 import type { Locale } from '../../../lib/format'
 import { fitYearTicks, monthAt, monthCandidates, yearTicks, type TimelineItem } from './replay'
 
-/** One mono year label at 12px, and the space kept between neighbours. */
 const YEAR_LABEL = 30,
   YEAR_GAP = 12
 
@@ -27,7 +26,6 @@ export function ReplayTransport({
   timeMs: number
   getFrame?: () => { timeMs: number }
   paused: boolean
-  /** Before the first Play the map is still and the transport is one labelled Play button. */
   started: boolean
   setPaused: (paused: boolean) => void
   seek: (time: number, phase: 'preview' | 'commit' | 'cancel') => void
@@ -40,7 +38,6 @@ export function ReplayTransport({
   const host = useRef<HTMLDivElement>(null),
     label = useRef<HTMLButtonElement>(null),
     play = useRef<HTMLButtonElement>(null)
-  // Play replaces itself with the full transport; focus moves to its Pause so the keyboard stays in place.
   const handoff = useRef(false)
   useEffect(() => {
     if (started && handoff.current) {
@@ -62,7 +59,6 @@ export function ReplayTransport({
       ? formatter.format(new Date(`${item.month}-01T00:00:00Z`)).toLocaleUpperCase(locale)
       : '—'
   }, [candidates, value, formatter, locale])
-  // Every month name reserves its width in the button, so the label never resizes and the bottom row never rewraps.
   const monthAlternatives = useMemo(
     () =>
       Array.from({ length: 12 }, (_, month) =>
@@ -92,7 +88,6 @@ export function ReplayTransport({
     0,
     candidates.findIndex((item) => item.startMs === value),
   )
-  // Year labels thin out by where they land on the scrubber; see fitYearTicks.
   const years = useRef<HTMLDivElement>(null)
   const [yearsWidth, setYearsWidth] = useState(0)
   useEffect(() => {
@@ -103,7 +98,6 @@ export function ReplayTransport({
     })
     observer.observe(node)
     return () => observer.disconnect()
-    // The scale only mounts after the first Play, so `started` must re-run this.
   }, [reduced, started, timeline.length])
   const ticks = useMemo(
     () =>

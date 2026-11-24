@@ -10,15 +10,9 @@ import {
 import { configuredRecoveryOrigin, requestPasswordRecovery } from '../../_lib/passwordRecovery'
 import { EMAIL_RE, accountPhase, getUserByEmail } from '../../_lib/users'
 
-/**
- * The single "get back in" link. The caller never learns the account state: the
- * response is always the generic `{ ok: true }`, and the lookup that picks the
- * activation or reset email runs in the background.
- */
 export const onRequestPost: PagesFunction<Env> = async ({ request, env, waitUntil }) => {
   const response = await runHandler(async () => {
     requireStrictSameOrigin(request)
-    // Every configuration check runs before any lookup so the 503 never depends on account state.
     const activationOrigin = configuredActivationOrigin(env)
     if (activationOrigin === new URL(request.url).origin) {
       throw new HttpError(
@@ -67,7 +61,6 @@ async function sendLink(
 ): Promise<void> {
   const user = await getUserByEmail(db, email)
   if (!user) return
-  // Each helper re-checks the account state, so a stale choice here cannot send the wrong link.
   if (accountPhase(user.password_hash) === 'unclaimed')
     await requestActivation(db, email, activationOrigin, activationSender)
   else await requestPasswordRecovery(db, email, recoveryOrigin, recoverySender)

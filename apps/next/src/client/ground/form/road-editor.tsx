@@ -30,7 +30,6 @@ export function RoadEditor({
   const ru = locale === 'ru'
   const root = useRef<HTMLDivElement>(null)
   const added = useRef<string | null>(null)
-  // Stops added in this session start open even when their city is already filled (Return to start).
   const [fresh, setFresh] = useState<ReadonlySet<string>>(new Set())
   const name = (point: PointDraft) => (point.place ? placeLabel(point.place, locale) : '?')
   const update = (id: string, patch: Partial<PointDraft>) =>
@@ -210,7 +209,6 @@ export function RoadEditor({
           disabled={disabled}
           disabledReason={returnBlocked}
           onClick={() => {
-            // A new stop with its own identity at the start city; the first stop is not reused or merged.
             const point = emptyPoint(first)
             added.current = point.id
             setFresh((ids) => new Set(ids).add(point.id))

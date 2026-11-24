@@ -1,8 +1,3 @@
-// Palm module: a leaning trunk with ring ticks and a crown of arched, drooping fronds. Each frond is
-// a spine on a ballistic arc (up and out, then falling) with leaflet ticks hanging off it; the
-// crown core is a small solid. The box is the tree (ground at its bottom); `lean` shifts the crown
-// sideways as a fraction of the width. Fronds clear the hatching behind them, so the crown reads as
-// a lit shape of dark ticks, never a solid bat wing.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, occlude, quad, stroke } from '../grid'
 import { type KitModule, num } from './util'
@@ -18,7 +13,6 @@ export const palm: KitModule = ([x, y, w, h], p) => {
   const baseX = x + w / 2 - w * lean * 0.5
   const crown: Pt = [x + w / 2 + w * lean * 0.5, y + frondLen * 0.42]
   const out: SvgNode[] = []
-  // Trunk: a bowed ribbon, tapering to the crown, ring ticks across it.
   const mid: Pt = [baseX + (crown[0] - baseX) * 0.3, y + h * 0.55]
   const spine = quad([baseX, y + h], mid, crown, 14)
   const left: Pt[] = spine.map(([px, py], i) => [px - (trunkW / 2) * (1 - (i / 14) * 0.4), py])
@@ -34,7 +28,6 @@ export const palm: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // Fronds: left horizontal-and-below, over the top, right horizontal-and-below.
   const tickWeight = 'hair'
   const spineWeight = 'line'
   for (let i = 0; i < count; i++) {
@@ -50,7 +43,6 @@ export const palm: KitModule = ([x, y, w, h], p) => {
     const n = 10
     const spineLine: Pt[] = Array.from({ length: n + 1 }, (_, k) => at(k / n))
     out.push(stroke(spineWeight, spineLine))
-    // Leaflets hang from the spine, longest at mid-frond, shortening to the tip.
     const step = Math.max(2.4, len / 6.5)
     const tips: Pt[] = []
     const roots: Pt[] = []
@@ -70,7 +62,6 @@ export const palm: KitModule = ([x, y, w, h], p) => {
       roots.push([px, py])
       ticks.push(stroke(tickWeight, [[px, py], end]))
     }
-    // The crown clears the hatching behind it in short chunks: foliage is texture, not a lit mass.
     for (let k = 0; k + 1 < tips.length; k++) {
       const [x0, y0] = roots[k]
       const [x1, y1] = roots[k + 1]
@@ -78,7 +69,6 @@ export const palm: KitModule = ([x, y, w, h], p) => {
     }
     out.push(...ticks)
   }
-  // Core: where the fronds meet.
   const r = Math.max(1.4, frondLen * 0.07)
   out.push(
     fill([

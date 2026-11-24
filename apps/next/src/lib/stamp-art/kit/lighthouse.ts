@@ -1,7 +1,3 @@
-// Lighthouse module: a tapering tower with a gallery, a glazed lantern and a domed cap. The box is
-// the whole lighthouse (the ground is its bottom). The right `shade` of the shaft is T4; `bands`
-// paints that many horizontal T4 stripes (a banded tower); `ribs` adds fine vertical panel lines
-// (cast iron); `base` is a low keeper's block at the foot (fraction of the height).
 import {
   type Pt,
   type SvgNode,
@@ -86,15 +82,12 @@ export const lighthouse: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // Windows up the lit side.
   const wins = Math.round(num(p, 'windows', 3))
   for (let i = 0; i < wins; i++) {
     const yy = shaftTop + (shaftH * (i + 0.7)) / (wins + 0.9)
     out.push(fill(rectPts(cx - half(yy) * 0.35 - 0.9, yy, 1.8, Math.max(3, h * 0.04))))
   }
-  // Door.
   out.push(fill(rectPts(cx - 1.8, bottom - h * 0.06, 3.6, h * 0.06)))
-  // Gallery slab and railing.
   const gw = topW * 1.4
   out.push(...body(rectPts(cx - gw / 2, gallery, gw, galleryH), 'line'))
   out.push(
@@ -105,7 +98,6 @@ export const lighthouse: KitModule = ([x, y, w, h], p) => {
   )
   const brackets = Math.round(num(p, 'brackets', 0))
   if (brackets > 0) {
-    // Cast-iron brackets under the gallery: diagonal struts from the shaft to the slab edge.
     const drop = h * 0.09
     for (let i = 0; i < brackets; i++) {
       const f = (i + 0.5) / brackets
@@ -124,7 +116,6 @@ export const lighthouse: KitModule = ([x, y, w, h], p) => {
     out.push(vline('fine', rx, gallery - h * 0.03, gallery))
   }
   out.push(hline('hair', cx - gw / 2, cx + gw / 2, gallery - h * 0.03))
-  // Lantern: glazed with mullions, then the dome.
   const lantTop = y + domeH
   out.push(...body(rectPts(cx - lanternW / 2, lantTop, lanternW, lanternH), 'line'))
   for (const f of [-0.33, 0, 0.33])
@@ -137,7 +128,6 @@ export const lighthouse: KitModule = ([x, y, w, h], p) => {
     [cx + lanternW / 2 + 1.2, lantTop],
   ]
   out.push(occlude(dome), fill(dome))
-  // Keeper's block.
   if (baseH > 0) {
     const bw = w * 1.7
     out.push(...body(rectPts(cx - bw / 2, bottom, bw, baseH), 'line'))

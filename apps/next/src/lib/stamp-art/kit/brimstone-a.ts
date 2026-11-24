@@ -1,7 +1,3 @@
-// St Kitts: Brimstone Hill. A steep conical hill (T3 hatching, T4 on its shaded side) rises from
-// the shore with the compact polygonal Fort George citadel on the summit, T5 embrasures along its
-// walls. Across the sea on the right stands the Nevis cone in T2. The box is the whole view; its
-// bottom is the waterline.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, fill, occlude, rectPts, stroke, toneFill } from '../grid'
 import { garitaA, tier } from './fort-a'
@@ -13,7 +9,6 @@ export const brimstoneA: KitModule = ([x, y, w, h], p) => {
   const X = (u: number) => x + w * u
   const base = y + h
   const out: SvgNode[] = []
-  // Nevis: a broad cone across the water, T2.
   const nevis: Pt[] = [
     [X(0.5), base],
     [X(0.62), base - h * 0.2],
@@ -30,7 +25,6 @@ export const brimstoneA: KitModule = ([x, y, w, h], p) => {
     ...toneFill(nevis, 'T2', { gap: 3.7 }),
     stroke('line', nevis.slice(1, -1)),
   )
-  // The hill: steep sides, a small summit shoulder.
   const topY = y + h * 0.3
   const hillL: Pt[] = [
     [X(0.0), base],
@@ -59,7 +53,6 @@ export const brimstoneA: KitModule = ([x, y, w, h], p) => {
     ...toneFill(dark, 'T4', { gap: 2.2 }),
     stroke('line', ridge),
   )
-  // Fort George on the summit: a compact two-tier polygonal citadel, embrasures in T5.
   const cx0 = X(0.17),
     cx1 = X(0.46)
   const t1 = tier({

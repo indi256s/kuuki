@@ -1,6 +1,3 @@
-// GET /api/ground-journeys — the owner's live journeys, list order and completed totals.
-// POST /api/ground-journeys — create (planned or completed) with a receipt-guarded operation key.
-
 import { runHandler, json, readJson, HttpError } from '../_lib/http'
 import { requireUser, requireCsrf, type RequestData } from '../_lib/auth'
 import { isIsoDate } from '../../../packages/shared/src/groundTravel'

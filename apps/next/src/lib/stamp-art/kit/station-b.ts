@@ -1,6 +1,3 @@
-// A polar research station: a row of low flat-roofed blocks on a shelf above a dark sea cliff,
-// a lattice radio mast with guy wires on the right. The box bottom is the waterline at the cliff
-// foot; the shelf sits at `shelf` of the box height.
 import { mulberry32 } from '../hash'
 import {
   type Pt,
@@ -20,7 +17,6 @@ export const stationB: KitModule = ([x, y, w, h], p) => {
   const base = y + h
   const shelf = y + h * num(p, 'shelf', 0.76)
   const out: SvgNode[] = []
-  // Sea cliff: ragged top edge, dark vertical columns, broken foot.
   const top: Pt[] = []
   for (let px = x; px <= x + w + 0.01; px += 5) top.push([px, shelf + (rand() - 0.5) * 2.4])
   const cliff: Pt[] = [
@@ -34,7 +30,6 @@ export const stationB: KitModule = ([x, y, w, h], p) => {
   out.push(occlude([...top, [x + w, base], [x, base]], { halo: 1.6 }))
   out.push(...toneFill(cliff, 'T4', { angle: 84, gap: 3, weight: 'fine', inset: 0.2 }))
   out.push(stroke('bold', top))
-  // Blocks on the shelf.
   const ws = [19, 24, 14, 21, 15],
     hs = [14, 21, 13, 24, 16]
   let bx = x + 4
@@ -63,7 +58,6 @@ export const stationB: KitModule = ([x, y, w, h], p) => {
     blocks.push(bx + bw)
     bx += bw + 3
   })
-  // Lattice mast with guy wires.
   const mx = x + w * num(p, 'mast', 0.86)
   const mt = y + h * 0.12
   const half = (yy: number): number => 1.4 + ((yy - mt) / (shelf - mt)) * 3.4
@@ -118,7 +112,6 @@ export const stationB: KitModule = ([x, y, w, h], p) => {
       [mx + 12, shelf],
     ]),
   )
-  // Foam at the cliff foot.
   for (let fx = x + 4; fx < x + w - 6; fx += 9 + rand() * 5)
     out.push(stroke('hair', quad([fx, base + 2], [fx + 3, base - 1.2], [fx + 6, base + 2], 6)))
   return out

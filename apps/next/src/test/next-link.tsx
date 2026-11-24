@@ -8,12 +8,6 @@ type Props = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> & {
   children?: ReactNode
 }
 
-/**
- * A `next/link` stand-in for component tests; the real Link needs a mounted App Router. A click follows the order of
- * `next/dist/client/app-dir/link.js`: the user's `onClick` first; then nothing more when the default is already prevented,
- * for a modified click, a non-self target, a download or a URL on another origin; otherwise `onNavigate`, and unless that
- * cancels, `navigate` (standing in for the App Router dispatch).
- */
 export function linkStandIn(
   navigate: (href: string, options: { replace: boolean; scroll: boolean }) => void,
 ) {

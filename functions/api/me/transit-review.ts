@@ -1,5 +1,3 @@
-// GET/POST /api/me/transit-review — the optional cleanup that lets a member reclassify historical connections as
-// transit (ADR 0001 §5). GET reads only. POST takes { operationId, action: 'apply' | 'dismiss', items? } with a receipt.
 import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireCsrf, requireUser, type RequestData } from '../_lib/auth'
 import { parseReviewRequest, readTransitReview, reviewTransit } from '../_services/transitReview'

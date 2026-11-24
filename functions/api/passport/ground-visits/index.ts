@@ -1,5 +1,3 @@
-// GET /api/passport/ground-visits lists the owner's ground visits; POST records one.
-
 import { runHandler, json, readJson, HttpError } from '../../_lib/http'
 import { requireUser, requireCsrf, type RequestData } from '../../_lib/auth'
 import { newId } from '../../_lib/crypto'
@@ -22,7 +20,6 @@ type GroundVisitBody = {
 export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =>
   listGroundVisitsRequest(context.request, context.env, context.data)
 
-/** Owner-scoped management/export projection includes the preserved note. */
 export function listGroundVisitsRequest(
   request: Request,
   env: Env,
@@ -43,7 +40,6 @@ export function listGroundVisitsRequest(
 export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) =>
   createGroundVisitRequest(context.request, context.env, context.data)
 
-/** Request/Response entry keeps compatibility transport separate from domain writes. */
 export function createGroundVisitRequest(
   request: Request,
   env: Env,
@@ -65,7 +61,6 @@ export function createGroundVisitRequest(
       env.DB.prepare(
         'INSERT INTO ground_visits (id, user_id, country_code, visit_year, note, entry_method, mode, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO NOTHING',
       ).bind(id, user.id, countryCode, visitYear, note, entryMethod, mode, createdAt),
-      // A replayed or refused id inserts nothing, so it must not mark the derived state dirty either.
       dirtyUserStatement(env.DB, user.id, true),
       env.DB.prepare(
         'SELECT id, user_id, country_code, visit_year, entry_method, mode, note, created_at, linked_flight_id FROM ground_visits WHERE id = ? AND user_id = ?',
@@ -74,7 +69,6 @@ export function createGroundVisitRequest(
     assertRows(results, 'Ground visit unavailable', 3)
     const [insert, , read] = results
     const row = read.results[0] as GroundVisitRow | undefined
-    // Another owner's id, or this id already used for another country: never reveal or reuse that row.
     if (!row || row.country_code !== countryCode)
       throw new HttpError(409, 'Visit id already used for another visit', 'IDEMPOTENCY_CONFLICT')
     const derived = await repairUserDerivedState(env.DB, user.id)

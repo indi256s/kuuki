@@ -1,11 +1,8 @@
-// Profile name and public address (username) rules shared by the client and the API.
-
 export const NAME_MAX = 40
 export const ADDRESS_PATTERN = /^[a-z0-9_][a-z0-9_-]{2,29}$/
 
 const ADDRESS_MAX = 30
 
-/** Russian passport (ICAO 9303) transliteration plus the Ukrainian extras. */
 const TRANSLITERATION: Record<string, string> = {
   а: 'a',
   б: 'b',
@@ -46,7 +43,6 @@ const TRANSLITERATION: Record<string, string> = {
   ґ: 'g',
 }
 
-/** Trim and collapse every inner whitespace run to one space. */
 export function normalizeName(value: string): string {
   return value.trim().replace(/\s+/g, ' ')
 }
@@ -65,12 +61,10 @@ function pilotAddress(random: () => number): string {
   return `pilot-${tail}`
 }
 
-/** Lowercase Latin spelling of a name: Cyrillic by the ICAO 9303 table, Latin left as typed. */
 export function transliterate(name: string): string {
   return Array.from(name.toLowerCase(), (char) => TRANSLITERATION[char] ?? char).join('')
 }
 
-/** Derive a public address from a display name; always matches ADDRESS_PATTERN. */
 export function deriveAddress(name: string, random: () => number = Math.random): string {
   const latin = transliterate(name)
   const base = cut(
@@ -84,7 +78,6 @@ export function deriveAddress(name: string, random: () => number = Math.random):
   return base.length < 3 ? pilotAddress(random) : base
 }
 
-/** `base-n`, with the base cut so the whole address fits 30 characters. */
 export function withSuffix(base: string, n: number): string {
   const tail = `-${n}`
   return `${base.slice(0, ADDRESS_MAX - tail.length).replace(/-+$/, '')}${tail}`

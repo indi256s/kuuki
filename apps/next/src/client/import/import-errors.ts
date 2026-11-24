@@ -1,6 +1,3 @@
-// Structured cause/action classification for the import flow. Pure: the copy lives in copy.ts, so a message string
-// from the server is never shown and "Failed to fetch" never reaches the member.
-
 export type FailureKind =
   | 'quota'
   | 'rateLimit'
@@ -78,7 +75,6 @@ const KIND_BY_CODE: Record<string, FailureKind> = {
   OUTPUT_LIMIT: 'outputLimit',
 }
 
-/** A valid instant from `retryAt` / `retryAfter` / `retry_after`, normalised to ISO; anything else is unknown (null). */
 export function retryAtOf(source: unknown): string | null {
   const value =
     typeof source === 'string'
@@ -106,7 +102,6 @@ const make = (
   status,
 })
 
-/** Failure of an API call (an `ApiError`, a network `TypeError`, a timeout `DOMException`). */
 export function classifyRequestFailure(error: unknown): Failure {
   const shaped = error as {
     status?: unknown
@@ -131,7 +126,6 @@ export function classifyRequestFailure(error: unknown): Failure {
   return make('unavailable', retryAtOf(shaped?.body), code, status)
 }
 
-/** The cause stored on a batch (`error_code`), or null when the batch carries none. */
 export function classifyBatchFailure(
   code: string | null,
   retryAfter: string | null,
@@ -157,7 +151,6 @@ export interface RowFailure {
   retryable: boolean
 }
 
-/** Per-item error of `POST /api/import/batches/:id/confirm`. Only transient causes are retried with the same key. */
 export function classifyRowFailure({
   code,
   http_status,

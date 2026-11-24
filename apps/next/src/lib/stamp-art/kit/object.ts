@@ -1,4 +1,3 @@
-// Object modules: statue (an abstract monument on a plinth; never a figure).
 import { type SvgNode, body, fill, rectPts, stroke } from '../grid'
 import { type KitModule, num, str } from './util'
 

@@ -1,6 +1,3 @@
-/* CountryStamp. Tokens only; rotate, scale, transform and opacity are the only animated properties. Decorative, aria-hidden.
-   Hosts: a card with `data-stamp-host`, or any link or button around the stamp, drives hover, focus-visible and press. */
-
 .country-stamp {
   --cs-r: var(--cs-tilt);
   --cs-s: 1;
@@ -25,7 +22,6 @@
   height: 100%;
 }
 .cs-tilt {
-  /* Individual properties: rotate and scale have their own transitions, so a press never waits on the hover straighten's delay. */
   rotate: var(--cs-r);
   scale: var(--cs-s);
   transition:
@@ -51,8 +47,6 @@
   font-weight: 700;
 }
 
-/* Worn layer (B1): the shared wear texture, 300 units wide on a 200 unit stamp, offset per country and
-   turned 0 or 180 degrees. The content is turned back so only the texture rotates. */
 .cs-worn {
   transform: rotate(var(--imp-rot));
   mask-repeat: no-repeat;
@@ -79,7 +73,6 @@
   mask-image: url('/stamps/_impression-octagon.svg');
 }
 
-/* Full-density copy: invisible at rest over the worn layer, the only layer when worn is off. */
 .cs-full {
   transition: opacity var(--dur-fast) var(--ease-out);
 }
@@ -87,12 +80,10 @@
   opacity: 0;
 }
 
-/* Pending: the outer rule alone, dashed (the component draws no inner rule or window edge), no ink, no texture. */
 .country-stamp[data-status='pending'] .cs-rules {
   stroke-dasharray: 7 5;
 }
 
-/* Hover: fine pointers only. Straightens after a short delay; leaving is the base transition with no delay. */
 @media (hover: hover) and (pointer: fine) {
   .country-stamp:not([data-static]):hover,
   :is(a, button, [data-stamp-host]):hover .country-stamp:not([data-static]) {
@@ -114,7 +105,6 @@
     scale var(--dur-press) var(--ease-out);
 }
 
-/* Keyboard focus: straight at once. */
 :is(a, button, [data-stamp-host]):focus-visible .country-stamp:not([data-static]),
 [data-stamp-host]:has(:focus-visible) .country-stamp:not([data-static]),
 .country-stamp[data-pose='focus']:not([data-static]) {
@@ -126,7 +116,6 @@
   transition: none;
 }
 
-/* Press: a small stamping, straight, scaled, ink at full density. Touch gets this without the hover. */
 :is(a, button, [data-stamp-host]):active .country-stamp:not([data-static]),
 .country-stamp[data-pose='press']:not([data-static]) {
   --cs-r: 0deg;
@@ -144,7 +133,6 @@
   transition-duration: var(--dur-press);
 }
 
-/* New impression: lands large and unseen, overshoots small and opaque, settles to the rest pose; the tilt is the rotate property, so the keyframes only scale; the ink dries from full density into the worn layer. */
 .cs-tilt[data-impress] {
   animation: cs-press-in var(--dur-moment) var(--ease-out);
 }
@@ -189,7 +177,6 @@
   animation: none;
 }
 
-/* Reduced motion: no tilt, no scale; opacity only. */
 @media (prefers-reduced-motion: reduce) {
   .country-stamp .cs-tilt {
     rotate: none;
@@ -199,7 +186,6 @@
     animation-name: cs-fade-in;
     animation-duration: var(--dur-base);
   }
-  /* The dry keyframes are opacity only; no scale reaches the full-density layer. */
   .country-stamp[data-worn] .cs-tilt[data-impress] .cs-full {
     animation-duration: var(--dur-base);
   }

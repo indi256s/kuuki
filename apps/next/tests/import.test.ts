@@ -5,8 +5,6 @@ import { test, expect, type Page, type Route } from '@playwright/test'
 import { prepareZXingModule, writeBarcode } from 'zxing-wasm/writer'
 import { signIn } from './helpers'
 
-// The fixture has no import binding, so these journeys run against a small stateful stand-in for the import
-// endpoints (batch, drafts, events, confirm). It is the server contract the client consumes, not the server.
 const BATCH = '8b1f0c2e-4f0a-4d57-9a55-6d1e2b3c4d5e'
 const LOCAL_BATCH = '8b1f0c2e-4f0a-4d57-9a55-6d1e2b3c4d5f'
 const PASTED = 'DOCUMENT MUST NOT BE STORED'
@@ -79,7 +77,6 @@ class FakeImport {
     timezone?: string
     items: Array<{ draftId: string; version: number; key: string }>
   }> = []
-  /** Draft ids whose next confirm answers with a transient error. */
   failOnce = new Set<string>()
 
   snapshot() {
@@ -120,7 +117,6 @@ class FakeImport {
         const job = request.postDataJSON() as Job
         this.jobs.push(job)
         if (job.type !== 'boarding_pass') return json(route, 202, { batchId: BATCH })
-        // A locally read pass is admitted in the request: the answer is the stored snapshot (201), rows carry no date yet.
         this.localDrafts = (job.legs ?? []).map((leg, index) =>
           row(`local-d${index + 1}`, {
             fields: {
@@ -185,7 +181,6 @@ class FakeImport {
         if (!draft) return json(route, 404, { error: 'missing', code: 'DRAFT_NOT_FOUND' })
         this.patches.push({ id: draft.id, body })
         if (body.fields) {
-          // A new date withdraws an earlier "I flew": the member said it about another day.
           if (body.fields.date !== undefined && body.fields.date !== draft.fields.date)
             delete draft.fields.flown_confirmed
           draft.fields = { ...draft.fields, ...body.fields }
@@ -256,8 +251,6 @@ class FakeImport {
   }
 }
 
-// Sign-in is limited per address (20 per 15 minutes) and the whole browser suite shares that budget, so this file
-// signs in once and gives every journey the same session cookies.
 let session: Awaited<ReturnType<ReturnType<Page['context']>['cookies']>> | null = null
 async function setup(page: Page, baseURL: string | undefined) {
   if (session) await page.context().addCookies(session)
@@ -441,9 +434,6 @@ test('bulk selection persists eligible rows without accepting duplicates or unre
   expect(server.confirms[0].items.map((item) => item.draftId).sort()).toEqual(['d1', 'd2'])
 })
 
-// ---- Quick Add (boarding pass) ----
-// The barcode images are written here with the same zxing-wasm writer the unit tests use, so the page's real reader
-// (wasm and all) decodes them in Chromium. A pass that never decoded would send no job and fail the first journey.
 const nodeRequire = createRequire(import.meta.url)
 let writerReady = false
 async function barcodePng(text: string): Promise<Buffer> {
@@ -458,9 +448,8 @@ async function barcodePng(text: string): Promise<Buffer> {
   if (!image) throw new Error(error)
   return Buffer.from(await image.arrayBuffer())
 }
-/** A one-page PDF whose only content is the barcode, drawn as filled rectangles from the writer's SVG path. */
 async function barcodePdf(text: string): Promise<Buffer> {
-  await barcodePng(text) // prepares the writer
+  await barcodePng(text)
   const { svg, error } = await writeBarcode(text, { format: 'PDF417', scale: 1 })
   if (!svg) throw new Error(error)
   const size = /width="(\d+)" height="(\d+)"/.exec(svg)!
@@ -505,9 +494,9 @@ function blankPng(side = 240): Buffer {
   const header = Buffer.alloc(13)
   header.writeUInt32BE(side, 0)
   header.writeUInt32BE(side, 4)
-  header[8] = 8 // bit depth; colour type 0 is grayscale
+  header[8] = 8
   const rows = Buffer.alloc((side + 1) * side, 255)
-  for (let y = 0; y < side; y++) rows[y * (side + 1)] = 0 // filter type "none" per scanline
+  for (let y = 0; y < side; y++) rows[y * (side + 1)] = 0
   return Buffer.concat([
     Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
     chunk('IHDR', header),
@@ -515,7 +504,6 @@ function blankPng(side = 240): Buffer {
     chunk('IEND', Buffer.alloc(0)),
   ])
 }
-// One leg: Montreal to Frankfurt on Air Canada 834, flight day 326 (21 November in a leap year, 22 in others).
 const PASS = 'M1DESMARAIS/LUC       EABC123 YULFRAAC 0834 326J001A0025 100'
 const screenshotInput = (page: Page) => page.locator('input[type=file][multiple]')
 
@@ -531,7 +519,6 @@ test('the empty import screen offers Flighty history through a CSV-only picker',
   ])
   expect(chooser.isMultiple()).toBe(false)
   expect(await chooser.element().getAttribute('accept')).toBe('.csv,text/csv')
-  // The file goes to the history import, which names its screen after it.
   await chooser.setFiles({
     name: 'not-flighty.csv',
     mimeType: 'text/csv',
@@ -577,7 +564,6 @@ test('barcode reading automatically complements online, asks the year once, and 
   await page.getByLabel('Year', { exact: true }).fill('2020')
   await page.getByRole('button', { name: 'Apply' }).click()
   await expect(page.getByText('Which year did you fly?', { exact: false })).toBeHidden()
-  // Focus stays in the answered row instead of falling to the deck's visually hidden heading.
   await expect(rows(page).getByRole('button', { name: 'Edit' })).toBeFocused()
   await expect(page.getByText('Have you taken this flight?')).toBeHidden()
   await expect(page.getByRole('checkbox')).toHaveCount(0)

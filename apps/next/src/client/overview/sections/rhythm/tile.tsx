@@ -14,7 +14,6 @@ export function Tile({ span }: { span: TileSpan }) {
   const busiest = data?.busiestMonthOfYear ?? null
   const marks = monthMarks(monthTotals(data), locale)
   const at = busiest ? busiest.month - 1 : null
-  // The stamper at rest on the headline month, its impression already printed.
   const figure = useFigure(
     span,
     `${locale}|${at}|${marks.map((mark) => mark.flights).join()}`,

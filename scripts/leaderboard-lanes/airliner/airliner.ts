@@ -1,13 +1,3 @@
-// A lane airliner built like a precise 1:N model: one per ICAO type from the measured geometry in
-// packages/data/src/aircraft-geometry (SCHEMA.md), drawn with the pinned anatomy kit's camera, light and tone bands.
-//
-// Frame: metres; x points to the nose (the nose tip at x = 0, the tail at −length), +y is the near flank (toward the
-// viewer; with the nose to the right that is the starboard side), z is up from the ground. "xg" is the records' station,
-// aft from the nose (x = −xg).
-//
-// Estimated in the drawing, not in the data: belly height, nose shape between the measured stations, airfoil thickness,
-// wheel track and tyre sizes (published values, rounded, by family), gear stations, door, exit, cargo-door and window
-// stations, the inlet internals, flap-track fairing stations and the antenna positions.
 import { airframeOf, tan, type Airframe } from './airframe'
 import { drawing } from './draw'
 import type { Kit } from './kit'
@@ -21,18 +11,14 @@ import { flapFairings, highWing, wing } from './wing'
 
 export type { AircraftGeometry } from './model'
 
-// ---------------------------------------------------------------------------------------------------- the model
-
 export type Built = {
   items: Item[]
   groundY: number
   tail: number
   nose: number
-  /** The upper anti-collision beacon: on the crown over the wing box, or on top of a T-tail. */
   beacon: V3
 }
 
-/** The ground shadow: the plan of the fuselage, wings and stabilisers, flattened on the ground. */
 function groundShadow(a: Airframe, cam: Camera): Item {
   const { g, Lb, y0, wingEnd, tTail, sec, leAt, teAt } = a
   const ht = g.htail
@@ -85,14 +71,12 @@ export function airliner(g: AircraftGeometry, cam: Camera, kit: Pick<Kit, 'G' | 
   const wg = g.wing,
     vt = g.vtail
   const engines = g.engines
-  const farEngines = [...engines].sort((p, q) => q.y - p.y) // outboard (farthest) first
+  const farEngines = [...engines].sort((p, q) => q.y - p.y)
   const nearEngines = [...engines].sort((p, q) => p.y - q.y)
 
-  // Assembly, far to near.
   const items: Item[] = [groundShadow(a, cam)]
   if (!tTail) items.push(stabiliser(a, d, -1))
 
-  // Far side.
   if (high) {
     for (const e of farEngines) {
       const { out, front } = engine(a, d, e, -1)
@@ -112,7 +96,6 @@ export function airliner(g: AircraftGeometry, cam: Camera, kit: Pick<Kit, 'G' | 
   items.push(fin(a, d))
   if (tTail) items.push(stabiliser(a, d, 1))
 
-  // Near side.
   items.push(...bodyGear(a, d, 1))
   if (high) {
     const near = nearEngines.map((e) => ({ e, ...engine(a, d, e, 1) }))

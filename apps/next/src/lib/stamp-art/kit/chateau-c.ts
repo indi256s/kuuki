@@ -1,6 +1,3 @@
-// Chateau (lane C): a Neo-Renaissance castle - a long lit block with steep dark gables at
-// different heights, a tall slender tower with a spire and small turrets with needle caps
-// (Peles, RO). The box base is the ground line.
 import {
   type Pt,
   type SvgNode,
@@ -30,10 +27,8 @@ export const chateauC: KitModule = ([x, y, w, h], p) => {
   const out: SvgNode[] = []
   const base = y + h
   const wallTop = Y(num(p, 'wallTop', 0.68))
-  // timbered upper block
   out.push(...body(rectPts(X(0.04), wallTop, X(0.96) - X(0.04), base - wallTop), 'line'))
   out.push(hline('bold', X(0.04) - 1, X(0.96) + 1, base))
-  // upper storey in half-timber: dark right third plus a string course
   const stringY = wallTop + (base - wallTop) * 0.42
   out.push(hline('line', X(0.04), X(0.96), stringY))
   out.push(
@@ -43,7 +38,6 @@ export const chateauC: KitModule = ([x, y, w, h], p) => {
       weight: 'hair',
     }),
   )
-  // windows: two rows
   for (const [row, step] of [
     [wallTop + 4, 0.095],
     [stringY + 5, 0.095],
@@ -54,7 +48,6 @@ export const chateauC: KitModule = ([x, y, w, h], p) => {
       out.push(fill(rectPts(wx, row, 2.4, 6)))
     }
   out.push(fill(archPts(X(0.46), base - 12, 7, 12)))
-  // gables: [centre, width, top]
   const gables: [number, number, number][] = [
     [0.17, 0.2, 0.22],
     [0.38, 0.16, 0.32],
@@ -87,7 +80,6 @@ export const chateauC: KitModule = ([x, y, w, h], p) => {
     out.push(fill(archPts(gx + gW / 2 - 1.4, wallTop - 11, 2.8, 8)))
     out.push(...spire(gx + gW / 2, apex, 0.9, 7, 0))
   }
-  // dark steep roof between gables
   const roof: Pt[] = [
     [X(0.04) - 1.5, wallTop],
     [X(0.1), wallTop - 6],
@@ -95,7 +87,6 @@ export const chateauC: KitModule = ([x, y, w, h], p) => {
     [X(0.96) + 1.5, wallTop],
   ]
   out.push(occlude(roof), fill(roof))
-  // main tower with a balcony and a tall spire
   const tcx = X(num(p, 'towerAt', 0.56))
   const tw = w * 0.085
   const tTop = Y(0.2)
@@ -116,7 +107,6 @@ export const chateauC: KitModule = ([x, y, w, h], p) => {
       [tcx, Y(0.0) - 0.01],
     ]),
   )
-  // corner turrets
   for (const [fx, up] of [
     [0.04, 0.2],
     [0.96, 0.24],

@@ -18,11 +18,6 @@ export const generateMetadata = () => pageMetadata('Welcome', 'Добро пож
 
 const BATCH = /^[0-9a-f-]{36}$/
 
-/**
- * The card's onboarding steps. A document load lands where the member's progress allows: the name first; a running
- * or finished batch wins over the prompt; review needs drafts and the reveal needs saved flights. In-card moves
- * between steps are history pushes and never reach this page.
- */
 export default async function Welcome({
   params,
   searchParams,

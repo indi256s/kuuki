@@ -32,7 +32,6 @@ async function OwnerPassport({ owned }: { owned: OwnPassport }) {
         locale={locale}
         ownerId={owned.ownerId}
         data={owned.data}
-        // Only the allowlisted identity fields enter the client island.
         profile={{
           id: profile.id,
           username: profile.username,
@@ -55,7 +54,6 @@ async function OwnerPassport({ owned }: { owned: OwnPassport }) {
   )
 }
 
-/** The owner's public projection as a visitor would read it; no owner passport data is fetched or passed. */
 async function VisitorPreview() {
   const [preview, locale] = await Promise.all([getOwnPublicPreview(), getRequestLocale()])
   if (!preview) redirect('/signin')

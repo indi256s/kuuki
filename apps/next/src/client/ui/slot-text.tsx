@@ -4,16 +4,9 @@ import clsx from 'clsx'
 import { useState, type CSSProperties } from 'react'
 import './slot-text.css'
 
-// Adapted from Arc "slot-text" (uiarc.dev, MIT, see ARC-LICENSE.txt): the per-character columns matched from the aligned end, the roll direction that follows the number, and the screen-reader text.
-// Dropped: `motion` and the spinning reels (springs, blur, stagger, extra turns, width spring). Here a changed character is replaced by a CSS roll of one step, transform and opacity only, 200ms.
-// The first render is static, nothing counts up from zero, and under reduced motion the new value is simply there. `announce` is gone: the real text is not a live region.
-
 export type SlotTextProps = {
-  /** The value to show. A number goes through `format`; a string renders as it is. */
   value: string | number
-  /** Formats a number value, e.g. with the member's locale. Defaults to `String`, which is the same on server and client. */
   format?: (value: number) => string
-  /** Which end the columns are matched from when the length changes. Numbers default to `end`, so 999 to 1,000 grows on the left. */
   align?: 'start' | 'end'
   className?: string
   style?: CSSProperties
@@ -22,8 +15,8 @@ export type SlotTextProps = {
 type Column = {
   key: string
   char: string
-  /** The character that is rolling out. */ prev: string | null
-  /** Changes whenever the column rolls; 0 means it never has. */ n: number
+  prev: string | null
+  n: number
   dir: 'up' | 'down'
 }
 type State = { text: string; value: string | number; columns: Column[] }
@@ -75,7 +68,6 @@ export function SlotText({ value, format, align, className, style }: SlotTextPro
 
   return (
     <span className={clsx('ui-slot-text', className)} style={style}>
-      {/* The whole value as ordinary text for assistive technology, find in page and copy; the rolling columns are decoration. */}
       <span className="ui-slot-text-value">{text}</span>
       <span aria-hidden="true">
         {current.columns.map((column) => (

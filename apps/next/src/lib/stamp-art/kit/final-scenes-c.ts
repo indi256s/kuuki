@@ -132,7 +132,6 @@ export const potemkinC: KitModule = ([x, y, w, h]) => {
   const base = y + h,
     top = y + h * 0.2,
     cx = x + w / 2
-  // Crescent buildings above the stair, without a statue.
   for (const side of [-1, 1]) {
     const bx = side < 0 ? x : x + w * 0.7,
       bw = w * 0.3
@@ -318,7 +317,6 @@ export const mirafloresC: KitModule = ([x, y, w, h]) => {
   const base = y + h,
     cx = x + w * 0.48,
     far = y + h * 0.33
-  // Chamber walls converge toward the far gate; the vessel is viewed from its bow.
   for (const side of [-1, 1]) {
     const wall: Pt[] = [
       [cx + side * w * 0.15, far],

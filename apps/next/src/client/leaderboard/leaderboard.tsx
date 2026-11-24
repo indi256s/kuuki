@@ -25,7 +25,6 @@ import { laneGeometry } from './lanes/lanes.generated'
 import { narrate } from './narrator'
 import './leaderboard.css'
 
-/** Mirrors the selection in the address bar without navigating, as the Journal does. */
 function mirror(category: LeaderboardCategory, period: string) {
   const params = new URLSearchParams(window.location.search)
   params.set('category', category)
@@ -33,21 +32,15 @@ function mirror(category: LeaderboardCategory, period: string) {
   window.history.replaceState(null, '', `?${params}`)
 }
 
-/**
- * Rank up: `recordRank` runs once per publication for every all-time place. A tile that climbed first paints its old
- * rank, then flips to the new one when it scrolls into view; several tiles flip 60ms apart.
- */
 function useRankUp(payload: LeaderboardBoardPayload, navRef: React.RefObject<HTMLElement | null>) {
   const [changes, setChanges] = useState<RankChanges>({})
   const [flipped, setFlipped] = useState<Partial<Record<LeaderboardCategory, true>>>({})
   const results = useRef<{ key: string; changes: RankChanges } | null>(null)
   const viewer = payload.viewer
   const updatedAt = payload.updatedAt
-  // Before paint, so the old rank is what the first frame shows.
   useLayoutEffect(() => {
     if (!viewer) return
     const key = `${viewer.userId}:${updatedAt ?? ''}`
-    // Strict mode runs this twice; the second recordRank would report nothing new.
     if (results.current?.key !== key) {
       const storage = notificationStorage()
       const next: RankChanges = {}
@@ -124,7 +117,6 @@ function relativeUpdated(updatedAt: string, now: number, locale: Locale) {
 }
 
 function Updated({ updatedAt, locale }: { updatedAt: string | null; locale: Locale }) {
-  // Once per render: it does not tick.
   const [now] = useState(() => Date.now())
   if (!updatedAt || !Number.isFinite(Date.parse(updatedAt))) return null
   const absolute = new Intl.DateTimeFormat(locale, {
@@ -166,7 +158,6 @@ export function LeaderboardBoard({
   const [period, setPeriod] = useState(initialPeriod)
   const navRef = useRef<HTMLElement>(null)
   const { changes, shownRanks } = useRankUp(payload, navRef)
-  // A switch made from the keyboard re-orders the lanes without motion, like keyboard-changed segmented controls.
   const keyboard = useRef(false)
   const [instant, setInstant] = useState(false)
   useEffect(() => {
@@ -251,7 +242,6 @@ export function LeaderboardBoard({
   )
 }
 
-/** Suspense fallback with the strip's and the first lanes' geometry, so nothing shifts when the board arrives. */
 export function LeaderboardLoading({ locale: initialLocale }: { locale: Locale }) {
   const locale = useLocale(initialLocale)
   const ru = locale === 'ru'
@@ -327,18 +317,14 @@ export function recordRank(
         Array.isArray(parsed.seen) &&
         parsed.seen.every((item) => typeof item === 'string')
       ) {
-        // A failed write can leave readable storage behind this tab; another tab can publish a newer baseline.
         const newest =
           !previous || Date.parse(parsed.period) > Date.parse(previous.period) ? parsed : previous
         previous = { ...newest, seen: [...new Set([...(previous?.seen ?? []), ...parsed.seen])] }
       }
     }
-  } catch {
-    /* blocked/corrupt storage keeps the local baseline */
-  }
+  } catch {}
   if (previous) {
     rankMemory.set(key, previous)
-    // History and older tabs may replay a snapshot; it must not rewind the next comparison.
     if (
       period !== previous.period &&
       (previous.seen.includes(period) || Date.parse(period) < Date.parse(previous.period))
@@ -356,8 +342,6 @@ export function recordRank(
   rankMemory.set(key, next)
   try {
     storage.setItem(key, JSON.stringify(next))
-  } catch {
-    /* no repeated celebration in this tab */
-  }
+  } catch {}
   return { delta, celebrate }
 }

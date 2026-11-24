@@ -1,14 +1,8 @@
-// Mesa module: a long flat-topped table mountain (Table Mountain). The skyline comes from `ridge`
-// ([x, y] fractions of the box, y from the box top). Below it a sheer cliff band is hatched in
-// vertical runs (paper on the lit left, denser on the shaded right); under the cliff a talus
-// skirt falls to the foot along fan-shaped fall lines. An optional cloud wipes a scalloped band
-// off the cliff top (the tablecloth).
 import { mulberry32 } from '../hash'
 import { clipStrokeOutside } from '../geom'
 import { type Pt, type StrokeNode, type SvgNode, occlude, quad, stroke } from '../grid'
 import { type KitModule, num, nums, pairs } from './util'
 
-/** y on a polyline sorted by x ascending. */
 function yAtX(line: Pt[], x: number): number {
   for (let i = 0; i + 1 < line.length; i++) {
     const a = line[i],
@@ -28,7 +22,6 @@ export const mesa: KitModule = ([x, y, w, h], p) => {
     [0.5, 0.0],
     [0.94, 0.12],
   ]).map(([xf, yf]): Pt => [x + w * xf, y + h * yf])
-  // Skyline: the coarse points with a few deterministic kinks along the long runs.
   const sky: Pt[] = [coarse[0]]
   for (let i = 1; i < coarse.length; i++) {
     const a = coarse[i - 1],
@@ -47,7 +40,6 @@ export const mesa: KitModule = ([x, y, w, h], p) => {
   const cb = (px: number) => cbf + Math.sin(px * 0.21) * 1.2 + Math.sin(px * 0.07 + 1) * 1.6
   const lightEnd = x + w * num(p, 'lit', 0.3)
 
-  // Silhouette: skyline, down the right end, talus foot, back up the left end.
   const rightFoot: Pt[] = [
     [x1 + 1, Math.max(cb(x1), sky[sky.length - 1][1] + 4)],
     [x1 + skirt, base],
@@ -59,7 +51,6 @@ export const mesa: KitModule = ([x, y, w, h], p) => {
   const silhouette: Pt[] = [...leftFoot, ...sky, ...rightFoot]
   const out: SvgNode[] = [occlude(silhouette)]
 
-  // Cloud polygon (tablecloth): a paper band under the skyline with a scalloped lower edge.
   const cloud = nums(p, 'cloud', [])
   let cloudPoly: Pt[] | null = null
   let cloudEdge: Pt[] = []
@@ -83,8 +74,6 @@ export const mesa: KitModule = ([x, y, w, h], p) => {
     cloudPoly = [...top, ...cloudEdge.slice().reverse()]
   }
 
-  // Cliff: vertical runs from just under the skyline down toward the cliff base, ragged at the
-  // lower end so the face reads as buttresses and gullies rather than a wall of bars.
   const hatch: StrokeNode[] = []
   let k = 0
   for (let px = x0 + 1; px < x1 - 0.5; px += 2.4, k++) {
@@ -117,8 +106,6 @@ export const mesa: KitModule = ([x, y, w, h], p) => {
       )
     }
   }
-  // Talus: fall lines from the cliff base to the foot, a lighter tone than the cliff, with the
-  // lines starting at staggered heights.
   const cxm = (x0 + x1) / 2
   k = 0
   for (let px = x0 - skirt * 0.9; px < x1 + skirt * 0.9; px += 2.8, k++) {
@@ -139,11 +126,9 @@ export const mesa: KitModule = ([x, y, w, h], p) => {
     const cp = cloudPoly
     acc = acc.flatMap((n) => clipStrokeOutside(n, cp))
   }
-  // Keep every stroke inside the silhouette on the talus ends.
   out.push(...acc)
   if (cloudEdge.length) out.push(stroke('hair', cloudEdge))
   out.push(stroke('line', [...leftFoot.slice(1), ...sky, rightFoot[0]]))
-  // Cliff base: a hair line where the sheer face meets the talus, only where there is a cliff.
   const baseLine: Pt[] = []
   for (let px = x0; px <= x1; px += 3) if (yAtX(sky, px) + 5 < cb(px)) baseLine.push([px, cb(px)])
   if (baseLine.length > 1) out.push(stroke('line', baseLine))

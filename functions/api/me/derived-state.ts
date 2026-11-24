@@ -1,4 +1,3 @@
-// GET /api/me/derived-state — owner-only status for bounded stats refetch.
 import { runHandler, json } from '../_lib/http'
 import { requireUser, type RequestData } from '../_lib/auth'
 import { isDerivedReady, stateOf } from '../_services/derivedState'

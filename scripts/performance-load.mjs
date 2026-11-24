@@ -2,8 +2,6 @@ import { execFileSync } from 'node:child_process'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { gzipSync, brotliCompressSync } from 'node:zlib'
 
-// Production fixture only. Build/start pnpm next:preview, then sign in with an isolated agent-browser session.
-// KUUKI_PERF_SESSION=<session> node scripts/performance-load.mjs <label>
 const phase = process.argv[2] ?? 'candidate'
 if (!/^[a-zA-Z0-9_-]+$/.test(phase))
   throw Error('Use a simple label: letters, numbers, underscores or hyphens')
@@ -142,9 +140,7 @@ try {
               sum.raw += size.raw
               sum.gzip += size.gzip
               sum.brotli += size.brotli
-            } catch {
-              /* nonstatic script */
-            }
+            } catch {}
             return sum
           },
           { raw: 0, gzip: 0, brotli: 0 },

@@ -1,9 +1,4 @@
 'use client'
-// The detail sheet's action state machine. One command at a time; every new attempt gets a fresh operation key, but a
-// command whose answer was lost keeps its key until the owner resolves it (Check result / Try the same change again /
-// dismiss). 409 never retries by itself: the latest version is loaded and the owner chooses again.
-// State is kept per journey id, so one journey's notice or unresolved command never shows on (or blocks) another; an
-// unresolved command stays on its own journey until it is resolved or dismissed.
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { getAuthGeneration } from '@kuuki/client/apiClient'
 import type { GroundJourneyDto } from '@kuuki/shared/groundTravel'
@@ -17,15 +12,11 @@ import {
 } from './journey-actions'
 
 type ActionState = {
-  /** The action in flight; the sheet is not dismissible and the buttons wait. */
   busy: SheetAction | null
-  /** A command whose answer was lost, kept with its key. */
   unknown: PendingCommand | null
   checking: boolean
-  /** `not-recorded`: the receipt lookup found nothing, so the change did not happen. */
   notRecorded: boolean
   issue: null | { kind: 'conflict' } | { kind: 'gone' } | { kind: 'rejected'; message: string }
-  /** The last action that saved; `pending` means the totals are still being published. */
   saved: null | { action: SheetAction; pending: boolean }
 }
 
@@ -40,10 +31,8 @@ const idleActions: ActionState = {
 
 type Deps = {
   journey: GroundJourneyDto | null
-  /** A journey the server confirmed after an action (cancel, restore, reopen). */
   onSaved: (journey: GroundJourneyDto) => void
   onDeleted: () => void
-  /** Conflict or gone: load what the server has now. */
   onStale: () => void
 }
 
@@ -57,7 +46,6 @@ export function useJourneyActions({ journey, onSaved, onDeleted, onStale }: Deps
   useEffect(() => {
     deps.current = { onSaved, onDeleted, onStale }
   })
-  // Opening another journey ends what is in flight for the previous one (it becomes unknown there, not lost).
   useEffect(() => () => controller.current?.abort(), [id])
   useEffect(() => {
     const abort = () => controller.current?.abort()
@@ -120,7 +108,6 @@ export function useJourneyActions({ journey, onSaved, onDeleted, onStale }: Deps
       try {
         const outcome = await runCommand(pending, next.signal)
         if (next.signal.aborted || generation !== getAuthGeneration()) {
-          // The session ended while the answer was in flight: whether it landed is unknown, and nothing here applies.
           put(pending.journeyId, { ...idleActions, unknown: pending })
           return { kind: 'unknown' }
         }
@@ -133,7 +120,6 @@ export function useJourneyActions({ journey, onSaved, onDeleted, onStale }: Deps
     [put, settle],
   )
 
-  /** A new action with a new key. Ignored while another is in flight or an unresolved command exists. */
   const run = useCallback(
     (action: SheetAction): Promise<Outcome> | null => {
       if (!journey || working.current || state.unknown) return null
@@ -142,7 +128,6 @@ export function useJourneyActions({ journey, onSaved, onDeleted, onStale }: Deps
     [journey, send, state.unknown],
   )
 
-  /** The same command, the same key: the server replays it if it already landed. */
   const retry = useCallback(() => {
     if (!state.unknown || working.current) return
     void send(state.unknown)
@@ -181,7 +166,6 @@ export function useJourneyActions({ journey, onSaved, onDeleted, onStale }: Deps
     }
   }, [put, state.unknown])
 
-  /** Drops an unresolved command (and its key); the owner starts over from what the sheet shows. */
   const dismiss = useCallback(() => {
     if (id) put(id, idleActions)
     deps.current.onStale()

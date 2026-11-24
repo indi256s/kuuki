@@ -173,7 +173,7 @@ it('lists upcoming flights nearest first across pages by default, leaving explic
   try {
     await seed(db)
     const day = (n: number) => `2099-03-${String(n).padStart(2, '0')}`
-    const upcomingDays = Array.from({ length: 25 }, (_, i) => ((i * 7) % 25) + 1) // scrambled insertion order
+    const upcomingDays = Array.from({ length: 25 }, (_, i) => ((i * 7) % 25) + 1)
     const past = ['2024-01-10', '2025-06-02', '2023-05-05']
     await db.batch([
       ...upcomingDays.map((n) =>
@@ -230,7 +230,7 @@ it('lists upcoming flights nearest first across pages by default, leaving explic
     const byOriginDesc = await page('sort=origin&order=desc&limit=3')
     expect(byOriginDesc.flights.map((row) => row.date)).toEqual(
       upcomingDays.slice(-3).reverse().map(day),
-    ) // origin ties fall back to id descending
+    )
     const asc = await page('sort=date&order=asc&limit=4')
     expect(asc.flights.map((row) => row.date)).toEqual([
       '2023-05-05',
@@ -239,7 +239,7 @@ it('lists upcoming flights nearest first across pages by default, leaving explic
       '2099-03-01',
     ])
     const byOrigin = await page('sort=origin&order=asc&limit=3')
-    expect(byOrigin.flights.map((row) => row.date)).toEqual(past) // origin ties fall back to id ascending (insertion order)
+    expect(byOrigin.flights.map((row) => row.date)).toEqual(past)
   } finally {
     await dispose()
   }
@@ -674,7 +674,6 @@ it('accepts valid aircraft changes in a mixed batch and publishes one revision',
   }
 })
 
-// Contract: the endpoint sets an absolute aircraft value, so an identical replay is safe (a lost response can be retried).
 async function seedAircraftReplay(db: D1Database) {
   await seed(db)
   await db
@@ -779,7 +778,6 @@ it('keeps derived totals identical after an aircraft batch is replayed', async (
     expect(afterFirst.stats).toEqual({ total_flights: 2, aircraft_count: 1 })
     await aircraftBatch(context(db, '/api/flights/aircraft-batch', 'POST', { items }))
     expect(await snapshotDerived(db)).toEqual(afterFirst)
-    // The replay marks the account dirty again and republishes: a later revision, never a pending one.
     expect(
       await db
         .prepare("SELECT revision,published_revision FROM user_derived_state WHERE user_id='u1'")
@@ -993,7 +991,6 @@ it('keeps a concurrently assigned aircraft when filling missing values, and repl
   const { db, dispose } = await createApiDatabase()
   try {
     const [id] = await seedAircraftReplay(db)
-    // Another tab filled the null value after the Journal selected its missing-aircraft rows.
     await db.prepare("UPDATE flights SET aircraft_icao = 'B738' WHERE id = ?").bind(id).run()
     const items = [{ id, aircraft_icao: 'A320' }]
     const filled = (await (
@@ -1130,7 +1127,6 @@ it('links an air visit atomically, preserves its metadata and replays even after
         .bind('air-visit')
         .first(),
     ).toEqual({ linked_flight_id: saved.id, visit_year: 2025, note: 'Keep this memory' })
-    // Global unresolved-save recovery retries the exact single-create payload through bulk.
     const recovery = await bulk(db, [{ key: 'air-link-001', flight: body }])
     expect(await recovery.json()).toMatchObject({
       results: [{ status: 'replayed', flight: { id: saved.id } }],
@@ -1246,7 +1242,6 @@ it('keeps an identical retry valid when the original save commits after the retr
     let committed = false
     let savedId = 0
     const originals = new WeakMap<D1PreparedStatement, D1PreparedStatement>()
-    // Interleave at the first service read, without depending on query text or read counts.
     const wrap = (statement: D1PreparedStatement): D1PreparedStatement => {
       const wrapped = new Proxy(statement, {
         get(target, name) {

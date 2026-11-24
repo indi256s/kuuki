@@ -38,7 +38,6 @@ function featurePoints(feature: AirportFeature): { point: PointM; height: number
   )
 }
 
-/** Explicit fit only; opening a panel never calls this or changes metres per pixel. */
 export function focusPose(
   feature: AirportFeature,
   pose: CameraPose,

@@ -1,5 +1,3 @@
-// GET /api/ground-journeys/operations/:key — the owner's recorded result of one operation key, or `unknown`.
-
 import { runHandler, json } from '../../_lib/http'
 import { requireUser, type RequestData } from '../../_lib/auth'
 import { readOperationStatus } from '../../_services/groundJourneyRead'

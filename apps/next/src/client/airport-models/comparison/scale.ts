@@ -2,7 +2,6 @@ import type { BoundsM } from '../../../lib/airport-models/model'
 
 export type DrawingPanel = { width: number; height: number; boundsM: BoundsM }
 
-/** Panel sizes exclude labels/padding: both airports receive exactly this scale. */
 export function comparisonScale(panels: readonly DrawingPanel[]) {
   if (!panels.length || panels.some((panel) => panel.width <= 0 || panel.height <= 0)) return 0
   return Math.min(

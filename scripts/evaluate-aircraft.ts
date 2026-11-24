@@ -1,4 +1,3 @@
-// Opt-in read-only source audit. Private inputs/results stay in ignored .scratch/import-eval.
 import { constants } from 'node:fs'
 import { lstat, mkdir, open, realpath } from 'node:fs/promises'
 import { dirname, resolve, sep } from 'node:path'
@@ -13,7 +12,6 @@ import { devVar } from './_cli'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const PRIVATE = resolve(ROOT, '.scratch/import-eval')
 
-/** Reject symlinks in every existing component, including the private directory itself. */
 export async function privateAircraftPath(value: string): Promise<string> {
   const path = resolve(ROOT, value)
   if (!path.startsWith(PRIVATE + sep)) throw new Error('Expected private aircraft path')
@@ -30,7 +28,6 @@ export async function privateAircraftPath(value: string): Promise<string> {
   return path
 }
 
-/** Keep the exclusive descriptor open for incremental writes; never replace an existing artifact. */
 export async function createPrivateAircraftArtifact(value: string) {
   const path = await privateAircraftPath(value)
   await mkdir(dirname(path), { recursive: true, mode: 0o700 })
@@ -45,7 +42,6 @@ export async function createPrivateAircraftArtifact(value: string) {
     path,
     async write(data: unknown) {
       const bytes = Buffer.from(JSON.stringify(data, null, 2) + '\n')
-      // Positional writes keep the same protected file, rather than opening its path again.
       let offset = 0
       while (offset < bytes.length) {
         const written = await handle.write(bytes, offset, bytes.length - offset, offset)
@@ -195,7 +191,6 @@ async function main() {
         break
       }
       summary.requests_reserved += reservation
-      // Persist the reservation and unknown usage before a paid request can leave the process.
       summary.usage_unknown_batches++
       summary.conservative_usage_estimate_usd = null
       const batch: Record<string, unknown> = {
@@ -245,8 +240,6 @@ async function main() {
               : providerFailure(error).code,
         })
       }
-      // High prompt tier and longest cache-write tier; an estimate, never a billing cap.
-      // See docs/research/2026-10-13-haiku-enrichment-api.md for current provider pricing.
       summary.conservative_usage_estimate_usd =
         provider === 'anthropic' && summary.usage_unknown_batches === 0
           ? (summary.usage.inputTokens * 0.5 +

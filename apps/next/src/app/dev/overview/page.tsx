@@ -11,7 +11,6 @@ export default async function DevOverviewPage({
 }) {
   if (process.env.NODE_ENV === 'production') notFound()
   const { fixture, theme, locale } = await searchParams
-  // JSON stays at this server boundary; only the selected fixture reaches the dev client.
   const payload =
     fixture === 'empty'
       ? (await import('../../../../../../packages/shared/src/overview/__fixtures__/n0.json'))

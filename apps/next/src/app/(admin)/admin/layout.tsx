@@ -5,7 +5,6 @@ import { getRequestLocale } from '../../../server/locale'
 import { requireUserAnalyticsAdmin } from '../../../server/user-analytics'
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  // Admit the owner before rendering a shell or a streaming fallback.
   await requireUserAnalyticsAdmin()
   const locale = await getRequestLocale()
   return (

@@ -1,6 +1,3 @@
-// A whitewashed hill town of cubes stepping down a slope toward the bay: two depth rows of flat-roofed
-// blocks, lit left, T4 right face, dark windows and arched doors, plus one small tower on the crest.
-// `dir` 1 climbs to the left (crest left, sea right), -1 mirrors it. The box bottom is the shore.
 import { mulberry32 } from '../hash'
 import { type SvgNode, body, fill, hline, rectPts, toneFill } from '../grid'
 import { type KitModule, num } from './util'
@@ -74,7 +71,6 @@ export const cubeTown: KitModule = ([x, y, w, h], p) => {
         out.push(...cube(fx(c, row ? bw * 0.25 : 0), baseY, bw - 1.2, tall, row === 1, row === 1))
     }
   }
-  // Crest tower.
   const tx = fx(0, 1)
   const tw = bw * 0.72
   out.push(...cube(tx + tw * 0.1, slopeTop(0) - 8, tw * 0.8, 9, false))

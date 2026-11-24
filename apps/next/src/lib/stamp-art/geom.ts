@@ -1,5 +1,3 @@
-// Small polygon/segment geometry used by the renderer: occlusion (erase strokes behind a body)
-// and mirroring (keep the left half of a module and reflect it).
 import { type Pt, type StrokeNode, type SvgNode, mirrorPts, ptsBounds, stroke } from './grid'
 
 const EPS = 1e-9
@@ -16,7 +14,6 @@ export function pointInPoly(p: Pt, poly: Pt[]): boolean {
   return inside
 }
 
-/** Parts of segment a-b on the requested side of `poly`. */
 function segmentParts(a: Pt, b: Pt, poly: Pt[], keepInside: boolean): [Pt, Pt][] {
   const ts = [0, 1]
   const dx = b[0] - a[0],
@@ -51,7 +48,6 @@ function segmentParts(a: Pt, b: Pt, poly: Pt[], keepInside: boolean): [Pt, Pt][]
 
 const same = (a: Pt, b: Pt) => Math.abs(a[0] - b[0]) < 1e-6 && Math.abs(a[1] - b[1]) < 1e-6
 
-/** Chain consecutive segments that touch end to start back into polylines. */
 function chain(segs: [Pt, Pt][]): Pt[][] {
   const out: Pt[][] = []
   for (const [a, b] of segs) {
@@ -62,7 +58,6 @@ function chain(segs: [Pt, Pt][]): Pt[][] {
   return out
 }
 
-/** Removes the parts of a stroke that fall inside `poly`. */
 export function clipStrokeOutside(node: StrokeNode, poly: Pt[]): StrokeNode[] {
   const pts = node.closed ? [...node.pts, node.pts[0]] : node.pts
   const [bx0, by0, bx1, by1] = ptsBounds(poly)
@@ -72,12 +67,10 @@ export function clipStrokeOutside(node: StrokeNode, poly: Pt[]): StrokeNode[] {
   for (let i = 0; i + 1 < pts.length; i++)
     segs.push(...segmentParts(pts[i], pts[i + 1], poly, false))
   const lines = chain(segs)
-  // A closed outline that survived whole stays closed.
   if (node.closed && lines.length === 1 && lines[0].length === pts.length) return [node]
   return lines.map((l) => ({ ...stroke(node.weight, l), ...(node.bg ? { bg: true } : {}) }))
 }
 
-/** Keeps only the parts of a stroke that fall inside `poly`. */
 export function clipStrokeInside(node: StrokeNode, poly: Pt[]): StrokeNode[] {
   const pts = node.closed ? [...node.pts, node.pts[0]] : node.pts
   const segs: [Pt, Pt][] = []
@@ -86,11 +79,6 @@ export function clipStrokeInside(node: StrokeNode, poly: Pt[]): StrokeNode[] {
   return chain(segs).map((l) => ({ ...stroke(node.weight, l), ...(node.bg ? { bg: true } : {}) }))
 }
 
-/**
- * Polygon grown by `d` units (miter joins, bevelled past a miter ratio of 2.5). Good for the
- * convex-ish silhouettes of buildings; thin concave slots narrower than 2d may self-overlap, which
- * only erases a little more backdrop hatching.
- */
 export function bufferPoly(poly: Pt[], d: number): Pt[] {
   let area = 0
   for (let i = 0; i < poly.length; i++) {
@@ -98,7 +86,7 @@ export function bufferPoly(poly: Pt[], d: number): Pt[] {
       b = poly[(i + 1) % poly.length]
     area += a[0] * b[1] - b[0] * a[1]
   }
-  const sign = area >= 0 ? 1 : -1 // y-down: positive area is clockwise on screen
+  const sign = area >= 0 ? 1 : -1
   const pts = poly.filter((p, i) => !same(p, poly[(i + 1) % poly.length]))
   const normal = (a: Pt, b: Pt): Pt => {
     const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1
@@ -125,7 +113,6 @@ export function bufferPoly(poly: Pt[], d: number): Pt[] {
   return out
 }
 
-/** Sutherland-Hodgman against the half-plane x <= cx. */
 function clipHalf(poly: Pt[], cx: number): Pt[] {
   const out: Pt[] = []
   for (let i = 0; i < poly.length; i++) {
@@ -144,7 +131,6 @@ function clipHalf(poly: Pt[], cx: number): Pt[] {
 
 const HALF_PLANE_FAR = 1e4
 
-/** Keeps the left half of each node (x <= cx) and adds its reflection. */
 export function mirrorLeft(nodes: SvgNode[], cx: number): SvgNode[] {
   const out: SvgNode[] = []
   const wall: Pt[] = [
@@ -168,7 +154,6 @@ export function mirrorLeft(nodes: SvgNode[], cx: number): SvgNode[] {
   return out
 }
 
-/** Triangle pulled in by `d` on every side: scaled about its incentre (exact, unlike a miter). */
 export function insetTriangle(tri: [Pt, Pt, Pt], d: number): [Pt, Pt, Pt] {
   const [a, b, c] = tri
   const la = Math.hypot(b[0] - c[0], b[1] - c[1]),

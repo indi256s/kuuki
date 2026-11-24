@@ -1,10 +1,3 @@
-// Saving flights added by hand. It reuses the shared create helper and its receipt (one stored key and payload per
-// operation id, `flightCreateOperations`). An operation stays unsettled, with its receipt, operation id and pinned
-// payload, until the outcome is known: a 2xx (written or replayed), a definitive validation refusal on an operation
-// with no earlier attempt, or the member's explicit "I checked the journal". Everything else (401/403, 408, 409/410
-// idempotency answers, 413, 429, 5xx, network loss, or any refusal after an earlier attempt) may have followed a
-// committed write, so the receipt stays and the unchanged row replays under the same key. A changed payload under
-// that receipt is refused locally (UnconfirmedFlightOperationError). No second receipt store exists here.
 import { ApiError } from '@kuuki/client/apiClient'
 import type { DerivedAck } from '@kuuki/client/derivedState'
 import {
@@ -27,23 +20,16 @@ import { toValues, type FieldValues } from './review-model'
 export interface ManualFailure {
   kind: ManualFailureKind
   code: string | null
-  /** For `duplicate`: the operation id of the unresolved save of the same flight that holds this row back. */
   heldBy?: string
 }
 export interface ManualRowState {
-  /** Stable identity of the row (React key, counted once however often it is retried). */
   key: string
-  /** The create operation: its receipt pins one key and payload until the outcome is known. */
   operationId: string
   values: FieldValues
   retryKey?: string
   failure?: ManualFailure
 }
 
-/**
- * Manual operation ids are `manual:<scope>:<uuid>`, where the scope is the import batch (or `solo` without one). Recovery
- * does not depend on it: every unresolved receipt of the owner is found whatever its id (see `unconfirmedSaves`).
- */
 const MANUAL_PREFIX = 'manual:'
 const operationScope = (operationId: string) =>
   operationId.startsWith(MANUAL_PREFIX)
@@ -59,23 +45,13 @@ export const newManualRow = (values: FieldValues, scope = 'solo'): ManualRowStat
   values,
 })
 
-/** An unresolved create of this owner, as the recovery list shows it. */
 export interface UnconfirmedSave {
   operationId: string
-  /** The flight its receipt pinned; null when the receipt cannot be read. */
   values: FieldValues | null
-  /** Past the safe-retry window (or unreadable): only the journal check can settle it. */
   expired: boolean
-  /** Pinned key captured when the entry is displayed. */
   retryKey: string
 }
 
-/**
- * Every unresolved create receipt of this owner in this browser, whatever wrote it: a manual row of any import (plain
- * UUID ids from earlier versions, `manual:<scope>:` ids), the add-flight form, or the legacy import's `<run>:<row>` ids.
- * Each is shown once with the payload its receipt pinned. Retrying replays that payload under its own key, so listing
- * a receipt that another screen also owns can never mint a second key; it only lets the member settle it here.
- */
 export function unconfirmedSaves(ownerId: string): UnconfirmedSave[] {
   return pendingFlightCreateOperations(ownerId).map((receipt) => {
     const body = receipt.body as Partial<Record<keyof FieldValues, unknown>>
@@ -98,7 +74,6 @@ export function unconfirmedSaves(ownerId: string): UnconfirmedSave[] {
   })
 }
 
-/** Conservative flight identity: derived metadata and optional details cannot release an unresolved date/route hold. */
 export const flightIdentity = (payload: object): string | null => {
   const body = payload as Record<string, unknown>
   if (
@@ -114,10 +89,6 @@ export const flightIdentity = (payload: object): string | null => {
   ])
 }
 
-/**
- * The outcome of a create attempt that threw. `firstAttempt` is true only when no receipt existed before this send,
- * i.e. no earlier attempt of unknown outcome. Only then is a validation refusal proof that nothing was written.
- */
 export function classifyManualFailure(error: unknown, firstAttempt: boolean): ManualFailure {
   if (error instanceof SettledFlightOperationError) return { kind: 'settled', code: null }
   if (error instanceof UnconfirmedFlightOperationError) return { kind: 'unconfirmed', code: null }
@@ -129,13 +100,11 @@ export function classifyManualFailure(error: unknown, firstAttempt: boolean): Ma
       code,
     }
   }
-  // Network loss, timeout or abort: the request may have been committed.
   if (
     error instanceof TypeError ||
     (typeof DOMException !== 'undefined' && error instanceof DOMException)
   )
     return { kind: 'uncertain', code: null }
-  // Anything else came from preparing the receipt locally (damaged or unwritable): nothing was sent and no safe retry exists.
   return { kind: 'expired', code: null }
 }
 
@@ -146,7 +115,6 @@ export interface ManualSaveResult {
   rows: Map<string, ManualRowState>
 }
 
-/** `original` lists rows to send as their stored receipt payload (the explicit "retry the original save"). */
 export async function saveManualRows(
   ownerId: string,
   rows: ManualRowState[],
@@ -178,17 +146,13 @@ export async function saveManualRows(
       )
     if (!receipt || receipt.expired) return row
     payloads.set(row.key, receipt.body as ReturnType<typeof toFlightInput>)
-    // Showing the original payload keeps the row, the summary and the receipt consistent.
     return { ...row, values: toValues(receipt.body as Partial<Record<keyof FieldValues, string>>) }
   })
-  // A receipt that exists before the send belongs to an earlier attempt whose outcome may never have been seen.
   const fresh = new Set(
     sent
       .filter((row) => pendingFlightCreateOperation(ownerId, row.operationId) === null)
       .map((row) => row.key),
   )
-  // A new row must not mint a second key for a flight whose earlier save is still unresolved, whatever wrote that
-  // receipt: the same date and route are held back, pointing at that save, until it is settled.
   const unresolved = pendingFlightCreateOperations(ownerId).map((receipt) => ({
     operationId: receipt.operationId,
     payload: flightIdentity(receipt.body),
@@ -238,8 +202,6 @@ export async function saveManualRows(
     }
     const failure = classifyManualFailure(error, fresh.has(row.key))
     failures.set(row.key, failure)
-    // Only a validation refusal of a first attempt wrote nothing: free the receipt so the corrected row is a fresh
-    // operation instead of a clash. Every other failure keeps the receipt and the operation id.
     if (failure.kind === 'refused') {
       abandonFlightCreateOperation(ownerId, row.operationId)
       next.set(row.key, { ...row, operationId: rotatedOperationId(row.operationId), failure })
@@ -254,17 +216,11 @@ export async function saveManualRows(
   return { saved, failures, acks, rows: next }
 }
 
-/** The member checked the journal: drop the old receipt and give the row a new operation. */
 export function startNewOperation(ownerId: string, row: ManualRowState): ManualRowState {
   abandonFlightCreateOperation(ownerId, row.operationId)
   return { key: row.key, operationId: rotatedOperationId(row.operationId), values: row.values }
 }
 
-/**
- * "Retry original save" for a listed unresolved save: its pinned payload is sent again under its own key. Nothing is
- * rotated or dropped unless the answer is a 2xx; any other answer leaves the receipt for another retry or the journal
- * check. A missing or replaced receipt reports settlement elsewhere; it cannot become a new operation.
- */
 export async function retryUnconfirmedSave(
   ownerId: string,
   operationId: string,
@@ -287,13 +243,11 @@ export async function retryUnconfirmedSave(
     ],
     (ack) => acks.push(ack),
   )
-  // The receipt existed before this send, so no refusal proves the earlier attempt wrote nothing.
   return error === null
     ? { saved: true, failure: null, acks }
     : { saved: false, failure: classifyManualFailure(error, false), acks }
 }
 
-/** The member checked the journal for a listed unresolved save: its receipt is dropped and nothing is sent. */
 export function settleUnconfirmedSave(ownerId: string, operationId: string): void {
   abandonFlightCreateOperation(ownerId, operationId)
 }

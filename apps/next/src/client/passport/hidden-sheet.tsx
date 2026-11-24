@@ -8,10 +8,6 @@ import { Sheet } from '../ui/sheet'
 import type { Locale } from '../../lib/format'
 import './passport.css'
 
-/**
- * The countries the owner hid from the passport, each with Restore. Hiding is presentation only: restoring puts the
- * stamp back in the collection and in the public set, nothing else changes.
- */
 export function HiddenSheet({
   open,
   onOpenChange,
@@ -28,7 +24,6 @@ export function HiddenSheet({
   mobile: boolean
   codes: string[]
   name: (code: string) => string
-  /** A country was restored: refetch the collection. */
   onRestored: (code: string) => Promise<void> | void
   onCloseAutoFocus?: (event: Event) => void
 }) {

@@ -1,4 +1,3 @@
-/* Arc-derived slot text. Transform and opacity only; the real text is the visually hidden span. */
 .ui-slot-text {
   position: relative;
   display: inline-block;

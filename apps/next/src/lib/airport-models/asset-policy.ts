@@ -1,7 +1,6 @@
 import { airportAssetPaths } from './catalog.generated'
 
 const paths = new Set(airportAssetPaths)
-/** Only generated public data, never a route fallback or a private response. */
 export function immutableAirportAsset(request: Request, response: Response): boolean {
   if (!paths.has(new URL(request.url).pathname)) return false
   if (request.method !== 'GET' && request.method !== 'HEAD') return false

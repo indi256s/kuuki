@@ -6,7 +6,6 @@ const subscribe = () => () => {}
 const observerAvailable = () => typeof IntersectionObserver !== 'undefined'
 const serverObserverAvailable = () => true
 
-// Render chart content with its chapter; viewport visibility controls motion only.
 export function LazyChart({
   height,
   children,

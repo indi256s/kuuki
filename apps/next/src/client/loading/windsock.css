@@ -1,6 +1,3 @@
-/* The loading windsock (windsock.tsx). The kit's rules are in windsock.generated.css; this file maps its colour roles
-   onto Kuuki's tokens as bench.css does: the footing and mast in the --iso-* faces and lines, and the sock, the only live
-   part, in the accent. Its five bands alternate accent and pale cloth, first and last in the accent as ICAO asks. */
 .windsock {
   --anatomy-paper: var(--surface);
   --anatomy-face: var(--surface-inset);

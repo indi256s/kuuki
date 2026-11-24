@@ -1,5 +1,3 @@
-// Unified Passport server contracts (ADR 0007): the public country projection per publication scope, the owner
-// preview, the publication opt-in and hiding. Hide is presentation only; evidence and counts stay factual.
 import { describe, expect, it } from 'vitest'
 import { accountWith, USER } from './country-fixture'
 import { apiContext, csrfRequest } from './harness'
@@ -15,10 +13,6 @@ import { readPublicProfile, readPublicProfilePreview } from '../api/_services/pu
 const FLIGHT_DATE = '2019-07-04'
 const CLAIM_DATE = '2018-05-06T07:08:09.000Z'
 
-/**
- * GE+TR: logged flight. US+GB: awaiting flight only (pending). FR: claim. JP: ground visit by rail. TR is then hidden.
- * Pressed: FR, GE, JP, TR. Pending: GB, US.
- */
 async function fixture(options: { isPublic: boolean; publication: 'flights' | 'all' }) {
   const account = await accountWith(
     [
@@ -179,7 +173,6 @@ describe('public projection', () => {
   it('never returns the wider set when the owner narrows publication during a read', async () => {
     const { db, dispose } = await fixture({ isPublic: true, publication: 'all' })
     try {
-      // The owner saves 'flights' right after the projection batch, before the final profile re-read.
       const racing = new Proxy(db, {
         get(target, key) {
           if (key !== 'batch') return Reflect.get(target, key)
@@ -194,7 +187,6 @@ describe('public projection', () => {
         },
       })
       const profile = await readPublicProfile(racing, 'pilot')
-      // No hidden country here, so the flights set includes TR; the claim (FR) and ground visit (JP) must not leak.
       expect(profile?.countries).toEqual(['GB', 'GE', 'TR', 'US'])
       expect(profile?.publication).toBe('flights')
     } finally {
@@ -268,12 +260,10 @@ describe('hidden countries', () => {
     const { db, dispose } = await fixture({ isPublic: true, publication: 'all' })
     try {
       expect((await hide(db, 'FR')).status).toBe(200)
-      // A stale row for the awaiting-only US, as a hidden country left behind when its logged flight went back to awaiting.
       await db
         .prepare('INSERT INTO passport_hidden_countries VALUES (?,?,?)')
         .bind(USER.id, 'US', '2026-01-01T00:00:00.000Z')
         .run()
-      // FR loses its only support (the claim); the published evidence row goes with it.
       await db.batch([
         db.prepare('DELETE FROM country_claims WHERE user_id = ?').bind(USER.id),
         db

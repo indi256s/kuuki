@@ -57,7 +57,6 @@ describe('AsyncCombobox', () => {
     const { input } = setup(search)
     await type(input, 'tbi')
     await type(input, 'tbil')
-    // The older answer arrives after the newer request started.
     await act(async () => first.resolve([{ key: 'old', label: 'Old result' }]))
     expect(screen.queryByText('Old result')).toBeNull()
     expect(screen.getByRole('status').textContent).toBe('Searching…')
@@ -73,7 +72,6 @@ describe('AsyncCombobox', () => {
     expect(screen.getByRole('option', { name: /Kars/ })).toBeTruthy()
     fireEvent.blur(input, { relatedTarget: screen.getByText('elsewhere') })
     expect(onSelect).not.toHaveBeenCalled()
-    // Closed, and the typed query is dropped rather than turned into a choice.
     expect(screen.queryByRole('option')).toBeNull()
   })
 
@@ -110,7 +108,6 @@ describe('AsyncCombobox', () => {
       throw new Error('down')
     })
     await type(input, 'kars')
-    // preventDefault on mousedown is what stops the browser moving focus (and the blur closing the list).
     expect(fireEvent.mouseDown(screen.getByRole('button', { name: 'Retry' }))).toBe(false)
   })
 

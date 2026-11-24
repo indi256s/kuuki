@@ -22,7 +22,7 @@ function scan(dir) {
     ]
     if (exports.length === 0) continue
     const rel = relative(apiDir, path).replaceAll('\\', '/')
-    if (rel === 'auth/[[path]].ts') continue // Deliberately enumerate Better Auth's supported URLs.
+    if (rel === 'auth/[[path]].ts') continue
     const route = '/api/' + rel.replace(/(?:\/index)?\.ts$/, '').replace(/\[([^\]]+)\]/g, ':$1')
     const methods = exports.flatMap((match) => (match[1] ? [match[1].toUpperCase()] : []))
     if (methods.length === 0) throw new Error(`Unbounded API handler: ${rel}`)

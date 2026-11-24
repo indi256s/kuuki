@@ -1,8 +1,3 @@
-// Owner decisions on Flighty history rows (ADR 0008): row answers, group answers and confirmation.
-//
-// Every write re-maps the row on the server from its verbatim cells and the answers, and is fenced on the row version
-// and the run generation (group answers also on the run revision the owner saw). Confirmation creates flights only
-// through the shared `bulkCreate` chain with a history guard; links and preserved records update only their row.
 import { isCalendarDate } from '../../../packages/shared/src/flightValidation'
 import {
   HISTORY_CONFIRM_MAX,
@@ -45,7 +40,6 @@ const invalid = (message: string) => new HttpError(400, message, 'INVALID_HISTOR
 const iata = (value: unknown) =>
   typeof value === 'string' && /^[A-Z]{3}$/.test(value) && !!catalogFlightyRefs.airport(value)
 
-/** Offsets settle a DST fold for one clock column; any other key is meaningless and unbounded. */
 const isClockHeader = (header: string) =>
   Object.hasOwn(FLIGHTY_COLUMN_ROLES, header) &&
   FLIGHTY_COLUMN_ROLES[header as FlightyObservedHeader] === 'clock'
@@ -191,7 +185,6 @@ export async function patchRow(
   if (!open && !restorable)
     throw new HttpError(409, 'This record is already settled', 'HISTORY_ROW_SETTLED')
   const previous = rowAnswers(row)
-  // Row answers replace the row-level set; group answers stay.
   const answers: HistoryStoredAnswers = request.answers
     ? { ...(previous.groups ? { groups: previous.groups } : {}), ...request.answers }
     : previous
@@ -235,9 +228,6 @@ export async function patchRow(
   return rowView(headers, await loadRow(db, userId, runId, rowId))
 }
 
-// ---------------------------------------------------------------------------------------------------------------
-// Group answers
-
 export interface GroupAnswerRequest {
   group: string
   answer: string | boolean | null
@@ -274,10 +264,6 @@ export function parseGroupAnswer(body: unknown): GroupAnswerRequest {
   }
 }
 
-/**
- * Apply one answer to every open row of a group, at the run revision the owner saw. All rows change in one D1 batch
- * or none do; a decision made elsewhere in the meantime is a revision conflict, never a partial application.
- */
 export async function answerGroup(
   db: D1Database,
   userId: string,
@@ -302,7 +288,6 @@ export async function answerGroup(
     const previous = rowAnswers(row)
     const finding = rowFinding(row)
     if (isMatch) {
-      // A match group settles only rows whose mapping is clean; `link` needs exactly one found flight.
       if (JSON.parse(row.issues_json).length) return []
       if (request.answer === 'link' && finding?.flightId == null) return []
     }
@@ -347,9 +332,6 @@ export async function answerGroup(
     updated: results2.slice(0, -1).reduce((sum, result) => sum + (result.meta.changes ?? 0), 0),
   }
 }
-
-// ---------------------------------------------------------------------------------------------------------------
-// Confirmation
 
 export function parseConfirm(body: unknown): {
   items: HistoryConfirmItem[]
@@ -446,7 +428,6 @@ export async function confirmRows(
     before.filter((row) => row.operation_key).map((row) => [row.operation_key!, row]),
   )
 
-  // Receipt first: an answered key replays whatever happened since, even after a discard or erasure.
   const results: Array<HistoryConfirmResult | null> = items.map((item) => {
     const owner = byKey.get(item.key)
     if (owner && owner.id !== item.rowId)
@@ -485,7 +466,6 @@ export async function confirmRows(
   }> = []
   const others: D1PreparedStatement[] = []
   const reopen: Array<{ row: RowRecord; evaluation: Evaluation }> = []
-  /** Link items by row id: the flight the link needs. A refused link whose flight is gone sends its row back. */
   const linkTargets = new Map<string, number>()
   for (const [index, item] of items.entries()) {
     if (results[index]) continue
@@ -580,7 +560,6 @@ export async function confirmRows(
       )
     }
   }
-  // A row whose mapping no longer yields `ready` (catalog change, or a rule fix) goes back to review.
   for (const { row, evaluation } of reopen)
     others.push(
       db
@@ -599,7 +578,6 @@ export async function confirmRows(
         ),
     )
 
-  // Links and preserved records touch only their rows; they commit before, and independently of, the creates.
   if (others.length) await db.batch([...others, runStatusStatement(db, run, now)])
   let derived: DerivedRepairResult | null = null
   if (creates.length) {
@@ -625,7 +603,6 @@ export async function confirmRows(
     }
   }
 
-  // Classify every item still unanswered from the rows as they are now.
   const after = new Map((await readRows()).map((row) => [row.id, row]))
   const duplicateRows: RowRecord[] = []
   const staleLinks: Array<{ index: number; row: RowRecord; flightId: number }> = []
@@ -665,7 +642,6 @@ export async function confirmRows(
         'This import no longer accepts decisions',
       )
     else if (creates.some((create) => create.item.rowId === row.id)) {
-      // The guard refused: an owned flight now has this date and route.
       duplicateRows.push(row)
       results[index] = failure(
         item,
@@ -684,8 +660,6 @@ export async function confirmRows(
       )
     }
   }
-  // A link guard refuses when its target flight was deleted after the review. The row would stay `ready` with a
-  // finding that links to nothing, so it goes back to review as a deleted record the owner must re-confirm.
   if (staleLinks.length) {
     const later = nowIso()
     const reopened = await db.batch([

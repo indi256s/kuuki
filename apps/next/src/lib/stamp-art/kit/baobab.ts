@@ -1,6 +1,3 @@
-// Avenue of the Baobabs: two receding rows of swollen bottle trunks with sparse crowns, a dirt road
-// running to the vanishing point on the axis. The box spans the whole window height; the horizon
-// sits at `hz` of it, trees are placed in one-point perspective and drawn far to near.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, fill, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, nums, num } from './util'
@@ -20,7 +17,6 @@ function trunk(t: Tree, out: SvgNode[], rand: () => number): void {
   }
   const body: Pt[] = [...L, ...R.slice().reverse()]
   out.push(occlude(body, { halo: 1.4 * Math.max(0.5, s) }))
-  // Shaded right third in verticals, lit left with a few bark streaks.
   const inner: Pt[] = L.map(([lx, ly], i) => [lx + (R[i][0] - lx) * 0.68, ly])
   out.push(
     ...toneFill([...inner, ...R.slice().reverse()], 'T4', {
@@ -42,7 +38,6 @@ function trunk(t: Tree, out: SvgNode[], rand: () => number): void {
       )
     }
   out.push(stroke(s > 0.45 ? 'line' : 'hair', [...L, ...R.slice().reverse()].slice(0, 22)))
-  // Crown: short stubby branches ending in dark tufts.
   const tx = x,
     ty = base - H
   const branches = [-0.9, -0.35, 0.25, 0.8]
@@ -75,7 +70,6 @@ export const baobab: KitModule = ([x, y, w, h], p) => {
   const hy = y + h * num(p, 'hz', 0.63)
   const bottom = y + h
   const out: SvgNode[] = []
-  // Road: a paper wedge to the vanishing point with two ruts.
   const half = num(p, 'road', 30)
   const road: Pt[] = [
     [cx - 1, hy],

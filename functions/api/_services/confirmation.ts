@@ -1,20 +1,3 @@
-// Atomic confirmation (ADR 0001 §5, C4): awaiting -> logged by the member, with a receipt that makes the whole
-// operation idempotent.
-//
-// Receipt-first: a known operation id is answered from its receipt before anything else is validated, so a replay
-// never depends on the flights still existing or on a fresh candidate token. One D1 batch (one transaction) holds
-//   1. INSERT receipt (complete 0, expected N)         - a duplicate operation id aborts the whole batch
-//   2. UPDATE flights ... (awaiting only, revision guard)
-//   3. UPDATE receipt SET applied_count = changes(), complete = 1
-//                                                       - the CHECK (complete = 0 OR applied = expected) aborts the
-//                                                         whole batch when any flight was lost to another writer
-//   4. the dirty mark
-// so the receipt, the flights and the dirty mark commit together or not at all. `changes()` counts the direct
-// UPDATE only (never trigger writes), unlike D1's `meta.changes`.
-//
-// The publication repair runs after the commit. When it fails the response says so (`derivedState: 'pending'`) and
-// the receipt keeps no outcome; the next replay of the same operation repairs, freezes the outcome once and returns
-// it, without applying anything a second time.
 import { HttpError } from '../_lib/http'
 import { evidenceFlightsStatement, type EvidenceFlight } from './countryEvidence'
 import { pressedCountriesStatement, readPublishedStamps } from './newlyStamped'
@@ -45,7 +28,6 @@ export const MAX_CONFIRM_ITEMS = QUEUE_PAGE_LIMIT
 export interface ConfirmItem {
   flightId: number
   candidateToken: string
-  /** Omitted: take the effective default shown in the queue. */
   arrivalTransit?: boolean
 }
 
@@ -67,9 +49,7 @@ export interface ConfirmOutcome {
   results: ConfirmedFlight[]
   derivedState: 'ready' | 'pending'
   revision: number
-  /** Countries this operation's flights pressed. Null when it cannot be told (see `newlyStamped.ts`). */
   newlyStampedCountries: string[] | null
-  /** Pending countries after publication; null while publication is pending. */
   pendingCountryCount: number | null
 }
 
@@ -104,7 +84,6 @@ export function parseConfirmRequest(body: unknown): ConfirmRequest {
   return { operationId, items: parsed }
 }
 
-/** The request identity: the flights and the decisions made, never the tokens (a replay must not need fresh ones). */
 const requestDigest = (items: ConfirmItem[]) =>
   digestOf({
     kind: 'confirm',
@@ -122,10 +101,6 @@ type FrozenResult = StoredResult &
     'derivedState' | 'revision' | 'newlyStampedCountries' | 'pendingCountryCount'
   >
 
-/**
- * Turns a committed receipt into the response. The outcome is frozen once, the first time publication is ready;
- * until then every call reports `pending` and repairs again.
- */
 export async function resolveReceipt(
   db: D1Database,
   userId: string,
@@ -152,7 +127,6 @@ export async function resolveReceipt(
     results: stored.results,
     derivedState: 'ready',
     revision: published.revision,
-    // Only countries these flights contribute: a concurrent claim or another writer's flight is never credited.
     newlyStampedCountries: published.newlyStamped(stored.results.map((result) => result.flightId)),
     pendingCountryCount: published.pendingCountryCount,
   } satisfies FrozenResult)
@@ -185,8 +159,6 @@ export async function confirmFlights(
     if (known) return replay(db, userId, operationId, digest, known)
 
     await ensureDerivedStateRow(db, userId).run()
-    // The "before" set needs a published, current projection. Repair first when it is not; if that fails the
-    // confirmation still goes ahead, and newlyStampedCountries is reported as unknown rather than guessed.
     let snapshot = await readSnapshot(db, userId)
     if (!snapshot.ready && !repairTried) {
       repairTried = true
@@ -198,7 +170,6 @@ export async function confirmFlights(
     try {
       plan = await planConfirmation(items, snapshot.flights, instant)
     } catch (error) {
-      // A concurrent identical operation may have committed between the receipt lookup and the validation.
       const late = await receiptStatement(db, userId, operationId).first<Receipt>()
       if (late) return replay(db, userId, operationId, digest, late)
       throw error
@@ -244,8 +215,6 @@ export async function confirmFlights(
         dirtyUserStatement(db, userId),
       ])
     } catch (error) {
-      // A duplicate operation id, a flight another operation took, or a revision that moved under the decisions:
-      // the transaction rolled back whole. Look again (receipt first), then decide on fresh state.
       if (!isConstraintError(error)) throw error
       continue
     }
@@ -277,12 +246,6 @@ async function readSnapshot(db: D1Database, userId: string): Promise<Snapshot> {
   }
 }
 
-/**
- * Validates every item against the snapshot and decides what each flight stores. Order of precedence, so one
- * request reports one kind of problem: unknown or foreign flight (404, indistinguishable), flights that are not
- * awaiting (409 STATE_CONFLICT with a cause per flight), a connection that changed since the member looked
- * (409 CANDIDATES_CHANGED), then an arrival decision the connection cannot support (400).
- */
 async function planConfirmation(items: ConfirmItem[], flights: EvidenceFlight[], instant: string) {
   const byId = new Map(flights.map((flight) => [flight.id, flight]))
   if (items.some((item) => !byId.has(item.flightId)))

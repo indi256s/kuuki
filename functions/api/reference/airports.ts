@@ -1,5 +1,3 @@
-// GET /api/reference/airports — public airports reference table.
-
 import { runHandler, json } from '../_lib/http'
 import type { RequestData } from '../_lib/auth'
 

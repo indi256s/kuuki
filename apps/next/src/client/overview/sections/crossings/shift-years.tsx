@@ -6,7 +6,6 @@ import { useOverview } from '../../store/overview-context'
 import { copy, filterLabel, number } from '../rankings/display'
 import { CrossingBars, barsWidth, type ShiftYear } from './bars'
 
-/** The per-year clock shift chart and its table: years the page is filtered to keep their ghost, years with no flights stay unselectable. */
 export function ShiftYears({
   data,
   baseline,

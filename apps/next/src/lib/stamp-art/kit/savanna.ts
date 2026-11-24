@@ -1,5 +1,3 @@
-// Savanna foreground: a flat-topped acacia silhouette. The box ground is the tree's foot; the
-// crown is a layered, wide, dark canopy on a thin leaning trunk with two branches.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, fill, occlude, stroke } from '../grid'
 import { type KitModule, num } from './util'
@@ -11,7 +9,6 @@ export const acacia: KitModule = ([x, y, w, h], p) => {
   const crownH = h * num(p, 'crown', 0.34)
   const cx = x + w / 2
   const crownY = y + crownH * 0.5
-  // Canopy: flat bottom wavy, domed top, wider than the trunk by far.
   const top: Pt[] = []
   const N = 14
   for (let i = 0; i <= N; i++) {

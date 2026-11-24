@@ -17,7 +17,6 @@ import { getOwnProfileStats } from '../server/profile'
 import { isUserAnalyticsAdmin } from '../../../../functions/api/_lib/userAnalyticsAccess'
 import type { Locale } from '../server/locale'
 
-/** Background reading needs the import job worker; without it imports are read inside the request on /import. */
 function ImportRuns({
   jobs,
   ownerId,
@@ -38,11 +37,6 @@ function ImportRuns({
   )
 }
 
-/**
- * Member shell: sticky 64px desktop header (wordmark, nav, Add menu, avatar menu), or a 56px mobile header
- * (page title, avatar menu) that scrolls away above the fixed floating rail. The header and tab bar sit outside the single `<main>`. One owner-scoped toast host serves every page,
- * and, where the import job worker is bound, one import dock.
- */
 export async function MemberShell({ locale, children }: { locale: Locale; children: ReactNode }) {
   const own = await getGateProfile()
   if (!own) return <PageShell>{children}</PageShell>

@@ -1,7 +1,3 @@
-// A modern cruising sloop in metres: stern station a = 0, bow station LOA, z up from the waterline, y positive on
-// the near flank. The envelope is a typical 11 m production cruiser; every intermediate station, fitting size and
-// rig dimension is an illustrative estimate. The mast head sits at 12.95 m, a little under scale, so a 56-72 px boat
-// stays a boat rather than a mast.
 import { profile } from '../car/model'
 import type { Surface, V3 } from '../airliner/surface'
 
@@ -16,8 +12,6 @@ export const smooth = (x: number) => {
 }
 export const D2R = Math.PI / 180
 
-// ------------------------------------------------------------------------------------------------ hull
-/** Half beam at the sheer, at the waterline, and the sheer height above the water. */
 export const hb = profile([
   [0, 1.28],
   [0.6, 1.5],
@@ -55,10 +49,8 @@ export const deckZ = (a: number, y = 0) => {
   const h = Math.max(hb(a), 0.05)
   return zs(a) + 0.07 * Math.max(0, 1 - (y / h) ** 2)
 }
-/** Stern and stem rake: the waterline is shorter than the sheer at both ends. */
 const rake = (a: number, t: number) =>
   0.36 * (1 - t) * (1 - smooth(a / 0.7)) - 0.8 * (1 - t) * smooth((a - 9.6) / 1.4)
-/** A point on the topsides: a is the sheer station, t the height fraction from the waterline (0) to the sheer (1). */
 export const sideAt = (a: number, t: number, sg = 1): V3 =>
   at(a + rake(a, t), sg * (hw(a) + (hb(a) - hw(a)) * t ** 0.8), zs(a) * t)
 const ustations = Array.from({ length: 141 }, (_, i) => i / 140)
@@ -80,7 +72,6 @@ export const deck: Surface = {
   closed: false,
 }
 
-// ------------------------------------------------------------------------------------------------ coachroof
 export const CB = 0.74
 export const roofH = profile([
   [3.6, 1.38],
@@ -119,13 +110,11 @@ export const cabin: Surface = {
   closed: false,
   flip: true,
 }
-/** Roof height where the cabin is |y| wide: the sprayhood stands on it. */
 export const roofAtY = (a: number, y: number) => {
   const f = Math.min(1, Math.abs(y) / roofW(a)) ** (1 / 0.62)
   return CB + (roofH(a) - CB) * Math.sin(Math.acos(f)) ** 0.45
 }
 
-// Sprayhood over the companionway: an arch that ramps down into the roof.
 export const HOOD0 = 3.6
 export const HOOD1 = 4.75
 const hoodW = (a: number) => roofW(a) * 0.8
@@ -150,7 +139,6 @@ export const hood: Surface = {
   flip: true,
 }
 
-// ------------------------------------------------------------------------------------------------ rig
 export const MAST = { a: 6.2, base: 1.5, top: 12.95 }
 export const BOOM = { z: 1.66, rise: 0.04, len: 3.95, swing: 14 * D2R, y0: 0.07, a0: 6.14 }
 const MAIN_FOOT = 3.85
@@ -159,7 +147,6 @@ const mainChord = (v: number) =>
   0.42 + (MAIN_FOOT - 0.42) * (1 - v) ** 1.22 + 0.5 * Math.sin(Math.PI * v) ** 1.3
 export const boomAt = (d: number): V3 =>
   at(BOOM.a0 - d * Math.cos(BOOM.swing), BOOM.y0 + d * Math.sin(BOOM.swing), BOOM.z + BOOM.rise * d)
-/** Mainsail: u luff to leech, v boom to head. Sheeted to the near flank, belly to leeward (near), twisting open aloft. */
 export const mainAt = (u: number, v: number): V3 => {
   const c = mainChord(v),
     d = u * c
@@ -191,9 +178,7 @@ export const JIB = {
   head: onForestay(0.065),
   clew: at(5.85, 1.28, 1.9),
 }
-/** Jib: u luff to clew, v foot to head. */
 export const jibAt = (u: number, vv: number): V3 => {
-  // The head is a point; stop a hair short so the surface keeps a normal there.
   const v = vv * 0.994
   const { tack, head, clew } = JIB
   const L: V3 = [

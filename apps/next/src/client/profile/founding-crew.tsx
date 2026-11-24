@@ -25,7 +25,6 @@ export function PaperWing() {
   )
 }
 
-// Plane punch from the FC-9 paper stub (.scratch/founding-crew/fragments/paper_stub.py).
 function PlanePunch() {
   return (
     <span className="founding-crew-punch" aria-hidden="true">
@@ -36,7 +35,6 @@ function PlanePunch() {
   )
 }
 
-/** The torn-off stub for the Achievements row: perforation along the right edge, no text. */
 export function FoundingStub() {
   return (
     <span className="founding-crew-stub founding-crew-stub-torn" aria-hidden="true">
@@ -47,7 +45,6 @@ export function FoundingStub() {
 
 export function FoundingCrew({ locale }: { locale: Locale }) {
   const ru = locale === 'ru'
-  // The badge name stays English in both locales.
   const name = 'Founding crew'
   return (
     <PopoverRoot>

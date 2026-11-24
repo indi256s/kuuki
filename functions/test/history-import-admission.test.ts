@@ -1,5 +1,3 @@
-// ADR 0008 admission: authentication before reads, ownership, idempotent run creation, the chunk manifest, replay,
-// receiving state, late writes after a close, and a full 10 000-record file accounted for in pages.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   bawRecord,
@@ -34,7 +32,6 @@ afterEach(async () => {
   await dispose()
 })
 
-/** `n` clean records on distinct days: nothing to answer, nothing repeated. */
 const bulkCsv = (n: number) =>
   csvOf(
     Array.from({ length: n }, (_, index) =>

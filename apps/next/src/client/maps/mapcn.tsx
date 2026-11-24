@@ -1,7 +1,5 @@
 'use client'
 
-// Minimal copied/adapted mapcn Map provider and GeoJSON layer hook.
-// Source: mapcn/src/registry/map.tsx @ d160bd767bc6388618720c6038a4dd9948c97362 (MIT).
 import * as MapLibreGL from 'maplibre-gl'
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { mapOptions } from './options'
@@ -16,7 +14,6 @@ const blankStyle = (): MapLibreGL.StyleSpecification => ({
   layers: [{ id: 'background', type: 'background', paint: { 'background-color': waterColor() } }],
 })
 type MapContextValue = { map: MapLibreGL.Map | null; ready: boolean; themeRevision: number }
-/** Exported so layer components can be exercised against a stand-in map in unit tests. */
 export const MapContext = createContext<MapContextValue>({
   map: null,
   ready: false,
@@ -52,7 +49,6 @@ export function Map({
       onErrorRef.current()
       return
     }
-    // iOS Safari caps live WebGL contexts; release the probe instead of waiting for GC.
     probe.getExtension('WEBGL_lose_context')?.loseContext()
     MapLibreGL.setWorkerUrl('/maps/maplibre-6.13.0/maplibre-gl-worker.mjs')
     let instance: MapLibreGL.Map
@@ -66,7 +62,6 @@ export function Map({
       onErrorRef.current()
       return
     }
-    // Keyboard users get the country and route lists; the canvas must not be an unnamed tab stop.
     instance.getCanvas().tabIndex = -1
     instance.touchZoomRotate.disableRotation()
     let loaded = false,
@@ -75,7 +70,6 @@ export function Map({
     const timeout = window.setTimeout(() => {
       if (!instance.loaded()) onErrorRef.current()
     }, 12000)
-    // After load, MapLibre error events are recoverable; only a failed first load is fatal.
     const handleError = () => {
       if (!loaded) onErrorRef.current()
     }
@@ -84,7 +78,6 @@ export function Map({
       window.clearTimeout(timeout)
       setReady(true)
     }
-    // MapLibre restores a lost context itself (iOS drops them on backgrounding and memory pressure). Fail only if a visible page stays lost.
     const armLost = () => {
       window.clearTimeout(lostTimer)
       if (lost && document.visibilityState === 'visible')
@@ -122,7 +115,6 @@ export function Map({
       setMap(null)
       setReady(false)
     }
-    // The map is created once per mount; a locale change reloads the page.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
   useEffect(() => {
@@ -137,7 +129,6 @@ export function Map({
   )
 }
 
-/** Owns a single GeoJSON source plus optional fill/outline layers. */
 export function MapGeoJSON({
   id,
   data,
@@ -175,7 +166,6 @@ export function MapGeoJSON({
       }
       if (map.getSource(source)) map.removeSource(source)
     }
-    // Paint changes use setPaintProperty in owner; source stays stable.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [map, ready, id])
   useEffect(() => {

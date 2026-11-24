@@ -1,6 +1,3 @@
-// Chateau hotel on a cliff (Chateau Frontenac type). The box is chateau plus cliff; the cliff takes
-// the bottom `cliff` fraction. Lit walls under solid steep roofs: a tall central tower with a
-// pyramid roof, hip-roofed wings left and right, conical corner turrets and small lit dormers.
 import {
   type Pt,
   type SvgNode,
@@ -21,7 +18,6 @@ export const chateau: KitModule = ([x, y, w, h], p) => {
   const base = y + h - cliffH
   const bh = base - y
   const out: SvgNode[] = []
-  // Cliff: a rock face under the building, ledges at the corners, vertical strata.
   const cliff: Pt[] = [
     [x, y + h],
     [x + w * 0.02, base + cliffH * 0.35],
@@ -74,7 +70,6 @@ export const chateau: KitModule = ([x, y, w, h], p) => {
         { gap: 1.8, inset: 0.3 },
       ),
     )
-    // Window rows.
     const rows = kind === 'pyr' ? 3 : 1
     const cols = Math.max(1, Math.round((x1 - x0) / 5))
     for (let r = 0; r < rows; r++) {
@@ -103,7 +98,6 @@ export const chateau: KitModule = ([x, y, w, h], p) => {
       stroke('line', poly, true),
     )
     if (kind === 'hip' && x1 - x0 > 10) {
-      // Two lit dormers on the roof.
       for (const f of [0.28, 0.66]) {
         const dx = x0 + (x1 - x0) * f
         const dy = roofTop + (wallTop - roofTop) * 0.45

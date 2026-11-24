@@ -1,10 +1,3 @@
-/**
- * CSV Export Utilities
- *
- * Generates CSV files for flights and country claims with optional enrichment.
- * Uses client-side Blob API for download - no server required.
- */
-
 import type { Flight } from './flights'
 import type { CountryClaim } from './passport'
 import { airports, airlines, aircraft } from '@kuuki/data'
@@ -15,7 +8,6 @@ interface Country {
   continent: string
 }
 
-// Create lookup maps for enrichment (Map provides O(1) lookup)
 const airportMap = new Map(airports.map((a) => [a.iata, a]))
 const airlineMap = new Map(airlines.map((a) => [a.iata, a]))
 const aircraftMap = new Map(aircraft.map((a) => [a.icao, a]))
@@ -25,9 +17,6 @@ export interface ExportOptions {
   enriched?: boolean
 }
 
-/**
- * Portable columns - essential fields only, no IDs
- */
 const FLIGHT_COLUMNS_PORTABLE = [
   'date',
   'origin',
@@ -40,9 +29,6 @@ const FLIGHT_COLUMNS_PORTABLE = [
   'source',
 ]
 
-/**
- * Enriched columns - adds human-readable names
- */
 const FLIGHT_COLUMNS_ENRICHED = [
   'date',
   'origin',
@@ -63,16 +49,8 @@ const FLIGHT_COLUMNS_ENRICHED = [
   'source',
 ]
 
-/**
- * Country claims columns
- */
 const CLAIM_COLUMNS = ['country_code', 'country_name', 'continent', 'claimed_at']
 
-/**
- * Escape a value for CSV
- * - Wraps in quotes if contains comma, quote, or newline
- * - Escapes quotes by doubling them
- */
 function escapeCSV(value: string | number | null | undefined): string {
   if (value === null || value === undefined) {
     return ''
@@ -80,18 +58,13 @@ function escapeCSV(value: string | number | null | undefined): string {
 
   const str = String(value)
 
-  // Check if we need to quote
   if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
-    // Escape quotes by doubling them
     return `"${str.replace(/"/g, '""')}"`
   }
 
   return str
 }
 
-/**
- * Generate a row from an object based on columns
- */
 function generateRow(
   obj: Record<string, string | number | null | undefined>,
   columns: string[],
@@ -99,24 +72,16 @@ function generateRow(
   return columns.map((col) => escapeCSV(obj[col])).join(',')
 }
 
-/**
- * Generate CSV content with UTF-8 BOM for Excel compatibility
- */
 function generateCSV(headers: string[], rows: string[]): string {
-  // UTF-8 BOM helps Excel recognize the encoding
   const BOM = '\uFEFF'
   return BOM + headers.join(',') + '\n' + rows.join('\n')
 }
 
-/**
- * Generate flights CSV
- */
 function generateFlightsCsv(flights: Flight[], options: ExportOptions = {}): string {
   const { enriched = false } = options
   const columns = enriched ? FLIGHT_COLUMNS_ENRICHED : FLIGHT_COLUMNS_PORTABLE
 
   const rows = flights.map((flight) => {
-    // Start with base data
     const row: Record<string, string | number | null | undefined> = {
       date: flight.date,
       origin: flight.origin,
@@ -129,7 +94,6 @@ function generateFlightsCsv(flights: Flight[], options: ExportOptions = {}): str
       source: flight.source,
     }
 
-    // Add enriched data if requested
     if (enriched) {
       const originAirport = airportMap.get(flight.origin)
       const destAirport = airportMap.get(flight.destination)
@@ -152,9 +116,6 @@ function generateFlightsCsv(flights: Flight[], options: ExportOptions = {}): str
   return generateCSV(columns, rows)
 }
 
-/**
- * Generate country claims CSV
- */
 function generateClaimsCsv(claims: CountryClaim[]): string {
   const rows = claims.map((claim) => {
     const countryInfo = countryMap[claim.country_code]
@@ -172,48 +133,32 @@ function generateClaimsCsv(claims: CountryClaim[]): string {
   return generateCSV(CLAIM_COLUMNS, rows)
 }
 
-/**
- * Get a timestamped filename
- */
 export function getTimestampedFilename(base: string): string {
-  const date = new Date().toISOString().split('T')[0] // YYYY-MM-DD
+  const date = new Date().toISOString().split('T')[0]
   return `kuuki-${base}-${date}.csv`
 }
 
-/**
- * Download CSV content as a file
- */
 export function downloadCsv(content: string, filename: string): void {
-  // Create blob with CSV content
   const blob = new Blob([content], { type: 'text/csv;charset=utf-8' })
 
-  // Create download link
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
   link.download = filename
 
-  // Trigger download
   document.body.appendChild(link)
   link.click()
 
-  // Cleanup
   document.body.removeChild(link)
   URL.revokeObjectURL(url)
 }
 
-/**
- * Export flights as CSV file
- */
 export function exportFlights(flights: Flight[], options: ExportOptions = {}): void {
   const csv = generateFlightsCsv(flights, options)
   const filename = getTimestampedFilename('flights')
   downloadCsv(csv, filename)
 }
 
-/**
- * Export country claims as CSV file
- */
 export function exportClaims(claims: CountryClaim[]): void {
   const csv = generateClaimsCsv(claims)
   const filename = getTimestampedFilename('countries')

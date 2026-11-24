@@ -198,9 +198,7 @@ function clearStaleLock(s, lock, kind) {
     const stat = fs.statSync(lock)
     if (kind === 'index' && (stat.ino !== owner.ino || stat.dev !== owner.dev)) return
     fs.unlinkSync(lock)
-  } catch {
-    /* Unknown locks require manual diagnosis. */
-  }
+  } catch {}
 }
 function indexLock(s, action) {
   const lock = `${s.index}.lock`
@@ -233,7 +231,6 @@ function publish(s, recovery, lock) {
   if (live(s) !== recovery.liveTree)
     throw new Error('Recovery refuses intervening live candidate-path changes')
   if (current.base === s.base) git(s.root, ['update-ref', s.branch, recovery.commit, s.base])
-  // Read, not copyFileSync: on some Linux file systems copying a directory silently yields an empty file.
   fs.writeFileSync(lock, fs.readFileSync(recovery.newIndex))
   fs.renameSync(lock, s.index)
   write(path.join(s.directory, 'completed.json'), { head: recovery.commit })

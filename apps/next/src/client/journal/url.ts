@@ -1,5 +1,3 @@
-// Pure codec between the Journal URL and `JournalViewState` (spec D4: the URL mirrors the in-memory store).
-// Parsing accepts every legacy alias `normalizeJournalQuery` knows; `journalSearch` writes the one canonical form.
 import { isValidYear, normalizeJournalQuery } from '../../lib/url-state'
 import {
   defaultSort,
@@ -15,7 +13,6 @@ import {
 const STATUSES: readonly JournalStatus[] = ['logged', 'awaiting', 'upcoming']
 const MISSING: readonly JournalMissing[] = ['aircraft', 'airline', 'times', 'flight_number']
 const ALLIANCES: readonly JournalAlliance[] = ['star', 'oneworld', 'skyteam']
-/** Legacy server sort keys that still mean something; every other key falls back to date. */
 const SORT_KEYS: Record<string, JournalSortKey> = {
   date: 'date',
   duration: 'duration',
@@ -46,10 +43,8 @@ const oneOf = <T extends string>(values: string[], allowed: readonly T[]) =>
 const flightId = (value: string | null | undefined) =>
   value && FLIGHT_ID.test(value) && Number.isSafeInteger(Number(value)) ? Number(value) : null
 
-/** Reads any Journal query (legacy or current) and an optional location hash. Unknown keys and invalid values are dropped. */
 export function parseJournalUrl(search: string, hash = '', now = new Date()): JournalViewState {
   const raw = new URLSearchParams(search)
-  // Single-valued legacy keys and aliases (`search`, `airlineIata`, `isUpcoming`, `period`, `sortField`...) resolve here.
   const legacy = normalizeJournalQuery(raw, now).state
   const filters: JournalFilters = emptyFilters()
   filters.q = legacy.q ?? ''
@@ -69,9 +64,7 @@ export function parseJournalUrl(search: string, hash = '', now = new Date()): Jo
   filters.countries = codes(csv(raw, 'country'), /^[A-Z]{2}$/)
   filters.airlines = codes([...csv(raw, 'airline'), legacy.airline], /^[A-Z0-9]{2,3}$/)
   filters.aircraft = codes([...csv(raw, 'aircraft'), legacy.aircraft], /^[A-Z0-9]{2,4}$/)
-  // Family names are free text from the aircraft catalogue (none contains a comma).
   filters.families = sortedUnique(csv(raw, 'family').filter((name) => name.length <= 60))
-  // Legacy `completed` (and `isUpcoming=false`) meant flown flights, which is now the default contents.
   filters.status = oneOf([...csv(raw, 'status'), legacy.status ?? ''], STATUSES)
   filters.missing = oneOf(csv(raw, 'missing'), MISSING)
   filters.alliances = oneOf(csv(raw, 'alliance'), ALLIANCES)
@@ -84,7 +77,6 @@ export function parseJournalUrl(search: string, hash = '', now = new Date()): Jo
   return { filters, sort: { key: sortKey, order }, flight, review }
 }
 
-/** Canonical query string without `?`: defaults omitted (the default state is empty), fixed key order, lists sorted and de-duplicated. */
 export function journalSearch(state: JournalViewState): string {
   const { filters, sort } = state
   const params = new URLSearchParams()
@@ -118,6 +110,5 @@ export function journalSearch(state: JournalViewState): string {
   if (sort.order !== defaultSort.order) params.set('order', sort.order)
   if (state.flight !== null) params.set('flight', String(state.flight))
   if (state.review) params.set('review', '1')
-  // List separators stay readable (`airport=IST,TBS`); a comma inside `q` decodes back to itself.
   return params.toString().replace(/%2C/gi, ',')
 }

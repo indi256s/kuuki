@@ -1,6 +1,3 @@
-// GET /api/flights/stats — dashboard FlightStats. Reads the precomputed user_stats row for accuracy
-// (real countries/airports/airlines counts), counts upcoming flights live. Zeros if no stats row.
-
 import { runHandler, json } from '../_lib/http'
 import { requireUser, type RequestData } from '../_lib/auth'
 

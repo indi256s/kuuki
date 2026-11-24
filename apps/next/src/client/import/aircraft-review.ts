@@ -1,8 +1,4 @@
 import { AIRCRAFT_BATCH_SIZE } from '@kuuki/shared/constants'
-// Aircraft review after a save: suggestions come from `/api/enrich/aircraft`, accepting goes through
-// `/api/flights/aircraft-batch`. Only suggestions at or above 0.7 are offered; older responses without a basis
-// start selected. Select-all doubles as deselect-all. Every flight keeps its own outcome, and the requests run
-// one after another (no parallel fan-out).
 import { formatNumber, type Locale } from '../../lib/format'
 import { AIRCRAFT_RESULT as S } from './aircraft-result-copy'
 import { classifyRequestFailure } from './import-errors'
@@ -44,7 +40,6 @@ export interface Suggested {
   registration: string | null
   operatingAirline: string | null
 }
-/** Why a flight has no offer: the service named nothing, named something it was not sure of, or did not answer for it. */
 export interface Unidentified {
   flightId: number
   reason: 'none' | 'low' | 'missing'
@@ -89,7 +84,6 @@ export function diagnose(
   return { suggested, unidentified }
 }
 
-/** Everything selected becomes nothing; anything less becomes everything. */
 export const toggleAll = (selected: Set<number>, ids: number[]): Set<number> =>
   ids.length > 0 && ids.every((id) => selected.has(id)) ? new Set() : new Set(ids)
 
@@ -105,7 +99,6 @@ export interface AircraftAccept {
 export type AircraftOutcome =
   | { status: 'saved'; icao: string | null }
   | { status: 'failed'; code: string; message: string; retryable: boolean }
-  /** The answer was lost: the aircraft may or may not have been written. */
   | { status: 'uncertain' }
   | { status: 'unsent' }
 
@@ -192,7 +185,6 @@ export const countAircraftRun = (rows: Iterable<AircraftOutcome>): AircraftRunCo
   return counts
 }
 
-/** One sentence for a finished submission. Nothing saved is a problem, so callers send it to an assertive region; anything saved goes to a polite one. */
 export const summarizeAircraftRun = (locale: Locale, counts: AircraftRunCounts | null): string =>
   !counts
     ? ''

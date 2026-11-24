@@ -1,20 +1,6 @@
-// Typed fetch client for the same-origin Pages Functions API (`/api/*`).
-//
-// Replaces the browser→Supabase data path. The SPA and the API share an origin, so
-// requests are same-origin with `credentials: 'include'` to carry the httpOnly session
-// cookie. State-changing requests echo the readable `kuuki_csrf` cookie in an
-// `X-CSRF-Token` header (double-submit; see functions/api/_lib/auth.ts).
-//
-// On a 401 the client transparently tries ONE session refresh, then retries the original
-// request once. If refresh fails it invokes the registered unauthorized handler (the auth
-// store clears the user) and surfaces the error — no infinite loop. Auth endpoints are
-// exempt: a 401 from /api/auth/* (bad password, expired refresh) must propagate as-is.
-
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS'])
 const CSRF_COOKIE = 'kuuki_csrf'
 
-/** Thrown for any non-2xx response. Carries the HTTP status + server error code so the
- *  existing error classifier (lib/errors/classify.ts reads `.status`/`.message`) works. */
 export class ApiError extends Error {
   status: number
   code?: string
@@ -79,7 +65,6 @@ async function holdExclusiveLock(released: Promise<void>, signal: AbortSignal): 
     acquired()
     await released
   })
-  // The lock task can reject after acquisition when the page is torn down.
   void lockTask.catch(() => {})
   await Promise.race([
     acquiredPromise,
@@ -89,7 +74,6 @@ async function holdExclusiveLock(released: Promise<void>, signal: AbortSignal): 
   ])
 }
 
-/** Reserve the cookie identity before waiting for older responses and their Set-Cookie headers. */
 export function beginIdentityOperation() {
   if (identityOperation) throw new Error('An account action is already in progress')
   const token = Symbol('identity operation')
@@ -121,7 +105,6 @@ export function beginIdentityOperation() {
   }
 }
 
-// Registered by the auth store; called when a refresh attempt fails (hard logout).
 let onUnauthorized: (() => void) | null = null
 let authGeneration = 0
 export function getAuthGeneration(): number {
@@ -172,8 +155,6 @@ async function parseBody(res: Response): Promise<unknown> {
   }
 }
 
-// De-dupe concurrent refreshes: many parallel requests can 401 at once; they should share
-// a single /api/auth/refresh round-trip rather than stampede it.
 type RefreshResult = 'refreshed' | 'unauthorized' | 'failed'
 let refreshInFlight: {
   generation: number
@@ -206,7 +187,6 @@ async function attemptRefresh(): Promise<RefreshResult> {
       }
     })()
     refreshInFlight = { generation, promise, controller }
-    // The previous identity's refresh must not clear a newer identity's request.
     void promise.then(() => {
       if (refreshInFlight?.promise === promise) refreshInFlight = null
     })
@@ -252,10 +232,8 @@ async function performRequest<T>(
   let res = await doFetch(method, url, body, opts.signal, opts.headers, opts.csrfToken, opts.cache)
   assertCurrentIdentity(requestGeneration)
 
-  // Raw callers own HTTP status handling and body consumption (including 304).
   if (opts.rawResponse) return res as T
 
-  // Transparent 401 recovery — never for auth endpoints (their 401s are meaningful).
   if (res.status === 401 && !path.startsWith('/api/auth/')) {
     const refreshed = await attemptRefresh()
     assertCurrentIdentity(requestGeneration)
@@ -306,7 +284,6 @@ function request<T>(
   )
   const signal = opts.signal ? AbortSignal.any([controller.signal, opts.signal]) : controller.signal
   const run = () => {
-    // A peer may release its lock before this tab receives the identity broadcast.
     assertCurrentIdentity(requestGeneration)
     if (readCookie(CSRF_COOKIE) !== csrfToken)
       throw new DOMException('Session changed', 'AbortError')

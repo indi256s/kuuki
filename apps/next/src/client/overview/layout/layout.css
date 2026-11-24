@@ -1,4 +1,3 @@
-/* One column by default; at 1388px+ (set by useLanes from the rail's own width) two lanes. Each card spans its height in 4px rows and auto-placement fills the lane that frees up first, left on ties. Cards keep their own height. */
 .ov3-bento {
   display: flex;
   flex-direction: column;
@@ -15,7 +14,6 @@
 .ov3-bento[data-lanes='2'] > .ov3-frame {
   grid-row: span var(--ov-span, 1);
 }
-/* The card shell keeps the page's level-1 surface (page.css); only the padding changes. The header and the chapter body carry the 24px inline inset, so the card content is 636 wide in a 684 card. */
 .ov3-frame.ov3-section {
   position: relative;
   padding: 20px 0 24px;
@@ -31,7 +29,6 @@
   cursor: grab;
   touch-action: none;
 }
-/* Native touch dragging requires reserving the handle before pointerdown. */
 .ov3-section-header :is(button, a, input, select, textarea, [data-reorder-control]) {
   touch-action: auto;
   cursor: auto;
@@ -41,7 +38,6 @@
   touch-action: none;
   user-select: none;
 }
-/* Reordering. The real card stays in the grid as the empty slot (same box and radius, sunken); its contents are hidden but stay mounted, so focus, the handle's pointer capture and the lane spans survive. A copy of the card follows the pointer in .ov3-ghost. */
 [data-reordering] {
   user-select: none;
   -webkit-user-select: none;
@@ -53,7 +49,6 @@
 .ov3-section[data-dragging] > * {
   opacity: 0;
 }
-/* The layer carries the pointer translate, set per frame by script: it never has a transition. will-change lives only as long as the layer. */
 .ov3-ghost {
   position: fixed;
   top: 0;
@@ -81,7 +76,6 @@
   opacity: 0;
   transition: opacity var(--dur-fast) var(--ease-out);
 }
-/* Lifted: a slight scale and the floating elevation (shadow in light, ring in dark). The card keeps its own 1px outline. */
 :root .ov3-ghost > .ov3-ghost-card[data-lifted] {
   scale: 1.02;
   background: var(--surface-floating);
@@ -104,8 +98,8 @@
 }
 .ov3-section-title h2 {
   margin: 0;
-  font-size: 18px;
-  line-height: 24px;
+  font-size: 1.125rem;
+  line-height: 1.5rem;
   font-weight: 600;
   letter-spacing: -0.01em;
   color: var(--text);
@@ -113,7 +107,7 @@
 .ov3-section-title p {
   margin: 4px 0 0;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 .ov3-grip {
   position: absolute;
@@ -134,8 +128,8 @@
 .ov3-section-narrator .narrator {
   margin: 0;
   max-width: 60ch;
-  font-size: 15px;
-  line-height: 24px;
+  font-size: 0.9375rem;
+  line-height: 1.5rem;
   font-weight: 400;
   color: var(--text-muted);
 }

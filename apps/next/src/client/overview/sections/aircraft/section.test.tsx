@@ -8,7 +8,6 @@ import fixture from '../../../../../../../packages/shared/src/overview/__fixture
 import { Section } from './section'
 import { Tile } from './tile'
 
-// Queries scoped to the card's bands: whole-card role queries walk every Details node and are slow in jsdom.
 const stage = () => within(document.querySelector('.ov3-card-chart') as HTMLElement)
 const top = () => within(document.querySelector('.ov3-card-top') as HTMLElement)
 

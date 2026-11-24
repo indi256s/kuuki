@@ -1,7 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { fixtureHeaders } from './helpers'
 
-/** A new account, signed in on `page`, that hasn't onboarded. */
 async function signup(page: Page, origin: string) {
   const response = await page.request.post('/api/auth/sign-up/email', {
     headers: fixtureHeaders(origin),
@@ -51,14 +50,12 @@ test('old onboarding links and the member gate resume the card at the right step
   await page.goto('/overview')
   await expect(page).toHaveURL(/\/welcome\/name$/)
 
-  // A name but no import and not onboarded: the flights step.
   await name(page, baseURL!)
   await page.goto('/overview')
   await expect(page).toHaveURL(/\/welcome\/flights$/)
   await page.goto('/welcome/review')
   await expect(page).toHaveURL(/\/welcome\/flights$/)
 
-  // A batch with drafts to review wins over the prompt, also when the old link asks for capture.
   const job = await api(page, baseURL!, 'post', '/api/import/jobs', {
     type: 'text',
     submissionOperationId: `welcome-${crypto.randomUUID()}`,
@@ -71,7 +68,6 @@ test('old onboarding links and the member gate resume the card at the right step
   await page.goto('/welcome/flights')
   await expect(page).toHaveURL(new RegExp(`/welcome/review\\?batch=${batch}$`))
 
-  // Onboarded: every welcome URL is the Overview.
   await api(page, baseURL!, 'post', '/api/profiles/me/onboarded')
   await page.goto('/welcome/name')
   await expect(page).toHaveURL(/\/overview$/)
@@ -83,7 +79,6 @@ test('Create account morphs the card into the name step without a reload, and Ba
   page,
   baseURL,
 }) => {
-  // Continue spends `signin:<ip>` and the create answer `signup:<ip>`, so the journey gets its own IP.
   await page.setExtraHTTPHeaders({
     'CF-Connecting-IP': fixtureHeaders(baseURL!)['CF-Connecting-IP'],
   })
@@ -95,7 +90,6 @@ test('Create account morphs the card into the name step without a reload, and Ba
   await page.getByRole('button', { name: 'Continue', exact: true }).click()
   const create = page.getByRole('button', { name: 'Create account', exact: true })
   await expect(create).toBeFocused()
-  // Markers on the document and on the card frame: a reload or a remounted shell would lose them.
   await page.evaluate(() => {
     Object.assign(window, { __welcomeMarker: true })
     Object.assign(document.querySelector('.auth-card')!, { __welcomeMarker: true })
@@ -120,7 +114,6 @@ test('Create account morphs the card into the name step without a reload, and Ba
   await page.waitForURL((url) => url.pathname === '/welcome/name')
   await expect(page.getByLabel('Your name', { exact: true })).toHaveValue('Alex Mor')
 
-  // Back past the name step never shows the create step again: the account exists.
   await page.goBack()
   await page.waitForURL((url) => url.pathname === '/welcome/name')
   await expect(page.getByLabel('Your name', { exact: true })).toBeVisible()

@@ -124,7 +124,6 @@ beforeEach(() => {
 
 type User = ReturnType<typeof userEvent.setup>
 
-/** A country already in the passport keeps its add form closed until Add visit opens it. */
 async function openForm(user: User, dialog: HTMLElement) {
   await user.click(await within(dialog).findByRole('button', { name: 'Add visit' }))
   return within(dialog).findByRole('textbox', { name: /^Year/ })
@@ -149,7 +148,6 @@ describe('CountrySheet', () => {
       'href',
       '/journal?airport=ATH',
     )
-    // The record comes first: the add form waits behind its button.
     expect(within(dialog).getByRole('button', { name: 'Add visit' })).toBeInTheDocument()
     expect(within(dialog).queryByRole('radiogroup', { name: 'How you entered' })).toBeNull()
   })
@@ -184,7 +182,6 @@ describe('CountrySheet', () => {
     expect(links[0]).toHaveAttribute('href', '/ground-travel?journey=j-rail')
     expect(links[1]).toHaveTextContent('Athens → Delphi · date unknown')
     expect(links[1]).toHaveAttribute('href', '/ground-travel?journey=j-road')
-    // Journeys are not manual visits: the manual list and the "Visits" count stay as they were.
     expect(within(dialog).getByRole('heading', { name: 'Visits · 3' })).toBeInTheDocument()
     expect(within(dialog).getByRole('heading', { name: 'Ground journeys · 2' })).toBeInTheDocument()
     expect(within(list).queryByText(/by sea|Year not set/)).toBeNull()
@@ -239,7 +236,6 @@ describe('CountrySheet', () => {
       derived_state: 'ready',
       revision: 4,
     })
-    // Flights keep the country pressed: the sheet stays on it instead of announcing a removal.
     expect(onRemoved).not.toHaveBeenCalled()
   })
 
@@ -596,7 +592,6 @@ describe('CountrySheet freshness and failures', () => {
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
     mocks.get.mockResolvedValueOnce(none)
     mocks.claim.mockResolvedValue({ ok: true, derived_state: 'pending', revision: 4 })
-    // The read right after the write still sees the previous publication: the claim is saved, the stamp is not.
     mocks.get.mockResolvedValueOnce({
       ...none,
       isClaimed: true,
@@ -614,7 +609,6 @@ describe('CountrySheet freshness and failures', () => {
       ),
     ).toBeInTheDocument()
 
-    // Publication completes and the page refresh delivers a pressed collection entry while the sheet stays open.
     mocks.get.mockResolvedValueOnce(
       detail({
         entries: [{ kind: 'claim', claimedAt: '2026-10-05' }],
@@ -684,7 +678,6 @@ describe('CountrySheet freshness and failures', () => {
         'Recent changes are still being prepared. This country may lag behind them.',
       ),
     ).toBeNull()
-    // Saved evidence stays visible.
     expect(within(dialog).getByText('2018 · by sea')).toBeInTheDocument()
     mocks.get.mockResolvedValueOnce(detail({ revision: 4, publishedRevision: 4 }))
     await user.click(within(alert).getByRole('button', { name: 'Try again' }))

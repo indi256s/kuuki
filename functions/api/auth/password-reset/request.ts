@@ -14,7 +14,6 @@ export async function requestPasswordReset(
   const response = await runHandler(async () => {
     requireStrictSameOrigin(request)
     const origin = configuredRecoveryOrigin(env)
-    // Check sender configuration before account lookup to keep the public result generic.
     const sender = configuredRecoverySender(env)
     await rateLimit(env.DB, `recovery-ip:${clientIp(request)}`, 10, 3600)
     const body = await readJson<{ email?: unknown }>(request)

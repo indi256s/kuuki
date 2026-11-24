@@ -1,5 +1,3 @@
-// Recipe -> SVG string. Output is the engraving only, in the frame's coordinate system, clipped to
-// the frame's inner window. Deterministic: fixed precision, stable order, fixed ids, no randomness.
 import { frames, shapeFor } from './frame'
 import { bufferPoly, clipStrokeOutside, mirrorLeft } from './geom'
 import { type Box, type Pt, type StrokeNode, type SvgNode, WEIGHTS, type Weight } from './grid'
@@ -23,15 +21,11 @@ function layerNodes(
   return mirror ? mirrorLeft(nodes, box[0] + box[2] / 2) : nodes
 }
 
-/** Backdrop hatching stops this far short of a subject silhouette. */
 export const SUBJECT_HALO = 3
 
 export type Scene = {
-  /** Everything drawn, occlusion applied, in paint order. */
   nodes: SvgNode[]
-  /** Raw subject output (before occlusion): what the frame lint tests against the window. */
   subject: SvgNode[]
-  /** Silhouettes the subject occludes with: the lit shape the interior lint measures. */
   silhouettes: Pt[][]
 }
 
@@ -43,7 +37,6 @@ type Step = {
   role: 'backdrop' | 'subject'
 }
 
-/** Runs backdrop, layers and signature parts in order, applying occlusion. Pure, deterministic. */
 export function composeScene(recipe: Recipe): Scene {
   const frame = frames[shapeFor(recipe.iso2, recipe.shape)]
   const [wx, wy, ww, wh] = frame.windowBox
@@ -95,7 +88,6 @@ export function composeScene(recipe: Recipe): Scene {
   return { nodes: [...acc, ...late], subject, silhouettes }
 }
 
-/** The drawn nodes of a recipe. */
 export const composeNodes = (recipe: Recipe): SvgNode[] => composeScene(recipe).nodes
 
 const d = (pts: Pt[], closed: boolean) =>

@@ -1,5 +1,3 @@
-// Inline, offline preview of the balloon at lane size, phone size and 4x in both themes, under
-// .scratch/vehicle-fill/balloon/{light,dark}.html (opens from disk).
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { BALLOON_CSS, buildBalloon } from './balloon'
 import { AIRCRAFT_CSS } from '../airliner/svg'
@@ -13,11 +11,9 @@ async function main() {
   const page = (theme: string, body: string) =>
     `<!doctype html><html data-theme="${theme}"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Balloon model</title><style>${css}${AIRCRAFT_CSS}${BALLOON_CSS}
 body{margin:0;background:var(--background);color:var(--text);font:14px system-ui}main{padding:24px}svg{display:block;height:auto;max-width:none}.row{display:flex;flex-wrap:wrap;align-items:flex-end;gap:28px;margin:20px 0}p{color:var(--text-muted);margin:4px 0}</style><svg style="display:none" aria-hidden="true"><symbol id="balloon" viewBox="${vb.join(' ')}">${art0.body}</symbol></svg><main>${body}</main></html>`
-  // The symbol's width is the envelope's width plus a 3-unit margin: the lane unit is the car's 112-unit scale.
   const art = (width: number, color = colors[0]) =>
     `<svg class="lane-vehicle" style="width:${width}px;--lane-livery:${color}" viewBox="${vb.join(' ')}" aria-hidden="true"><g stroke-linejoin="round" stroke-linecap="round"><use href="#balloon" x="${vb[0]}" y="${vb[1]}" width="${vb[2]}" height="${vb[3]}"/></g></svg>`
   const at = (px: number) => (vb[2] * px) / 112
-  // A crop of the rigging and basket: the axis stands at x = -56 (half the 112-unit width), the basket on y = 0.
   const crop = [-82, b.y1 - 44, 52, 50]
   const cropArt = (scale: number, color = colors[0]) =>
     `<svg class="lane-vehicle" style="width:${crop[2] * scale}px;--lane-livery:${color}" viewBox="${crop.join(' ')}" aria-hidden="true"><g stroke-linejoin="round" stroke-linecap="round"><use href="#balloon" x="${vb[0]}" y="${vb[1]}" width="${vb[2]}" height="${vb[3]}"/></g></svg>`

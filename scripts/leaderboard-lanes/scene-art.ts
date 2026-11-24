@@ -1,20 +1,3 @@
-// Draws the lane vehicles and installs them: the airliners as 1:N models with the pinned anatomy kit (./airliner); the
-// locomotive, the car, the yacht and the balloon with the same pinned kit and parametric surfaces.
-//
-//   pnpm exec tsx scripts/leaderboard-lanes/scene-art.ts
-//
-// Writes apps/next/src/client/leaderboard/lanes/:
-//   art/<KEY>.svg            one <symbol id="lane-KEY"> per airliner type, the locomotive (rail), the car (road) and,
-//                            for the Passport atlas only, the yacht (sea) and the balloon (other).
-//                            The page imports them as static media, so each gets a content-hashed, cached URL and a
-//                            board fetches only the files its <use> elements name.
-//   vehicles.generated.css   the host rule for the <svg> that holds a <use>, and the airliners' material ramps.
-//   lanes.generated.ts       the URLs plus the geometry a lane needs: viewBox, nose, centre line, taxiway strip and
-//                            its slant per family; each airliner's beacon, frame and measured size for its spotter card.
-// and a preview gallery, .scratch/leaderboard-lanes/scene/gallery.html (serve the folder over http: <use> needs it).
-//
-// Paints are the theme's iso roles written as CSS variables, so the art follows the theme through the <use> boundary
-// (custom properties inherit into the clone). The accent ramp is the member's livery.
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { LaneScene, W } from '../../apps/next/src/client/leaderboard/lanes/draw/lane-scene'
@@ -28,12 +11,8 @@ import { YACHT_CSS, buildYacht } from './yacht/yacht'
 
 const OUT = 'apps/next/src/client/leaderboard/lanes'
 const PREVIEW = '.scratch/leaderboard-lanes/scene'
-/** Drawn length of each ground vehicle, in viewBox units = CSS px at --lane-unit. */
 const UNIT = 112
 
-// ---------------------------------------------------------------- the ground vehicles
-
-/** The ground camera's across-the-lane direction (CSS skewX, deg) and the rails' offset from the centre line. */
 function groundCross() {
   const s = new LaneScene(UNIT / LOCO_LENGTH)
   const slope = s.slope()
@@ -45,8 +24,6 @@ function groundCross() {
   return { skew: (Math.atan2(y[0] - o[0], y[1] - o[1]) * 180) / Math.PI, rail: r[1] - o[1] }
 }
 
-// ---------------------------------------------------------------- write
-
 const r2 = (n: number) => Math.round(n * 100) / 100
 type Placed = {
   d: { key: string; title: string }
@@ -54,7 +31,6 @@ type Placed = {
   box: { x0: number; y0: number; x1: number; y1: number }
   gear: number
 }
-/** The taxiway strip's half-height: the widest main gear in the family, with a margin of tarmac either side. */
 const DECK = (gear: number) => gear * 1.5 + 2
 function family(placed: Placed[], unit: number, skew: number) {
   const pad = 3
@@ -89,13 +65,11 @@ async function main() {
   const cross = groundCross()
   const loco = await buildLocomotive(UNIT)
   const groundFamily = family([loco, await buildCar(UNIT)], UNIT, cross.skew)
-  // The atlas's own vehicles: each its own frame, so a tall balloon never resizes the ground lanes.
   const solo = {
     sea: family([await buildYacht(UNIT)], UNIT, cross.skew),
     other: family([await buildBalloon(UNIT)], UNIT, cross.skew),
   }
   const f4 = (n: number) => Math.round((n / groundFamily.viewBox[3]) * 10000) / 10000
-  // The locomotive runs on a narrower bed than the car's road: its own strip, and the rails on it.
   const rail = { offset: f4(cross.rail), deck: f4(DECK(loco.gear)) }
   const r1 = (n: number) => Math.round(n * 10) / 10
   const spots = Object.fromEntries(
@@ -113,7 +87,6 @@ async function main() {
 
   const symbol = (key: string, title: string, viewBox: number[], body: string) =>
     `<symbol id="lane-${key}" viewBox="${viewBox.join(' ')}"><title>${title}</title><g style="--lv:var(--lane-livery,var(--figure-live-fill))" stroke-linejoin="round" stroke-linecap="round">${body}</g></symbol>`
-  // The root carries the symbol's size: Next reads image dimensions from every imported SVG.
   const file = (key: string, title: string, viewBox: number[], body: string) =>
     `<svg xmlns="http://www.w3.org/2000/svg" width="${Math.ceil(viewBox[2])}" height="${Math.ceil(viewBox[3])}">${symbol(key, title, viewBox, body)}</svg>`
 
@@ -186,7 +159,6 @@ export const laneSpots: Record<(typeof LANE_TYPES)[number], {
 `,
   )
 
-  // Preview: every vehicle on a lane-width card, at desktop (unit 112) and phone (unit 64) size, in both themes.
   const styles = readFileSync('apps/next/src/app/styles.css', 'utf8')
   const card = (fam: ReturnType<typeof family>, key: string, unitPx: number) => {
     const w = (fam.viewBox[2] / fam.geometry.unit) * unitPx

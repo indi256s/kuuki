@@ -8,7 +8,6 @@ export interface DecodeRequest {
   wasmBinary?: ArrayBuffer
 }
 
-// Raw barcode text stays in the decoder worker; only allowlisted legs cross back to the UI.
 export async function decodeBoardingPass({
   inputs,
   wasmUrl,

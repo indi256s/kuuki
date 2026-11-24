@@ -199,8 +199,6 @@ function generate(name: (typeof names)[number], aggregate = true): OverviewPaylo
   }
 }
 
-// Independent fixture oracle: derive the requested outputs from counted source rows,
-// without invoking ranking, calendar or classification production helpers.
 function expectedRankingOutputs(fixture: OverviewPayload) {
   const rows = fixture.rows.filter((row) => row.state === 'logged' || row.state === 'awaiting')
   const dated = rows.filter(
@@ -304,7 +302,6 @@ function expectedRankingOutputs(fixture: OverviewPayload) {
   return { leaders, rankByYear, patterns }
 }
 
-// Independent new-output oracle over fixture records, separate from engine helpers.
 function expectClockAndRhythm(
   fixture: OverviewPayload,
   result: ReturnType<typeof computeOverview>,
@@ -399,7 +396,6 @@ function expectClockAndRhythm(
   expect(new Set(value.odometer.map((point) => point.key)).size).toBe(expected.length)
 }
 
-// Independent oracle: Intl offsets and dense spherical interpolation, never engine time/path helpers.
 function expectedCrossingTime(row: OverviewRow) {
   const instant = new Date(row.departureUtc ?? `${row.date}T12:00:00Z`)
   const offset = (zone: string | null) => {
@@ -554,8 +550,6 @@ function expectCrossings(
   })
 }
 
-// Cross-section integration contracts: counted weights and metrics must survive aggregation,
-// upcoming rows must stay out of flown totals, and aircraft reference manufacturers stay distinct.
 function expectCountedOutputs(
   fixture: OverviewPayload,
   result: ReturnType<typeof computeOverview>,

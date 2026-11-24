@@ -1,14 +1,9 @@
-// A hot-air balloon in metres: the envelope axis stands on x = CX, the basket's base centre on z = 0, and the
-// envelope's leading edge touches x = 0 (the same "nose" anchor the ground vehicles use). Dimensions follow a large
-// passenger balloon (about 16 m wide, 25 m to the crown); the basket is a size up so it reads at lane size. The skin
-// stations, the cable layout and every trim size are illustrative.
 import type { Surface, V3 } from '../airliner/surface'
 
 export const GORES = 12
 export const R_MAX = 8.2
 export const WIDTH = 2 * R_MAX
 export const CX = -R_MAX
-/** Envelope height above its mouth, and the heights of the skirt, its hem, the frame and the basket rim. */
 export const ENV_H = 18
 export const SKIRT_TOP = 7.0
 export const HEM_Z = 6.0
@@ -17,7 +12,6 @@ export const FRAME_Z = 3.6
 export const RIM_Z = 1.38
 export const CROWN_Z = SKIRT_TOP + ENV_H
 export const CROWN_R = 0.9
-/** Horizontal load tapes, by height above the mouth. */
 export const TAPES = [3.4, 8.4, 13.6]
 
 export const W = (x: number, y: number, z: number): V3 => [CX + x, y, z]
@@ -25,7 +19,6 @@ export const TAU = Math.PI * 2
 const clamp = (x: number) => Math.max(0, Math.min(1, x))
 const frac = (x: number) => x - Math.floor(x)
 
-/** Centripetal-free uniform Catmull-Rom through control points, resampled by arc length. */
 function meridianOf(ctrl: [number, number][]) {
   const pts: [number, number][] = []
   const P = [ctrl[0], ...ctrl, ctrl[ctrl.length - 1]]
@@ -62,7 +55,6 @@ function meridianOf(ctrl: [number, number][]) {
   return { at, total }
 }
 
-/** (radius, height above the mouth) from the crown (u = 0) down to the mouth (u = 1): a natural-shape envelope. */
 export const envelopeMeridian = meridianOf(
   (
     [
@@ -83,7 +75,6 @@ export const envelopeMeridian = meridianOf(
     ] as [number, number][]
   ).map(([r, h]) => [r, h]),
 )
-/** The u at a height above the mouth (the meridian's height only falls with u past the crown). */
 export function uAtHeight(h: number) {
   let lo = 0,
     hi = 1
@@ -95,11 +86,9 @@ export function uAtHeight(h: number) {
   return (lo + hi) / 2
 }
 
-/** Where gore 0 starts, in radians about the axis: set by the drawing so a livery gore faces the viewer. */
 export const phase = { value: 0 }
 export const angleOf = (v: number) => phase.value + TAU * v
 
-/** Panels bulge between their seams, which sit as shallow valleys: the silhouette and the shading carry it. */
 const bulge = (u: number, v: number) => {
   const g = frac(v * GORES)
   return (
@@ -122,7 +111,6 @@ export const envelope: Surface = {
   v: GORES * 12,
   closed: true,
 }
-/** The envelope's gores, between v0 and v1 (in gore units), as their own surface so a livery panel shades alike. */
 export const gore = (v0: number, v1: number, u0 = 0, u1 = 1): Surface => ({
   at: (u, v) => envelopeAt(u0 + (u1 - u0) * u, (v0 + (v1 - v0) * v) / GORES),
   u: Array.from({ length: 121 }, (_, i) => i / 120),
@@ -154,7 +142,6 @@ export const hemPoint = (i: number, r = HEM_R + 0.02): V3 => {
   return W(r * Math.cos(a), r * Math.sin(a), HEM_Z)
 }
 
-/** A rounded rectangle of half extents (a, b) and corner radius r, by arc length t over [0, 1): point and outward normal. */
 export function roundRect(a: number, b: number, r: number, t: number) {
   const sx = 2 * (a - r),
     sy = 2 * (b - r),
@@ -187,7 +174,6 @@ export function roundRect(a: number, b: number, r: number, t: number) {
   }
   return segs[0][1](0)
 }
-/** The parameter t at the middle of corner arc k (0..3, counter-clockwise from the right edge). */
 export function cornerT(a: number, b: number, r: number, k: number) {
   const sx = 2 * (a - r),
     sy = 2 * (b - r),
@@ -196,7 +182,6 @@ export function cornerT(a: number, b: number, r: number, k: number) {
   const starts = [sy, sy + arc + sx, 2 * sy + 2 * arc + sx, 2 * sy + 3 * arc + 2 * sx]
   return (starts[k] + arc / 2) / total
 }
-/** The parameter t on the near (+y) wall at lateral position x. */
 export function nearT(a: number, b: number, r: number, x: number) {
   const sx = 2 * (a - r),
     sy = 2 * (b - r),
@@ -228,7 +213,6 @@ export const basketInner: Surface = {
   v: 200,
   closed: true,
 }
-/** The rim's padded tube: its path at the wall's top, tube radius PAD. */
 export const PAD = 0.095
 export const rimPath = (t: number): { p: V3; n: [number, number] } => {
   const q = roundRect(BASKET.a + 0.08, BASKET.b + 0.08, BASKET.r + 0.06, t)

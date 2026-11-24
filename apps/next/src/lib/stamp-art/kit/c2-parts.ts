@@ -1,5 +1,3 @@
-// Shared drawing parts for the lane C round 2 monuments (castles, forts, bastions): a lit block with
-// a shaded right strip, crenellations, solid roofs and openings. Light comes from the left.
 import {
   type Pt,
   type SvgNode,
@@ -15,11 +13,9 @@ import {
 } from '../grid'
 import { archPts } from './windows'
 
-/** T4 vertical hatch over a rectangle. */
 export const shadeRect = (x: number, y: number, w: number, h: number): SvgNode[] =>
   toneFill(rectPts(x, y, w, h), 'T4', { inset: 0.3 })
 
-/** A lit stone block: outline, shaded right strip (fraction `shade` of the width). */
 export function block(
   x: number,
   y: number,
@@ -33,7 +29,6 @@ export function block(
   return out
 }
 
-/** `n` merlons standing on a wall top at y, spread across [x, x + w]. */
 export function merlons(x: number, y: number, w: number, n: number, mh = 2.4): SvgNode[] {
   const pitch = w / n
   const mw = pitch * 0.58
@@ -43,14 +38,12 @@ export function merlons(x: number, y: number, w: number, n: number, mh = 2.4): S
   return out
 }
 
-/** Bold course line, the eaves or cornice. */
 export const course = (x0: number, x1: number, y: number, weight: Weight = 'bold'): SvgNode =>
   stroke(weight, [
     [x0, y],
     [x1, y],
   ])
 
-/** Solid conical roof; `lit` leaves the left half as paper and fills only the shaded right half. */
 export function cone(
   cx: number,
   baseY: number,
@@ -71,7 +64,6 @@ export function cone(
   ]
 }
 
-/** Steep pyramid roof with a flared (bell-cast) skirt; `lit` as for `cone`. */
 export function spire(
   cx: number,
   baseY: number,
@@ -96,7 +88,6 @@ export function spire(
   ]
 }
 
-/** Solid ogee cupola with a short vane. */
 export function ogee(cx: number, baseY: number, w: number, h: number): SvgNode[] {
   const r = w / 2
   const left = cubic(
@@ -121,14 +112,11 @@ export function ogee(cx: number, baseY: number, w: number, h: number): SvgNode[]
   ]
 }
 
-/** Dark round-headed opening. */
 export const arch = (x: number, y: number, w: number, h: number): SvgNode =>
   fill(archPts(x, y, w, h))
-/** Dark rectangular slit. */
 export const slit = (x: number, y: number, w: number, h: number): SvgNode =>
   fill(rectPts(x, y, w, h))
 
-/** Octagon-ish ellipse as a polygon. */
 export function ellipse(cx: number, cy: number, rx: number, ry: number, n = 12): Pt[] {
   return Array.from({ length: n }, (_, i): Pt => {
     const a = (i / n) * Math.PI * 2
@@ -136,7 +124,6 @@ export function ellipse(cx: number, cy: number, rx: number, ry: number, n = 12):
   })
 }
 
-/** Linear interpolation of a profile of [x, y] points sorted by x. */
 export function profileY(line: Pt[], x: number): number {
   if (x <= line[0][0]) return line[0][1]
   for (let i = 0; i + 1 < line.length; i++) {
@@ -147,7 +134,6 @@ export function profileY(line: Pt[], x: number): number {
   return line[line.length - 1][1]
 }
 
-/** Sagging arc between two points at the same y, a cylinder cue for round towers. */
 export function arcCourse(
   x0: number,
   x1: number,
@@ -163,7 +149,6 @@ export function arcCourse(
   return stroke(weight, pts)
 }
 
-/** The part of a polygon between two y values (Sutherland-Hodgman on two half planes). */
 export function clipPolyY(poly: Pt[], y0: number, y1: number): Pt[] {
   const cut = (pts: Pt[], keep: (p: Pt) => boolean, at: number): Pt[] => {
     const out: Pt[] = []
@@ -187,11 +172,6 @@ export function clipPolyY(poly: Pt[], y0: number, y1: number): Pt[] {
   )
 }
 
-/**
- * A round tower seen from the side: straight flanks, a sagging base and sagging courses (the
- * cylinder cue), a lit left and a T4 right (fraction `shade` of the width). `courses` are heights
- * above the base.
- */
 export function drum(
   cx: number,
   top: number,
@@ -234,7 +214,6 @@ export function drum(
   return out
 }
 
-/** A polygon around a polyline of constant width, for paths cut out of a hatched mass. */
 export function stripPts(pts: Pt[], width: number): Pt[] {
   const left: Pt[] = [],
     right: Pt[] = []

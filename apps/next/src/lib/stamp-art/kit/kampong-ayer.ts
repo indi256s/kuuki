@@ -1,7 +1,3 @@
-// Kampong Ayer (Brunei): timber houses with hip roofs on tall posts above the river, a long
-// boardwalk with a rail and posts linking them, a back row of smaller houses and a water taxi in
-// front. Posts have cross braces; roofs are hatched along the slope with a solid ridge. The box is
-// the whole village; its bottom is the waterline.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, hline, rectPts, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
@@ -69,9 +65,7 @@ export const kampongAyer: KitModule = ([x, y, w, h], p) => {
   const rand = mulberry32(Math.round(num(p, 'seed', 8)))
   const base = y + h
   const out: SvgNode[] = []
-  // Back row: smaller, further up the river.
   out.push(...house(x + w * 0.5, base - h * 0.16, 1.05, rand))
-  // Boardwalk across the front of the back row.
   const walk = base - h * 0.52
   out.push(...body(rectPts(x, walk, w, 2), 'hair'))
   out.push(hline('hair', x, x + w, walk - 5))
@@ -89,7 +83,6 @@ export const kampongAyer: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // Front row.
   for (const fx of [0.2, 0.8]) out.push(...house(x + w * fx, base, 1.55, rand))
   out.push(hline('bold', x, x + w, base))
   return out

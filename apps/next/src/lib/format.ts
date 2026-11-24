@@ -1,15 +1,11 @@
 import { dayToEpoch } from '@kuuki/shared/overview/range'
 
-// Locale-aware formatting shared by server components and client islands. Pure: no DOM, no server-only imports.
-// The locale is always the UI language (request locale), never the runtime's default.
-
 export type Locale = 'en' | 'ru'
 export type PluralCategory = 'zero' | 'one' | 'two' | 'few' | 'many' | 'other'
 export type CountForms = {
   en: { one: string; other: string }
   ru: { one: string; few: string; many: string; other: string }
 }
-/** `long` 5 January 2026 · `medium` 5 Jan 2026 · `padded` 05 Jan 2026 (aligned lists) · `short` 05.01.2026 / 01/05/2026 */
 export type DateStyle = 'long' | 'medium' | 'padded' | 'short'
 
 const NBSP = ' '
@@ -28,14 +24,12 @@ export function formatNumber(locale: Locale, n: number): string {
   return (numberFormats[locale] ??= new Intl.NumberFormat(locale)).format(n)
 }
 
-/** Picks the plural form for `n` and fills `{count}` with the locale-grouped number. */
 export function formatCount(locale: Locale, n: number, forms: CountForms): string {
   const set: Record<string, string> = forms[locale]
   const form = set[pluralCategory(locale, n)] ?? set.other
   return form.replaceAll('{count}', formatNumber(locale, n))
 }
 
-/** "141 255 км" / "141,255 km"; the unit is joined with a no-break space so it never wraps alone. */
 export function formatDistanceKm(locale: Locale, km: number): string {
   return `${formatNumber(locale, km)}${NBSP}${locale === 'ru' ? 'км' : 'km'}`
 }
@@ -47,8 +41,6 @@ const dateOptions: Record<DateStyle, Intl.DateTimeFormatOptions> = {
   short: { day: '2-digit', month: '2-digit', year: 'numeric' },
 }
 
-// Calendar dates (flight days) carry no time zone. Build the instant from the parsed
-// components in UTC and format in UTC so no runtime offset can move the day.
 function utcFromDateOnly(value: string): Date | null {
   const m = value.match(/^(\d{4})-(\d{2})(?:-(\d{2}))?/)
   if (!m) return null
@@ -56,7 +48,6 @@ function utcFromDateOnly(value: string): Date | null {
   return epoch === null ? null : new Date(epoch + 12 * 3_600_000)
 }
 
-/** Formats a 'YYYY-MM-DD' calendar date without ever shifting the day. Returns the input unchanged if it is not a real calendar date. */
 export function formatDateOnly(locale: Locale, value: string, style: DateStyle = 'medium'): string {
   const date = utcFromDateOnly(value)
   if (!date) return value
@@ -77,11 +68,6 @@ export function formatDateOnly(locale: Locale, value: string, style: DateStyle =
     .replaceAll('\u202f', ' ')
 }
 
-/**
- * The calendar day of an instant (an ISO timestamp such as a retention deadline) in the viewer's own time zone, so
- * "kept until" names the day the member will actually see. `timeZone` is only for tests and server rendering.
- * Returns the input unchanged if it is not a valid instant.
- */
 export function formatInstantDate(
   locale: Locale,
   value: string,
@@ -97,10 +83,6 @@ export function formatInstantDate(
       }).format(date)
 }
 
-/**
- * Month and year, e.g. "October 2026" / «октябрь 2026 г.» (Intl's standalone nominative form for Russian).
- * Accepts a Date (read in UTC) or a 'YYYY-MM[-DD]' string (never shifted).
- */
 export function formatMonthYear(
   locale: Locale,
   value: Date | string,
@@ -121,7 +103,6 @@ export function formatMonthYear(
     : String(value)
 }
 
-/** "2 h 5 min" / "2 ч 5 мин"; whole minutes, hours omitted below 60 and minutes omitted on the hour. */
 export function formatDuration(locale: Locale, minutes: number): string {
   const total = Math.max(0, Math.round(minutes))
   const h = Math.floor(total / 60),
@@ -134,7 +115,6 @@ export function formatDuration(locale: Locale, minutes: number): string {
   return parts.join(' ')
 }
 
-/** Whole hours, clamped at zero; day-bearing values retain the remaining hours. */
 export function formatDurationDays(locale: Locale, minutes: number): string {
   const total = Number.isFinite(minutes) ? Math.max(0, Math.floor(minutes / 60)) : 0
   const days = Math.floor(total / 24),
@@ -143,11 +123,6 @@ export function formatDurationDays(locale: Locale, minutes: number): string {
   return days ? `${formatNumber(locale, days)}${NBSP}${locale === 'ru' ? 'д' : 'd'} ${hour}` : hour
 }
 
-/**
- * How long ago a 'YYYY-MM-DD' calendar date was, short and localized: "today", "3 days ago", "2 wk. ago",
- * "2 mo. ago", "3 yr. ago" / «сегодня», «3 дн. назад», «2 мес. назад», «3 г. назад». Calendar arithmetic in UTC,
- * so no runtime offset moves the day. A future date reads "today"; an invalid one is returned unchanged.
- */
 export function formatRelativeDate(locale: Locale, value: string, now = new Date()): string {
   const date = utcFromDateOnly(value)
   if (!date) return value
@@ -170,7 +145,6 @@ export function formatRelativeDate(locale: Locale, value: string, now = new Date
     : format.format(-Math.floor(months / 12), 'year')
 }
 
-/** Period bounds may be legacy months or exact calendar days. */
 export function formatPeriodDate(locale: Locale, value: string): string {
   return value.length === 10 ? formatDateOnly(locale, value) : formatMonthYear(locale, value)
 }

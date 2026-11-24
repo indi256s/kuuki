@@ -1,7 +1,6 @@
 'use client'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
-/** Incoming routes own presentation, including while the previous page exits. */
 export function FocusedMemberShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   return (

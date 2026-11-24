@@ -869,7 +869,6 @@ describe('bound job draft caps by source', () => {
   })
 
   it('truncates a long compact paste at 500 without tripping the provider output cap', async () => {
-    // About 92,000 characters of input: under MAX_TEXT_LENGTH, but over a megabyte once every row is serialized.
     const compact = [
       'KUUKI FLIGHTS v2',
       ...Array.from(

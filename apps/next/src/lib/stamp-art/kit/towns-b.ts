@@ -2,7 +2,6 @@ import { type Pt, type SvgNode, body, fill, hatchPoly, hline, rectPts, stroke, q
 import { type KitModule, bool } from './util'
 import { mulberry32 } from '../hash'
 
-// The lane recedes to a sea opening; the door and projecting lattice bay carry the foreground.
 export const sidiLaneB: KitModule = ([x, y, w, h]) => {
   const at = (a: number, b: number): Pt => [x + w * a, y + h * b]
   const out: SvgNode[] = []
@@ -51,7 +50,6 @@ export const sidiLaneB: KitModule = ([x, y, w, h]) => {
   return out
 }
 
-// Overlapping blocks follow a sloped skyline rather than a row of equal extruded boxes.
 export const casbahB: KitModule = ([x, y, w, h], p) => {
   const ruin = bool(p, 'ruin', false),
     rand = mulberry32(ruin ? 37 : 12)

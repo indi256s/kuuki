@@ -115,7 +115,6 @@ function Inbox({
   )
 }
 
-/** Request and inbox reuse the auth card's field, heading and actions; no tagline or account-state disclosure. */
 export function GetBackInStep({
   locale,
   state,

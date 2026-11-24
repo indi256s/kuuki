@@ -35,7 +35,6 @@ export type EntryProblem =
   | 'partial'
   | 'reselect'
   | 'nomads'
-/** A problem exists exactly when the entry failed. */
 export type EntryState =
   | { phase: 'queued' | 'local' | 'online' | 'ready' | 'empty'; problem?: undefined }
   | { phase: 'failed'; problem: EntryProblem }
@@ -55,7 +54,6 @@ interface EntryFields {
 }
 export type SessionEntry = EntryFields & EntryState
 
-/** The complementary source is still owed: everything except a settled entry. */
 export const complementPending = (entry: SessionEntry): boolean =>
   entry.phase !== 'ready' && entry.phase !== 'empty'
 
@@ -78,7 +76,6 @@ export interface RetainedEntry {
   nomads?: SessionEntry['nomads']
 }
 
-/** Several existing single-source jobs; draft identity and confirmation always stay with their owning run. */
 export class UnifiedSession {
   private entries: SessionEntry[] = []
   private listeners = new Set<() => void>()
@@ -220,7 +217,6 @@ export class UnifiedSession {
   }
   add(files: File[]) {
     for (const file of files) {
-      // Reselecting a lost submission reuses its operation id. A known terminal batch gets a new operation on Retry.
       const held = this.entries.find(
         (entry) => entry.problem === 'reselect' && entry.label === file.name && !entry.file,
       )
@@ -277,7 +273,6 @@ export class UnifiedSession {
       this.publish()
       return
     }
-    // Never replace retained partial drafts or receipts. Retry adds a new run and the server's duplicate guard applies.
     this.prepareRetry(entry)
     setState(entry, { phase: 'queued' })
     this.publish()
@@ -289,7 +284,6 @@ export class UnifiedSession {
       entry.online = undefined
     }
   }
-  /** One outcome for a settled entry: failed with its problem, else empty or ready by the drafts the runs hold. */
   private settle(entry: SessionEntry, problem: EntryProblem | undefined) {
     if (problem) setState(entry, { phase: 'failed', problem })
     else
@@ -307,7 +301,6 @@ export class UnifiedSession {
   }
   private pump() {
     if (this.stopped || this.generation !== getAuthGeneration()) return
-    // The existing admission contract permits one processing batch per owner.
     while (this.active < 1) {
       const entry = this.entries.find((item) => item.phase === 'queued')
       if (!entry) break
@@ -367,7 +360,6 @@ export class UnifiedSession {
   private async reconcile(entry: SessionEntry, barcode: BatchRun, online: BatchRun) {
     const locals = barcode.getState().drafts.filter((draft) => draft.status === 'review')
     const remote = online.getState().drafts.filter((draft) => draft.status === 'review')
-    // Resolve the entire bipartite identity graph before mutating either batch.
     const matches = remote.map((draft) =>
       locals.filter((local) => compatibleIdentity(local, draft)),
     )
@@ -381,7 +373,6 @@ export class UnifiedSession {
     for (const { local, draft } of pairs) {
       this.assertCurrent()
       const suppressed = !draft.fields.date || !draft.yearExplicit ? draft : local
-      // Persist intent before the dismissal request, so an interrupted response cannot expose a system Restore action.
       entry.suppressedIds = [...new Set([...(entry.suppressedIds ?? []), suppressed.id])]
       this.publish()
       if (suppressed === draft) {
@@ -429,7 +420,6 @@ export class UnifiedSession {
       this.assertCurrent()
       const fingerprint = `${entry.file?.type ?? 'text'}:${[...digest].map((byte) => byte.toString(16).padStart(2, '0')).join('')}`
       if (entry.fingerprint && entry.fingerprint !== fingerprint) {
-        // A replacement with the same filename is a new source; never replay it as the original request.
         this.entries.push(
           entryOf(
             {
@@ -484,7 +474,6 @@ export class UnifiedSession {
             `${entry.operationId}:barcode`,
           )
       }
-      // Persist barcode fields before sending the full source, so resume never depends on the file remaining in memory.
       setState(entry, { phase: 'online' })
       this.publish()
       const source = nomadsSource ?? entry.source ?? (await uploadSource(entry.file!))
@@ -524,7 +513,6 @@ export class UnifiedSession {
             : 'recognition'
           : undefined,
       )
-      // Source bytes are memory-only. Keep failed inputs for retry while this page remains open.
       if (entry.phase !== 'failed') {
         entry.file = undefined
         entry.source = undefined
@@ -550,7 +538,6 @@ export class UnifiedSession {
       ).values(),
     ]
   }
-  /** One explicit save authorizes past-flight confirmation, followed by the existing idempotent per-batch receipts. */
   async save(ids: string[]) {
     const acks = []
     for (const entry of this.entries)
@@ -569,7 +556,6 @@ export class UnifiedSession {
             Object.keys(validateValues(toValues(draft.fields))).length
           )
             continue
-          // The receipt version after this patch is pinned for every retry of an unknown confirm outcome.
           const previous = this.outcomes.get(draft.id)
           const saved =
             previous?.status === 'uncertain' ||
@@ -600,9 +586,7 @@ export class UnifiedSession {
         acks.push(...result.acks)
         try {
           await run.reload(run.batchId())
-        } catch {
-          /* Confirm receipts remain authoritative; unresolved rows stay visible. */
-        }
+        } catch {}
       }
     this.publish()
     return acks

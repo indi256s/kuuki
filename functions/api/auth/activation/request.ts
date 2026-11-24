@@ -11,7 +11,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const response = await runHandler(async () => {
     const { request, env } = context
     requireStrictSameOrigin(request)
-    // Configuration is checked before lookup so all account states fail identically.
     const activationOrigin = configuredActivationOrigin(env)
     if (activationOrigin === new URL(request.url).origin) {
       throw new HttpError(
@@ -29,8 +28,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
     const emailKey = await activationEmailKey(email, env.AUTH_SECRET)
     await rateLimit(env.DB, `activation-email:${emailKey}`, 3, 3600)
-    // Keep lookup and delivery out of the account-dependent response path. Pages
-    // keeps this task alive after the generic response has been returned.
     context.waitUntil(
       requestActivation(env.DB, email, activationOrigin, sender).catch(() => {
         console.error(JSON.stringify({ event: 'activation_request_failed' }))

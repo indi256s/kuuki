@@ -1,24 +1,16 @@
 import { Scene, roundRect, type IsoFigureData, type P3, type Pt } from './scene'
 import { NZ, X, Y, cylX, rrOn, shadowRect } from './solids'
 
-/** Housing, drum and window dimensions in iso units. */
 const FOOT = 4,
   H = 72,
   D = 44,
   DW = 22,
-  /** One digit's pitch: the window cell is this tall and the strip moves by it. */
   PITCH = 28,
   MIN_DRUMS = 6,
-  // Window rows on the front face, measured down from its top edge.
   CELL_V = 13,
   BASELINE_V = CELL_V + 20.3,
   RIM = 3
 
-/**
- * Kilometres: a mechanical odometer, the real whole-km total on its drums and the units drum lit.
- * `digits` is plain ASCII, 1 to 8 characters. The housing always has room for 6 drums, shorter totals get leading zeros in the quiet tones, longer ones widen it.
- * Part: `last-drum`, the units strip (this digit, then the next one a pitch below) clipped to its cell, so it ticks over without leaving the window. Motion lives in `odometer.css`.
- */
 export function odometer(k: number, { digits }: { digits: string }): IsoFigureData {
   const s = new Scene(k)
   const n = Math.max(MIN_DRUMS, digits.length),
@@ -34,7 +26,6 @@ export function odometer(k: number, { digits }: { digits: string }): IsoFigureDa
 
   shadowRect(s, 0, -2, W + 12, D + 14, 3)
 
-  // Mounting tabs: they reach past the housing so their screw heads show.
   for (const x of [10, W - 34]) {
     s.box(x, -2, 0, 24, D + 14, FOOT)
     const c: P3 = [x + 12, D + 7, FOOT]
@@ -51,7 +42,6 @@ export function odometer(k: number, { digits }: { digits: string }): IsoFigureDa
 
   s.rbox(0, 0, FOOT, W, D, H, 6, { top: 'top', wall: 'front', side: 'side' })
 
-  // Panel seams wrap the visible half of the housing and end on its silhouette.
   const plan = roundRect(0, 0, W, D, 6),
     m = plan.length
   const facing = plan.map(([x0, y0], i) => {
@@ -70,7 +60,6 @@ export function odometer(k: number, { digits }: { digits: string }): IsoFigureDa
       0.7,
     )
 
-  // Lid: panel seam, two screws and a finger slot.
   const lid = roundRect(4, 4, W - 8, D - 8, 3).map(([x, y]): P3 => [x, y, TOP])
   s.line([...lid, lid[0]], 'detail', 0.7)
   for (const x of [12, W - 12]) {
@@ -87,7 +76,6 @@ export function odometer(k: number, { digits }: { digits: string }): IsoFigureDa
   }
   s.poly(rrOn(s, [0, 0, TOP], X, Y, W / 2 - 14, D / 2 - 2, 28, 4, 2), 'glass', 'line', 0.7)
 
-  // Reset knob on the right end: a plate with four screws, a collar, then the knurled knob.
   const E: P3 = [W, 0, TOP],
     onE = s.on(E, Y, NZ),
     KY = D / 2,
@@ -112,7 +100,6 @@ export function odometer(k: number, { digits }: { digits: string }): IsoFigureDa
     const a = (i / 24) * 2 * Math.PI,
       y = KY + 8.5 * Math.cos(a),
       z = KZ + 8.5 * Math.sin(a)
-    // Only ridges on the side facing the viewer.
     if (Math.cos(a) + Math.sin(a) > 0.15)
       knurl.push([
         [KX, y, z],
@@ -130,7 +117,6 @@ export function odometer(k: number, { digits }: { digits: string }): IsoFigureDa
     0.8,
   )
 
-  // Window: a raised bezel with corner screws round a glass, six or more drums inside.
   s.box(BX, D, TOP - 46, BW, 1.5, 38)
   s.poly(rrOn(s, FB, X, NZ, BX + 4, 12, GW, 30, 2), 'glass', 'line', 0.7)
   const GX = BX + 6,
@@ -173,7 +159,6 @@ export function odometer(k: number, { digits }: { digits: string }): IsoFigureDa
       anchor: 'middle',
     })
 
-  // The units drum: the current digit and the next one a pitch below, both on the accent face. The clip is the cell, so the strip rolls inside it.
   const LU = GX + last * DW,
     d = Number(drums[last]),
     next = String((d + 1) % 10)
@@ -231,7 +216,6 @@ export function odometer(k: number, { digits }: { digits: string }): IsoFigureDa
     'accent-side',
   )
 
-  // Drum separators, rim lines and the glass highlight, all ending on the drums' edges.
   const x0 = GX,
     x1 = GX + n * DW
   s.segs(
@@ -270,7 +254,6 @@ export function odometer(k: number, { digits }: { digits: string }): IsoFigureDa
     s.line([onFB(u - 1, v + 1), onFB(u + 1, v - 1)], 'line', 0.6)
   }
 
-  // Front plates on the lower face: a counter label, a vent row and the KM legend.
   const PZ = TOP - 62,
     PL = 64,
     PK = 36,

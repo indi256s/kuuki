@@ -1,7 +1,3 @@
-// Leaderboard members: 25 public, opted-in travellers with deterministic values (a tie at #3), one private member who
-// must leave no gap, and three who publish all countries with completed ground journeys (one road-only). The full
-// preview also makes a@example.test public with three rail journeys, so it ranks outside the sky top ten and sees the
-// ground tiles blocked by publication. `fixture-ranked` (5 flights) stays the row that opens a real /fly profile.
 const LEADERBOARD_FLIGHTS = [
   61, 55, 48, 48, 44, 41, 39, 37, 35, 33, 32, 31, 30, 29, 25, 24, 21, 18, 15, 12, 10, 8, 7, 6,
 ]
@@ -31,7 +27,6 @@ const LEADERBOARD_NAMES = [
   'Farah',
   'Pavel',
 ]
-// Each member's flights carry one type, so the race lanes show a mixed fleet; every seventh flies untyped (generic).
 const LEADERBOARD_TYPES = [
   'A388',
   'B788',
@@ -44,7 +39,6 @@ const LEADERBOARD_TYPES = [
   'B77W',
   'SU95',
 ]
-// [member index or 'road-only', rail, road, countries]: ground members publish all countries.
 const LEADERBOARD_GROUND: Array<[number | 'road-only', number, number, string[]]> = [
   [1, 4, 1, ['DE', 'AT', 'CH', 'IT']],
   [5, 2, 2, ['FR', 'ES']],
@@ -90,8 +84,6 @@ export async function seedLeaderboard(db: D1Database, full: boolean) {
           ),
       )
   }
-  // Every journey covers Tbilisi to Kutaisi, so the mode with more journeys has more kilometres: the ground Countries
-  // lane runs a train for Kenji, the car for Ines (a tie) and Roadie.
   const city = (id: string, name: string, lat: number, lon: number) =>
     JSON.stringify({ source: 'geonames', id, name, countryCode: 'GE', lat, lon })
   const TBILISI = city('611717', 'Tbilisi', 41.6941, 44.8337)
@@ -144,7 +136,6 @@ export async function seedLeaderboard(db: D1Database, full: boolean) {
       ground ? 'all' : 'flights',
       flights,
     )
-    // This year's flights (TBS and IST exist in both fixtures): a few per member, with ties.
     for (let i = 0; i < (index % 6) + 1; i++)
       statements.push(
         db
@@ -169,9 +160,7 @@ export async function seedLeaderboard(db: D1Database, full: boolean) {
   const roadOnly = groundOf('road-only')!
   person('leaderboard-road', 'fixture-roadie', 'Roadie', 1, 'all', 0)
   journeys('leaderboard-road', 'road', roadOnly[2], roadOnly[3])
-  // Private but opted in, with more flights than #3: no rank and no gap.
   person('leaderboard-private', 'fixture-private', 'Private', 0, 'flights', 50)
-  // ranked@example.test is the RESET_REQUIRED account the auth journeys sign in as.
   person('ranked-fixture', 'fixture-ranked', 'Ranked', 1, 'flights', 5, 'ranked@example.test')
   if (full) {
     statements.push(

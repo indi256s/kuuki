@@ -14,7 +14,6 @@ it('records the first visit as a baseline, then returns each later arrival once'
   expect(unseenCountries('baseline-owner', ['NO', 'GE'], store)).toEqual([])
   expect(unseenCountries('baseline-owner', ['NO', 'GE', 'IS'], store)).toEqual(['IS'])
   expect(unseenCountries('baseline-owner', ['NO', 'GE', 'IS'], store)).toEqual([])
-  // A hidden country keeps its place in the seen set, so restoring it does not press it again.
   expect(unseenCountries('baseline-owner', ['NO', 'GE'], store)).toEqual([])
   expect(unseenCountries('baseline-owner', ['NO', 'GE', 'IS'], store)).toEqual([])
 })

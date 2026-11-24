@@ -1,7 +1,3 @@
-// GET /api/flights/:id (own) — read one. PATCH — update. DELETE — remove.
-// Mutations require CSRF. Every query is scoped "id = ? AND user_id = ?" (no RLS in D1).
-// PATCH/DELETE re-run the same service chain as create so stats/badges/advanced stats stay in sync.
-
 import { runHandler, readJson, json, HttpError } from '../_lib/http'
 import { requireUser, requireCsrf, type RequestData } from '../_lib/auth'
 import { toOwnFlight, type FlightRow } from '../_lib/flights'
@@ -145,7 +141,6 @@ async function loadFlight(db: D1Database, id: number, userId: string): Promise<F
 export const onRequestGet: PagesFunction<Env, string, RequestData> = (context) =>
   readFlightRequest(context.request, context.env, context.data, context.params.id as string)
 
-/** Actual Request/Response domain entry, shared by the Pages compatibility transport. */
 export function readFlightRequest(
   request: Request,
   env: Env,
@@ -163,7 +158,6 @@ export function readFlightRequest(
 export const onRequestPatch: PagesFunction<Env, string, RequestData> = (context) =>
   updateFlightRequest(context.request, context.env, context.data, context.params.id as string)
 
-/** Actual Request/Response domain entry, shared by the Pages compatibility transport. */
 export function updateFlightRequest(
   request: Request,
   env: Env,
@@ -204,7 +198,6 @@ export function updateFlightRequest(
           user.id,
           ...snapshot.after,
         ),
-        // The route adapter clears transit on every route change; restore it after the guarded route write in the same transaction.
         env.DB.prepare(
           `UPDATE flights SET arrival_transit = ?, arrival_transit_leg_id = ? WHERE id = ? AND user_id = ? AND changes() > 0 RETURNING ${FLIGHT_COLUMNS}`,
         ).bind(previous.arrival_transit, previous.arrival_transit_leg_id, id, user.id),
@@ -222,7 +215,6 @@ export function updateFlightRequest(
       throw new HttpError(400, 'offer_undo must be a boolean', 'INVALID_FLIGHT')
     const patch = await parseFlightBody(env.DB, controls ? body : rawBody, 'patch', existing)
 
-    // Merge patch over the existing row: a provided key (even null) overrides; undefined keeps existing.
     const merge = <T>(key: keyof typeof patch, current: T): T =>
       patch[key] === undefined ? current : (patch[key] as T)
 
@@ -256,10 +248,8 @@ export function updateFlightRequest(
     const source = patch.source ?? existing.source
     const enrichmentStatus = patch.enrichment_status ?? existing.enrichment_status
 
-    // ADR 0001 §2: date and route edits move lifecycle (and the is_upcoming projection) with the same UPDATE.
     const lifecycle = lifecycleForEdit(existing, { date, origin, destination }, timezone)
 
-    // ADR 0008: explicit source instants hold only while date, route, clock times and zones are unchanged.
     const utcExplicit = existing.utc_explicit === 1 && !routeChanged && !timeChanged ? 1 : 0
     const metricsChanged = routeChanged || timeChanged || flightNumber !== existing.flight_number
     const metrics = metricsChanged
@@ -330,7 +320,6 @@ export function updateFlightRequest(
       dirtyUserStatement(env.DB, user.id, true),
     ])
     if (!update.meta.changes) {
-      // Reject changes to any rewritten snapshot field; a concurrent deletion remains a 404.
       await loadFlight(env.DB, id, user.id)
       throw new HttpError(
         409,
@@ -355,7 +344,6 @@ export function updateFlightRequest(
 export const onRequestDelete: PagesFunction<Env, string, RequestData> = (context) =>
   deleteFlightRequest(context.request, context.env, context.data, context.params.id as string)
 
-/** Actual Request/Response domain entry, shared by the Pages compatibility transport. */
 export function deleteFlightRequest(
   request: Request,
   env: Env,
@@ -368,7 +356,6 @@ export function deleteFlightRequest(
     const id = parseId(rawId)
 
     const [, deleted] = await env.DB.batch([
-      // ADR 0008: imported source cells go with the flight, in the same transaction.
       tombstoneHistoryRowsStatement(env.DB, user.id, [id]),
       env.DB.prepare('DELETE FROM flights WHERE id = ? AND user_id = ?').bind(id, user.id),
       dirtyUserStatement(env.DB, user.id, true),

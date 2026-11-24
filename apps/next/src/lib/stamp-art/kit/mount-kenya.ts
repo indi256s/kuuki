@@ -1,6 +1,3 @@
-// Mount Kenya: two jagged rock horns (Batian right and tall, Nelion left and lower) with a deep
-// notch between them, a toothed rim, glacier patches left bare, fall-line gullies and a shaded
-// right face. Fixed silhouette scaled into the box; the box bottom is the foot of the slopes.
 import { mulberry32 } from '../hash'
 import { pointInPoly } from '../geom'
 import { type Pt, type SvgNode, occlude, stroke, toneFill } from '../grid'
@@ -45,7 +42,6 @@ export const mountKenya: KitModule = ([x, y, w, h], p) => {
   const sil = SIL.map(pt)
   const poly: Pt[] = [...sil, [x + w, base], [x, base]]
   const out: SvgNode[] = [occlude(poly)]
-  // Shaded faces: right of each horn's summit ridge, down the fall line.
   const shadeR: Pt[] = [
     pt([0.535, 0.0]),
     ...sil.slice(sil.findIndex((s) => s[0] > x + w * 0.54)),
@@ -63,7 +59,6 @@ export const mountKenya: KitModule = ([x, y, w, h], p) => {
     pt([0.4, 0.4]),
   ]
   out.push(...toneFill(shadeL, 'T4', { angle: 80, gap: 1.9, weight: 'fine', inset: 0.4 }))
-  // Gullies fanning from the horns, hair, kept off the silhouette.
   const tips: Pt[] = [pt([0.405, 0.12]), pt([0.535, 0.0]), pt([0.63, 0.3])]
   for (const [i, tip] of tips.entries()) {
     const count = i === 1 ? 7 : 4
@@ -79,12 +74,10 @@ export const mountKenya: KitModule = ([x, y, w, h], p) => {
     }
   }
   out.push(stroke('line', sil))
-  // Bare glacier patches (outlined only) below the notch and under Batian.
   out.push(
     stroke('hair', [pt([0.44, 0.42]), pt([0.455, 0.52]), pt([0.5, 0.58]), pt([0.53, 0.5])]),
     stroke('hair', [pt([0.34, 0.5]), pt([0.37, 0.56]), pt([0.4, 0.52])]),
   )
-  // Ridge line from Batian down to the foot (lit edge).
   out.push(
     stroke('hair', [
       pt([0.535, 0.0]),

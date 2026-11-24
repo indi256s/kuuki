@@ -14,7 +14,6 @@ import {
 const fixture = (name: string) =>
   readFileSync(new URL(`./fixtures/flighty/${name}`, import.meta.url), 'utf8')
 
-// Independent of the shipped catalog: only what these cases need.
 const AIRPORT_ZONES: Record<string, string | null> = {
   JFK: 'America/New_York',
   LHR: 'Europe/London',
@@ -225,7 +224,6 @@ describe('mapFlightyRecord', () => {
       durationMinutes: 459,
       timesFrom: 'actual_gate',
     })
-    // Runway events stay separate source events; none replaced the gate times.
     expect(candidate.events.map((event) => `${event.kind}/${event.phase}`)).toEqual([
       'gate_departure/scheduled',
       'gate_departure/actual',

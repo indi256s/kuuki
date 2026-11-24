@@ -19,7 +19,6 @@ type Action = {
   icon: ReactNode
 }
 
-/** Flights first, then ground travel; the fixed order never changes with the page. */
 export const ADD_GROUPS: readonly (readonly Action[])[] = [
   [
     {
@@ -66,11 +65,6 @@ function Label({ action }: { action: Action }) {
   )
 }
 
-/**
- * Radix menu items for the desktop Add menu and the mobile Add card: the flight pair and the ground pair, apart by space
- * (no divider, no group labels), then the queue row only with work in it. On the ground list the ground rows carry its
- * current view, so a cancelled form returns there. Menu content mounts only while open, so `location` is client-side.
- */
 export function AddActions({ locale: initialLocale = 'en' }: { locale?: 'en' | 'ru' }) {
   const locale = useLocale(initialLocale)
   const pathname = usePathname()

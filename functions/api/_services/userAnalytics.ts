@@ -31,8 +31,6 @@ export interface UserAnalyticsData {
   daily: Array<{ date: string; users: number; flights: number; ground: number }>
 }
 
-// Records retained by current accounts, rather than a historical event ledger. Travel dates,
-// automatic confirmations and session refreshes do not measure someone adding journal content.
 const events = `WITH events AS (
   SELECT id AS user_id, created_at, 'users' AS kind FROM users
   UNION ALL
@@ -112,7 +110,6 @@ export async function readUserAnalytics(
     ])
 
   const totals = totalsResult.results[0] as UserAnalyticsData['totals']
-  // SUM has no rows for an empty database; every count still has a numeric zero.
   totals.withEntries ??= 0
   const byDate = new Map(
     (dailyResult.results as UserAnalyticsData['daily']).map((row) => [row.date, row]),

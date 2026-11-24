@@ -275,7 +275,6 @@ describe('server-authoritative flight metrics', () => {
   })
 
   it('keeps explicit source instants through unrelated edits and re-infers once a clock time changes', async () => {
-    // Tokyo 00:30 on 2026-03-11 lands in Honolulu on the previous UTC day: 420 minutes across the date line.
     await db.batch(
       ['HND', 'HNL'].map((iata) => {
         const airport = findAirport(iata)!
@@ -492,31 +491,26 @@ it('infers the arrival day across the date line and refuses an implausible pair'
       existingDurationMinutes,
     })
 
-  // LAX to SYD lands two local dates later.
   expect(infer('2026-01-15', '22:30', 'America/Los_Angeles', '07:30', 'Australia/Sydney')).toEqual({
     departureUtc: '2026-01-16T06:30:00.000Z',
     arrivalUtc: '2026-01-16T20:30:00.000Z',
     durationMinutes: 840,
   })
-  // HND to HNL lands on the previous local date.
   expect(infer('2026-03-11', '00:30', 'Asia/Tokyo', '13:30', 'Pacific/Honolulu')).toEqual({
     departureUtc: '2026-03-10T15:30:00.000Z',
     arrivalUtc: '2026-03-10T23:30:00.000Z',
     durationMinutes: 480,
   })
-  // Overnight across a DST change.
   expect(infer('2026-03-28', '22:30', 'America/New_York', '10:30', 'Europe/London')).toEqual({
     departureUtc: '2026-03-29T02:30:00.000Z',
     arrivalUtc: '2026-03-29T09:30:00.000Z',
     durationMinutes: 420,
   })
-  // Same day.
   expect(infer('2026-06-01', '08:00', 'Europe/London', '11:15', 'Europe/Paris')).toEqual({
     departureUtc: '2026-06-01T07:00:00.000Z',
     arrivalUtc: '2026-06-01T09:15:00.000Z',
     durationMinutes: 135,
   })
-  // No candidate day gives a plausible block time: unknown arrival, existing duration kept.
   expect(
     infer('2026-06-01', '00:00', 'Pacific/Kiritimati', '23:59', 'Pacific/Pago_Pago', 77),
   ).toEqual({

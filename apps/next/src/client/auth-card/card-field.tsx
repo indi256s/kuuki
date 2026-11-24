@@ -10,18 +10,13 @@ export type CardFieldProps = Omit<
   'aria-invalid' | 'type'
 > & {
   label: string
-  /** Right end of the label row: a text link ("Can’t sign in?") or a hint ("At least 8 characters"). */
   aside?: ReactNode
-  /** Muted helper under the input (Arc's input description); described before any error. */
   hint?: ReactNode
-  /** Shown under the input with an icon and announced; also marks the input invalid. */
   error?: ReactNode
   type?: 'email' | 'text' | 'password'
-  /** Password fields only: the reveal button's labels. */
   locale?: Locale
 }
 
-/** A card input: 13/20 label row, 44px input (48px on mobile), and an error line with an icon. */
 export const CardField = forwardRef<HTMLInputElement, CardFieldProps>(function CardField(
   {
     label,

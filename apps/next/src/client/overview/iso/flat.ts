@@ -1,12 +1,9 @@
 import type { P3, Paint, Pt, Scene } from './scene'
 
-// Helpers for figures drawn on a floor plan: plan polygons, lettering lying on the floor, and the unit axes. Browser-safe: no Node imports.
-
 export const X: P3 = [1, 0, 0],
   Y: P3 = [0, 1, 0],
   Zd: P3 = [0, 0, -1]
 
-/** English three-letter months, the fallback for a figure whose caller did not pass localized ones. */
 export const MON = [
   'JAN',
   'FEB',
@@ -24,16 +21,12 @@ export const MON = [
 
 export const rad = (d: number) => (d * Math.PI) / 180
 
-/** Maps plan coordinates (u, v) at height z to 3D; a plan turned by some angle supplies its own. */
 export type PlanAt = (u: number, v: number, z: number) => P3
 
-/** The unturned plan: u is x, v is y. */
 export const onPlan: PlanAt = (u, v, z) => [u, v, z]
 
-/** Plan polygon at height z. */
 export const flat = (pts: readonly Pt[], z: number): P3[] => pts.map(([x, y]) => [x, y, z])
 
-/** Text lying on a plan rectangle turned by `deg`, centred at (u, v) of that rectangle. */
 export function flatText(
   s: Scene,
   at: PlanAt,

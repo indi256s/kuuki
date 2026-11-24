@@ -13,19 +13,13 @@ export type DialogProps = {
   onOpenChange: (open: boolean) => void
   title: ReactNode
   description?: ReactNode
-  /** Optional trigger element (rendered as-is via asChild); focus returns to it on close. */
   trigger?: ReactNode
   children?: ReactNode
-  /** Pinned below the scrolling body. */
   footer?: ReactNode
   closeLabel?: string
-  /** false: no close button, Escape and outside clicks are ignored (used while an action is pending). */
   dismissible?: boolean
-  /** false: no × in the header, for dialogs whose footer already answers (Cancel). Escape and outside clicks still close. */
   closeButton?: boolean
-  /** Element to focus on open instead of the title (e.g. Cancel in a destructive confirm). */
   initialFocusRef?: RefObject<HTMLElement | null>
-  /** Runs when focus is about to return to the trigger; `preventDefault()` lets the caller place focus instead. */
   onCloseAutoFocus?: (event: Event) => void
 }
 
@@ -93,7 +87,6 @@ function MountedDialogContent({
     }
     wasOpen.current = open
   }, [open, initialFocusRef])
-  // Capture each Portal mount before a child autoFocus can replace the opener.
   const [opener] = useState(() => {
     if (typeof document === 'undefined') return null
     const active = document.activeElement

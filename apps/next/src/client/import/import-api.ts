@@ -1,4 +1,3 @@
-// Thin typed calls to the import endpoints. No retries or copy here: callers classify failures (import-errors.ts).
 import { api, type CallOptions } from '@kuuki/client/apiClient'
 import { sendWithZone, withZone } from '../capture/flight-writes'
 import type { Leg } from './bcbp'
@@ -16,11 +15,9 @@ export interface DocumentSource {
   type: 'pdf' | 'image' | 'text'
   content: string
   sourceLabel?: string | null
-  /** Quick Add online fallback: a today/past row then needs the member's "I flew" before it can be saved. */
   requireFlownConfirmation?: true
 }
 
-/** Flight fields read from a boarding pass barcode on this device: no file bytes and no decoded text. */
 export interface BoardingPassSource {
   type: 'boarding_pass'
   source: 'image' | 'pdf'
@@ -31,7 +28,6 @@ export interface BoardingPassSource {
 
 export type ImportSource = DocumentSource | BoardingPassSource
 
-/** Source bytes and pasted text live only in this request body: nothing here touches browser storage. */
 export async function submitSource(
   source: ImportSource,
   submissionOperationId: string,
@@ -60,7 +56,6 @@ export async function patchDraft(
   return draft
 }
 
-/** The member's IANA zone goes on every confirm, as the flight writes do; a rejected zone is retried once without it. */
 export const confirmItems = (batchId: string, items: ConfirmItem[]): Promise<ConfirmResponse> =>
   sendWithZone((zone) =>
     api.post<ConfirmResponse>(
@@ -84,7 +79,6 @@ export const cancelBatch = (batchId: string) =>
 export const discardBatch = (batchId: string) =>
   api.delete<{ deleted: boolean }>(`/api/import/batches/${encodeURIComponent(batchId)}`)
 
-/** Open imports (processing or with rows still in review) from the shared queue read; no import-specific list exists. */
 export async function listUnfinished(signal?: AbortSignal): Promise<UnfinishedImport[]> {
   const queue = await api.get<{ drafts?: UnfinishedImport[] }>('/api/me/awaiting', undefined, {
     signal,
@@ -111,7 +105,6 @@ export const enrichAircraft = (flights: EnrichFlight[], signal?: AbortSignal) =>
 export const acceptAircraftBatch = (items: Array<{ id: number; aircraft_icao: string }>) =>
   api.post<AircraftAccept>('/api/flights/aircraft-batch', { items, replaceAll: true })
 
-/** Pressed country codes from the passport read, or null when it cannot be read (nothing is then claimed as new). */
 export async function fetchPressedCountries(signal?: AbortSignal): Promise<Set<string> | null> {
   try {
     const passport = await api.get<{ countries: Array<{ country_code: string; status: string }> }>(

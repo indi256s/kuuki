@@ -7,9 +7,6 @@
   opacity: var(--iso-glow);
 }
 
-/* Figure motion, one family for every Overview figure (map, clock, tape, passes, hangars, puzzle, stamper, gate sign). A figure rests with --iso-lit (windows, route, backlight) and --iso-move (lift, dip, payout, fold) at 0 and leaves over
-   --dur-fast with no delay. Hover, keyboard focus and a touch press engage it; its parts read --iso-dur, --iso-ease, --iso-delay and, scaled by their own --t, --iso-stagger.
-   Lit shows under any motion preference, so reduced motion swaps it instantly; movement only where motion is welcome. */
 .iso {
   --iso-lit: 0;
   --iso-move: 0;
@@ -34,7 +31,6 @@
     --iso-stagger: 160ms;
   }
 }
-/* Keyboard focus shows the hover pose at once: keyboard actions don't animate. */
 .ov3-tile:focus-visible .iso {
   --iso-lit: 1;
   --iso-dur: 0ms;
@@ -46,7 +42,6 @@
     --iso-move: 1;
   }
 }
-/* Touch has no hover: a pressed tile takes the pose, and lets go of it when the long-press reorder drag starts. */
 @media (hover: none) and (prefers-reduced-motion: no-preference) {
   .ov3-tile:active:not([data-dragging]) .iso {
     --iso-lit: 1;

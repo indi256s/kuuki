@@ -1,5 +1,3 @@
-// GET /api/flights/all — every flight (no paging), newest first. Used by export.
-
 import { runHandler, json } from '../_lib/http'
 import { requireUser, type RequestData } from '../_lib/auth'
 import { toOwnFlight, type FlightRow } from '../_lib/flights'

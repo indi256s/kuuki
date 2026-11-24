@@ -9,7 +9,6 @@ import { seaplane } from './seaplane'
 import { stela } from './stela'
 import { stickChart } from './stick-chart'
 
-/** One-off country parts by recipe name. */
 export const signatures = {
   'kotor-walls': kotorWalls,
   'kalae-finial': kalaeFinial,

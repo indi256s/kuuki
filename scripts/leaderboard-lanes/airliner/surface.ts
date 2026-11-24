@@ -1,47 +1,27 @@
-// A parametric surface drawn in the anatomy kit's light: the true silhouette as fill and outline, and the kit's five
-// tone bands (four shades and the top) as one polygon each with interpolated, smooth boundaries. The kit's lathe only
-// turns circles about a straight axis; an airliner needs bodies that are not turned (a fuselage with a drooped nose and
-// an upswept tail cone, airfoil wings and tails, pylons, winglets), so this renders any S(u, v).
-//
-// Method: sample S on a (u, v) grid, take each vertex's normal from the grid, march every cell against the visibility
-// n·V (clipped at 0 with linear interpolation, so the silhouette is the true limb, not a facet edge) and against the
-// light n·L at the kit's band thresholds, then union each band's pieces. A surface may be open (an inlet's hole, a wing
-// root standing on the fuselage): what is not front-facing is simply not drawn, so the hole reads through.
 import polygonClipping, { type MultiPolygon, type Polygon, type Ring } from 'polygon-clipping'
 
 export type V3 = [number, number, number]
 export type Pt = [number, number]
 
 export type Camera = {
-  /** World to build screen units (before the level shear, which the serializer applies). */
   project(p: V3): Pt
-  /** Unit vector toward the viewer. */
   V: V3
-  /** Unit vector toward the light. */
   L: V3
-  /** The kit's band thresholds on n·L: band = how many thresholds the score reaches (0..4; 4 is the top tone). */
   bands: readonly number[]
 }
 
 export type Surface = {
-  /** The point at (u, v); u and v run over [0, 1]. */
   at(u: number, v: number): V3
-  /** Grid rows along u (or the exact u values) and columns around v. */
   u: number | number[]
   v: number | number[]
-  /** v wraps around (a closed section). */
   closed: boolean
-  /** Flips the normal: the side with n = ∂S/∂u × ∂S/∂v must face out of the solid. */
   flip?: boolean
 }
 
-/** Open rings (the closing point dropped), in build screen units. */
 export type Rings = Pt[][]
 
 export type Drawn = {
-  /** One ring set per tone band, 0 (darkest) to 4 (top); empty when the band is absent. */
   tones: Rings[]
-  /** The visible surface: the paper fill under the tones, and as outline its silhouette, end rims and any holes. */
   rings: Rings
 }
 
@@ -68,7 +48,6 @@ export const lerp = (a: V3, b: V3, t: number): V3 => [
 const steps = (n: number | number[]) =>
   Array.isArray(n) ? n : Array.from({ length: n + 1 }, (_, i) => i / n)
 
-/** The surface normal at (u, v) from central differences, falling back to the nearest regular row at a pole. */
 export function normalAt(s: Surface, u: number, v: number): V3 {
   const h = 1e-4
   const du = sub(s.at(Math.min(1, u + h), v), s.at(Math.max(0, u - h), v))
@@ -77,7 +56,6 @@ export function normalAt(s: Surface, u: number, v: number): V3 {
   const dv = sub(s.at(u, vp), s.at(u, vm))
   let n = cross(du, dv)
   if (len(n) < 1e-12) {
-    // A pole (a nose or tip that closes to a point): take the normal a little way in.
     const u2 = u < 0.5 ? u + 0.002 : u - 0.002
     return normalAt(s, u2, v)
   }
@@ -87,7 +65,6 @@ export function normalAt(s: Surface, u: number, v: number): V3 {
 
 type Vx = { p: Pt; f: number; t: number }
 
-/** Sutherland–Hodgman against a scalar field: keeps g ≥ 0, interpolating position and both fields on the cut. */
 function clip(poly: Vx[], g: (v: Vx) => number): Vx[] {
   const out: Vx[] = []
   for (let i = 0; i < poly.length; i++) {
@@ -121,7 +98,6 @@ const area = (r: Ring) => {
   return a / 2
 }
 
-/** Snaps a geometry to a grid (polygon-clipping's sweep line fails on nearly coincident vertices). */
 const snap = (m: MultiPolygon, grid: number): MultiPolygon =>
   m
     .map((poly) =>
@@ -133,7 +109,6 @@ const snap = (m: MultiPolygon, grid: number): MultiPolygon =>
             const last = out[out.length - 1]
             if (!last || last[0] !== p[0] || last[1] !== p[1]) out.push(p)
           }
-          // Rings may come closed or open: drop a repeated first point, keep any three distinct corners.
           const [f, l] = [out[0], out[out.length - 1]]
           if (out.length > 1 && f[0] === l[0] && f[1] === l[1]) out.pop()
           return out
@@ -142,21 +117,17 @@ const snap = (m: MultiPolygon, grid: number): MultiPolygon =>
     )
     .filter((poly) => poly.length)
 
-/** Unions two geometries; on a sweep-line failure retries on coarser grids, and fails the build if none works. */
 function union2(a: MultiPolygon, b: MultiPolygon): MultiPolygon {
   for (const grid of [0, 1e-3, 1e-2, 5e-2]) {
     try {
       return grid
         ? polygonClipping.union(snap(a, grid), snap(b, grid))
         : polygonClipping.union(a, b)
-    } catch {
-      // try the next grid
-    }
+    } catch {}
   }
   throw new Error('airliner: polygon union failed on every snapping grid')
 }
 
-/** Unions many polygons in balanced batches (polygon-clipping is fastest on similar-sized inputs). */
 export function unionAll(polys: Polygon[] | MultiPolygon[]): MultiPolygon {
   let list: MultiPolygon[] = (polys as (Polygon | MultiPolygon)[])
     .filter((p) => p.length)
@@ -181,10 +152,6 @@ export function unionAll(polys: Polygon[] | MultiPolygon[]): MultiPolygon {
   return list[0]
 }
 
-/**
- * Closes the slivers a union leaves where a cut point, rounded, misses its neighbour's edge by a hair: any hole thinner
- * than half a build unit on average (twice its area over its perimeter) goes. Real openings (an inlet) are far wider.
- */
 function solidHoles(m: MultiPolygon): MultiPolygon {
   const width = (r: Ring) => {
     let p = 0
@@ -197,7 +164,6 @@ function solidHoles(m: MultiPolygon): MultiPolygon {
 export const ringsOf = (m: MultiPolygon): Rings =>
   m.flatMap((poly) => poly.map((ring) => ring.slice(0, -1) as Pt[]))
 
-/** Draws the visible surface, at full precision. */
 export function drawSurface(s: Surface, cam: Camera): Drawn {
   const us = steps(s.u)
   const vs = steps(s.v)
@@ -233,7 +199,6 @@ export function drawSurface(s: Surface, cam: Camera): Drawn {
         band[i][j] === band[i + 1][j1] &&
         band[i][j] === band[i][j1]
       if (whole) {
-        // Merge the run of whole cells that share this band into one strip.
         const b = band[i][j]
         let k = j + 1
         while (k < cols) {
@@ -292,11 +257,6 @@ export const bandOf = (score: number, bands: readonly number[]) => {
   return b
 }
 
-/**
- * A curve on the surface through (u, v) points, cut to its front-facing runs. Each run ends exactly at the limb, so a
- * seam drawn under the outline lands on it. `least` keeps a run off the limb by that much facing (for marks that should
- * not reach the silhouette, such as windows).
- */
 export function curveOn(
   s: Surface,
   cam: Camera,

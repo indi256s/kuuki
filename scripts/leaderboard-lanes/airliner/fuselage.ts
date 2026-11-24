@@ -1,10 +1,8 @@
-// The fuselage: the skin with its seams, joints, doors and hatches, the glass on it, and the antennas on the crown.
 import { D2R, midHalf, type Airframe } from './airframe'
 import type { Item, Lines } from './model'
 import { closed, foil, roundedUV, type Draw, type Foil } from './draw'
 import type { Rings } from './surface'
 
-/** A blade antenna standing on the crown at station xg. */
 const antenna = (a: Airframe, d: Draw, xg: number, h: number, c: number): Item => {
   const f: Foil = {
     path: (t) => [0, a.crownZ(xg, 0) - 0.06 + t * (h + 0.06)],
@@ -18,22 +16,19 @@ const antenna = (a: Airframe, d: Draw, xg: number, h: number, c: number): Item =
   return d.solid(foil(f), 'metal', [], 0.3)
 }
 
-/** The fuselage solid with its skin lines, then the glass fills, then the two crown antennas. */
 export function fuselage(a: Airframe, d: Draw): Item[] {
   const { g, Lb, R, H, nl, tc, high, prop, wide, rootTE, fairing0, fairing1, body, sec, thetaAt } =
     a
   const wg = g.wing
   const skin: Lines[] = []
   const uOf = (xg: number) => xg / Lb
-  const vOf = (deg: number) => deg / 360 // 0 at the crown, 90° the near flank
+  const vOf = (deg: number) => deg / 360
   const ck = g.fuselage.cockpit
   const aft = ck?.aftX ?? g.fuselage.cockpitWindowX
   const fore = ck?.foreX ?? aft - 1.2
-  // Radome joint (just ahead of the windscreen) and the production joints of the barrel and tail cone.
   skin.push(d.seam(body, 90, (t) => [uOf(Math.min(nl * 0.38, fore - 0.35)), t]))
   skin.push(d.seam(body, 90, (t) => [uOf(Lb - tc + 0.4), t], 'faint'))
   skin.push(d.seam(body, 90, (t) => [uOf(Lb - tc * 0.32), t], 'faint'))
-  // The belly fairing's edge.
   if (!high)
     skin.push(
       d.seam(
@@ -41,7 +36,6 @@ export function fuselage(a: Airframe, d: Draw): Item[] {
         60,
         (t) => {
           const xg = fairing0 + (fairing1 - fairing0) * t
-          // Its ends turn down under the belly, so the line meets the silhouette instead of stopping on the skin.
           const lift = Math.sin(t * Math.PI)
           return [uOf(xg), vOf(180 - 51 * Math.sqrt(lift))]
         },
@@ -58,8 +52,6 @@ export function fuselage(a: Airframe, d: Draw): Item[] {
         ...(framed ? { edge: 'line' as const, width: 0.16 } : {}),
       })
   }
-  // Cockpit glazing on the near side: the record's edge angles fix the sill and head heights at the aft edge, and the
-  // panes keep those heights forward, so the windscreen climbs over the narrowing nose to the centre post by itself.
   {
     const s = sec(aft)
     const [, h] = midHalf(s)
@@ -80,7 +72,6 @@ export function fuselage(a: Airframe, d: Draw): Item[] {
         ),
         true,
       )
-    // Windscreen: the front edge leans back from the sill corner over the nose to the centre post.
     const ws = (sg: number) =>
       pane([
         [fore + 0.1 * span, sg * lo(fore + 0.1 * span)],
@@ -91,7 +82,6 @@ export function fuselage(a: Airframe, d: Draw): Item[] {
       ])
     ws(-1)
     ws(1)
-    // Two side windows, the sliding one first; the last one's aft edge sweeps up.
     pane([
       [cut1 + post, lo(cut1 + post)],
       [cut2 - post, lo(cut2 - post)],
@@ -105,7 +95,6 @@ export function fuselage(a: Airframe, d: Draw): Item[] {
       [cut2 + post, hi(cut2 + post)],
     ])
   }
-  // Doors (starboard: R1 forward, the last R door aft), overwing exits, cargo doors, then the window row.
   const doorH = Math.min(1.85, H * 0.9)
   const doorW = wide ? 1.07 : 0.81
   const windowZ = (deck: 'main' | 'upper') => {
@@ -142,7 +131,6 @@ export function fuselage(a: Airframe, d: Draw): Item[] {
       for (const x of Lb < 35 ? [wingMid] : exits) doorAt(x, 0.51, 0.96, windowZ('main') - 0.05)
     }
   }
-  // Cargo doors on the lower lobe, ahead of and behind the wing.
   if (!prop) {
     const cw = wide ? 2.7 : 1.82,
       ch = wide ? 1.7 : 1.24
@@ -152,7 +140,6 @@ export function fuselage(a: Airframe, d: Draw): Item[] {
       if (rings.length) skin.push({ runs: closed(rings), ink: 'faint', width: 0.22 })
     }
   }
-  // Windows: one row (two on the A380), skipping doors and exits, at a ~0.53 m pitch.
   const decks: ('main' | 'upper')[] = g.fuselage.decks > 1 ? ['main', 'upper'] : ['main']
   const pitch = wide ? 0.53 : 0.533
   for (const deck of decks) {
@@ -176,7 +163,6 @@ export function fuselage(a: Airframe, d: Draw): Item[] {
   return [
     d.solid(body, 'body', skin),
     ...fills,
-    // VHF blades on the crown, ahead of the wing and over the aft cabin.
     antenna(a, d, Math.max(firstDoor + 2.5, Lb * 0.24), prop ? 0.3 : 0.42, 0.55),
     antenna(a, d, Lb * 0.58, prop ? 0.3 : 0.4, 0.55),
   ]

@@ -1,7 +1,3 @@
-// Timber jetty on posts running straight out over flat water (Pigeon Point, Flying Fish Cove). The
-// box holds the jetty from its shore end (left) to its seaward end (right); the bottom is the
-// waterline. `hut` puts an open thatched shelter on the end, `crane` a cantilever gantry. Posts are
-// hair verticals into the water under a dark deck band; a post-and-rail fence runs along the deck.
 import { type Pt, type SvgNode, body, fill, hline, rectPts, stroke, toneFill, vline } from '../grid'
 import { type KitModule, bool, num } from './util'
 
@@ -13,7 +9,6 @@ export const jettyA: KitModule = ([x, y, w, h], p) => {
   const crane = bool(p, 'crane', false)
   const out: SvgNode[] = []
 
-  // Posts down into the water, then the deck: a dark band with a bold top edge.
   const hutAt = typeof p.hutAt === 'number' ? p.hutAt : undefined
   const hw = w * num(p, 'hutW', 0.15)
   const hutX = hutAt === undefined ? end - hw - w * 0.01 : x + w * hutAt
@@ -34,13 +29,11 @@ export const jettyA: KitModule = ([x, y, w, h], p) => {
     ]),
   )
 
-  // Fence on the shore half of the deck.
   const fenceEnd = hut ? (hutAt === undefined ? end - w * 0.3 : hutX - hw * 1.3) : x + w * 0.55
   for (let fx = x + 2; fx < fenceEnd; fx += 9) out.push(vline('hair', fx, deckY - 6, deckY))
   out.push(hline('hair', x + 2, fenceEnd, deckY - 6))
 
   if (hut) {
-    // Open thatched shelter: four posts under a steep conical roof, lit left and shaded right.
     const cx = hutX
     const apex = y
     const eave = y + h * 0.5
@@ -80,7 +73,6 @@ export const jettyA: KitModule = ([x, y, w, h], p) => {
     out.push(fill(rectPts(cx - 0.8, apex - 3, 1.6, 4)))
   }
   if (crane) {
-    // Cantilever gantry: two braced legs, a horizontal jib reaching out and a hanging hook line.
     const cx = end - w * 0.26
     const top = y
     const legW = w * 0.13

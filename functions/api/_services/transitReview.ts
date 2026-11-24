@@ -1,10 +1,3 @@
-// Transit cleanup for historical flights (ADR 0001 §4 and §5). A logged `legacy` or `save` flight with no arrival
-// decision keeps its destination country (rule 3): nothing reclassifies history on its own. When the same
-// calculation that gives awaiting flights a transit default finds an unambiguous third-country connection for
-// one, the member may opt in; applying stores `arrival_transit = 1` plus the leg and changes nothing else.
-//
-// GET is a pure read. POST follows the receipt-first protocol of `confirmation.ts` (shared pieces in
-// `receipts.ts`): apply is all or nothing; dismiss records the marker only.
 import { HttpError } from '../_lib/http'
 import { toOwnFlight, FLIGHT_COLUMNS, type FlightRow } from '../_lib/flights'
 import { sha256Hex } from '../_lib/crypto'
@@ -45,7 +38,6 @@ import { firstOf, rowsOf } from './stats'
 
 export const MAX_REVIEW_ITEMS = 100
 
-/** Logged by an old writer or a plain save, with no arrival decision yet. */
 interface ReviewRow extends EvidenceFlight {
   confirmation_source: string | null
 }
@@ -67,7 +59,6 @@ export interface ReviewCandidate {
   flightId: number
   candidate: CandidateView
   candidateToken: string
-  /** Countries whose evidence this flight's transit would suppress (the destination and the matched leg's origin). */
   affectedCountries: string[]
 }
 
@@ -92,7 +83,6 @@ function eligibleConnections<T extends ReviewEligibilityFlight>(flights: T[]) {
   })
 }
 
-/** Small Journal availability read; details, tokens and stamp simulation stay behind the disclosure. */
 export async function readTransitReviewAvailability(
   db: D1Database,
   userId: string,
@@ -110,7 +100,6 @@ export async function readTransitReviewAvailability(
   )
 }
 
-/** Every candidate in a snapshot, with the countries a transit decision would suppress. */
 export async function reviewCandidates(flights: ReviewRow[]): Promise<ReviewCandidate[]> {
   const out: ReviewCandidate[] = []
   for (const { flight, decision, leg } of eligibleConnections(flights)) {
@@ -142,7 +131,6 @@ export async function reviewCandidates(flights: ReviewRow[]): Promise<ReviewCand
   return out
 }
 
-/** Per flight, like the queue token: another flight changing never invalidates it. */
 const reviewTokenOf = (flight: EvidenceFlight, legId: number, label: string, leg: EvidenceFlight) =>
   sha256Hex(
     JSON.stringify([
@@ -186,7 +174,6 @@ const pressedOf = (rows: CountryEvidenceRow[]) =>
 
 export type MarkerStatus = 'dismissed' | 'completed'
 
-/** `GET /api/me/transit-review`. Reads only; the response says which stamps applying everything would remove. */
 export async function readTransitReview(db: D1Database, userId: string) {
   const [state, flightsRead, page, marker, ...inputs] = await db.batch([
     db.prepare(STATE_SELECT).bind(userId),
@@ -206,8 +193,6 @@ export async function readTransitReview(db: D1Database, userId: string) {
   const digest = await candidateSetDigest(candidates.map((candidate) => candidate.flightId))
   const flightRows = new Map(rowsOf<FlightRow>(page).map((row) => [row.id, row]))
 
-  // Apply every candidate in memory and compare pressed countries: a country another flight, a claim, a ground
-  // visit or archived evidence still supports is not removed.
   const decided = new Map(
     candidates.map((candidate) => [candidate.flightId, candidate.candidate.legId]),
   )
@@ -256,7 +241,6 @@ export interface ReviewOutcome {
   results: Array<{ flightId: number; arrivalTransit: true; arrivalTransitLegId: number }>
   derivedState: 'ready' | 'pending'
   revision: number
-  /** Countries that lost their stamp because of this operation; null while publication is pending or the before-set is unknown. */
   removedCountries: string[] | null
   pendingCountryCount: number | null
 }
@@ -345,7 +329,6 @@ async function resolveReceipt(
   const before = receipt.pressed_before_json
     ? (JSON.parse(receipt.pressed_before_json) as string[])
     : null
-  // Only countries these flights' decisions could have suppressed: a claim or flight deleted meanwhile is not credited here.
   const affected = new Set(stored.affectedCountries ?? [])
   return freezeResult(db, userId, operationId, {
     action: stored.action,
@@ -370,7 +353,6 @@ async function replay(
   return resolveReceipt(db, userId, operationId, receipt)
 }
 
-/** `POST /api/me/transit-review`. */
 export async function reviewTransit(
   db: D1Database,
   userId: string,
@@ -399,7 +381,6 @@ export async function reviewTransit(
     const setDigest = await candidateSetDigest(candidates.map((candidate) => candidate.flightId))
 
     if (action === 'dismiss') {
-      // No canonical change: the receipt and the marker commit together, there is nothing to publish.
       const outcome: ReviewOutcome = {
         action,
         results: [],
@@ -459,7 +440,6 @@ export async function reviewTransit(
             } satisfies StoredReview),
             instant,
           ),
-        // Lifecycle, provenance and confirmed_at are left alone: only the arrival decision is recorded.
         db
           .prepare(
             `UPDATE flights SET arrival_transit = 1,
@@ -528,7 +508,6 @@ async function readSnapshot(db: D1Database, userId: string): Promise<Snapshot> {
   }
 }
 
-/** Precedence as in confirmation: unknown or foreign (404), not reviewable (409 with a cause each), changed (409). */
 function planApply(
   items: ReviewRequest['items'],
   flights: ReviewRow[],

@@ -290,16 +290,13 @@ it.each([false, true])(
     pointer(grabber, 'pointerUp', 800, 1060)
     expect(requested).toHaveBeenCalledWith(false)
     await waitFor(() => expect(sheet.style.transform).toBe('none'), { timeout: 2000 })
-    // A guard can rerender its confirmation and then keep editing without changing open.
     rerender(content(true))
     expect(screen.getByRole('textbox', { name: 'Notes' })).toHaveValue('Unsaved notes')
     expect(sheet).toBeInTheDocument()
-    // A deferred confirmation can close and then be reversed before its exit finishes.
     rerender(content(false))
     rerender(content(true))
     await waitFor(() => expect(sheet.style.transform).toBe('none'), { timeout: 2000 })
     expect(screen.getByRole('textbox', { name: 'Notes' })).toHaveValue('Unsaved notes')
-    // Once the owner accepts a fresh swipe immediately, the modal must leave.
     rerender(content(true, (open) => rerender(content(open))))
     pointer(grabber, 'pointerDown', 100, 2000)
     pointer(grabber, 'pointerMove', 800, 2050)

@@ -73,7 +73,6 @@ describe('ladder mapping', () => {
 
 describe('nextStep', () => {
   it('reports hours rounded up, kilometres rounded up and plain counts', () => {
-    // 21600 min target for rung 3; 20000 min flown = 1600 min = 26.67 h
     expect(nextStep('time-aloft', 2, stats({ total_duration_minutes: 20_000 }))).toEqual({
       rung: 3,
       remaining: 27,
@@ -128,7 +127,6 @@ describe('copy coverage', () => {
 
 describe('nearestRung', () => {
   it('picks the ladder with the smallest share of its next threshold missing', () => {
-    // flights 20/25 is 20% short, countries 4/5 is 20% short too, distance 9,000/10,000 is 10% short.
     const near = nearestRung(
       [],
       stats({ total_flights: 20, countries_count: 4, total_distance_km: 9000 }),

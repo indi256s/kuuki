@@ -11,7 +11,6 @@ type Query = { category?: string; period?: string }
 
 export const generateMetadata = () => pageMetadata('Leaderboard', 'Рейтинг')
 
-/** The one read behind the page. Category and period are client state, so nothing here is keyed on them. */
 export async function LeaderboardData({ searchParams }: { searchParams: Promise<Query> }) {
   const [payload, locale, query] = await Promise.all([
     getLeaderboardBoard(),

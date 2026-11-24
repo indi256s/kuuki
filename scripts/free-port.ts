@@ -1,6 +1,5 @@
 import { execFileSync } from 'node:child_process'
 
-// Free 127.0.0.1 port, `preferred` when it is free. Synchronous so module-level config can call it.
 export function freePort(preferred = 0): number {
   const probe = `const s = require('node:net').createServer()
 s.once('error', () => s.listen(0, '127.0.0.1'))

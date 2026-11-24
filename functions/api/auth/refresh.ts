@@ -1,8 +1,3 @@
-// POST /api/auth/refresh — slide an *already-valid* session forward.
-//
-// This cannot revive an expired session — it only extends a still-valid one. The client's
-// "on 401, refresh once then retry" must therefore treat a 401 here as a hard logout (no infinite loop).
-
 import { runHandler, json, HttpError } from '../_lib/http'
 import { requireCsrf, type RequestData } from '../_lib/auth'
 import { parseCookies, CSRF_COOKIE } from '../_lib/cookies'
@@ -13,8 +8,6 @@ export const onRequestPost: PagesFunction<Env, string, RequestData> = (context) 
     const { request, env, data } = context
     requireCsrf(request)
 
-    // Middleware only attaches data.user for a valid session; a missing user means the
-    // session is absent or expired and refresh must fail (client logs out).
     if (!data.user || !hasBetterAuthCookie(request))
       throw new HttpError(401, 'Session expired', 'SESSION_EXPIRED')
 

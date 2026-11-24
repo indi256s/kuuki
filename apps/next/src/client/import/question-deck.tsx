@@ -30,12 +30,9 @@ import { cityOf } from './reference'
 export interface QuestionDeckProps {
   compact?: boolean
   locale: Locale
-  /** Review rows as shown: the stored drafts with unsent changes laid over them. */
   drafts: Draft[]
   saveStates: Record<string, SaveState>
-  /** The import is being saved: answers wait, like row edits. */
   frozen: boolean
-  /** The member's calendar day, YYYY-MM-DD; tests pin it. */
   today?: string
   onChange: (draft: Draft, change: DraftChange) => void
   onRetry: (id: string) => void
@@ -47,7 +44,6 @@ interface Resolved {
   ids: string[]
 }
 
-/** «26 марта» / "26 March": a printed day without its year, formatted in a fixed leap year so 29 February survives. */
 export function formatMonthDay(
   locale: Locale,
   monthDay: { month: number; day: number },
@@ -70,7 +66,6 @@ export function QuestionDeck({
 }: QuestionDeckProps) {
   const id = useId()
   const [deferred, setDeferred] = useState<ReadonlySet<string>>(new Set())
-  // "Not yet" is this session's only memory: nothing is written, and the row stays in the review queue.
   const [notYet, setNotYet] = useState<ReadonlySet<string>>(new Set())
   const questions = useMemo(
     () =>
@@ -84,7 +79,6 @@ export function QuestionDeck({
   const [resolved, setResolved] = useState<Resolved[]>([])
   const [skipped, setSkipped] = useState<string[]>([])
   const [notice, setNotice] = useState('')
-  // Set by an answer; read by the effect after the next render, when the answered question has left the list.
   const focusAt = useRef<number | null>(null)
   const root = useRef<HTMLElement>(null)
   const shown = questions.filter((question) => !deferred.has(question.key))
@@ -93,8 +87,6 @@ export function QuestionDeck({
     .map((rowId) => byId.get(rowId))
     .filter((draft): draft is Draft => draft?.status === 'dismissed')
 
-  // After an answer, focus moves to the question now in that place, or to the deck heading when none is left.
-  // A compact deck's heading is visually hidden, so focus goes on to the next control of the row it belongs to.
   useEffect(() => {
     if (focusAt.current === null || !root.current) return
     const headings = root.current.querySelectorAll<HTMLElement>('[data-question-heading]')
@@ -112,7 +104,6 @@ export function QuestionDeck({
     focusAt.current = null
   })
 
-  // Kept while the last answer's announcement is live, so focus has somewhere to land.
   if (shown.length === 0 && resolved.length === 0 && skippedRows.length === 0 && !notice)
     return null
 
@@ -168,7 +159,6 @@ export function QuestionDeck({
       </ul>
     )
 
-  /** The first rows stay in view; the rest open in place, and stay answerable while a save runs. */
   const withMore = (rows: ReactNode[], visible: number) =>
     rows.length <= visible ? (
       <ul className="import-question-items">{rows}</ul>
@@ -213,7 +203,6 @@ export function QuestionDeck({
     )
 
     if (question.kind === 'year') {
-      // False when no row has that day in that year (29 February, or day 366, in a non-leap year): nothing is applied.
       const setYear = (year: number) => {
         const entries = question.drafts.map((draft) => ({
           draft,
@@ -232,13 +221,11 @@ export function QuestionDeck({
             S.yearQuestion[locale],
             [
               question.evidence === 'ordinal' ? S.yearOrdinalBody[locale] : S.yearBody[locale],
-              // One flight has no "all of them" to speak for.
               question.drafts.length > 1 ? S.yearForAll[locale] : '',
             ]
               .filter(Boolean)
               .join(' '),
           )}
-          {/* A compact row already shows its day and month; only a day of the year needs saying here. */}
           {compact && question.evidence !== 'ordinal' ? null : (
             <p className="import-question-dates import-code">
               {question.drafts.map(when).join(' · ')}
@@ -555,7 +542,6 @@ function OtherYear({
   locale: Locale
   max: number
   disabled: boolean
-  /** Returns false when the year does not hold the document's day, so the form can say so. */
   onApply: (year: number) => boolean
 }) {
   const [open, setOpen] = useState(false)

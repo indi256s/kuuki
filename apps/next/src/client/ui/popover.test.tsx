@@ -82,7 +82,6 @@ it.each(['ordinary', 'autoFocus', 'ref'] as const)(
     const chip = screen.getByRole('button', { name: 'Period' })
     const trigger = screen.getByRole('button', { name: 'Edit filter' })
     const outside = screen.getByRole('button', { name: 'Outside' })
-    // Reopening from a different control must refresh the return target.
     for (const [index, opener] of [chip, trigger, chip].entries()) {
       await user.click(opener)
       await waitFor(() =>
@@ -195,7 +194,6 @@ it.each(['Escape', 'blank'] as const)(
     await user.click(trigger)
     const firstDialog = screen.getByRole('dialog')
     await user.keyboard('{Escape}')
-    // Do not finish an exit animation or wait for close autofocus before reopening.
     const removedOnDismissal = !firstDialog.isConnected
     await user.click(chip)
     await user.click(screen.getByRole('button', { name: 'Year' }))

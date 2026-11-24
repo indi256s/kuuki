@@ -1,8 +1,3 @@
-// The synchronous import batch writer (ADR 0001 §6, controller ruling R3): one provider call in the request,
-// then the batch and all its drafts in one fenced D1 batch. Idempotent on the submission operation id.
-//
-// Nothing about the source is persisted: the content lives in this call's memory only, `raw_text` is dropped and
-// the provider response never leaves `extractFlights`.
 import { jobStub } from './importRuntime'
 import { HttpError } from '../_lib/http'
 import { extractFlights } from '../import/_extract'
@@ -29,11 +24,9 @@ export interface ImportSubmission {
   userId: string
   operationId: string
   sourceLabel: string | null
-  /** Quick Add online fallback: every draft of this batch carries the `flown_required` marker. */
   requireFlownConfirmation?: boolean
 }
 
-/** Boarding-pass legs the browser decoded: already normalized draft rows that skip extraction and the job. */
 export interface LocalLegs {
   sourceType: 'pdf' | 'image'
   rows: DraftRowInput[]
@@ -72,7 +65,6 @@ export function rowOf(
         : null,
     fieldConfidence: Object.keys(scores).length ? scores : null,
     yearExplicit,
-    // Uncertain required facts wait for the member's decision.
     selected:
       yearExplicit &&
       isCalendarDate(flight.date) &&
@@ -97,10 +89,6 @@ async function stillWaitingForStart(db: D1Database, fence: BatchFence) {
 
 const discarded = () => new HttpError(410, 'This import was discarded', 'IMPORT_BATCH_DISCARDED')
 
-/**
- * Replay, refuse at a limit, or extract and persist. `created` is false for a replayed submission. Local legs are
- * persisted synchronously with no provider call and no job, so they need neither a credential nor `IMPORT_JOBS`.
- */
 export async function submitImport(
   env: Env,
   source: ParseRequest | LocalLegs,
@@ -119,9 +107,6 @@ export async function submitImport(
           body: JSON.stringify({ fence, source: parse, requireFlownConfirmation }),
         },
       )
-      // A refused handshake is not an outage when the batch has moved on: the original job may have finished or been
-      // cancelled between this request's read and its handshake. D1 is the authority, so only a batch still waiting
-      // for its first start counts as a failed dispatch.
       if (!response.ok && (await stillWaitingForStart(db, fence)))
         throw new HttpError(503, 'Import service unavailable', 'IMPORT_SERVICE_UNAVAILABLE')
     } catch {
@@ -135,8 +120,6 @@ export async function submitImport(
   const replay = async () => {
     const existing = await batchByOperation(db, userId, operationId)
     if (!existing) return null
-    // An insert can become visible before its first dispatcher has established ownership.
-    // Repeating the handshake is safe: the DO serializes starts and calls the provider once.
     if (env.IMPORT_JOBS && existing.status === 'processing' && existing.stage === 'accepted') {
       await accept({ userId, batchId: existing.id, generation: existing.generation })
     }
@@ -168,7 +151,7 @@ export async function submitImport(
       now,
     ))
   ) {
-    const raced = await replay() // another request of the same submission won the insert
+    const raced = await replay()
     if (raced) return raced
     throw await refusalFor(db, userId, now)
   }

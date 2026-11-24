@@ -12,14 +12,12 @@ const PAINT: Record<Exclude<Paint, `maker${string}`>, string> = {
   detail: 'var(--iso-detail)',
   glass: 'var(--iso-glass)',
   ghost: 'var(--iso-ghost)',
-  // Every live paint derives from one role: --figure-live-fill is the accent fill unless a figure part depicts a category and sets it.
   accent: 'var(--figure-live-fill)',
   'accent-side': 'color-mix(in oklab, var(--figure-live-fill) 80%, black)',
   'accent-plate': 'var(--figure-live-fill)',
   shadow: 'var(--iso-shadow)',
   shade: 'var(--iso-shadow)',
   land: 'color-mix(in oklab, var(--iso-detail) 35%, transparent)',
-  // Ink on the live fill: the accent foreground, unless a part on a category fill sets --figure-live-ink.
   'on-accent': 'var(--figure-live-ink, var(--accent-foreground))',
   ink: 'var(--text)',
   muted: 'var(--text-muted)',
@@ -41,7 +39,6 @@ function blurs(nodes: readonly IsoNode[], out = new Set<number>()) {
   return out
 }
 
-/** Renders a Scene's node tree. Decorative: the figure's facts are always text beside it. Named parts carry `data-part` for CSS motion. */
 export const IsoFigure = memo(function IsoFigure({
   figure,
   className,
@@ -51,12 +48,10 @@ export const IsoFigure = memo(function IsoFigure({
   className?: string
   style?: CSSProperties
 }) {
-  // SVG ids are document-wide: each figure namespaces its filters and clips.
   const base = `iso${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
   let clips = 0
   const clipDefs: ReactNode[] = []
   const render = (nodes: readonly IsoNode[]): ReactNode[] => {
-    // A part keeps its key across rebuilds and reorders (a picked piece paints last), so its element, and any transition on it, survives a pick.
     const seen = new Map<string, number>()
     return nodes.map((node, index) => {
       const key =
@@ -71,7 +66,6 @@ export const IsoFigure = memo(function IsoFigure({
               points={node.points}
               strokeWidth={node.width ?? 1}
               strokeLinejoin="round"
-              // A cast shadow is feathered by the figure's one shared filter.
               filter={
                 node.fill === 'shadow' && node.stroke === 'none' && figure.shadowBlur
                   ? `url(#${base}-sh)`
@@ -142,7 +136,6 @@ export const IsoFigure = memo(function IsoFigure({
               {render(node.children)}
             </g>
           )
-          // The clip sits on a still wrapper so it stays put while the part moves inside it.
           return clipPath ? (
             <g key={key} clipPath={clipPath}>
               {part}
@@ -154,7 +147,6 @@ export const IsoFigure = memo(function IsoFigure({
       }
     })
   }
-  // A glow's region is the figure's box plus 3 sigma of blur. Builders include motion travel in the box, and a moving part carries its user space (and so the region) along, so nothing the glow reaches gets clipped.
   const [bx, by, bw, bh] = figure.viewBox.split(' ').map(Number)
   const body = render(figure.nodes)
   return (

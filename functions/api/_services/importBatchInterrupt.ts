@@ -1,11 +1,3 @@
-/**
- * The one definition of interrupting an import batch (restart or deadline recovery). A batch whose job died keeps
- * the rows it already persisted (partial) or fails (failed); the generation bump fences any late write from the dead
- * job, and the stored deadline is cleared so the sweep never picks the batch up again.
- *
- * 'one' binds (now, batchId, userId, generation) and fences a single batch; 'overdue' binds (now, now) and takes
- * every processing batch whose stored deadline has passed.
- */
 export function interruptBatchSql(scope: 'one' | 'overdue'): string {
   const where =
     scope === 'one'

@@ -1,12 +1,7 @@
-// TH: the kalae, two horn finials crossing at the gable apex.
 import { type Pt, type SvgNode, fill } from '../grid'
 import type { KitModule } from '../kit'
 import { num } from '../kit/util'
 
-/**
- * Two solid horns rising from the apex (bottom centre of the box) `arms` degrees apart, each
- * tapering from `base` to `tip` units wide. The box height is the rise above the apex.
- */
 export const kalaeFinial: KitModule = ([x, y, w, h], p) => {
   const cx = x + w / 2
   const half = (num(p, 'arms', 70) / 2) * (Math.PI / 180)

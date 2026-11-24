@@ -36,7 +36,6 @@ import { COPY, countryForms, reviewForms, stoppedForms } from './copy'
 import './flights.css'
 
 const LIST_ROWS = 4
-/** How long a bound read runs before the step offers to carry on elsewhere; the member shell's dock picks it up. */
 const KEEP_EXPLORING_MS = 20_000
 const ACCEPT = 'image/png,image/jpeg,application/pdf'
 
@@ -48,14 +47,12 @@ type Notice =
   | { kind: 'fileRead' }
   | { kind: 'tooLong'; length: number }
 
-/** A source that went to the server, under the operation id that makes a resend idempotent; `n` counts this submission's 20 s. */
 interface Sent {
   source: ImportSource
   opId: string
   n: number
 }
 
-/** What the member last gave the step. A rejected source never reaches `start`; `prior` is the send it displaced. */
 type Submission =
   | { k: 'none' }
   | ({ k: 'sent' } & Sent)
@@ -71,7 +68,6 @@ type Stop =
   | { kind: 'stopped' }
   | { kind: 'error'; gone: boolean }
 
-/** Why the step stopped on its own, from what the batch hook reports; null while it is reading or untouched. */
 function stopOf(state: BatchState): Stop | null {
   const found = state.drafts.length > 0
   switch (state.phase) {
@@ -182,26 +178,16 @@ export function FlightsStep({
   onReading,
   onSkip,
 }: StepProps & {
-  /** The name saved on the previous step; the heading uses its first word. */
   name?: string
-  /** The job worker is bound in this deployment (a resumed batch is then safe to leave). */
   jobs?: boolean
-  /** The batch being read, from `?batch=` (resume, Back, reload). */
   batch: string | null
-  /** `?manual=1`: the one-flight form. */
   manual: boolean
-  /** A submission was accepted: keep its batch ID in the URL (replace). */
   onBatch: (batch: string | null) => void
   onManual: (open: boolean) => void
-  /** Drafts are ready: go to the review step. `auto` is true only when this mount watched the batch get read. */
   onReview: (batch: string, auto?: boolean) => void
-  /** The one-flight form saved: straight to the reveal. */
   onManualSaved: (summary: SavedSummary) => void
-  /** What has been found so far (countries of the drafts that would be saved), for the passport. */
   onFound: (found: Found) => void
-  /** A batch is being read (or stopped being read), for the phone passport. */
   onReading?: (reading: boolean) => void
-  /** "I'll do this later": record onboarding as done and dissolve. Rejects when recording fails. */
   onSkip: () => Promise<void>
 }) {
   const t = (entry: { en: string; ru: string }) => entry[locale]
@@ -215,19 +201,14 @@ export function FlightsStep({
   const [notice, setNotice] = useState<Notice | null>(null)
   const [blocked, setBlocked] = useState(false)
   const [dropping, setDropping] = useState(false)
-  // Keyboard clipboard chips (Gboard, SwiftKey) insert text without a paste event, so the box needs its own submit.
   const [boxText, setBoxText] = useState('')
-  // The job worker accepted the batch (202), or we are resuming one it already holds. The unbound fallback is false.
   const [bound, setBound] = useState(Boolean(batch) && jobs)
   const [skip, setSkip] = useState<'idle' | 'busy' | 'failed'>('idle')
   const promptRef = useRef<HTMLTextAreaElement>(null)
   const boxRef = useRef<HTMLTextAreaElement>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const reviewed = useRef(false)
-  // This mount saw the batch being read (or sent it): only then does ready move on by itself. A batch that is already
-  // ready on arrival (Back from review, a reload) waits for the member (17.13).
   const [observed, setObserved] = useState(false)
-  // Each submission counts its own 20 s; `lingered` names the submission (`Sent.n`) that reached them.
   const [lingered, setLingered] = useState<number | null>(null)
 
   const api = useMemo<BatchApi>(
@@ -252,7 +233,6 @@ export function FlightsStep({
   const stopped = stoppedOf(state)
   const prompt = S.prompt[locale]
   const kept = submission.k === 'none' ? null : submission.source
-  // The last source that was actually sent: the only one a resend or "Try again" may send.
   const sent =
     submission.k === 'sent' ? submission : submission.k === 'rejected' ? submission.prior : null
 
@@ -333,7 +313,6 @@ export function FlightsStep({
     setSkip('idle')
   }
 
-  // A run resumed on reload was not sent from this mount; it counts as submission 0.
   const lingerId = sent?.n ?? 0
   useEffect(() => {
     if (!reading || !bound) return
@@ -342,14 +321,12 @@ export function FlightsStep({
   }, [reading, bound, lingerId])
   const keepExploring = reading && bound && lingered === lingerId
 
-  // The prompt text is selected for manual copying whenever the write failed.
   useEffect(() => {
     if (copied !== 'failed') return
     promptRef.current?.focus()
     promptRef.current?.select()
   }, [copied])
 
-  // The latest closures for the document listeners, so they never re-subscribe while the member pastes.
   const live = useRef({ submitText, submitFile, resend, reading })
   useEffect(() => {
     live.current = { submitText, submitFile, resend, reading }
@@ -359,7 +336,6 @@ export function FlightsStep({
     lastText.current = kept?.type === 'text' ? kept.content : null
   }, [kept])
 
-  // O14: paste anywhere, except into another field; drop anywhere.
   useEffect(() => {
     if (manual) return
     const onPaste = (event: ClipboardEvent) => {
@@ -387,7 +363,6 @@ export function FlightsStep({
     }
     const onDrop = (event: DragEvent) => {
       if (!carriesFiles(event.dataTransfer)) return
-      // Always claim the drop: an unclaimed file would navigate the tab away from the step.
       event.preventDefault()
       setDropping(false)
       const file = event.dataTransfer?.files?.[0]
@@ -405,7 +380,6 @@ export function FlightsStep({
     }
   }, [manual])
 
-  // O16: on return to the tab, read silently where the browser already allows it; act only on the v2 header.
   useEffect(() => {
     if (manual) return
     const onVisible = async () => {
@@ -418,15 +392,12 @@ export function FlightsStep({
         const value = await navigator.clipboard.readText()
         if (live.current.reading || value === lastText.current || !hasV2Header(value)) return
         live.current.submitText(value)
-      } catch {
-        // No permissions API, no clipboard, or a refusal: nothing happens and nothing is asked.
-      }
+      } catch {}
     }
     document.addEventListener('visibilitychange', onVisible)
     return () => document.removeEventListener('visibilitychange', onVisible)
   }, [manual])
 
-  // 17.11: a submission that never reached the server goes out once the connection is back.
   const offline = stop?.kind === 'offline' && sent !== null
   useEffect(() => {
     if (!offline) return
@@ -435,7 +406,6 @@ export function FlightsStep({
     return () => window.removeEventListener('online', onOnline)
   }, [offline])
 
-  // The passport follows the drafts as they arrive.
   const foundSent = useRef(false)
   useEffect(() => {
     if (drafts.length === 0 && !foundSent.current) return
@@ -445,7 +415,6 @@ export function FlightsStep({
 
   if (phase === 'processing' && !observed) setObserved(true)
 
-  // Ready with rows after this mount watched the batch: straight to review.
   const arrived =
     phase === 'ready' && !stopped && drafts.length > 0 && state.batch !== null && !observed
   useEffect(() => {
@@ -455,7 +424,6 @@ export function FlightsStep({
     onReview(state.batch.id, true)
   }, [phase, stopped, state.batch, drafts.length, observed, onReview])
 
-  // A batch that is gone must not stay in the URL.
   const gone = stop?.kind === 'error' && stop.gone
   useEffect(() => {
     if (gone) onBatch(null)
@@ -598,7 +566,6 @@ export function FlightsStep({
         <div className="flights-tray-fade" aria-hidden="true" />
       </div>
       <div className="flights-tray-foot">
-        {/* On touch the screenshot entry is the one primary; the prompt is the other way in. */}
         <Button
           variant={coarse ? 'secondary' : 'primary'}
           className={coarse ? 'auth-secondary' : 'auth-primary'}
@@ -610,7 +577,6 @@ export function FlightsStep({
       </div>
     </div>
   )
-  // No `capture`: the phone's sheet offers both the camera and the library.
   const fileInput = (
     <input
       ref={fileRef}
@@ -894,7 +860,6 @@ export function FlightsStep({
   )
 }
 
-/** "found so far, 6 countries" (or "read, …"); no country part until there is one. */
 function countLine(
   locale: 'en' | 'ru',
   flights: number,

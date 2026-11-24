@@ -1,4 +1,3 @@
-/** Restore an approved private D1 export into an empty, isolated local namespace. */
 import { readFileSync, statSync } from 'node:fs'
 import { isAbsolute, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'

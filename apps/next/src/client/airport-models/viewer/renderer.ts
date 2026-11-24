@@ -33,7 +33,6 @@ function readPalette(canvas: HTMLCanvasElement): ScenePalette {
   return palette
 }
 
-/** No animation loop: one coalesced frame only after a state/size/visibility change. */
 export function createAirportRenderer(options: RendererOptions): RendererController {
   const { canvas, model, initialPose, callbacks } = options
   let state: ViewerState = options.state
@@ -122,12 +121,10 @@ export function createAirportRenderer(options: RendererOptions): RendererControl
       pointer.set(((x - rect.left) / rect.width) * 2 - 1, 1 - ((y - rect.top) / rect.height) * 2),
       camera,
     )
-    // Exact visible geometry only: no screen-space widening that can select a neighbouring stand.
     const hits = raycaster.intersectObjects(airport.pickMeshes, false)
     const first = hits[0]
     if (!first) return null
     const id = String(first.object.userData.featureId)
-    // Coplanar overlapping IDs have no visual ordering; require the explicit object list.
     if (
       hits.some(
         (other) =>

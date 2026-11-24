@@ -1,6 +1,3 @@
-// Ganvie: thatched huts on posts above a lake, with a dugout canoe in front. Each hut is a steep
-// thatch roof (hatched along the fall line, solid ridge), a small lit wall with a dark doorway,
-// a deck line and a row of thin posts to the waterline. The box bottom is the waterline.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, hline, quad, rectPts, stroke, vline } from '../grid'
 import { type KitModule, num } from './util'
@@ -14,7 +11,6 @@ function hut(cx: number, base: number, s: number, rand: () => number): SvgNode[]
   const deckY = base - postH
   const wallTop = deckY - wallH
   const roofW = wallW + 12 * s
-  // Posts, thin and uneven.
   const n = 4
   for (let i = 0; i < n; i++) {
     const px = cx - wallW / 2 + 1 + ((wallW - 2) * i) / (n - 1)
@@ -30,7 +26,6 @@ function hut(cx: number, base: number, s: number, rand: () => number): SvgNode[]
   out.push(fill(rectPts(cx - 2 * s, wallTop + 3 * s, 4 * s, wallH - 1.6 - 3 * s)))
   out.push(fill(rectPts(cx - wallW / 2 + 2 * s, wallTop + 3.4 * s, 2.4 * s, 2.4 * s)))
   out.push(fill(rectPts(cx + wallW / 2 - 4.4 * s, wallTop + 3.4 * s, 2.4 * s, 2.4 * s)))
-  // Thatch: a solid-edged gable with fall-line hatching and a lit left face.
   const apex: Pt = [cx, wallTop - roofH]
   const L: Pt = [cx - roofW / 2, wallTop + 1.2]
   const R: Pt = [cx + roofW / 2, wallTop + 1.2]

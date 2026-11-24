@@ -1,11 +1,9 @@
-// Small solids the hero figures share: round parts on each axis, rotated slabs, contact shadows and rounded outlines on a plane.
 import { hull, roundRect, type P3, type Paint, type Scene } from './scene'
 
 export const X: P3 = [1, 0, 0],
   Y: P3 = [0, 1, 0],
   NZ: P3 = [0, 0, -1]
 
-/** Elliptical contact shadow on the floor. */
 export function shadowDisc(s: Scene, cx: number, cy: number, rx: number, ry = rx) {
   const pts: P3[] = []
   for (let i = 0; i < 32; i++) {
@@ -15,7 +13,6 @@ export function shadowDisc(s: Scene, cx: number, cy: number, rx: number, ry = rx
   s.poly(pts, 'shadow', 'none')
 }
 
-/** Rectangular contact shadow on the floor, `grow` past the footprint on every side. */
 export function shadowRect(s: Scene, x: number, y: number, w: number, d: number, grow = 4) {
   s.poly(
     [
@@ -31,7 +28,6 @@ export function shadowRect(s: Scene, x: number, y: number, w: number, d: number,
 
 type Round = { face?: Paint; body?: Paint; stroke?: Paint }
 
-/** Upright cylinder (axis z); returns its top rim. */
 export function cylZ(
   s: Scene,
   cx: number,
@@ -51,7 +47,6 @@ export function cylZ(
   return top
 }
 
-/** Cylinder along y whose near disc faces +y (the viewer's left); returns that disc. */
 export function cylY(
   s: Scene,
   cx: number,
@@ -71,7 +66,6 @@ export function cylY(
   return near
 }
 
-/** Cylinder along x whose near disc faces +x (the viewer's right); returns that disc. */
 export function cylX(
   s: Scene,
   x: number,
@@ -91,7 +85,6 @@ export function cylX(
   return near
 }
 
-/** A thin slab turned `a` radians in plan round its centre: the visible edges, then the top. Returns a mapper from slab-local (u, v, z) to world points. */
 export function slabRot(
   s: Scene,
   cx: number,
@@ -121,7 +114,6 @@ export function slabRot(
       [u1, v1] = corners[(i + 1) % 4]
     const p0 = at(u0, v0, z),
       p1 = at(u1, v1, z)
-    // An edge faces the viewer when its outward normal points along +x +y.
     if (p1[1] - p0[1] + (p0[0] - p1[0]) > 0)
       s.poly(
         [at(u0, v0, z), at(u1, v1, z), at(u1, v1, z + h), at(u0, v0, z + h)],
@@ -137,7 +129,6 @@ export function slabRot(
   return at
 }
 
-/** A rounded rectangle on the plane O + u·U + v·V, as 3D points. */
 export function rrOn(
   s: Scene,
   O: P3,

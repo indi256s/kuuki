@@ -31,11 +31,6 @@ export class SettledFlightOperationError extends Error {
   }
 }
 
-/**
- * This tab's copy of each stored receipt. localStorage is the source of truth whenever it is readable: a missing entry
- * means another tab settled or abandoned the receipt, so the copy is dropped, never served. The copy answers only when
- * storage cannot be read at all or holds a damaged entry.
- */
 const fallback = new Map<string, PendingOperation>()
 
 function read(id: string): PendingOperation | undefined {
@@ -83,7 +78,6 @@ function scope(userId: string, operationId: string): string {
   return `${userId}:${operationId}`
 }
 
-/** Keep the exact payload and key together. An explicit retry must supply its captured key, never mint a new one. */
 export function getFlightCreateOperation(
   userId: string,
   operationId: string,
@@ -120,11 +114,6 @@ export function pendingFlightCreateOperation(
   }
 }
 
-/**
- * Every stored create receipt of this user, whatever wrote it and whatever its operation id looks like (a plain UUID,
- * a run and row number, or any prefixed id), so an unresolved save can be found again after a reload. A damaged receipt
- * is listed as expired with an empty body and no key.
- */
 export function pendingFlightCreateOperations(
   userId: string,
 ): Array<{ operationId: string; key: string; body: object; expired: boolean }> {
@@ -137,9 +126,7 @@ export function pendingFlightCreateOperations(
       if (key?.startsWith(STORAGE_PREFIX + owner))
         ids.add(key.slice(STORAGE_PREFIX.length + owner.length))
     }
-  } catch {
-    /* Storage may be unavailable. */
-  }
+  } catch {}
   const receipts: Array<{ operationId: string; key: string; body: object; expired: boolean }> = []
   for (const operationId of [...ids].sort()) {
     const pending = pendingFlightCreateOperation(userId, operationId)
@@ -153,9 +140,7 @@ export function abandonFlightCreateOperation(userId: string, operationId: string
   fallback.delete(id)
   try {
     localStorage.removeItem(STORAGE_PREFIX + id)
-  } catch {
-    /* Explicit new operation; storage may be unavailable. */
-  }
+  } catch {}
 }
 
 export function completeFlightCreateOperation(
@@ -168,9 +153,7 @@ export function completeFlightCreateOperation(
   fallback.delete(id)
   try {
     localStorage.removeItem(STORAGE_PREFIX + id)
-  } catch {
-    /* Storage may be unavailable. */
-  }
+  } catch {}
 }
 
 export function clearFlightCreateOperations(userId?: string): void {
@@ -182,12 +165,9 @@ export function clearFlightCreateOperations(userId?: string): void {
       const key = localStorage.key(i)
       if (key?.startsWith(prefix)) localStorage.removeItem(key)
     }
-  } catch {
-    /* Storage may be unavailable. */
-  }
+  } catch {}
 }
 
-/** Session storage survives refresh while keeping independent tabs' manual attempts separate. */
 export function currentFlightOperationId(kind: string): string {
   const key = `kuuki-flight-operation-${kind}`
   try {
@@ -205,8 +185,6 @@ export function rotateFlightOperationId(kind: string): string {
   const id = crypto.randomUUID()
   try {
     sessionStorage.setItem(`kuuki-flight-operation-${kind}`, id)
-  } catch {
-    /* Current request still has its key. */
-  }
+  } catch {}
   return id
 }

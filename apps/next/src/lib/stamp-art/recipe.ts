@@ -22,18 +22,8 @@ export const recipeSchema = z
     shape: z.enum(SHAPE_NAMES).optional(),
     ink: z.enum(INK_NAMES).optional(),
     cluster: z.string().optional(),
-    /**
-     * Horizon as a fraction of the window height, 0.68-0.72 for land scenes (0.78 for a bay).
-     * Backdrop modules receive it as `horizonY`; the subject base sits on it.
-     */
     horizon: z.number().min(0.5).max(0.9).optional(),
-    /**
-     * The vignette, drawn first: sky, distance, ground. Fills the whole window (the box defaults
-     * to the window box) and is clipped once by the window. Subjects stop its hatching 3 units
-     * short of their silhouette.
-     */
     backdrop: z.array(layer.extend({ box: box.optional() }).strict()).optional(),
-    /** The subject, drawn over the backdrop. Must stay inside the window inset 6. */
     layers: z.array(layer),
     signature: z
       .array(z.object({ part: z.string(), box, params: params.optional() }).strict())
@@ -68,7 +58,6 @@ export const recipeSchema = z
 
 export type Recipe = z.infer<typeof recipeSchema>
 
-/** Validates a raw recipe. Throws with every problem listed, including unknown modules or parts. */
 export function parseRecipe(raw: unknown): Recipe {
   const result = recipeSchema.safeParse(raw)
   if (!result.success) {

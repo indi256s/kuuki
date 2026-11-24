@@ -1,5 +1,3 @@
-// ADR 0001 §6 (T10): the synchronous batch writer, snapshot reads, draft edits, discard, the deletion fence (A10)
-// and the storage rules. Conversion is covered in import-conversion.test.ts.
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '@google/genai'
 import { deleteUserCascade } from '../api/_lib/users'
@@ -71,7 +69,6 @@ const draftRows = (batchId: string) =>
     .all<Record<string, any>>()
     .then((r) => r.results)
 
-/** A Quick Add admission body. `content: undefined` drops the text default `postJob` adds. */
 const postPass = (
   over: Record<string, unknown> = {},
   user: Parameters<typeof postJob>[2] = USER,
@@ -208,7 +205,6 @@ describe('POST /api/import/jobs', () => {
     expect(replay.body.drafts).toHaveLength(1)
     expect(provider.generateContent).toHaveBeenCalledTimes(1)
     expect(await count(db, 'import_batches')).toBe(1)
-    // Another owner's identical operation id is a different submission.
     const other = await postJob(db, { submissionOperationId }, OTHER)
     expect(other.status).toBe(201)
     expect(other.body.batch.id).not.toBe(first.body.batch.id)
@@ -226,7 +222,6 @@ describe('POST /api/import/jobs', () => {
     expect(await count(db, 'import_batches')).toBe(0)
 
     answer([])
-    // Fill the shared parse bucket directly instead of making 20 calls.
     await db
       .prepare('INSERT OR REPLACE INTO auth_rate_limits (key, count, expires_at) VALUES (?, 20, ?)')
       .bind(`import-parse:${USER.id}`, Math.floor(Date.now() / 1000) + 3600)
@@ -356,7 +351,6 @@ describe('POST /api/import/jobs', () => {
     expect(replay.status).toBe(200)
     expect(replay.body.batch.id).toBe(first.body.batch.id)
     expect(provider.generateContent).toHaveBeenCalledTimes(10)
-    // A completed batch, then an expired one, frees a slot.
     await db
       .prepare("UPDATE import_batches SET status = 'completed' WHERE id = ?")
       .bind(first.body.batch.id)
@@ -372,7 +366,6 @@ describe('POST /api/import/jobs', () => {
       .bind(new Date(NOW.getTime() - 1).toISOString(), open!.id)
       .run()
     expect((await postJob(db, {})).status).toBe(201)
-    // Another owner has their own cap.
     expect((await postJob(db, {}, OTHER)).status).toBe(201)
   })
 
@@ -589,7 +582,6 @@ describe('POST /api/import/jobs with boarding pass legs', () => {
       expect(refused.body.code).toBe('INVALID_BODY')
     }
     expect(await count(db, 'import_batches')).toBe(2)
-    // false is a plain "no" on a text import: accepted and ignored.
     const text = await postJob(db, {
       type: 'text',
       content: 'Flight details',
@@ -654,8 +646,7 @@ describe('GET /api/import/batches/:id', () => {
       .run()
     const read = await getBatch(db, created.batch.id)
     expect(read.body.drafts[0].duplicateFlightId).toBe(early.meta.last_row_id)
-    expect(read.body.drafts[1].duplicateFlightId).not.toBeNull() // deep inside the 1200 seeded days, far past any 200-row page
-    // A draft that already became that flight is not its own duplicate.
+    expect(read.body.drafts[1].duplicateFlightId).not.toBeNull()
     await db
       .prepare(
         "UPDATE import_drafts SET status = 'converted', converted_flight_id = ? WHERE id = ?",
@@ -663,7 +654,6 @@ describe('GET /api/import/batches/:id', () => {
       .bind(early.meta.last_row_id, created.drafts[0].id)
       .run()
     expect((await getBatch(db, created.batch.id)).body.drafts[0].duplicateFlightId).toBeNull()
-    // The other owner's identical flight never matches.
     await db.prepare('DELETE FROM flights WHERE id = ?').bind(early.meta.last_row_id).run()
     expect((await getBatch(db, created.batch.id)).body.drafts[0].duplicateFlightId).toBeNull()
   })
@@ -731,9 +721,7 @@ describe('PATCH /api/import/drafts/:id', () => {
       edited: true,
       fields: { date: '2026-10-07', date_ordinal_day: 280, flown_required: true },
     })
-    // A new date voids the earlier answer, so the row asks again.
     expect(dated.body.draft.fields).not.toHaveProperty('flown_confirmed')
-    // An explicit answer in the same patch as a date change wins over the clearing.
     const answered = await patchDraft(db, id, {
       version: 3,
       fields: { date: '2026-10-09' },
@@ -752,7 +740,6 @@ describe('PATCH /api/import/drafts/:id', () => {
     ])
       expect((await patchDraft(db, id, body)).status, JSON.stringify(body)).toBe(400)
 
-    // A row the import never marked cannot be answered.
     const plain = await seed([providerFlight()])
     const refused = await patchDraft(db, plain.drafts[0].id, { version: 1, flownConfirmed: true })
     expect(refused.status).toBe(400)
@@ -810,7 +797,6 @@ describe('PATCH /api/import/drafts/:id', () => {
     ]) {
       expect((await patchDraft(db, id, body)).status, JSON.stringify(body)).toBe(400)
     }
-    // A well-formed code that no reference table knows is saved and reported as an issue, not refused.
     const unknown = await patchDraft(db, id, { version: 1, fields: { destination: 'QQQ' } })
     expect(unknown.status).toBe(200)
     expect(unknown.body.draft.issue).toMatchObject({ code: 'UNKNOWN_AIRPORT' })
@@ -827,7 +813,6 @@ describe('PATCH /api/import/drafts/:id', () => {
     expect((await batchRow(created.batch.id))!.status).toBe('completed')
     await patchDraft(db, b.id, { version: 2, dismissed: false })
     expect(await batchRow(created.batch.id)).toMatchObject({ status: 'review' })
-    // processing, failed and cancelled batches are never touched by an edit.
     for (const status of ['failed', 'cancelled', 'processing']) {
       await db
         .prepare('UPDATE import_batches SET status = ? WHERE id = ?')
@@ -1049,7 +1034,6 @@ describe('deletion fence (A10, T10 half)', () => {
         table,
       ).toBe(0)
     }
-    // The owner's late job write cannot recreate anything: the batch is gone, so the fence matches no row.
     await persistDraftRows(db, fence, rows, { status: 'review', errorCode: null }, NOW)
     expect(await count(db, 'import_drafts')).toBe(1)
     expect(await draftRows(kept.batch.id)).toHaveLength(1)

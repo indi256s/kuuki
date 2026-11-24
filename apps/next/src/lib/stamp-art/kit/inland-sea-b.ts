@@ -1,7 +1,3 @@
-// Khor Al Adaid: a tall sand dune with a knife crest sliding into a flat sea inlet. The windward
-// face is bare paper with a few wind ripples; the lee face right of the curved arris is hatched
-// along the fall line. A low companion dune stands to the right and a far shore bar behind. The box
-// is the scene; the dunes meet the water on its bottom edge (the horizon).
 import { type Pt, type SvgNode, body, hatchPoly, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, xAtY } from './util'
 
@@ -9,7 +5,6 @@ export const inlandSeaB: KitModule = ([x, y, w, h]) => {
   const base = y + h
   const at = ([t, s]: [number, number]): Pt => [x + w * t, y + h * s]
   const out: SvgNode[] = []
-  // Far shore: a low bar in T2 across the whole width.
   const bar: Pt[] = [at([0.1, 1])]
   for (let t = 0.1; t <= 0.8801; t += 0.04) {
     bar.push(at([t, 0.74 + 0.05 * Math.sin(t * 11 + 2) + 0.015 * Math.sin(t * 23)]))
@@ -17,7 +12,6 @@ export const inlandSeaB: KitModule = ([x, y, w, h]) => {
   bar.push(at([0.88, 1]))
   out.push(occlude(bar), ...toneFill(bar, 'T2', { gap: 2.4, weight: 'fine', inset: 0.4 }))
   out.push(stroke('hair', bar.slice(1, -1)))
-  // The big dune: smooth windward curve, rounded crest, lee slope sliding into the water.
   const smooth = (q: [number, number][]): Pt[] => {
     const P = q.map(at)
     const o: Pt[] = []
@@ -70,7 +64,6 @@ export const inlandSeaB: KitModule = ([x, y, w, h]) => {
   out.push(stroke('hair', arris))
   const wSorted = crest.filter((q) => q[0] <= arris[0][0]).sort((m, n) => m[1] - n[1])
   const aSorted = arris.slice().sort((m, n) => m[1] - n[1])
-  // Wind ripples on the windward face.
   for (const s of [0.42, 0.52, 0.62, 0.72, 0.82, 0.91]) {
     const yy = y + h * s
     const xa = xAtY(wSorted, yy) + 3,

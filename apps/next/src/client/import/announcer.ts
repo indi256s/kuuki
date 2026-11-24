@@ -1,5 +1,3 @@
-// Decides when the live region may speak while recognition runs: every stage change at once, found-count changes
-// at most once per interval, and the last held count when the interval ends. Pure and clock-injected.
 export interface Progress {
   stage: string | null
   found: number
@@ -20,7 +18,6 @@ export class Announcer {
     if (progress.stage !== this.stage) {
       this.stage = progress.stage
       this.held = null
-      // A stage change carries the count only when there is something to say about it.
       if (progress.found > 0) {
         this.spokenFound = progress.found
         this.lastCountAt = now
@@ -43,7 +40,6 @@ export class Announcer {
     return null
   }
 
-  /** Milliseconds until a held count may be spoken, or null when nothing is held. */
   dueIn(now: number): number | null {
     return this.held ? Math.max(0, this.lastCountAt + this.interval - now) : null
   }

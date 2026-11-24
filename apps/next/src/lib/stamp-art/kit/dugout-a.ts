@@ -1,6 +1,3 @@
-// Dugout canoe (lane A, `-a` until consolidated): a long solid hull with a tall upswept prow on the
-// right and a lower upswept stern on the left, a lit gunwale rim over hatched flanks and a ripple
-// under the keel. The box bottom is the waterline; no sail, no crew.
 import { type Pt, type SvgNode, fill, hline, occlude, quad, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
 
@@ -26,7 +23,6 @@ export const dugoutA: KitModule = ([x, y, w, h], p) => {
     stroke('bold', rim),
   ]
   if (num(p, 'carve', 0) > 0) {
-    // Carved prow: the tip curls forward into a hook with a lit centre, and inlay dots run down it.
     const tip = rim[rim.length - 1]
     const curl = quad(
       [tip[0] - 7, tip[1] + 11],

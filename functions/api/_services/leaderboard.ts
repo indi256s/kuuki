@@ -1,24 +1,3 @@
-// Leaderboard cache rebuild — ported from the live PL/pgSQL `refresh_leaderboards()`
-// (see db/_extracted/LOGIC_SPEC.md "refresh_leaderboards()"). Runs via Cron (every 5 min),
-// NOT per-write — it is a full rebuild of `leaderboard_cache`.
-//
-// Parity notes (do NOT "fix"):
-//   * The `cities` category ranks `airports_count`, not a city count — an intentional live quirk.
-//   * Sky eligibility keeps total_flights >= 5 AND show_on_leaderboards = 1.
-//   * percentile = ROUND((1 - rank/total) * 100, 1), float division, with a `total > 0` guard.
-//
-// Deliberate deviations (leaderboard redesign, 2026-10-15; spec .scratch/leaderboard-redesign/spec.md):
-//   * Eligibility also requires `is_public = 1`, as every public read does, so hidden members leave no rank gaps.
-//   * Competition ranking (1, 1, 3): equal values share a rank instead of ROW_NUMBER() by signup date.
-//     Percentile follows the shared rank.
-//   * Three ground categories (ADR 0005, ADR 0007 refinement): members who publish all countries
-//     (`passport_publication = 'all'`) with at least 3 completed rail and road journeys together.
-//   * Two periods: `all` and the current UTC calendar year (`YYYY`). Thresholds are judged on all-time
-//     totals in both periods, so nobody drops out of the year board for flying little this year.
-//   * A zero value is not ranked, except in all-time sky categories (parity: everyone eligible ranks there).
-//   * Lane vehicles ride in metadata: sky rows carry the most-flown aircraft type, ground Countries rows the mode the
-//     member covered more distance by (2026-10-16).
-
 import {
   journeyDistance,
   parsePlaceSnapshot,
@@ -37,7 +16,6 @@ import {
   type LeaderboardCategory,
 } from '../_lib/leaderboard'
 
-// D1 caps a single statement at 100 bound variables; the chunk follows the per-row bind count.
 const BINDS_PER_ROW = 8
 const ROWS_PER_INSERT = Math.floor(100 / BINDS_PER_ROW)
 
@@ -54,10 +32,6 @@ interface Member {
 
 const PUBLISHED_PUBLIC = `p.is_public = 1 AND p.show_on_leaderboards = 1 AND ${PUBLISHED_DERIVED_STATE}`
 
-/**
- * Completed journeys per member, optionally only those starting in `year` (an integer string, safe to inline).
- * Deleted journeys have no status, so `completed` excludes them.
- */
 const groundTotals = (year: string | null) => {
   const started = (alias: string) =>
     year ? `AND substr(${alias}.start_date, 1, 4) = '${year}'` : ''
@@ -73,10 +47,6 @@ const groundTotals = (year: string | null) => {
   GROUP BY gj.user_id`
 }
 
-/**
- * Each member's most-flown aircraft type among their awaiting and logged flights, optionally in one year (bound).
- * Ties go to the type flown most recently, then the code, so a rebuild is stable.
- */
 const topAircraft = (year: boolean) => `
   SELECT user_id, icao FROM (
     SELECT user_id, icao,
@@ -88,7 +58,6 @@ const topAircraft = (year: boolean) => `
           GROUP BY user_id, UPPER(TRIM(aircraft_icao))))
   WHERE pick = 1`
 
-/** Invalid stored snapshots leave the journey distance unknown. */
 const place = (json: string) => {
   try {
     return parsePlaceSnapshot(JSON.parse(json))
@@ -97,7 +66,6 @@ const place = (json: string) => {
   }
 }
 
-/** Completed journey kilometres, using the same complete-distance and rounding rule as ground totals. */
 function groundKm(
   legs: Array<{
     user_id: string
@@ -128,7 +96,6 @@ function groundKm(
     journey.pairs.push([place(leg.from_place), place(leg.to_place)])
     journeys.set(leg.journey_id, journey)
   }
-  // Points arrive ordered by journey, then ordinal.
   for (let i = 1; i < points.length; i += 1) {
     const [a, b] = [points[i - 1], points[i]]
     if (a.journey_id !== b.journey_id) continue
@@ -151,7 +118,6 @@ function groundKm(
       book.set(journey.userId, kms)
     }
   }
-  // More rail kilometres run the locomotive; anything else, including no known distance, drives the car.
   const vehicle = (book: typeof all) => (userId: string) => {
     const kms = book.get(userId)
     return kms && kms.rail > kms.road ? 'rail' : 'road'
@@ -159,14 +125,9 @@ function groundKm(
   return { all: vehicle(all), year: vehicle(inYear) }
 }
 
-/**
- * Full rebuild of `leaderboard_cache`: DELETE all rows, then INSERT one row per ranked member per category
- * per period, in one batch.
- */
 export async function refreshLeaderboards(db: D1Database, now = new Date()): Promise<void> {
   const year = currentPeriod(now)
   const reads = await db.batch([
-    // Sky members with their all-time values (user_stats).
     db.prepare(
       `SELECT us.user_id, p.created_at, p.username, p.display_name, p.avatar_url, p.avatar_face,
               us.total_flights AS flights, us.total_distance_km AS distance, us.countries_count AS countries,
@@ -176,8 +137,6 @@ export async function refreshLeaderboards(db: D1Database, now = new Date()): Pro
        ${derivedStateJoin('us')}
        WHERE us.total_flights >= ${SKY_MIN_FLIGHTS} AND ${PUBLISHED_PUBLIC}`,
     ),
-    // Sky values for the year, from that year's flights. Countries here are airport countries only: the
-    // year has no legacy evidence or connection/transit rules, so it can differ from the all-time number.
     db
       .prepare(
         `WITH year_flights AS (
@@ -197,7 +156,6 @@ export async function refreshLeaderboards(db: D1Database, now = new Date()): Pro
        GROUP BY f.user_id`,
       )
       .bind(year),
-    // Ground members: consent includes publishing all countries (ADR 0007 refinement).
     db.prepare(
       `SELECT p.id AS user_id, p.created_at, p.username, p.display_name, p.avatar_url, p.avatar_face,
               g.rail, g.road, g.ground_countries
@@ -282,8 +240,6 @@ export async function refreshLeaderboards(db: D1Database, now = new Date()): Pro
   board(GROUND_CATEGORIES, year, ground, (row) => groundYearById.get(row.user_id), false)
 
   const updatedAt = nowIso()
-  // Sky rows preserve the actual aircraft type for their period; artwork fallback belongs to the client.
-  // Ground Countries rows add the mode with more kilometres in their period.
   const metadata = (userId: string, category: LeaderboardCategory, period: string) => {
     const m = members.get(userId)
     if (!m) return '{}'
@@ -303,7 +259,6 @@ export async function refreshLeaderboards(db: D1Database, now = new Date()): Pro
 
   const inserts: Array<(string | number)[]> = []
   for (const { category, period, values, keepZero } of boards) {
-    // Ties keep signup order for a stable listing; they share the rank.
     const ranked = values
       .filter((entry) => keepZero || entry.value > 0)
       .sort((a, b) => b.value - a.value || signup(a.userId).localeCompare(signup(b.userId)))
@@ -325,7 +280,6 @@ export async function refreshLeaderboards(db: D1Database, now = new Date()): Pro
     })
   }
 
-  // Always clear the cache, even when nobody is eligible (DELETE-then-INSERT in one batch).
   const statements = [db.prepare('DELETE FROM leaderboard_cache WHERE 1 = 1')]
   const row = `(${Array(BINDS_PER_ROW).fill('?').join(', ')})`
   for (let i = 0; i < inserts.length; i += ROWS_PER_INSERT) {

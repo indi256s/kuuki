@@ -1,4 +1,3 @@
-// Build-time coupe artwork. Shares the airliner's pinned anatomy kit, material ramps and SVG serializer.
 import { ringsOfPath, type Draw } from '../airliner/draw'
 import { loadKit } from '../airliner/kit'
 import { laneCamera } from '../lane-camera'
@@ -71,7 +70,6 @@ function wheel(d: Draw, axle: number, sg: number): Item[] {
       0.2,
     ),
   )
-  // Face positions are measured along the outward axle: brake behind spokes, rim lip in front.
   out.push(
     kitSolid(G.disc(outer - 0.02, outer + 0.002, R * 0.685, F, P, { steps: 48 }), 'void', [], 0.2),
   )
@@ -87,7 +85,6 @@ function wheel(d: Draw, axle: number, sg: number): Item[] {
     edge,
     width,
   })
-  // Drilled rotor holes, visible only between spokes.
   for (let i = 0; i < 16; i++) {
     const t = (2 * Math.PI * i) / 16
     out.push(
@@ -99,7 +96,6 @@ function wheel(d: Draw, axle: number, sg: number): Item[] {
       ),
     )
   }
-  // Rotor friction track and hat, then a two-piece caliper bolted over the leading edge.
   for (const r of [0.455, 0.31])
     out.push({
       kind: 'lines',
@@ -151,7 +147,6 @@ function wheel(d: Draw, axle: number, sg: number): Item[] {
         0.18,
       ),
     )
-    // Lit top face of the spoke, narrower than its flank, and a faint root fillet at the hub.
     out.push(
       fill(
         [
@@ -179,7 +174,6 @@ function wheel(d: Draw, axle: number, sg: number): Item[] {
       )
     out.push(fill(nut(0.0135), 'metal', 'seam', 0.1), fill(nut(0.0055), 'void'))
   }
-  // Centre cap: badge ring and dome highlight.
   out.push({
     kind: 'lines',
     lines: {
@@ -196,7 +190,6 @@ function wheel(d: Draw, axle: number, sg: number): Item[] {
       0.08,
     ),
   )
-  // Valve stem between two spokes with its cap.
   {
     const t = 4.25,
       c = Math.cos(t),
@@ -217,7 +210,6 @@ function wheel(d: Draw, axle: number, sg: number): Item[] {
       ),
     )
   }
-  // Sidewall: shoulder step, rim guard rib and the faint tread-edge ring.
   for (const [r, depth] of [
     [0.9, 0.001],
     [0.77, 0.001],
@@ -247,7 +239,6 @@ export function coupe(d: Draw): Item[] {
     const cu = uv.reduce((n, p) => n + p[0] / uv.length, 0)
     const cv = uv.reduce((n, p) => n + p[1] / uv.length, 0)
     if (dot(normalAt(s, cu, cv), cam.V) < 0.08) return
-    // Sample edges on the host surface: trim follows curvature rather than spanning a chord through the shell.
     const pts: V3[] = []
     for (let i = 0; i < uv.length; i++) {
       const a = uv[i],
@@ -262,7 +253,6 @@ export function coupe(d: Draw): Item[] {
     if (mat) fill(p, mat, ink, width)
     else line(p, ink, width, true)
   }
-  // A shut line is a dark gap with a lit lip on its trailing edge.
   const gapLoop = (pts: Pt[], width = 0.24) => {
     flankLoop(pts, undefined, width)
     flankLoop(
@@ -289,12 +279,10 @@ export function coupe(d: Draw): Item[] {
     'shadow',
   )
   out.push(...wheel(d, 0, -1), ...wheel(d, 1, -1))
-  // A dark undertray is confined between axles; it never closes the side panels' wheel openings.
   fill(
     [at(1.47, -0.68, 0.23), at(2.96, -0.68, 0.23), at(2.96, 0.68, 0.23), at(1.47, 0.68, 0.23)],
     'rubber',
   )
-  // Rear cap follows the skin's swept corner and sits behind the visible flank.
   const tail: Surface = {
     at: (u, v) => {
       const p = topAt(0, 1 - u)
@@ -311,7 +299,6 @@ export function coupe(d: Draw): Item[] {
     solid(top, 'body', [], 0.55),
     solid(side(1), 'body', [], 0.55),
   )
-  // Rounded nose cap: joins the two upper and lower skin boundaries across the bumper.
   const nose: Surface = {
     at: (u, v) => {
       const p = topAt(LENGTH, 1 - u)
@@ -322,7 +309,6 @@ export function coupe(d: Draw): Item[] {
     closed: false,
   }
   out.push(solid(nose, 'body', [], 0.4))
-  // Paint line under the door terminates at the wheel openings.
   flankLoop(
     [
       [1.445, 0.265],
@@ -333,7 +319,6 @@ export function coupe(d: Draw): Item[] {
     'rubber',
     0.12,
   )
-  // Member identity is confined to the rocker stripe and mirror caps.
   flankLoop(
     [
       [1.46, 0.315],
@@ -344,7 +329,6 @@ export function coupe(d: Draw): Item[] {
     'livery',
     0.12,
   )
-  // Bonnet shut line: long tapered lid between the two raised front wings.
   const bonnet: Pt[] = [
     [2.96, 0.24],
     [3.18, 0.235],
@@ -368,7 +352,6 @@ export function coupe(d: Draw): Item[] {
     0.08,
     true,
   )
-  // Centre crease down the lid, washer jets at the screen and a small crest on the nose.
   line(
     sample(24, (t) => topAt(3.12 + 0.82 * t, 0.5)),
     'faint',
@@ -383,7 +366,6 @@ export function coupe(d: Draw): Item[] {
       0.08,
     )
   }
-  // Fuel flap, handle pocket and door seal belong to the near side skin.
   flankLoop(ellipse(3.02, 0.745, 0.075, 0.06, 24), undefined, 0.17)
   flankLoop(ellipse(3.02, 0.745, 0.045, 0.036, 16), 'void', 0.1)
   flankLoop(ellipse(3.02, 0.745, 0.026, 0.021, 12), 'metal', 0.1)
@@ -404,7 +386,6 @@ export function coupe(d: Draw): Item[] {
     [2.86, 0.4],
     [2.88, 0.76],
   ])
-  // Belt trim: a thin bright strip along the window line, from the A-pillar foot to the quarter.
   flankLoop(
     [
       ...sample(14, (t) => [1.1 + 1.76 * t, belt(1.1 + 1.76 * t) - 0.005] as Pt),
@@ -413,7 +394,6 @@ export function coupe(d: Draw): Item[] {
     'metal',
     0.1,
   )
-  // Door handle: dark pocket, flush bar with a lit top edge, and the lock barrel behind it.
   flankLoop(
     [
       [1.77, 0.664],
@@ -435,7 +415,6 @@ export function coupe(d: Draw): Item[] {
     0.12,
   )
   flankLoop(ellipse(2.075, 0.7, 0.014, 0.014, 10), 'metal', 0.1)
-  // Front-wing repeater lamp and the sill's lower trim gap.
   flankLoop(
     [
       [3.76, 0.47],
@@ -455,7 +434,6 @@ export function coupe(d: Draw): Item[] {
     0.1,
     'faint',
   )
-  // Bumper seams wrap the nose and tail on the actual curved skins.
   for (const [a0, a1, z] of [
     [3.78, LENGTH, 0.42],
     [0, 0.52, 0.43],
@@ -471,7 +449,6 @@ export function coupe(d: Draw): Item[] {
     'seam',
     0.22,
   )
-  // Front intake, slats, number-plate plinth, and low fog lamp pockets.
   const nosePoint = (y: number, z: number) => at(LENGTH - 0.14 * (y / 0.5) ** 2 + 0.002, y, z)
   fill(
     [
@@ -491,7 +468,6 @@ export function coupe(d: Draw): Item[] {
       0.13,
     )
   for (const y of [-0.14, 0, 0.14]) line([nosePoint(y, 0.29), nosePoint(y, 0.365)], 'faint', 0.1)
-  // Chin splitter lip under the intake.
   fill(
     [
       nosePoint(-0.36, 0.262),
@@ -503,7 +479,6 @@ export function coupe(d: Draw): Item[] {
     'seam',
     0.12,
   )
-  // Indicator lenses above the fog lamps.
   for (const sg of [-1, 1])
     fill(
       [
@@ -540,7 +515,6 @@ export function coupe(d: Draw): Item[] {
       0.12,
     )
   }
-  // Number-plate recess: a dark pocket with a blank, lit plate seated in it and two screws.
   fill(
     [nosePoint(-0.2, 0.366), nosePoint(0.2, 0.366), nosePoint(0.2, 0.412), nosePoint(-0.2, 0.412)],
     'rubber',
@@ -565,7 +539,6 @@ export function coupe(d: Draw): Item[] {
       'seam',
       0.06,
     )
-  // Cabin is a single curved roof, not a second rectangular volume.
   out.push(solid(cabin, 'body', [], 0.45))
   const quarter: Pt[] = [
     [1.02, 0.03],
@@ -581,7 +554,6 @@ export function coupe(d: Draw): Item[] {
     [2.25, 0.32],
     [1.73, 0.32],
   ]
-  // Far glass first; roof gutters continue from the screen seals to the rear-window seal.
   for (const sg of [-1, 1]) {
     for (const shape of [quarter, door]) {
       const uv = shape.map(([a, v]): Pt => [a, sg === 1 ? v : 1 - v])
@@ -596,7 +568,6 @@ export function coupe(d: Draw): Item[] {
       )
     }
   }
-  // Front and rear screens taper with the cabin surface. An inset second loop leaves a physical rubber seal.
   for (const [a0, a1, v0, v1] of [
     [2.5, 2.89, 0.19, 0.81],
     [0.8, 1.4, 0.23, 0.77],
@@ -624,7 +595,6 @@ export function coupe(d: Draw): Item[] {
       0.14,
     )
   }
-  // Side-pane reflection bands: a broad streak and a thin one, both clear of the seals.
   for (const band of [
     [
       [1.96, 0.075],
@@ -646,7 +616,6 @@ export function coupe(d: Draw): Item[] {
     ],
   ] as Pt[][])
     canopyPatch(band, 'metal', 'faint', 0.05)
-  // Rear screen: demister element lines end on the seal's inner edge.
   for (let i = 0; i < 6; i++) {
     const v = 0.33 + i * 0.068
     line(
@@ -655,7 +624,6 @@ export function coupe(d: Draw): Item[] {
       0.07,
     )
   }
-  // Reflections are surface-bound closed shapes, muted to the same neutral metal ramp as the other vehicles.
   canopyPatch(
     [
       [2.58, 0.28],
@@ -667,14 +635,12 @@ export function coupe(d: Draw): Item[] {
     'faint',
     0.1,
   )
-  // Rain channels are continuous between screen boundaries; no floating texture strokes.
   for (const v of [0.345, 0.655])
     line(
       sample(35, (t) => cabinAt(1.4 + 1.1 * t, v)),
       'faint',
       0.15,
     )
-  // Each wiper arm meets the middle of its blade; the pivots sit on the screen's lower seal.
   for (const v of [0.36, 0.61]) {
     line([cabinAt(2.87, v + 0.025), cabinAt(2.8, v - 0.03)], 'line', 0.22)
     line([cabinAt(2.8, v - 0.12), cabinAt(2.8, v - 0.03), cabinAt(2.8, v + 0.06)], 'line', 0.34)
@@ -686,7 +652,6 @@ export function coupe(d: Draw): Item[] {
       0.08,
     )
   }
-  // Aerial: a short mast on the rear deck's near shoulder, rubber boot and tip bead; it stands against the sky.
   {
     const base = cabinAt(0.7, 0.1)
     line([base, add(base, [-0.09, 0, 0.34])], 'line', 0.2)
@@ -703,7 +668,6 @@ export function coupe(d: Draw): Item[] {
       0.08,
     )
   }
-  // Engine lid: shut line, a dark recess and a bank of lit louvre slats on it.
   line(
     [
       ...sample(8, (t) => cabinAt(0.57 + 0.3 * t, 0.17)),
@@ -740,12 +704,10 @@ export function coupe(d: Draw): Item[] {
       0.08,
     )
   }
-  // Near mirror: stalk, rounded painted housing, and a separate mirror face. The far shell is partly hidden by cabin.
   for (const sg of [-1, 1]) {
     const c = at(2.64, sg * 0.82, 0.87)
     const F = G.frameAlong(at(2.63, sg * 0.69, 0.82), [0, sg * 0.9, 0.44])
     out.push(kitSolid(G.disc(0, 0.14, 0.028, F, P, { steps: 16 }), 'rubber', [], 0.2))
-    // Sail pad where the arm meets the door, and a collar where it enters the housing.
     out.push(kitSolid(G.disc(-0.006, 0.01, 0.045, F, P, { steps: 16 }), 'rubber', [], 0.16))
     out.push(kitSolid(G.disc(0.1, 0.14, 0.036, F, P, { steps: 16 }), 'metal', [], 0.14))
     const shell: Surface = {
@@ -779,8 +741,6 @@ export function coupe(d: Draw): Item[] {
         0.05,
       )
   }
-  // Tail light strip wraps the rear quarter; twin exhaust outlets end on a dark bore.
-  // Tail lamp: dark bezel, three lens segments split by ribs, a lit reflector rail and a reversing lens.
   flankLoop(
     [
       [0.07, 0.492],
@@ -847,7 +807,6 @@ export function coupe(d: Draw): Item[] {
       lines: { runs: ringsOfPath(G.circleOf(F, 0.118, 0.014, P)), ink: 'faint', width: 0.08 },
     })
   }
-  // Raised headlamp bowls face forward and upward, rather than lying on the wing's inward slope.
   for (const sg of [-1, 1]) {
     const F = G.frameAlong(at(3.84, sg * 0.66, 0.735), [0.55, sg * 0.1, 0.83])
     out.push(
@@ -874,7 +833,6 @@ export function coupe(d: Draw): Item[] {
       kind: 'lines',
       lines: { runs: ringsOfPath(G.circleOf(F, 0.019, 0.072, P)), ink: 'faint', width: 0.12 },
     })
-    // Reflector bowl, bulb and a faint inner lens ring.
     out.push(kitSolid(G.disc(0.018, 0.021, 0.056, F, P, { steps: 32 }), 'metal', [], 0.14))
     out.push(kitSolid(G.disc(0.021, 0.024, 0.021, F, P, { steps: 20 }), 'glass', [], 0.12))
     out.push({
@@ -882,7 +840,6 @@ export function coupe(d: Draw): Item[] {
       lines: { runs: ringsOfPath(G.circleOf(F, 0.0215, 0.038, P)), ink: 'faint', width: 0.08 },
     })
   }
-  // Near wheels are smaller than the arch opening, so no tyre is painted across the fender lip.
   out.push(...wheel(d, 0, 1), ...wheel(d, 1, 1))
   for (const axle of AXLES) {
     line(
@@ -908,8 +865,6 @@ export function coupe(d: Draw): Item[] {
 
 export async function buildCar(unit = 112) {
   const kit = await loadKit()
-  // Derive the kit camera from the road's actual projection. LaneScene's rotated iso basis differs from the air
-  // camera: inheriting it keeps tyre contacts, road skew and the existing car scale aligned.
   const { cam, draw, place } = laneCamera(kit, unit / LENGTH)
   const items = coupe(draw)
   const built = serialize(items, place, 1)

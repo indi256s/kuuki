@@ -45,7 +45,6 @@ export function routes(
     flights: 0,
     newRoutes: 0,
   }))
-  // A route is new in the year of its first counted flight (date, then id), if that flight is in scope.
   const inScope = new Set(rows)
   const firstOf = new Map<string, OverviewRow>()
   for (const row of dated) {

@@ -20,7 +20,6 @@ export interface ReplayItem {
   weight: number
 }
 
-// ISO round-trip rejects normalized invalid dates and preserves years 0000–0099.
 export function calendarDay(label: string): number | null {
   const time = Date.parse(`${label}T00:00:00Z`)
   return Number.isFinite(time) && new Date(time).toISOString().slice(0, 10) === label ? time : null
@@ -59,7 +58,6 @@ export function nextFlights(payload: OverviewPayload, counted: OverviewRow[]): N
 
 export function replayItems(rows: OverviewRow[], mode: OverviewPayload['mode']): ReplayItem[] {
   return [...rows].sort(chronological).map((row) => ({
-    // Aggregate groups retain distinct minimum source IDs, including groups on the same monthly route.
     key: `${mode}:${row.id}`,
     flightId: mode === 'aggregate' ? null : row.id,
     origin: row.origin,

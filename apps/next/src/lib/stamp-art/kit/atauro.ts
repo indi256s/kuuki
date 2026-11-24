@@ -1,8 +1,3 @@
-// Atauro Island (Timor-Leste): a low volcanic island seen from the sea. A steep wall on the left
-// rises to a high lumpy crest, a lower second hump follows and the right flank falls away in a long
-// slope. The lit faces carry sparse diagonal strokes and gullies along the fall line, each summit
-// throws a shaded right flank. A dark forest belt and a surf line sit at the foot; a smaller far
-// island shows on the right. The box is the island; its bottom is the waterline.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, hline, occlude, stroke, toneFill } from '../grid'
 import { type KitModule, num, pairs } from './util'
@@ -34,7 +29,6 @@ export const atauro: KitModule = ([x, y, w, h], p) => {
   const foot = y + h * num(p, 'forest', 0.93)
   const ridge = pairs(p, 'ridge', RIDGE).map(([fx, fy]): Pt => [x + w * fx, y + h * fy])
   const out: SvgNode[] = []
-  // Far island: a low dark hump behind the right foot.
   const far: Pt[] = []
   for (let px = x + w * 0.7; px <= x + w - 2; px += 3) {
     const t = Math.min(1, (px - (x + w * 0.7)) / (w * 0.32))
@@ -46,7 +40,6 @@ export const atauro: KitModule = ([x, y, w, h], p) => {
     ...toneFill(farPoly, 'T2', { angle: 58, gap: [2.4, 2.4] }),
     stroke('hair', far),
   )
-  // Main skyline with slight kinks between the vertices.
   const sky: Pt[] = []
   for (let i = 0; i + 1 < ridge.length; i++) {
     const a = ridge[i]
@@ -58,10 +51,8 @@ export const atauro: KitModule = ([x, y, w, h], p) => {
   }
   sky.push(ridge[ridge.length - 1])
   out.push(occlude([...sky, [x + w, foot + 3], [x, foot + 3]]))
-  // Lit face: sparse diagonal strokes over the whole island.
   const whole: Pt[] = [...sky, [x + w, foot], [x, foot]]
   out.push(...toneFill(whole, 'T2', { angle: 76, gap: [7, 7], weight: 'fine' }))
-  // Shaded right flank under each summit: from the peak to the next valley.
   for (let i = 1; i + 1 < ridge.length; i++) {
     if (!(ridge[i][1] < ridge[i - 1][1] && ridge[i][1] < ridge[i + 1][1])) continue
     const pk = ridge[i]
@@ -84,7 +75,6 @@ export const atauro: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // Gullies down the lit face, along the fall line.
   for (let gx = x + w * 0.08; gx < x + w * 0.9; gx += 8 + rand() * 6) {
     const gy = sky.find((q) => q[0] >= gx)?.[1] ?? foot
     if (foot - gy < 14) continue
@@ -97,7 +87,6 @@ export const atauro: KitModule = ([x, y, w, h], p) => {
     )
   }
   out.push(stroke('line', sky))
-  // Forest belt, then the surf line on the reef.
   const crown: Pt[] = []
   for (let px = x; px <= x + w + 0.1; px += 3.6) crown.push([px, foot - 1.4 + (rand() - 0.5) * 3.6])
   const belt: Pt[] = [...crown, [x + w - 5, base - 2.4], [x + 5, base - 2.4]]
@@ -109,7 +98,6 @@ export const atauro: KitModule = ([x, y, w, h], p) => {
   out.push(hline('hair', x, x + w, base - 2.4))
   for (let sx = x + 2; sx < x + w - 6; sx += 8 + rand() * 6)
     out.push(hline('fine', sx, sx + 5 + rand() * 4, base + 0.8))
-  // A lateen-sailed fishing boat in the foreground water, lit sail against the dark sea.
   if (p.boat !== false) {
     const bx = x + w * 0.1
     const by = base + 9

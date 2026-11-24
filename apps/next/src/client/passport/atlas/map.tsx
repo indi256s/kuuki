@@ -19,18 +19,14 @@ import { Sticker, type StickerGeometry, type StickerHandle } from './sticker'
 import { FRAME_ANCHORS, TRAVEL_REGION_NAMES } from './travel-regions'
 import './atlas.css'
 
-/** The owner's quick add on the map; absent for visitors, the preview and any filtered or searched view. */
 export type QuickVisit = {
   ownerId: string
-  /** Not pressed, pending, hidden or being recorded, checked against the full collection. */
   peelable: (code: string) => boolean
   record: RecordVisit
-  /** Torn countries whose write is still in flight: inked before the refreshed collection has them. */
   recording: ReadonlySet<string>
 }
 
 const GEOMETRY = '/maps/countries-110m-2.0.2-r2.geojson'
-/** Pinned to the ids of the layers below, in stacking order, so queries and tests name them in one place. */
 export const ATLAS_LAYERS = {
   fill: 'atlas-fill',
   outline: 'atlas-outline',
@@ -46,50 +42,36 @@ export const ATLAS_LAYERS = {
   regionLabels: 'atlas-labels-region',
 } as const
 
-/** The phone atlas's pages (pager.tsx); absent on desktop, which keeps the zoom and framing buttons. */
 export type AtlasPaging = {
   pages: AtlasPage[]
   page: number
   onPage: (index: number) => void
-  /** Bumped when the current page is chosen again (its strip tab): the camera returns to the page's frame. */
   reframe: number
-  /** The camera's live page position, fractional mid-swipe, so the strip's selection can follow the finger. */
   onProgress: (position: number) => void
 }
-/** On a page, a polygon country smaller than this on screen gets a marker beside its name, as a microstate does. */
 const MIN_SIDE_PX = 24
-/** Microstate markers: a visible dot and a 44px transparent hit disc, each split at REST_POINT_ZOOM into unvisited (rest) and marked. */
 const POINT_LAYERS = [
   { id: ATLAS_LAYERS.dotRest, hit: false, rest: true },
   { id: ATLAS_LAYERS.dot, hit: false, rest: false },
   { id: ATLAS_LAYERS.hitRest, hit: true, rest: true },
   { id: ATLAS_LAYERS.hit, hit: true, rest: false },
 ] as const
-/** A 22px radius is a 44px disc: the minimum touch target for a point marker. */
 const HIT_RADIUS = 22
-/** Unvisited microstate markers (and their hit areas) wait for this zoom; marked ones always draw. */
 const REST_POINT_ZOOM = 3.5
-/** The first fit and the My countries button stop here, so a single small country is not framed at street level. */
 const MINE_MAX_ZOOM = 4.5
 
 type Countries = GeoJSON.FeatureCollection<GeoJSON.Geometry, { id: string; name: string }>
 type Bounds = [[number, number], [number, number]]
 
-// MapLibre needs resolved colors: read the computed token and let the browser resolve color-mix()/var().
 const token = (name: string) =>
   resolveColor(getComputedStyle(document.documentElement).getPropertyValue(name).trim())
 
 type Colors = {
-  /** Visit buckets 1..4 (1, 2–3, 4–9, 10+). */
   visits: readonly string[]
   pending: string
   land: string
 }
 
-/**
- * `match` over ISO2 ids; MapLibre rejects an empty label list, so an empty set contributes no branch. A visited
- * country takes its visit bucket's colour; pending only where the code is not visited (labels must be unique).
- */
 const stateColor = (
   visited: ReadonlyMap<string, number>,
   pending: string[],
@@ -108,10 +90,8 @@ const stateColor = (
     : colors.land
 }
 
-/** A resolved `rgba(r,g,b,a)` (resolve-color.ts) as 0..1 sRGB. */
 const rgbOf = (color: string) =>
   (color.match(/[\d.]+/g) ?? []).slice(0, 3).map((value) => Number(value) / 255) as Rgb
-/** Of the two inks, the one that reads best on `fill`: the visit ramp runs light to dark in one theme, dark to light in the other. */
 const inkOn = (fill: string, inks: [string, string]) =>
   contrast(rgbOf(inks[0]), rgbOf(fill)) >= contrast(rgbOf(inks[1]), rgbOf(fill)) ? inks[0] : inks[1]
 
@@ -125,10 +105,6 @@ const idIs = (id: string): GL.ExpressionSpecification => ['==', ['get', 'id'], i
 
 type LabelInput = { shown: string[]; covered: string[]; hovered: string | null }
 
-/**
- * Always-on labels: the member's own countries, minus those under a sticker or a landed stamp (each prints the name).
- * The hover label names the country under a fine pointer when it has no always-on label.
- */
 function applyLabelFilters(map: GL.Map, { shown, covered, hovered }: LabelInput) {
   const open: GL.ExpressionSpecification[] = covered.length ? [['!', inSet(covered)]] : []
   const always: GL.ExpressionSpecification = ['all', inSet(shown), ...open]
@@ -148,19 +124,22 @@ const pointFeatures = (points: Iterable<[string, [number, number]]>): PointData 
 })
 const pointData = pointFeatures(Object.entries(SMALL_STATE_POINTS))
 
-type LabelProperties = { id: string; label: string; rank: number; micro: 0 | 1 }
+type LabelProperties = {
+  id: string
+  label: string
+  rank: number
+  micro: 0 | 1
+  edge: 'left' | 'right' | 'center'
+}
 type LabelData = GeoJSON.FeatureCollection<GeoJSON.Point, LabelProperties>
 const emptyLabels: LabelData = { type: 'FeatureCollection', features: [] }
 
 type Shape = {
-  /** Largest-ring bounding box: west, south, east, north. */
   box: [number, number, number, number]
   area: number
-  /** The box centre: where a stamp lands and the name label falls back to. */
   point: [number, number]
 }
 
-/** Each polygon's outer ring, skipping degenerate ones. */
 const outerRings = (geometry: GeoJSON.Geometry): GeoJSON.Position[][] =>
   (geometry.type === 'Polygon'
     ? [geometry.coordinates]
@@ -171,7 +150,6 @@ const outerRings = (geometry: GeoJSON.Geometry): GeoJSON.Position[][] =>
     .map(([outer]) => outer)
     .filter((ring) => ring?.length > 2)
 
-/** Longest-ring bounding box (by bbox area): the country's main landmass, cheap to compute once per geometry load. */
 function largestRing(rings: GeoJSON.Position[][]): Shape | null {
   let best: Shape | null = null
   for (const ring of rings) {
@@ -192,7 +170,6 @@ function largestRing(rings: GeoJSON.Position[][]): Shape | null {
   return best
 }
 
-/** Union of the countries' largest-ring boxes and microstate points; null when none has a place on the map. */
 function memberBounds(codes: string[], shapes: ReadonlyMap<string, Shape>): Bounds | null {
   let west = Infinity,
     south = Infinity,
@@ -215,12 +192,17 @@ function memberBounds(codes: string[], shapes: ReadonlyMap<string, Shape>): Boun
     : null
 }
 
+const EDGE_ZOOM = 3
+const EDGE_LON = 160
 const labelFeature = (
   point: [number, number],
-  properties: LabelProperties,
+  properties: Omit<LabelProperties, 'edge'>,
 ): GeoJSON.Feature<GeoJSON.Point, LabelProperties> => ({
   type: 'Feature',
-  properties,
+  properties: {
+    ...properties,
+    edge: point[0] > EDGE_LON ? 'right' : point[0] < -EDGE_LON ? 'left' : 'center',
+  },
   geometry: { type: 'Point', coordinates: point },
 })
 
@@ -246,7 +228,6 @@ function AtlasLayers({
   const { map, ready, themeRevision } = useMap()
   const [raw, setRaw] = useState<Countries | null>(null)
   const [covered, setCovered] = useState<string[]>([])
-  // A torn sticker inks its country at once, as one visit. Only while stickers are on: a filtered view draws what its filters leave.
   const recording = quick?.recording
   const entries = useMemo(() => {
     if (!recording?.size) return visitedEntries
@@ -257,11 +238,6 @@ function AtlasLayers({
   const shown = useMemo(() => [...entries.keys(), ...pending], [entries, pending])
   const cover = paging?.pages[paging.page]?.id === 'world'
   const paged = !!paging
-  /**
-   * On a page other than the cover, the page's countries are the subject: the member's other countries recede to one
-   * muted fill and lose their names, so a year page shows that year and not the whole passport. A country being
-   * recorded right now stays in focus wherever it belongs.
-   */
   const pageCodes = paging && !cover ? paging.pages[paging.page]?.codes : undefined
   const focus = useMemo(() => {
     if (!pageCodes) return null
@@ -269,15 +245,13 @@ function AtlasLayers({
     for (const code of recording ?? []) own.add(code)
     return { codes: [...own], off: shown.filter((code) => !own.has(code)) }
   }, [pageCodes, recording, shown])
-  /** The settled page's zoom (pager.tsx): what decides which countries are too small to see. */
   const [pageZoom, setPageZoom] = useState<number | null>(null)
   const sticker = useRef<StickerHandle | null>(null)
   const tap = useRef<(id: string, polygon: boolean) => void>(() => {})
   tap.current = (id, polygon) => {
     const handle = sticker.current
     handle?.finish()
-    // The world cover reads only: a tap on a marked country turns to its region's page.
-    if (cover && paging) {
+    if (cover && paging && paging.pages.length > 1) {
       handle?.dismiss()
       const index = paging.pages.findIndex((page) => page.id !== 'world' && page.codes.includes(id))
       if (index > 0) paging.onPage(index)
@@ -287,18 +261,14 @@ function AtlasLayers({
       handle.lift(id)
       return
     }
-    // A lifted sticker closes on any other tap; nothing else happens in the same tap.
     if (handle?.dismiss()) return
     onSelect(id)
   }
   useEffect(() => {
     if (!map || !ready) return
-    // One world: repeated copies would draw a visited country twice beside the single list entry.
     map.setRenderWorldCopies(false)
-    // Shift + arrows would otherwise rotate a flat reference map.
     map.keyboard.disableRotation()
   }, [map, ready])
-  // The geometry fetch starts with the island, in parallel with the map's own load.
   useEffect(() => {
     const controller = new AbortController()
     fetch(GEOMETRY, { signal: controller.signal, cache: 'force-cache' })
@@ -314,7 +284,6 @@ function AtlasLayers({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Tokens resolve once per theme (each is a computed-style read and a canvas probe), not on every tear.
   const theme = useMemo(() => {
     const colors = {
       visits: ATLAS_VISIT_TOKENS.map(token),
@@ -326,7 +295,6 @@ function AtlasLayers({
     const inks: [string, string] = [text, halo]
     return {
       colors,
-      // A country's own name is printed on its fill: the ink that reads on it.
       inks: {
         visits: colors.visits.map((visit) => inkOn(visit, inks)),
         pending: inkOn(colors.pending, inks),
@@ -340,7 +308,6 @@ function AtlasLayers({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [themeRevision])
-  // Visited wins over pending for the same code (match takes the first branch).
   const paints = useMemo(
     () => ({
       ...theme,
@@ -351,7 +318,6 @@ function AtlasLayers({
   )
   const labelInput = useRef<LabelInput>({ shown, covered, hovered: null })
 
-  // Each country's main landmass, once per geometry load.
   const shapes = useMemo(() => {
     const byId = new Map<string, Shape>()
     for (const feature of raw?.features ?? []) {
@@ -361,7 +327,6 @@ function AtlasLayers({
     }
     return byId
   }, [raw])
-  // On a page, a marked country too small to see or tap at its zoom draws as a marker, its name beside it.
   const small = useMemo(() => {
     const tiny = new Map<string, [number, number]>()
     if (!paged || pageZoom === null) return tiny
@@ -372,10 +337,6 @@ function AtlasLayers({
     }
     return tiny
   }, [paged, pageZoom, shown, focus, shapes])
-  /**
-   * Where a name sits. On pages a huge country frames on its populated part, so its name moves there when the usual
-   * point lies outside it (Russia's is in Siberia, off the Europe page).
-   */
   const labelPoint = useCallback(
     (id: string, fallback: [number, number]): [number, number] => {
       const point = LABEL_POINTS[id] ?? fallback
@@ -390,7 +351,6 @@ function AtlasLayers({
     },
     [paged],
   )
-  /** Every marker's point, so a tap picks the nearest one. */
   const markers = useRef<ReadonlyMap<string, [number, number]>>(new Map())
   const labelData = useMemo<LabelData>(
     () =>
@@ -402,7 +362,6 @@ function AtlasLayers({
                 labelFeature(small.get(id) ?? labelPoint(id, shape.point), {
                   id,
                   label: name(id),
-                  // Lower places first: bigger countries win a collision.
                   rank: -shape.area,
                   micro: small.has(id) ? 1 : 0,
                 }),
@@ -416,7 +375,6 @@ function AtlasLayers({
     [raw, shapes, name, small, labelPoint],
   )
 
-  // Layers start with their fixed properties; the effect below sets colours and filters in the same commit.
   useEffect(() => {
     if (!map || !ready || !raw) return
     const text = {
@@ -428,7 +386,6 @@ function AtlasLayers({
     }
     const textPaint = { 'text-halo-width': 1.5 }
     map.setFontFaces(LABEL_FONT_FACES)
-    // `id` doubles as the feature id, so hover is feature state: a paint change, not a source reload.
     map.addSource('atlas-countries', { type: 'geojson', data: raw, promoteId: 'id' })
     map.addSource('atlas-points', { type: 'geojson', data: pointData })
     map.addSource('atlas-labels', { type: 'geojson', data: emptyLabels })
@@ -439,7 +396,6 @@ function AtlasLayers({
       source: 'atlas-countries',
       paint: { 'line-width': 0.55 },
     })
-    // Pending is outlined and dashed, so it never relies on its lighter fill alone.
     map.addLayer({
       id: ATLAS_LAYERS.pending,
       type: 'line',
@@ -447,7 +403,6 @@ function AtlasLayers({
       layout: { visibility: 'none' },
       paint: { 'line-width': 1.6, 'line-dasharray': [2, 2] },
     })
-    // The country under a fine pointer; only a hover sets the state, so touch never shows one.
     map.addLayer({
       id: ATLAS_LAYERS.hover,
       type: 'line',
@@ -467,15 +422,17 @@ function AtlasLayers({
           ? { 'circle-radius': HIT_RADIUS, 'circle-opacity': 0 }
           : { 'circle-radius': 5, 'circle-stroke-width': 1.5 },
       })
-    // Names are native symbols: MapLibre places them in the same frame as the canvas, so a drag cannot desync them.
     map.addLayer({
       id: ATLAS_LAYERS.labels,
       type: 'symbol',
       source: 'atlas-labels',
-      layout: { ...text, 'text-max-width': 7 } as never,
+      layout: {
+        ...text,
+        'text-max-width': 7,
+        'text-anchor': ['step', ['zoom'], ['get', 'edge'], EDGE_ZOOM, 'center'],
+      } as never,
       paint: textPaint,
     })
-    // A dot is never covered: the name sits beside it.
     map.addLayer({
       id: ATLAS_LAYERS.microLabels,
       type: 'symbol',
@@ -506,7 +463,6 @@ function AtlasLayers({
       } as never,
       paint: textPaint,
     })
-    // The world cover names regions, not countries (pager.tsx); empty on every other page and on desktop.
     map.addSource('atlas-region-labels', { type: 'geojson', data: emptyLabels })
     map.addLayer({
       id: ATLAS_LAYERS.regionLabels,
@@ -515,8 +471,6 @@ function AtlasLayers({
       layout: { ...text, 'text-size': 13, 'text-max-width': 9 } as never,
       paint: { 'text-halo-width': 1.75 },
     })
-    // A marker beats the polygon under it; where 44px targets overlap (European microstates at world zoom), the
-    // marker nearest the pointer wins rather than whichever the renderer lists first.
     const pick = (event: GL.MapMouseEvent): { id: unknown; polygon: boolean } => {
       let best: { id: unknown; distance: number } | null = null
       for (const feature of map.queryRenderedFeatures(event.point, {
@@ -541,8 +495,6 @@ function AtlasLayers({
       if (typeof id === 'string' && isCatalogCountry(id)) tap.current(id, polygon)
       else sticker.current?.dismiss()
     }
-    // Hover is a fine-pointer answer: one query per move at most, none while the camera moves or a button is held,
-    // and the filters change only when the country under the pointer does.
     const point = window.matchMedia?.('(hover: hover) and (pointer: fine)')
     const hoverTo = (id: string | null) => {
       const before = labelInput.current.hovered
@@ -558,7 +510,6 @@ function AtlasLayers({
       const { id } = pick(event)
       hoverTo(typeof id === 'string' && isCatalogCountry(id) ? id : null)
     }
-    // A drag hides the hover answer at once: the pointer is moving the map, not pointing at a country.
     const leave = () => hoverTo(null)
     map.on('click', click)
     map.on('mousemove', hover)
@@ -577,7 +528,6 @@ function AtlasLayers({
     }
   }, [map, ready, raw])
 
-  // Colours that change only with the theme or the collection.
   useEffect(() => {
     if (!map || !ready || !map.getLayer(ATLAS_LAYERS.fill)) return
     const marked = inSet(shown)
@@ -590,7 +540,6 @@ function AtlasLayers({
       map.setFilter(layer.id, layer.rest ? ['!', marked] : marked)
       if (!layer.hit) map.setPaintProperty(layer.id, 'circle-stroke-color', paints.border)
     }
-    // Names inside their country take its fill; microstate names sit beside a marker and region names span many.
     for (const layer of [ATLAS_LAYERS.labels, ATLAS_LAYERS.hoverLabel]) {
       map.setPaintProperty(layer, 'text-color', paints.ink as never)
       map.setPaintProperty(layer, 'text-halo-color', paints.fill as never)
@@ -600,7 +549,6 @@ function AtlasLayers({
       map.setPaintProperty(layer, 'text-halo-color', paints.halo)
     }
   }, [map, ready, raw, paints, pending, shown])
-  // The fills, which a page turn also changes: off-page countries recede.
   useEffect(() => {
     if (!map || !ready || !map.getLayer(ATLAS_LAYERS.fill)) return
     const fill = focus?.off.length
@@ -613,7 +561,6 @@ function AtlasLayers({
 
   useEffect(() => {
     if (!map || !ready || !map.getLayer(ATLAS_LAYERS.labels)) return
-    // The cover is too far out for country names; its regions carry the labels. A page names its own countries.
     labelInput.current = {
       ...labelInput.current,
       shown: cover ? [] : (focus?.codes ?? shown),
@@ -663,7 +610,6 @@ function AtlasLayers({
   const pages = paging?.pages
   const regionLabels = useMemo<LabelData>(() => {
     if (!cover || !pages) return emptyLabels
-    // Year pages overlap on the world, so the cover names regions only when the pages are regions.
     const features = pages.filter(isRegionPage).flatMap((page) => {
       const box = pageBox(page, frameOf)
       if (!box) return []
@@ -735,11 +681,6 @@ const fitMine = (map: GL.Map, mine: Bounds) => {
   })
 }
 
-/**
- * Buttons are the keyboard path for zoom and framing; motion is a jump, so reduced motion needs no branch. The map
- * opens once on the member's countries (the whole world without any), then keeps the member's view: filters, scope
- * and recordings never refit. One button toggles between the two framings.
- */
 function Controls({
   locale,
   mine,
@@ -784,11 +725,6 @@ function Controls({
   )
 }
 
-/**
- * The MapLibre island, fetched only when the map view is shown. Scroll contract (shared with client/maps/options.ts):
- * cooperative gestures, so a plain wheel scrolls the page, Ctrl/⌘ + wheel zooms, and touch needs two fingers. Paged
- * (phones), pager.tsx replaces that contract: one finger sideways turns pages, vertically scrolls, two fingers pinch.
- */
 export default function AtlasMap({
   locale,
   entries,
@@ -800,19 +736,16 @@ export default function AtlasMap({
   paging = null,
 }: {
   locale: Locale
-  /** Visited countries with their visit counts, which pick the fill bucket. */
   entries: ReadonlyMap<string, number>
   pending: string[]
   name: (code: string) => string
   onSelectCountry: (code: string) => void
   quickVisit?: QuickVisit | null
   fail: () => void
-  /** Phones: swipeable travel-region pages instead of the zoom and framing buttons. */
   paging?: AtlasPaging | null
 }) {
   return (
     <div className="passport-atlas-stage">
-      {/* Local CSS is requested only when the heavy map island mounts. */}
       {/* oxlint-disable-next-line @next/next/no-css-tags */}
       <link rel="stylesheet" href="/maps/maplibre-6.13.0/maplibre-gl.css" />
       <MapCanvas onError={fail} locale={locale} className="passport-atlas-canvas">

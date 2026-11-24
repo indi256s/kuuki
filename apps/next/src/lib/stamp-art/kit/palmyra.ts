@@ -1,7 +1,3 @@
-// Palmyra, the Great Colonnade: one row of tall columns receding toward a vanishing point on the
-// right, so near columns are large and far ones small. Capitals are dark bands, lintels span only
-// some bays, two columns are broken and a drum lies on the sand. The box is the whole scene; the
-// bottom of the nearest column sits on the box bottom.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, hline, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
@@ -28,7 +24,6 @@ export const palmyra: KitModule = ([x, y, w, h], p) => {
   ])
   const gaps = new Set([2, 5, 7])
   const out: SvgNode[] = []
-  // Stylobate along the column feet.
   const feet: Pt[] = cols.map((c) => [c.xc, c.base + 1.5])
   const colAt = (i: number): SvgNode[] => {
     const c = cols[i]
@@ -65,7 +60,6 @@ export const palmyra: KitModule = ([x, y, w, h], p) => {
         { gap: 1.9, weight: 'fine', inset: 0.3 },
       ),
     )
-    // Plinth.
     o.push(
       ...body(
         [
@@ -87,7 +81,6 @@ export const palmyra: KitModule = ([x, y, w, h], p) => {
       ]
       o.push(...body(cap, 'line'))
       o.push(...toneFill(cap, 'T4', { gap: 1.5, weight: 'hair', inset: 0.2 }))
-      // Console bracket jutting from the shaft, a Palmyrene signature.
       const by = top + (c.base - top) * 0.3
       o.push(
         ...body(
@@ -105,7 +98,6 @@ export const palmyra: KitModule = ([x, y, w, h], p) => {
   }
   for (let i = n - 1; i >= 0; i--) {
     out.push(...colAt(i))
-    // Lintel spanning the bay between column i and the next one in front of it (i - 1).
     if (i >= 1 && !gaps.has(i) && !broken.has(i) && !broken.has(i - 1)) {
       const a = cols[i - 1],
         b = cols[i]
@@ -122,7 +114,6 @@ export const palmyra: KitModule = ([x, y, w, h], p) => {
     }
   }
   out.push(stroke('bold', feet))
-  // A fallen drum in the sand at the left foot.
   const dx = x + w * 0.26,
     dy = y + h - 1
   out.push(

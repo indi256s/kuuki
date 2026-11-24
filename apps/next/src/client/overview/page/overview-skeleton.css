@@ -1,4 +1,3 @@
-/* Route loading: one static block per band at the size the page draws it (page.css, globe.css, hero.css). */
 .ov3-skeleton-controls {
   height: 44px;
 }
@@ -6,14 +5,12 @@
 .ov3-skeleton-globe {
   height: 100%;
 }
-/* Wide: the band's row is the taller of the figures and the globe card (--ov-globe-h), and both fill it. */
 .ov3-skeleton-figures {
   min-height: 522px;
 }
 .ov3-skeleton-globe {
   min-height: var(--ov-globe-h, 520px);
 }
-/* The Visits per country row under the band: its closed 44px trigger. */
 .ov3-skeleton-countries {
   display: grid;
   align-content: center;
@@ -42,7 +39,6 @@
     min-height: 460px;
   }
 }
-/* Very wide screens dock the country list as a third card in the band and drop the row. */
 @media (min-width: 2176px) {
   .ov3-skeleton-countries {
     display: none;

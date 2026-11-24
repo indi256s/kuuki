@@ -25,12 +25,6 @@ import { Button } from './ui/button'
 import { readSeen, writeSeen } from './kuukies-storage'
 import './kuukies.css'
 
-// Adapted from Arc "cookie-consent" (uiarc.dev, MIT, see ui/ARC-LICENSE.txt): one surface that springs between a bar and a
-// details panel, faces that rise from a short blur, a grow spring with a little bounce and a flat one for folding.
-// Changed for Kuuki: Kuuki keeps only necessary cookies, so this is a notice, not a consent form. There are no categories
-// to switch, no Accept/Reject and no floating reopen button; Settings reopens the panel through `openKuukies()`. The bar
-// and panel share one width, so only the height springs; space groups the rows (no dividers); Kuuki tokens and Button.
-
 type Copy = { en: string; ru: string }
 const KUUKIES: { id: string; label: Copy; hint: Copy }[] = [
   {
@@ -66,7 +60,6 @@ const KUUKIES: { id: string; label: Copy; hint: Copy }[] = [
 
 type Mode = 'bar' | 'panel'
 const WIDTH_MAX = 400
-/** Duration springs restated as stiffness and damping, so a retarget mid-flight keeps its velocity. */
 const physical = (visualDuration: number, bounce: number): Transition => {
   const root = (2 * Math.PI) / (visualDuration * 1.2)
   return { type: 'spring', stiffness: root * root, damping: 2 * (1 - bounce) * root, mass: 1 }
@@ -95,7 +88,6 @@ const fadeVariants: Variants = {
   gone: { opacity: 0, transition: { duration: 0.1 } },
 }
 
-/** A face reports its natural height while it is current, then goes inert as it leaves. */
 function Face({
   id,
   reduced,
@@ -145,10 +137,6 @@ function Face({
   )
 }
 
-/**
- * The kuukie notice: on a first visit a bar names the cookies Kuuki keeps; "What's inside" morphs it into a panel listing
- * each one. Nothing renders on the server or once the notice is seen, unless Settings reopens the panel.
- */
 export function KuukiesNotice({
   request,
   opener,
@@ -167,7 +155,6 @@ export function KuukiesNotice({
   const [initialSeen] = useState(readSeen)
   const [mode, setMode] = useState<Mode | null>(request ? 'panel' : initialSeen ? null : 'bar')
   const seen = useRef(initialSeen)
-  /** Where focus was before it entered the surface, so closing hands it back instead of dropping it on <body>. */
   const returnTo = useRef<HTMLElement | null>(opener)
   const surfaceRef = useRef<HTMLDivElement>(null)
   const panelHeadingRef = useRef<HTMLHeadingElement>(null)
@@ -213,13 +200,19 @@ export function KuukiesNotice({
     closePanel()
   }
 
-  /* Geometry: the layer is measured, both faces share its width (capped) and report their heights; the surface springs to them. */
   const layerRef = useRef<HTMLDivElement>(null)
   const [layerWidth, setLayerWidth] = useState(0)
   useLayoutEffect(() => {
     const node = layerRef.current
     if (!node) return
-    const read = () => setLayerWidth(node.clientWidth)
+    const read = () => {
+      const style = getComputedStyle(node)
+      setLayerWidth(
+        node.clientWidth -
+          parseFloat(style.paddingLeft || '0') -
+          parseFloat(style.paddingRight || '0'),
+      )
+    }
     read()
     if (typeof ResizeObserver === 'undefined') return
     const observer = new ResizeObserver(read)

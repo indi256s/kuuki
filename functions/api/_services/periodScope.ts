@@ -1,13 +1,7 @@
-// The one definition of "what the Overview and the opened map count": completed (awaiting or logged) flights of one
-// owner in one period, and the C3 countries they reach after the published transit suppressions (ADR 0001 section 4).
-// The Overview summary and `GET /api/flights/route-projection` both build their statements here, so the figures and the
-// map can only disagree when the published revision changed between two reads.
 import { buildFlightWhere, type FlightFilters } from '../_lib/flightQuery'
 
-/** Reference country codes are finite; reads fail rather than truncate if the imported set outgrows this. */
 export const MAX_COUNTRY_CODES = 512
 
-/** Owner-scoped completed flights for a period; `year` overrides the filter year (used for the previous-year comparison). */
 export function completedScope(
   userId: string,
   filters: FlightFilters,
@@ -20,7 +14,6 @@ export function completedScope(
   return { where: `${where} AND f.lifecycle_state IN ('awaiting', 'logged')`, binds }
 }
 
-/** Endpoints keep their flight id so the published suppressions can be anti-joined (`UNSUPPRESSED`). */
 export const countryEndpoints = (
   where: string,
 ) => `WITH selected AS (SELECT id, origin, destination FROM flights f WHERE ${where}),
@@ -30,11 +23,6 @@ export const UNSUPPRESSED_WHERE = `WHERE length(a.country_code) = 2 AND NOT EXIS
       WHERE x.user_id = ? AND x.flight_id = e.id AND x.endpoint = e.endpoint)`
 export const UNSUPPRESSED = `JOIN airports_reference a ON a.iata = e.iata ${UNSUPPRESSED_WHERE}`
 
-/**
- * Visits per country for the period, with the account-wide C3 status as `pending`. Unfiltered all-time reads the
- * published projection (flight and legacy countries, no claims or ground visits); every other scope reads the canonical
- * endpoints minus the published suppressions, so a suppressed transit hub never counts.
- */
 export function countryVisitsStatement(
   db: D1Database,
   userId: string,

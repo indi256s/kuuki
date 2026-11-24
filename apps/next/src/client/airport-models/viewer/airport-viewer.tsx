@@ -15,9 +15,7 @@ export type AirportViewerProps = ViewerCallbacks & {
   model: AirportModelV1
   initialPose: CameraPose
   state: ViewerState
-  /** false retires GPU resources; caller retains detail state for later remount. */
   active?: boolean
-  /** Parent supplies the prepared preview; it remains visible until the first successful frame. */
   fallback: ReactNode
   className?: string
 }

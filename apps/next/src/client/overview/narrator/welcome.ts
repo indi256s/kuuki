@@ -1,6 +1,3 @@
-// The onboarding reveal's narrator (spec O23, boards 19.x): one deterministic line about the journal the member just
-// saved, plus the stats line under it. Four triggers, checked in priority order; three variants each, EN and RU
-// (Russian addresses the member as «вы»). The flown flights drive everything; upcoming ones only count as "booked".
 import { findAirport } from '@kuuki/data/airport-lookup'
 import { airportAliases } from '@kuuki/shared'
 import { formatCount, formatDistanceKm, type CountForms, type Locale } from '../../../lib/format'
@@ -12,9 +9,7 @@ import { fnv1a32 } from './pick'
 
 export type WelcomeTrigger = 'upcoming' | 'single' | 'big' | 'small'
 
-/** Big history: at least this many flown flights (spec: welcome.big is flown ≥ 10; 2 to 9 is small). */
 export const BIG_FLIGHTS = 10
-/** The headline cap after filling; a longer fill falls through to the next variant. */
 export const LINE_MAX = 90
 
 const flightForms: CountForms = {
@@ -45,11 +40,6 @@ const upcomingForms: CountForms = {
   },
 }
 
-/**
- * Each trigger keeps one variant that needs neither `{city}` nor `{since}`: the picker falls through to it when the
- * airports or dates are unknown, so a raw placeholder never reaches the screen. Russian lines keep the city in the
- * nominative and avoid verbs that agree with its gender; the count phrase stands alone or follows a colon.
- */
 export const WELCOME_CORPUS: Record<WelcomeTrigger, [Line, Line, Line]> = {
   upcoming: [
     {
@@ -118,7 +108,6 @@ type Facts = {
   route: string
 }
 
-/** The city of the airport flown to or from most often (ties go to the lower IATA code); unknown airports are skipped. */
 function topCity(flown: FactFlight[]): Facts['city'] {
   const visits = new Map<string, number>()
   for (const flight of flown) {
@@ -178,7 +167,6 @@ export function pickWelcomeLine({
   if (facts.city) values.city = facts.city[locale]
   const lines = WELCOME_CORPUS[trigger]
   const start = fnv1a32(seed + trigger) % 3
-  // Walk on from the hashed variant until one has everything it needs; the last variant of each trigger needs nothing.
   for (let step = 0; step < 3; step++) {
     const text = t(lines[(start + step) % 3], locale)
     const needs = [...text.matchAll(/\{(\w+)\}/g)].map((match) => match[1] ?? '')
@@ -189,7 +177,6 @@ export function pickWelcomeLine({
   return fill(t(lines[2], locale), values)
 }
 
-/** `{countries}, {km}.` with the left-out clause only when some flights were left out; upcoming-only has its own line. */
 export function statsLine({
   flights,
   leftOut,
@@ -211,7 +198,6 @@ export function statsLine({
         : `${n} left out; add ${one ? 'it' : 'them'} anytime from your journal.`
   if (triggerOf(facts) === 'upcoming') {
     const booked = formatCount(locale, facts.booked, upcomingForms)
-    // The omission already says where to add flights; the booked count then stands alone.
     if (omitted) return ru ? `${omitted} Предстоит: ${booked}.` : `${omitted} ${booked}.`
     return ru
       ? `Предстоит: ${booked}. Прошлые можно добавить в любой момент из журнала.`
@@ -220,6 +206,5 @@ export function statsLine({
   const km = foundOf(facts.flown).km ?? 0
   const base = `${formatCount(locale, facts.countries, countryForms)}, ${formatDistanceKm(locale, km)}.`
   if (!omitted) return base
-  // When at least as many were left out as saved, the omission is the headline fact.
   return leftOut >= facts.flown.length ? `${omitted} ${base}` : `${base} ${omitted}`
 }

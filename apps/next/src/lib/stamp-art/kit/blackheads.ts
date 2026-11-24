@@ -1,7 +1,3 @@
-// House of the Blackheads (Riga), lane C: a tall narrow guild-house facade with an ornate five-step
-// gable (pinnacles on every ledge, a finial, a clock face), four storeys of tall windows over an
-// arched portal, an ornament band under the gable, and the lower Schwab House beside it with a
-// small stepped gable. Lit left, T4 on the right fifth. The box bottom is the street.
 import {
   type Pt,
   type SvgNode,
@@ -22,9 +18,7 @@ const circle = (cx: number, cy: number, r: number, n = 20): Pt[] =>
     return [cx + Math.cos(a) * r, cy + Math.sin(a) * r]
   })
 
-/** Stepped gable outline from the base up: `widths` per step, each `rise` tall, one apex. */
 function gableOutline(cx: number, baseY: number, widths: number[], rise: number): Pt[] {
-  // Each riser ends at the next step's ledge; the last one closes on the apex.
   const l: Pt[] = []
   const r: Pt[] = []
   widths.forEach((wd, i) => {
@@ -52,7 +46,6 @@ export const blackheads: KitModule = ([x, y, w, h], p) => {
   const cx = fx0 + fw / 2
   const out: SvgNode[] = []
 
-  // Schwab House: lower, to the right, tucked behind the facade.
   const sx0 = fx1 - 2
   const sx1 = x + w
   const sw = sx1 - sx0
@@ -79,14 +72,12 @@ export const blackheads: KitModule = ([x, y, w, h], p) => {
   }
   out.push(hline('bold', sx0, sx1, base - wallH))
 
-  // Facade silhouette: wall + gable.
   const wallTop = base - 36
   const widths = [fw, fw - 8, fw - 16, fw - 24, fw - 32]
   const rise = 5
   const g = gableOutline(cx, wallTop, widths, rise)
   const facade: Pt[] = [[fx0, base], ...g.slice(0, -1), [fx1, base]]
   out.push(...body(facade, 'line'))
-  // The gable's last point is the apex pair; close it with a small peak.
   const apexY = wallTop - widths.length * rise
   out.push(
     stroke('line', [
@@ -96,7 +87,6 @@ export const blackheads: KitModule = ([x, y, w, h], p) => {
     ]),
   )
 
-  // Right-hand shade: T4 on the right fifth of the wall and the gable.
   out.push(
     ...hatchPoly(rectPts(fx1 - fw * 0.2, wallTop, fw * 0.2, base - wallTop), {
       angle: 90,
@@ -108,7 +98,6 @@ export const blackheads: KitModule = ([x, y, w, h], p) => {
   if (shadeGable.length > 2)
     out.push(...hatchPoly(shadeGable, { angle: 90, gap: 2.4, weight: 'hair' }))
 
-  // Pinnacles on every ledge: a thin obelisk with a ball, plus the finial spire on the apex.
   widths.forEach((wd, i) => {
     if (i === 0) return
     const yb = wallTop - i * rise
@@ -131,7 +120,6 @@ export const blackheads: KitModule = ([x, y, w, h], p) => {
     fill(circle(cx, apexY - 8, 1.4, 8)),
   )
 
-  // Ornament band under the gable: a bold course with a row of dentils.
   out.push(hline('bold', fx0 - 1.2, fx1 + 1.2, wallTop))
   for (let dx = fx0 + 2; dx < fx1 - 1; dx += 3.6)
     out.push(
@@ -141,7 +129,6 @@ export const blackheads: KitModule = ([x, y, w, h], p) => {
       ]),
     )
 
-  // Four storeys of tall windows in three columns over the portal row.
   const storeyH = 7.6
   const cols = [0.2, 0.5, 0.8]
   for (let s = 0; s < 3; s++) {
@@ -168,7 +155,6 @@ export const blackheads: KitModule = ([x, y, w, h], p) => {
   for (const dx of [-0.32, 0.32])
     out.push(fill(rectPts(fx0 + fw * (0.5 + dx) - 2.4, base - 7.4, 4.8, 5.6)))
 
-  // Clock in the gable (third step), a ring with two hands.
   const clockY = wallTop - rise * 2.45
   out.push(
     occlude(circle(cx, clockY, 5.6), { halo: 0 }),
@@ -184,7 +170,6 @@ export const blackheads: KitModule = ([x, y, w, h], p) => {
       [cx + 2.6, clockY + 1],
     ]),
   )
-  // Niche on the second step.
   out.push(fill(rectPts(cx - 1.6, wallTop - rise * 1.75, 3.2, 3.6)))
   return out
 }

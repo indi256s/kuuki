@@ -6,12 +6,6 @@ import { flightCode, type JournalFlight, type JournalRefs } from './model'
 import { SplitFlap } from '../ui/split-flap'
 import './next-up.css'
 
-// Board 22.1/22.6 "Next up": the nearest flight leads with its cities, codes, date, optional departure time and flight number,
-// and a split-flap day count, the section's one aviation motif. Later flights sit quietly beside or below it.
-// Motion (board "Next up · motion"): the flaps flip in once when the count arrives after hydration (a hard load) and again only
-// when the day changes while the page is open; client navigation paints them settled. Today and tomorrow are words that arrive
-// with the same flip; reduced motion swaps instantly. Rows stay static (no press scale).
-
 const copy = {
   en: { title: 'Next up', to: 'to', then: 'Then', today: 'Today', tomorrow: 'Tomorrow' },
   ru: { title: 'Скоро', to: 'в', then: 'Потом', today: 'Сегодня', tomorrow: 'Завтра' },
@@ -26,15 +20,12 @@ const dayCount = {
 }
 
 export type NextUpProps = {
-  /** The nearest 1 to 3 upcoming flights, ascending. Filters do not apply. */
   flights: JournalFlight[]
   refs: JournalRefs
   locale: Locale
   onOpen: (id: number) => void
 }
 
-// Today comes from the client only: the server snapshot is null, so the hydrating render shows dates alone and the count follows.
-// The subscription wakes at the next local midnight (and when the tab returns), so an open page counts down a real day change.
 const subscribe = (notify: () => void) => {
   let timer: ReturnType<typeof setTimeout>
   const arm = () => {
@@ -67,7 +58,6 @@ const dayNumber = (day: string) => {
 }
 
 const shortDates = new Map<string, Intl.DateTimeFormat>()
-/** "Sat, Nov 14" ("сб, 14 нояб."), with the year only when it is not this year. */
 function shortDate(locale: Locale, day: string, withYear: boolean): string {
   const key = `${locale}:${withYear}`
   let format = shortDates.get(key)
@@ -86,9 +76,6 @@ function shortDate(locale: Locale, day: string, withYear: boolean): string {
 
 export function NextUp({ flights, refs, locale, onOpen }: NextUpProps) {
   const today = useSyncExternalStore(subscribe, localDay, serverDay)
-  // The day of the first render. Null means hydration: the count arrives a frame later, so it flips in instead of popping.
-  // A later day than this means the page stayed open across midnight, so a Today/Tomorrow word that replaces the flaps
-  // arrives the same way.
   const [firstToday] = useState(today)
   const hydrating = firstToday === null
   if (!flights.length) return null
@@ -125,8 +112,6 @@ export function NextUp({ flights, refs, locale, onOpen }: NextUpProps) {
   return (
     <section className="journal-next" aria-labelledby="journal-next-title">
       <h2 id="journal-next-title">{t.title}</h2>
-      {/* A boarding pass: the lead's button stretches over the whole ticket, later flights sit above it, the stub keeps the
-          count. The stub is reserved through hydration, so the count arriving does not move the ticket. */}
       <div className="journal-next-card">
         <div className="journal-next-main">
           <button
@@ -184,7 +169,6 @@ export function NextUp({ flights, refs, locale, onOpen }: NextUpProps) {
           )}
         </div>
         {(today === null || first.days !== null) && (
-          // The lead button carries the spoken name and keyboard access; the stub is a pointer shortcut to the same flight.
           <div className="journal-next-stub" aria-hidden="true" onClick={() => onOpen(lead.id)}>
             {first.days !== null &&
               (first.word ? (

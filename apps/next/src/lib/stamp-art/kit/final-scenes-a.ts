@@ -1,4 +1,3 @@
-// Country-specific finishing details for lane A's final art rounds.
 import {
   type Pt,
   type SvgNode,

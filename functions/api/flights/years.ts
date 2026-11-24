@@ -1,5 +1,3 @@
-// GET /api/flights/years — distinct flight years (numbers), newest first.
-
 import { runHandler, json } from '../_lib/http'
 import { requireUser, type RequestData } from '../_lib/auth'
 

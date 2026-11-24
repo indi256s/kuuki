@@ -25,7 +25,6 @@ export async function getLeaderboard(category: LeaderboardCategory) {
   return readPublicLeaderboard(env.DB, category)
 }
 
-/** The whole leaderboard page: every category × period, with the signed-in viewer's places. */
 export async function getLeaderboardBoard() {
   const [env, identity] = await Promise.all([getRequestEnv(), getOptionalPublicViewer()])
   return readLeaderboardBoard(env.DB, identity?.id ?? null)

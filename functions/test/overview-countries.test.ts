@@ -1,4 +1,3 @@
-// T08 / ADR 0001 §4 and A7: Overview counts countries from published data only, in one snapshot with the readiness gate.
 import { expect, it } from 'vitest'
 import {
   accountWith,
@@ -55,8 +54,8 @@ it('reads all-time Passport countries from the published projection, including c
       countries: { value: 4, source: 'passport' },
       airports: 3,
       flights: 2,
-    }) // IST stays in the airport figure
-    expect(all.passport.regions).toBe(regionCount(['DE', 'JP', 'RU', 'US'])) // six-region catalog model, not continentOf7
+    })
+    expect(all.passport.regions).toBe(regionCount(['DE', 'JP', 'RU', 'US']))
   } finally {
     await dispose()
   }
@@ -109,7 +108,7 @@ it('A7: returns updating, never a mixed figure, while a repair is pending', asyn
       .run()
     const pending = await read(db)
     expect(pending.derivedReady).toBe(false)
-    expect(pending.passport.countryCodes).toEqual(['US']) // last published evidence is explicitly not ready
+    expect(pending.passport.countryCodes).toEqual(['US'])
     expect((await readOverviewScope(db)).figures.flights).toBe(3)
     await repairUserDerivedState(db, USER.id)
     expect((await read(db)).passport.countryCodes).toEqual(['GB', 'US'])
@@ -125,7 +124,6 @@ it('A7: after an old edit and an old repair leave the evidence stamp stale, Over
   ])
   try {
     expect((await read(db)).passport.countryCodes).toEqual(['GE', 'US'])
-    // A build below the rollback floor publishes the revision without the evidence stamp.
     await db
       .prepare('UPDATE user_derived_state SET revision = revision + 1 WHERE user_id = ?')
       .bind(USER.id)
@@ -153,7 +151,6 @@ it('does not serve a stale suppression for a changed route even if the published
     F2,
   ])
   try {
-    // Old route edit: the decision is cleared by the adapter, the published suppression remains until a repair.
     await db.prepare("UPDATE flights SET destination = 'LHR' WHERE id = 1").run()
     await db
       .prepare('UPDATE user_derived_state SET revision = revision + 1 WHERE user_id = ?')

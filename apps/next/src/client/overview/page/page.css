@@ -1,7 +1,5 @@
 .ov3-page {
-  /* The shell already applies --content-width and --page-gutter; adding them again here doubled the gutter. */
   width: 100%;
-  /* .page-shell already pads the top; a second 40px here left an empty band under the header. */
   padding-block: 0 96px;
   display: flex;
   flex-direction: column;
@@ -21,7 +19,6 @@
 .ov3-scope {
   color: var(--text-muted);
 }
-/* The common filters drive the map, the figures and the chapters, so they lead the whole composition: one row above the globe and figures. */
 .ov3-overview-workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -51,6 +48,7 @@
 }
 .ov3-globe,
 .ov3-hero,
+.ov3-first-run,
 .ov3-section {
   min-width: 0;
   padding: 24px;
@@ -93,19 +91,35 @@
 }
 .ov3-pending-label {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
-/* In flow under the globe card, never over it. On wide screens the note drops under both buttons. */
 .ov3-first-run {
-  order: 1;
-  max-width: 520px;
   display: grid;
   gap: 8px;
+  align-content: start;
+}
+.ov3-first-run-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+}
+.ov3-first-run-drawing {
+  display: grid;
+  place-items: center;
+  max-inline-size: 112px;
+  pointer-events: none;
+}
+.ov3-first-run-drawing .iso {
+  max-inline-size: 100%;
+  block-size: auto;
+  --iso-lit: 1;
+  --iso-glow: 0;
 }
 .ov3-first-run h2 {
   margin: 0;
-  font-size: 22px;
-  line-height: 28px;
+  font-size: 1.375rem;
+  line-height: 1.75rem;
   font-weight: 600;
   text-wrap: balance;
 }
@@ -128,15 +142,15 @@
   order: 1;
   flex-basis: 100%;
   margin: 0;
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
   color: var(--text-muted);
 }
 .ov3-page .narrator {
   margin: 0;
   max-width: 60ch;
-  font-size: 15px;
-  line-height: 24px;
+  font-size: 0.9375rem;
+  line-height: 1.5rem;
   font-weight: 400;
   color: var(--text-muted);
 }
@@ -160,8 +174,8 @@
 }
 .ov3-zero-context {
   margin: 0 0 8px;
-  font-size: 15px;
-  line-height: 24px;
+  font-size: 0.9375rem;
+  line-height: 1.5rem;
 }
 .ov3-zero .ov3-actions {
   justify-content: flex-start;
@@ -173,12 +187,12 @@
   margin: 0;
 }
 .ov3-zero-figures dt {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-muted);
 }
 .ov3-zero-figures dd {
   margin: 0;
-  font-size: 40px;
+  font-size: 2.5rem;
   line-height: 1.1;
   font-weight: 600;
 }
@@ -192,18 +206,15 @@
 }
 .ov3-hidden {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
-/* Wide screens: the map card grows with the viewport (capped). */
 @media (min-width: 1280px) {
   .ov3-globe-band {
     --ov-globe-h: clamp(520px, 30vw, 720px);
   }
 }
-/* Very wide screens: the globe card had spare space at its sides, so the globe key (Visits per country) docks as a third card after the figures, and the row grows taller (up to the viewport less the header) so the round globe fills more of its card; height, not width, limits its size.
-   2176px is where the band reaches ~2080px: the shell caps at 2560px with a gutter that reaches 48px. A media query, not measurement, so the server's first paint already has the final layout. */
 @media (min-width: 2176px) {
-  .ov3-overview-workspace > .ov3-globe-band:has(> [data-region='figures']) {
+  .ov3-overview-workspace > .ov3-globe-band:has(> [data-region='figures']:not([data-first-run])) {
     --ov-globe-h: max(720px, min(42vw, 100svh - 260px));
     grid-template-columns: minmax(0, 1fr) clamp(360px, 20%, 480px) clamp(320px, 15%, 380px);
     & > .globe-country-card {
@@ -217,12 +228,11 @@
       grid-template-rows: auto minmax(0, 1fr);
     }
   }
-  .ov3-overview-workspace:has(> .ov3-globe-band > [data-region='figures'])
+  .ov3-overview-workspace:has(> .ov3-globe-band > [data-region='figures']:not([data-first-run]))
     > .globe-country-evidence {
     display: none;
   }
 }
-/* Tablets keep the phone order while one column is all that fits: filters, compact figures, globe. */
 @media (max-width: 1023px) {
   .ov3-globe-band {
     grid-template-columns: minmax(0, 1fr);
@@ -243,13 +253,15 @@
     padding-block: 0;
   }
   .ov3-first-run {
-    order: 0;
+    padding: 16px;
+  }
+  .ov3-first-run-drawing {
+    max-inline-size: 72px;
   }
   .ov3-globe {
     min-height: 360px;
     padding: 16px;
   }
-  /* Common filters sit outside the phone card, leaving the corner free. */
   .ov3-globe-region .globe-top-left {
     inline-size: auto;
     min-inline-size: 0;
@@ -274,14 +286,13 @@
     padding: 16px;
   }
   .ov3-sections[data-surface='tiles'] .ov3-tile-title {
-    font-size: 17px;
+    font-size: 1.0625rem;
   }
 }
 
-/* Under Всё with ground data the chapters stay flight-only; one muted line above them says so. */
 .ov3-flights-only {
   margin: 0;
   color: var(--text-muted);
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
 }

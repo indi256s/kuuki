@@ -6,19 +6,12 @@ import { num, stageExtent, stageMax, stageText, type StageProps } from './stage-
 import './stage.css'
 
 export type StageRowsProps<T> = StageProps<T> & {
-  /** Row height when the chapter gives its list more room. */
   rowHeight?: number
-  /** The row's visible name (`point.label` is the longer spoken one). */
   name?: (point: ChartPoint<T>) => string
-  /** Mono name, for codes. */
   mono?: boolean
-  /** 16px leading slot, e.g. a maker swatch. */
   swatch?: (point: ChartPoint<T>) => ReactNode
-  /** Width reserved for the value column. Default 48. */
   valueWidth?: number
-  /** A CSS color for the row's bar (e.g. `var(--cat-maker-airbus)`), kept in every state: the picked row is not recolored and has no --mark-peak overlay. Default: --mark-rest, with the pick in --mark-peak. */
   fill?: (point: ChartPoint<T>) => string
-  /** Draw the bar as a 1px outline in its `fill` color with no fill (the Unknown maker). */
   outline?: (point: ChartPoint<T>) => boolean
 }
 
@@ -27,12 +20,9 @@ const LABEL = 160,
   BAR_H = 8,
   GAP = 8
 
-// The sheet keeps 24px rows. The desktop card's 206px plot gives up to 182px to rows, at most 36px each (5 rows fill it, 7 rows get 26).
 const rowPitch = (span: StageProps<unknown>['span'], count: number) =>
   span === 'full' ? Math.min(36, Math.floor(182 / Math.max(1, count))) : 24
 
-// A bar is drawn at its full length and scaled from its start, so a changed value morphs by transform only.
-// The ends are elliptical (rx = r / scale) to look round once scaled.
 function pill(x: number, y: number, length: number, width: number) {
   const r = Math.min(BAR_H / 2, width / 2),
     rx = (r * length) / width,

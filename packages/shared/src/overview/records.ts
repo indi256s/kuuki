@@ -27,13 +27,11 @@ export interface Records {
       })
     | null
   shortest: (RecordRef & { date: string | null; shareOfLongest: number }) | null
-  /** The five longest distinct directed routes, longest first. */
   longest5: { origin: string; destination: string; km: number; flights: number }[]
   longestDuration: RecordRef | null
   shortestDuration: RecordRef | null
   biggestClockJump: RecordRef | null
   busiestDay: { date: string; flights: number } | null
-  /** Null unless every row is a raw flight: route groups carry no witness for their latest departure. */
   latestDeparture: (RecordRef & { date: string; depMinute: number }) | null
   busiestYear: {
     year: number
@@ -149,7 +147,6 @@ export function dateInstant(date: string): number | null {
     : null
 }
 
-// One route-group witness suffices for either endpoint; never reconstruct a flight from sums/hour floors.
 export function recordFlights(
   rows: OverviewRow[],
   mode: OverviewPayload['mode'] = 'flights',
@@ -243,14 +240,12 @@ function latestDeparture(
 }
 
 function longestRoutes(rows: OverviewRow[]): Records['longest5'] {
-  // A route counts every flight on it; its distance comes from the flights that have one, and a route with none is left out.
   const routes = new Map<
     string,
     { origin: string; destination: string; km: number | null; flights: number }
   >()
   for (const row of rows) {
     if (!(row.weight > 0)) continue
-    // Aggregate rows sum distance over their flights; a route's per-flight distance is constant.
     const km = row.distanceKm !== null && row.distanceKm >= 0 ? row.distanceKm / row.weight : null
     const known = km !== null && Number.isFinite(km) ? km : null
     const key = `${row.origin}>${row.destination}`
@@ -320,7 +315,6 @@ export function records(
     }
   const winner = extrema.longest
   const date = winner?.date && dateInstant(winner.date) !== null ? winner.date : null
-  // Each group has constant per-flight distance; its earliest date admits strictly earlier evidence.
   const prior = date
     ? rows
         .filter((row) => dateInstant(row.date) !== null && row.date < date && row.weight > 0)

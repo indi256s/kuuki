@@ -1,6 +1,3 @@
-// Flight lifecycle assignment (ADR 0001 §2). Create, bulk create and edit call the pure rules below;
-// the owner sync and the cron share `applyDueTransitions`. Lifecycle-aware writes always set the
-// columns and the `is_upcoming` projection together, so the §1 adapter triggers never fire for them.
 import {
   addDays,
   canonicalTimeZone,
@@ -20,7 +17,6 @@ import { firstOf, rowsOf } from './stats'
 
 export type ConfirmationSource = 'save' | 'user' | 'automatic' | 'legacy'
 
-/** Every lifecycle column a lifecycle-aware writer sets, plus the compatibility projection. */
 export interface LifecycleColumns {
   lifecycle_state: LifecycleState
   is_upcoming: number
@@ -48,14 +44,8 @@ export const LIFECYCLE_COLUMN_NAMES = [
 export const lifecycleValues = (columns: LifecycleColumns) =>
   LIFECYCLE_COLUMN_NAMES.map((name) => columns[name])
 
-/** Max flights moved per user and call (owner sync and cron alike). */
 export const DUE_TRANSITION_LIMIT = 100
 
-/**
- * The member's browser timezone travels as a top-level `timezone` request field next to the flight
- * fields (never part of `FlightInput` or its idempotency digest). Absent → null (old clients);
- * present but not a valid IANA zone → 400 INVALID_TIMEZONE.
- */
 export function takeRequestTimezone(body: unknown): { body: unknown; timezone: string | null } {
   if (!body || typeof body !== 'object' || Array.isArray(body) || !('timezone' in body))
     return { body, timezone: null }
@@ -67,7 +57,6 @@ export function takeRequestTimezone(body: unknown): { body: unknown; timezone: s
   return { body: rest, timezone: canonical }
 }
 
-/** Morning-after boundary and the auto-confirm boundary seven local days later (ADR §1 calendar rule). */
 export function deadlinesFor(date: string, timeZone: string) {
   return {
     awaiting_after: startOfLocalDay(addDays(date, 1), timeZone),
@@ -75,7 +64,6 @@ export function deadlinesFor(date: string, timeZone: string) {
   }
 }
 
-/** Create, bulk create and (T10) draft conversion: today or past logs as `save`, future is upcoming. */
 export function lifecycleForCreate(
   date: string,
   timezone: string | null,
@@ -107,7 +95,6 @@ export function lifecycleForCreate(
   }
 }
 
-/** Edit rows of the §2 table. `timezone` is the request's zone; the stored one is the fallback, then UTC. */
 export function lifecycleForEdit(
   existing: Omit<LifecycleColumns, 'is_upcoming'> & {
     is_upcoming: number | null
@@ -123,7 +110,7 @@ export function lifecycleForEdit(
     ...(Object.fromEntries(
       LIFECYCLE_COLUMN_NAMES.map((name) => [name, existing[name]]),
     ) as unknown as LifecycleColumns),
-    is_upcoming: existing.lifecycle_state === 'upcoming' ? 1 : 0, // always the projection of the state
+    is_upcoming: existing.lifecycle_state === 'upcoming' ? 1 : 0,
   } satisfies LifecycleColumns
   const routeChanged = next.origin !== existing.origin || next.destination !== existing.destination
   const result: LifecycleColumns = routeChanged
@@ -144,9 +131,8 @@ export function lifecycleForEdit(
       arrival_transit_leg_id: null,
     }
   }
-  if (existing.lifecycle_state === 'logged') return result // provenance kept, no deadlines
+  if (existing.lifecycle_state === 'logged') return result
   const deadlines = deadlinesFor(next.date, zone)
-  // A corrected upcoming flight never skips the queue, and the edit never auto-confirms inline.
   const state: LifecycleState =
     existing.lifecycle_state === 'awaiting' || now.toISOString() >= deadlines.awaiting_after
       ? 'awaiting'
@@ -161,29 +147,12 @@ export function lifecycleForEdit(
 }
 
 export interface DueTransitionResult {
-  /** Flights moved upcoming → awaiting by this pass. */
   awaited: number
-  /** Flights moved awaiting → logged (`automatic`) by this pass, including ones that were awaited in the same pass. */
   autoConfirmed: number
-  /** Distinct flights whose state changed; a flight making both moves counts once. */
   synced: number
-  /** Due work remains: a direction hit its cap, or an auto-confirm lost the revision guard and needs another pass. */
   more: boolean
 }
 
-/**
- * The two due transitions for one user (ADR 0001 §2), used by the owner sync and the cron:
- *  - upcoming → awaiting once the stored `awaiting_after` has passed;
- *  - awaiting → logged (`automatic`) once the stored `auto_confirm_after` has passed. A flight past both deadlines
- *    makes both moves in one pass, so a missed cron or a late first session never restarts the clock.
- * Deadlines are never recomputed here. Each direction is capped at `limit` flights, oldest stored deadline first, so
- * the stored deadline is the cursor and a backlog drains over successive passes without moving anyone's eligibility.
- *
- * Auto-confirm writes the effective arrival policy computed from one snapshot (`effectiveArrivalPolicies`), and is
- * guarded by the derived-state revision that snapshot was read under: a concurrent mutation makes it a no-op and the
- * next pass retries. The dirty mark is unconditional whenever due rows were read, because `changes()` would only see
- * the last UPDATE; a lost race costs one extra repair.
- */
 export async function applyDueTransitions(
   db: D1Database,
   {
@@ -194,7 +163,6 @@ export async function applyDueTransitions(
 ): Promise<DueTransitionResult> {
   const instant = now.toISOString()
   await ensureDerivedStateRow(db, userId).run()
-  // The revision is read before the flights: any mutation committed after this point bumps it and fails the guard.
   const [dueUp, dueAw, stateRow] = await db.batch([
     db
       .prepare(
@@ -214,7 +182,6 @@ export async function applyDueTransitions(
   const awRows = rowsOf<{ id: number; auto_confirm_after: string }>(dueAw)
   const revision = firstOf<{ revision: number }>(stateRow)?.revision ?? 0
   const upIds = upRows.slice(0, limit).map((row) => row.id)
-  // Auto-confirm candidates: already awaiting and due, plus flights this pass moves that are also past their 7-day deadline.
   const pastBoth = upRows.slice(0, limit).filter((row) => row.auto_confirm_after <= instant)
   const confirmable = [...awRows.slice(0, limit), ...pastBoth].sort((a, b) =>
     a.auto_confirm_after < b.auto_confirm_after
@@ -279,7 +246,6 @@ export async function applyDueTransitions(
   }
   statements.push(dirtyUserStatement(db, userId))
   const results = await db.batch(statements)
-  // Counted from RETURNING: D1 meta.changes also counts trigger writes (A1 note).
   let cursor = 0
   const awaitedIds =
     upIds.length > 0 ? rowsOf<{ id: number }>(results[cursor++]).map((row) => row.id) : []

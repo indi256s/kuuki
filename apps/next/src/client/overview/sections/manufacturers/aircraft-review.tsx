@@ -8,13 +8,11 @@ import { useOverview } from '../../store/overview-context'
 
 type Overview = ReturnType<typeof useOverview>
 
-/** Flights still missing an aircraft, or null when the review has nothing to act on (no payload, aggregated rows, the dev owner or no scope). */
 function missingCount({ payload, aggregate, ownerKey, scope }: Overview) {
   if (!payload || aggregate || ownerKey === 'dev' || !scope) return null
   return scope.coverage.total - scope.coverage.typed
 }
 
-/** The count the review offers to fix; null whenever `PayloadAircraftReview` would render nothing. */
 export function useAircraftReviewCount(): number | null {
   const count = missingCount(useOverview())
   return count !== null && count > 0 ? count : null
@@ -37,7 +35,6 @@ export function PayloadAircraftReview() {
     }
   }, [])
   const { ownerKey, locale } = overview
-  // Not the hook's null-at-zero: the open dialog keeps rendering as its last flights are saved.
   const count = missingCount(overview)
   if (count === null) return null
   const rows = () => {

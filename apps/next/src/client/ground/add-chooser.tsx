@@ -1,6 +1,4 @@
 'use client'
-// The empty list's way in: Train or Road trip, each a link to its form carrying the list view as return context.
-// Everywhere else, adding lives in the shared Add list (desktop header menu, the rail's + card).
 
 import { NavigationLink as Link } from '../navigation-link'
 import { Car, Train } from '@keyline-icons/react'

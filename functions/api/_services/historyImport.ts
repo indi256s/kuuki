@@ -1,8 +1,3 @@
-// Flighty CSV history runs (ADR 0008): opening a run, admitting chunks, classifying a complete run against the
-// journal and earlier imports, owner reads, the private archive, discard and source erasure.
-//
-// Every write is owner-scoped and fenced on the run's status and generation, so a late chunk after a discard, an
-// erasure or an expiry inserts nothing. Cell values are never logged or put into error messages.
 import {
   FLIGHTY_CHUNK_RECORDS,
   FLIGHTY_MAPPER_VERSION,
@@ -41,11 +36,9 @@ import { evaluateRow } from './historyImportEvaluate'
 import { OPEN_ROW_STATE_LIST, OPEN_ROW_STATES } from './historyImportRetention'
 
 export const STAGING_SECONDS = 30 * 24 * 3600
-/** Rows per `UPDATE … FROM json_each` statement, under D1's bound-parameter size. */
 export const WRITE_SLICE = 400
 const encoder = new TextEncoder()
 
-/** Consecutive slices of at most `WRITE_SLICE` items, one per bulk-update statement. */
 export function writeSlices<T>(items: T[]): T[][] {
   const slices: T[][] = []
   for (let start = 0; start < items.length; start += WRITE_SLICE)
@@ -56,11 +49,6 @@ export function writeSlices<T>(items: T[]): T[][] {
 const RECEIVING_STATUSES = "('receiving')"
 const DECIDING_STATUSES = "('review','completed')"
 
-/**
- * The run's status follows its open rows, and every change bumps the revision that group answers fence on. The
- * fence is the run's generation plus its status (`receiving` for a seal, else `review`/`completed`), optionally the
- * revision the owner saw, and optionally that the preceding statement of the batch changed a row.
- */
 export function runStatusStatement(
   db: D1Database,
   run: Pick<RunRecord, 'id' | 'user_id' | 'generation'>,
@@ -139,9 +127,6 @@ export const ROW_COLUMNS =
 
 const COMMITTED = "('created','duplicate','preserved_only','removed')"
 
-// ---------------------------------------------------------------------------------------------------------------
-// Validation
-
 const invalid = (message: string, code = 'INVALID_HISTORY_REQUEST') =>
   new HttpError(400, message, code)
 
@@ -218,9 +203,6 @@ export function parseCreateRun(body: unknown): CreateRunRequest {
   }
 }
 
-// ---------------------------------------------------------------------------------------------------------------
-// Reads
-
 export async function loadRun(db: D1Database, userId: string, runId: string): Promise<RunRecord> {
   const run = await db
     .prepare('SELECT * FROM history_import_runs WHERE id = ? AND user_id = ?')
@@ -248,7 +230,6 @@ export const rowFinding = (row: Pick<RowRecord, 'finding_json'>) =>
 export const rowCells = (row: Pick<RowRecord, 'cells_json'>) =>
   parseJson<string[] | null>(row.cells_json, null)
 
-/** `headers` is the run's, parsed once by the caller. Group answers stay server-side. */
 export function rowView(headers: string[], row: RowRecord): HistoryRowView {
   const cells = rowCells(row)
   const answers = rowAnswers(row)
@@ -283,7 +264,6 @@ export function rowView(headers: string[], row: RowRecord): HistoryRowView {
   }
 }
 
-/** Shared questions of a run: one per group key over its open rows, plus the two answerable match groups. */
 async function openGroups(db: D1Database, run: RunRecord): Promise<HistoryGroup[]> {
   const { results } = await db
     .prepare(
@@ -310,7 +290,6 @@ async function openGroups(db: D1Database, run: RunRecord): Promise<HistoryGroup[
         candidates: issue.candidates ?? [],
       })
     }
-    // Only a clean row waits on its finding alone; a group answer then settles it.
     const finding = parseJson<HistoryFinding | null>(row.finding_json, null)
     if (issues.length === 0 && finding) {
       if (finding.kind === 'new_since_import')
@@ -332,7 +311,6 @@ async function openGroups(db: D1Database, run: RunRecord): Promise<HistoryGroup[
   return [...groups.values()].sort((a, b) => b.rows - a.rows || a.group.localeCompare(b.group))
 }
 
-/** `withGroups` reads the open rows for the shared questions; only the review page needs them. */
 export async function runSummary(
   db: D1Database,
   run: RunRecord,
@@ -418,7 +396,6 @@ export async function readRunPage(
 ): Promise<HistoryPage> {
   const run = await loadRun(db, userId, runId)
   const filter = query.get('state') ?? 'open'
-  // Own keys only: an inherited name like `constructor` is an unknown filter, not a prototype member.
   const states = Object.hasOwn(STATE_FILTERS, filter) ? STATE_FILTERS[filter] : undefined
   if (!states) throw invalid('Unknown state filter')
   const cursor = Number(query.get('cursor') ?? -1)
@@ -452,7 +429,6 @@ export async function readRunPage(
   }
 }
 
-/** Every record of the run with its outcome and, unless erased, its verbatim cells. Owner-only. */
 export async function readArchive(
   db: D1Database,
   userId: string,
@@ -490,9 +466,6 @@ export async function readArchive(
   }
 }
 
-// ---------------------------------------------------------------------------------------------------------------
-// Opening a run
-
 export async function createRun(
   db: D1Database,
   userId: string,
@@ -506,7 +479,6 @@ export async function createRun(
       )
       .bind(userId, request.operationId)
       .first<RunRecord>()
-  // The same operation id and manifest answers the run already opened, however the earlier call ended.
   const replayOf = async (existing: RunRecord | null) => {
     if (!existing) return null
     if (existing.manifest_digest !== manifestDigest)
@@ -555,9 +527,6 @@ export async function createRun(
   return { run: await runSummary(db, await loadRun(db, userId, id)), replayed: false }
 }
 
-// ---------------------------------------------------------------------------------------------------------------
-// Chunks
-
 export function parseChunkBody(body: unknown): Array<[number, number, string[]]> {
   if (!isRecord(body) || !Array.isArray(body.records)) throw invalid('Chunk records are required')
   for (const record of body.records)
@@ -600,8 +569,6 @@ export async function admitChunk(
   if ((await sha256Hex(flightyChunkPayload(typed))) !== entry.digest)
     throw new HttpError(409, 'Chunk content differs from the manifest', 'CHUNK_DIGEST_MISMATCH')
 
-  // A replay of an admitted chunk inserts nothing and answers the same run. When it completes a run that an
-  // interrupted seal left `receiving`, the replay finishes the seal.
   const present = await db
     .prepare(
       'SELECT COUNT(*) AS n FROM history_import_rows WHERE run_id = ? AND user_id = ? AND chunk_index = ?',
@@ -675,7 +642,6 @@ export async function admitChunk(
   }
 }
 
-/** Seal a `receiving` run once every record is in. Racing seals are harmless: each write is fenced on `receiving`. */
 async function sealIfComplete(db: D1Database, run: RunRecord): Promise<void> {
   if (run.status !== 'receiving') return
   const count = await db
@@ -684,9 +650,6 @@ async function sealIfComplete(db: D1Database, run: RunRecord): Promise<void> {
     .first<{ n: number }>()
   if ((count?.n ?? 0) === run.total_records) await sealRun(db, run)
 }
-
-// ---------------------------------------------------------------------------------------------------------------
-// Classification (ADR 0008 "Matching")
 
 interface PriorRow {
   id: string
@@ -698,18 +661,12 @@ interface PriorRow {
   action: HistoryRowView['action']
 }
 
-/** Push onto the entry for `key`, creating it first. */
 function append<K, V>(map: Map<K, V[]>, key: K, value: V) {
   const entries = map.get(key)
   if (entries) entries.push(value)
   else map.set(key, [value])
 }
 
-/**
- * Compare a complete run with the owner's journal and earlier imports, then open it for review. One D1 batch: every
- * row update and the status flip are fenced on the run still `receiving` at this generation, so a concurrent seal of
- * the same run, or a discard, leaves nothing half-classified.
- */
 async function sealRun(db: D1Database, run: RunRecord): Promise<void> {
   const [own, prior, flights] = await db.batch([
     db
@@ -746,8 +703,6 @@ async function sealRun(db: D1Database, run: RunRecord): Promise<void> {
   const route = (date: string | null, origin: string | null, destination: string | null) =>
     date && origin && destination ? `${date}|${origin}|${destination}` : null
 
-  // Only records an export actually accepted count toward matching: a `link` receipt (a repeat) never adds an
-  // occurrence, so re-importing a file cannot multiply what an earlier file said once.
   const accepted = priorRows.filter(
     (row) => row.action === 'create' || row.action === 'preserve_only',
   )
@@ -759,7 +714,6 @@ async function sealRun(db: D1Database, run: RunRecord): Promise<void> {
     if (row.flighty_flight_id) append(priorByFlightyId, row.flighty_flight_id, row)
     if (row.match_key) append(priorByKey, row.match_key, row)
   }
-  // 1. Exact repeats, paired one to one in order.
   const consumed = new Set<string>()
   const findings = new Map<string, HistoryFinding>()
   for (const row of rows) {
@@ -772,7 +726,6 @@ async function sealRun(db: D1Database, run: RunRecord): Promise<void> {
       rowId: match.id,
     })
   }
-  // 2. Same Flighty ID or match key, changed content.
   const unconsumed = (entries: PriorRow[] | undefined) =>
     entries?.find((prior) => !consumed.has(prior.id))
   for (const row of rows) {
@@ -788,8 +741,6 @@ async function sealRun(db: D1Database, run: RunRecord): Promise<void> {
         rowId: match.id,
       })
   }
-  // 2b. A record whose only trace is a link receipt to a flight the owner deleted is still a deleted record: the
-  // receipt adds no occurrence (step 1), but its tombstone keeps the identity so it is never offered as new.
   const deletedLinks = new Map<string, PriorRow>()
   for (const row of priorRows)
     if (row.action === 'link' && row.state === 'removed')
@@ -802,7 +753,6 @@ async function sealRun(db: D1Database, run: RunRecord): Promise<void> {
       .find(Boolean)
     if (match) findings.set(row.id, { kind: 'previous_deleted', flightId: null, rowId: match.id })
   }
-  // 3. Owned flights on the same date and route.
   const flightsByRoute = new Map<string, number[]>()
   for (const flight of flights.results as Array<{
     id: number
@@ -827,10 +777,8 @@ async function sealRun(db: D1Database, run: RunRecord): Promise<void> {
         flightId: owned.length === 1 ? owned[0] : null,
         rowId: null,
       })
-    // 4. Repeated date and route inside this file.
     else if (key && (routeCount.get(key) ?? 0) > 1)
       findings.set(row.id, { kind: 'repeated_in_file', flightId: null, rowId: null })
-    // 5. Anything else, once an earlier Flighty import exists.
     else if (hasPriorImport)
       findings.set(row.id, { kind: 'new_since_import', flightId: null, rowId: null })
   }
@@ -866,13 +814,6 @@ async function sealRun(db: D1Database, run: RunRecord): Promise<void> {
   await db.batch(statements)
 }
 
-// ---------------------------------------------------------------------------------------------------------------
-// Discard and erasure
-
-/**
- * Discard: a run with nothing committed disappears; otherwise its unconfirmed rows become `ignored`/`discarded` and
- * lose their cells, the run closes and its generation fences late writes. Created flights stay.
- */
 export async function discardRun(db: D1Database, userId: string, runId: string) {
   const run = await loadRun(db, userId, runId)
   const now = nowIso()
@@ -932,7 +873,6 @@ function closeStatements(
   ]
 }
 
-/** Erase every stored cell of the run (PNR and notes included). Flights and minimal tombstones stay. */
 export async function eraseRunSource(db: D1Database, userId: string, runId: string) {
   const run = await loadRun(db, userId, runId)
   await db.batch(closeStatements(db, userId, run.id, nowIso(), true))

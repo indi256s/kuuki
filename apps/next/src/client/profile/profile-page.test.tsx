@@ -114,19 +114,16 @@ it('visitor sees the identity, the permitted stamps by name only, the flight blo
   expect(screen.getByRole('heading', { level: 1, name: 'Traveler' })).toBeVisible()
   expect(screen.getByText('@traveler')).toBeVisible()
   expect(screen.getByText('A biography')).toBeVisible()
-  // The flight block is labelled and keeps only the stats the public read carries.
   const flights = within(screen.getByRole('region', { name: 'On flights' }))
   expect(flights.getByText('12,345')).toBeVisible()
   expect(screen.queryByText('Airlines')).not.toBeInTheDocument()
   expect(screen.queryByText('Aircraft types')).not.toBeInTheDocument()
-  // Stamps: names only, ordered by name, never the owner's dates (spec: no new disclosure).
   const stamps = within(screen.getByRole('list', { name: 'Stamps' }))
   expect(stamps.getAllByRole('button').map((item) => item.textContent)).toEqual([
     'Georgia',
     'Norway',
   ])
   expect(screen.getByText('Visited 2 countries')).toBeVisible()
-  // Visitors never see empty blocks, Remarks, owner controls or actions that wait for /compare.
   expect(screen.queryByRole('heading', { name: 'Achievements' })).not.toBeInTheDocument()
   expect(screen.queryByRole('heading', { name: 'Leaderboard' })).not.toBeInTheDocument()
   expect(screen.queryByText('Only you see this')).not.toBeInTheDocument()
@@ -211,7 +208,6 @@ it('shows the owner on their own public page the same public read, with a slim l
     'href',
     '/passport',
   )
-  // No owner controls and no private reads: the page is the visitor projection.
   expect(screen.queryByRole('button', { name: 'Share profile' })).not.toBeInTheDocument()
   expect(screen.queryByRole('button', { name: 'Passport menu' })).not.toBeInTheDocument()
   expect(screen.queryByRole('link', { name: /change in Settings/ })).not.toBeInTheDocument()

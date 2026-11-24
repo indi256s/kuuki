@@ -18,10 +18,6 @@ type Loaded =
   | { id: string; attempt: number; kind: 'missing' }
   | { id: string; attempt: number; kind: 'error' }
 
-/**
- * Loads the stored journey for the form. Another owner's and a missing id read the same (404): no data is
- * revealed. A failed read is an error with Retry, never an empty form.
- */
 export function EditJourney({
   ownerId,
   locale,

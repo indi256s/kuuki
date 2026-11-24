@@ -1,9 +1,7 @@
-// The tail: a horizontal stabiliser half with its elevator hinge line, and the fin in livery.
 import { clamp, midHalf, tan, type Airframe } from './airframe'
 import type { Item } from './model'
 import { dihedralUp, foil, vChord, type Draw, type Foil } from './draw'
 
-// Stabiliser, one side.
 const stabFoil = (a: Airframe, sg: number): Foil => {
   const { g, R, Lb, tTail, finTopZ, sec, skinY } = a
   const ht = g.htail
@@ -14,7 +12,6 @@ const stabFoil = (a: Airframe, sg: number): Foil => {
     ? finTopZ - (ht.zBelowFinTop ?? 0.25)
     : sec(ht.rootLEx + ht.rootChord * 0.4).top * 0.15 + 0.85 * midHalf(sec(ht.rootLEx))[0]
   const tD = tan(ht.dihedral)
-  // Inboard of the measured root the leading edge and chord extend along the same lines to the body.
   const lerpX = (x0: number, x1: number) => (y: number) =>
     x0 + ((x1 - x0) * (y - rootY)) / (ht.span / 2 - rootY)
   const le = lerpX(ht.rootLEx, tipLE),
@@ -35,7 +32,6 @@ const stabFoil = (a: Airframe, sg: number): Foil => {
   }
 }
 
-// The fin: its root stands on the crown, the dorsal fillet (where measured) runs forward along it.
 const finFoil = (a: Airframe): Foil => {
   const { g, Lb, tTail, finTopZ, crownZ } = a
   const ht = g.htail,
@@ -70,13 +66,11 @@ const finFoil = (a: Airframe): Foil => {
   }
 }
 
-/** A stabiliser half (sg = +1 near, −1 far) with its elevator hinge line. */
 export function stabiliser(a: Airframe, d: Draw, sg: number): Item {
   const s = foil(stabFoil(a, sg))
   return d.solid(s, 'body', [d.seam(s, 30, (t) => [t, vChord(0.7)], 'seam', 0.2)])
 }
 
-/** The fin in livery, with its seam. */
 export function fin(a: Airframe, d: Draw): Item {
   const finS = foil(finFoil(a))
   return d.solid(finS, 'livery', [d.seam(finS, 40, (t) => [t, vChord(0.7)])])

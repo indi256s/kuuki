@@ -1,7 +1,3 @@
-// PATCH /api/profiles/me — update the authenticated user's profile. Only provided fields are
-// written. Username uniqueness is enforced case-insensitively. (GET own profile lives at
-// /api/auth/me.) show_on_leaderboards changes are picked up by Cron — do NOT refresh here.
-
 import { runHandler, json, readJson, HttpError } from '../_lib/http'
 import { requireCsrf, requireUser } from '../_lib/auth'
 import type { RequestData } from '../_lib/auth'
@@ -23,12 +19,10 @@ import { isAvatarFace } from '../../../packages/shared/src/avatar'
 
 interface UpdateBody {
   username?: string | null
-  /** Request flag only (never stored): the client derived `username` from the name, so collisions get a silent suffix. */
   username_derived?: boolean
   display_name?: string | null
   bio?: string | null
   avatar_url?: string | null
-  /** A character from AVATAR_FACES; null returns to the one derived from the id. */
   avatar_face?: string | null
   gemini_api_key?: string | null
   home_airport?: string | null
@@ -50,7 +44,6 @@ const TEXT_FIELDS = [
   'theme_color',
 ] as const
 
-/** Highest numeric suffix tried before falling back to a random pilot address. */
 const MAX_SUFFIX = 50
 
 function isUniqueViolation(error: unknown): boolean {
@@ -65,7 +58,6 @@ function isUniqueViolation(error: unknown): boolean {
   return false
 }
 
-/** Candidate addresses for a derived base: the base, then `-2`…`-MAX_SUFFIX`, then random pilot ones. */
 async function* addressCandidates(db: D1Database, userId: string, base: string) {
   const like = `${base.replace(/[\\%_]/g, '\\$&')}%`
   const { results } = await db
@@ -85,7 +77,6 @@ async function* addressCandidates(db: D1Database, userId: string, base: string) 
 export const onRequestPatch: PagesFunction<Env, string, RequestData> = (context) =>
   updateProfileRequest(context.request, context.env, context.data)
 
-/** Request/Response entry keeps compatibility transport separate from domain writes. */
 export function updateProfileRequest(
   request: Request,
   env: Env,
@@ -102,12 +93,9 @@ export function updateProfileRequest(
       throw new HttpError(400, 'Bio must be 140 characters or fewer', 'BAD_REQUEST')
     }
 
-    // Avatar characters replaced photo URLs: a remote URL would make every viewer fetch a host the member chose.
-    // null still clears a value, so earlier clients keep saving.
     if (body.avatar_url !== undefined && body.avatar_url !== null) {
       throw new HttpError(400, 'avatar_url can only be cleared', 'BAD_REQUEST')
     }
-    // Only canonical accent names are stored. null still clears the choice, kept for compatibility with earlier clients. Retired names are mapped by readers, never written.
     if (
       body.theme_color !== undefined &&
       body.theme_color !== null &&
@@ -172,7 +160,6 @@ export function updateProfileRequest(
       binds.push(body.show_on_leaderboards ? 1 : 0)
     }
 
-    // Lazy address (O26): an onboarded member without one gets it derived from their name.
     let derivedBase: string | undefined = body.username_derived === true ? requested : undefined
     if (requested === undefined) {
       const stored = await env.DB.prepare(
@@ -200,7 +187,6 @@ export function updateProfileRequest(
     }
 
     const editsHome = 'home_airport' in body
-    // A lazy address never replaces one another request saved since the read above.
     const lazy = requested === undefined && derivedBase !== undefined
     const usernameSet = lazy ? 'username = COALESCE(username, ?)' : 'username = ?'
     const update = async (username: string | undefined) => {
@@ -219,7 +205,6 @@ export function updateProfileRequest(
       try {
         row = await update(requested)
       } catch (error) {
-        // Lost a race with another writer of the same address.
         if (requested !== undefined && isUniqueViolation(error)) {
           throw new HttpError(409, 'Username already taken', 'CONFLICT')
         }

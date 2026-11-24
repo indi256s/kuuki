@@ -1,5 +1,3 @@
-// Strombolian vent: an irregular tonal ash column and ballistic arcs ending in small bombs.
-// The box bottom is the vent; the column shares the contour-free plume drawing.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, fill, stroke } from '../grid'
 import { type KitModule, num } from './util'
@@ -18,7 +16,6 @@ export const eruptionA: KitModule = ([x, y, w, h], p) => {
   const vx = x + w / 2
   const base = y + h
   const out: SvgNode[] = []
-  // Bombs first, behind the column: each is a parabola from the vent with a dot at its end.
   const arcs = Math.round(num(p, 'arcs', 6))
   for (let i = 0; i < arcs; i++) {
     const side = i % 2 ? 1 : -1

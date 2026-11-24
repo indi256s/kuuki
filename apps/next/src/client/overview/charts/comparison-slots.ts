@@ -1,10 +1,8 @@
 import { useEffect, useSyncExternalStore } from 'react'
 
-/** Bump when the comparison palette changes: a new version starts a new storage namespace. */
 export const SLOT_PALETTE_VERSION = 'v1'
 export const SLOT_COUNT = 5
 
-/** Stable per-slot cues. Colour alone never separates two series: dash and marker travel with the slot. */
 export type SlotMarker = 'circle' | 'square' | 'diamond' | 'triangle' | 'ring'
 export type SlotCue = { color: string; dash: string | undefined; marker: SlotMarker }
 export const SLOT_CUES: readonly SlotCue[] = [
@@ -16,7 +14,6 @@ export const SLOT_CUES: readonly SlotCue[] = [
 ]
 export const slotCue = (slot: number): SlotCue => SLOT_CUES[slot] ?? SLOT_CUES[0]
 
-/** Path around the origin for a marker of radius `r`. Draw with `fillRule="evenodd"` (the ring is a hole). */
 export function markerPath(marker: SlotMarker, r: number): string {
   switch (marker) {
     case 'square':
@@ -61,10 +58,8 @@ function parse(raw: string | null): Stored {
   }
 }
 
-/** Assignments that `setItem` refused (quota, private mode); kept so keys stay put for the page's lifetime. */
 const spill = new Map<string, string>()
 
-/** Stored entries win; spilled ones only fill keys storage lost. */
 function merge(stored: Stored, spilled: Stored): Stored {
   if (spilled === EMPTY) return stored
   return stored === EMPTY ? spilled : { ...spilled, ...stored }
@@ -79,7 +74,6 @@ function read(storage: SlotStorage | null, key: string): Stored {
   return merge(stored, parse(spill.get(key) ?? null))
 }
 
-/** Device-local storage; absent or blocked storage falls back to the caller's choice. */
 function browserStorage(): SlotStorage | null {
   try {
     return typeof localStorage === 'undefined' ? null : localStorage
@@ -88,20 +82,12 @@ function browserStorage(): SlotStorage | null {
   }
 }
 
-/** Stand-in that keeps assignments stable for the page's lifetime when `localStorage` is unavailable. */
 const memory = new Map<string, string>()
 const memoryStorage: SlotStorage = {
   getItem: (key) => memory.get(key) ?? null,
   setItem: (key, value) => void memory.set(key, value),
 }
 
-/**
- * Places keys on slots 0..4 without ever moving a stored key.
- * A new key takes the first slot unused by every stored key, else the first slot unused by the
- * visible keys, else the least-used visible slot (lowest index on ties).
- * While nothing is stored, the whole-journal leaders (`seedOrder`) stand in as stored, so
- * server and first client render agree and an unfiltered view starts on slots 0..4 in order.
- */
 export function resolveSlots(
   stored: Stored,
   seedOrder: readonly string[],
@@ -136,10 +122,6 @@ export function resolveSlots(
   return result
 }
 
-/**
- * Resolves against what storage holds right now and records the keys that have no slot yet.
- * Slots rendered from an older snapshot (the seed, before mount) are never written over stored ones.
- */
 function settle(
   storage: SlotStorage,
   key: string,
@@ -161,11 +143,9 @@ function settle(
 }
 
 type ComparisonSlots = {
-  /** Comparison family, e.g. `airports`, `routes`, `airlines-cues`. */
   analysis: string
   ownerId: string
   visibleKeys: readonly string[]
-  /** Whole-journal ranking order for this analysis, unfiltered. */
   seedOrder: readonly string[]
 }
 
@@ -195,10 +175,6 @@ function snapshot(storage: SlotStorage, key: string): Stored {
   return value
 }
 
-/**
- * Slots for a rendered chart. The server and the hydrating client render from the seed; stored
- * assignments are read right after mount, and new ones are written once they are on screen.
- */
 export function useComparisonSlots(args: ComparisonSlots): Map<string, number> {
   const { analysis, ownerId, visibleKeys, seedOrder } = args
   const key = slotStorageKey(ownerId, analysis)

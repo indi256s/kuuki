@@ -1,7 +1,3 @@
-// Ark of Bukhara (Uzbekistan): a mud-brick citadel on a high mound. Steeply battered walls fluted
-// with buttresses, a crenellated rim, a ramp climbing along the wall to a gate between two round
-// towers, and a flat-roofed columned pavilion above the gate. The right third of the wall is
-// shaded. The box is the whole citadel; its bottom is the ground.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, hline, rectPts, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
@@ -20,7 +16,6 @@ export const arkBukhara: KitModule = ([x, y, w, h], p) => {
     [x + w, base],
   ]
   out.push(...body(wall, 'line'))
-  // Buttress flutes along the batter.
   const flutes = 22
   for (let i = 1; i < flutes; i++) {
     const f = i / flutes
@@ -47,13 +42,11 @@ export const arkBukhara: KitModule = ([x, y, w, h], p) => {
       { inset: 0.5, gap: [2.3, 2.3] },
     ),
   )
-  // Crenellated rim.
   for (let px = x + batter + 1; px < x + w - batter - 4; px += 6) {
     if (Math.abs(px - cx) < w * 0.17) continue
     out.push(fill(rectPts(px, wallTop - 2.4, 3.2, 2.5)))
   }
   out.push(hline('bold', x + batter - 1, x + w - batter + 1, wallTop))
-  // Ramp climbing to the gate.
   const gateLevel = base - h * 0.27
   const gx = cx - w * 0.05
   const ramp: Pt[] = [
@@ -71,7 +64,6 @@ export const arkBukhara: KitModule = ([x, y, w, h], p) => {
       ]),
     )
   }
-  // Gate towers and passage.
   const tw = w * 0.1
   const towerTop = wallTop - h * 0.1
   for (const s of [-1, 1] as const) {
@@ -98,7 +90,6 @@ export const arkBukhara: KitModule = ([x, y, w, h], p) => {
       [cx + w * 0.05, gateLevel + (base - gateLevel) * 0.2],
     ]),
   )
-  // Pavilion above the gate: flat roof on slim columns.
   const pw = w * 0.2
   const pb = towerTop
   const ph = h * 0.14

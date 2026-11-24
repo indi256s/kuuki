@@ -1,6 +1,3 @@
-// Wassu stone circle: tall squared laterite monoliths of uneven height standing in a ring seen from
-// low. Stones are drawn back to front on an ellipse; each has a flat top, a lit left face and a
-// shaded right face in T4 verticals. The box bottom is the front of the ring's ground.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, hline, hatch, stroke } from '../grid'
 import { type KitModule, num } from './util'

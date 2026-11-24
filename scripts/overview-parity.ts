@@ -1,4 +1,3 @@
-/** Read-only owner parity against an explicitly admitted, isolated Release 1 restore. */
 import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
@@ -24,7 +23,6 @@ export async function overviewParity(db: D1Database, userId: string): Promise<Pa
   if (!(await db.prepare('SELECT 1 FROM profiles WHERE id=?').bind(userId).first()))
     throw new Error('Owner profile not found')
   const legacy = await readOverview(db, userId)
-  // Freeze the two legacy aggregates from 1ebf7b3 so retirement preserves this diagnostic.
   const aircraft = await db
     .prepare(`SELECT COUNT(DISTINCT COALESCE(ar.manufacturer, 'Unknown')) AS manufacturers
     FROM flights f LEFT JOIN aircraft_reference ar ON f.aircraft_icao=ar.icao

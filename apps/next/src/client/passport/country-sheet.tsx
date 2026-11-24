@@ -60,7 +60,6 @@ const JOURNEY_FALLBACK: Record<JourneySource['mode'], Record<Locale, string>> = 
   road: { en: 'Road trip', ru: 'Поездка на авто' },
 }
 
-/** "3 Oct 2026", "3 Oct 2026 – 9 Oct 2026" or null when neither end is known. */
 function journeyDates(locale: Locale, journey: JourneySource): string | null {
   const start = journey.startDate?.slice(0, 10)
   const end = journey.endDate?.slice(0, 10)
@@ -80,7 +79,6 @@ const MANUAL_VISIT_FORMS = {
   },
 }
 
-/** One country's published evidence, shared by the sheet and the pending slots that resolve their arrival card from it. */
 export function countryDetailQuery(ownerId: string, code: string) {
   return {
     queryKey: ['passport-country', ownerId, code] as const,
@@ -118,20 +116,16 @@ export function CountrySheet({
   locale: Locale
   code: string | null
   entry: PassportEntry | undefined
-  /** The collection's published revision: when it moves past the detail's, the detail is out of date. */
   publishedRevision: number
   mobile: boolean
   name: (code: string) => string
   onClose: () => void
-  /** A write landed: refresh the collection; `added` is true when the country was not in the passport before. */
   onChanged: (code: string, added: boolean) => Promise<void> | void
   onRemoved: (code: string) => void
-  /** The country was hidden from the passport: close the sheet, refresh and offer Undo. */
   onHidden: (code: string) => Promise<void> | void
   onCloseAutoFocus?: (event: Event) => void
 }) {
   const ru = locale === 'ru'
-  // Only catalog countries get a sheet: its write actions would otherwise press a code with no region or outline.
   const code = selected && isCatalogCountry(selected) ? selected : null
   const feedback = useWriteFeedback(ownerId)
   const detail = useQuery({ ...countryDetailQuery(ownerId, code ?? ''), enabled: !!code })
@@ -139,11 +133,8 @@ export function CountrySheet({
   const [notice, setNotice] = useState('')
   const [error, setError] = useState('')
   const [year, setYear] = useState('')
-  // A legacy land visit has no segment of its own: it stays `land` (and is left out of the PATCH) until a way is picked.
   const [way, setWay] = useState<VisitWay | 'land'>('other')
-  // The visit the form is editing; null means the form adds a new one.
   const [editingId, setEditing] = useState<string | null>(null)
-  // A country already in the passport keeps the add form behind its button until asked for.
   const [adding, setAdding] = useState(false)
   const [focusYear, setFocusYear] = useState(false)
   const yearField = useRef<HTMLInputElement | null>(null)
@@ -158,14 +149,10 @@ export function CountrySheet({
   const form = useRef<HTMLFormElement | null>(null)
   const [shownCode, setShownCode] = useState(code)
   const shownRef = useRef(code)
-  // What the fields hold now, for a save that resolves after the member kept typing.
   const draft = useRef({ year, note })
   useEffect(() => {
     draft.current = { year, note }
   }, [year, note])
-  // A closed sheet keeps its last country, so a save that completes while it is closed still clears the saved draft.
-  // Each time the sheet moves to a different country is a new selection: an operation, and anything it does on
-  // completion, belongs to the selection it started in, so a return to the same country does not hand it the newer state.
   const selection = useRef(0)
   useEffect(() => {
     if (code && code !== shownRef.current) selection.current += 1
@@ -184,7 +171,6 @@ export function CountrySheet({
     setEditing(null)
     setAdding(false)
     setFocusYear(false)
-    // One operation at a time, and none carried over from the country it started on.
     setBusy(false)
     setHiding(false)
     setDeleting(null)
@@ -192,14 +178,11 @@ export function CountrySheet({
   }
 
   const data = detail.data?.countryCode === code ? detail.data : undefined
-  // A write can read the detail before its publication lands; the later page refresh only updates the collection.
-  // Once the collection is newer, it states the country's status and the detail reloads (once per revision).
   const behind = !!data && publishedRevision > data.publishedRevision
   const { refetch } = detail
   useEffect(() => {
     if (behind) void refetch()
   }, [behind, publishedRevision, data?.publishedRevision, refetch])
-  // Editing a visit moves focus to its year once the form has rendered with it.
   useEffect(() => {
     if (!focusYear) return
     const frame = requestAnimationFrame(() => {
@@ -210,7 +193,6 @@ export function CountrySheet({
     })
     return () => cancelAnimationFrame(frame)
   }, [focusYear])
-  // C3 keeps failure apart from pending (`last_error`): a failed derivation is an error with a retry, not "preparing".
   const derivedFailed = !!data && !behind && !detail.isError && data.derivedState === 'error'
   const preparing =
     !!data &&
@@ -222,19 +204,16 @@ export function CountrySheet({
   const yearInvalid =
     yearValue !== null && (!Number.isInteger(yearValue) || yearValue < 1800 || yearValue > 2200)
 
-  /** Starts one operation on `target`; `here()` is false once the sheet moved to another country or selection. */
   function beginOperation(target: string) {
     const controller = new AbortController()
     const release = trackPrivateOperation(controller)
     const generation = getAuthGeneration()
     const current = () => !controller.signal.aborted && generation === getAuthGeneration()
     const started = selection.current
-    // State below belongs to the country and selection the operation started on.
     const here = () => current() && stillShows(target, started)
     return { controller, release, current, here }
   }
 
-  /** Runs one write; resolves after the collection refresh, rejects (for DestructiveConfirm) when it failed. */
   async function write(run: () => Promise<DerivedAck>, done: string, added = false) {
     if (!code) return
     if (busy || hiding) throw new Error('Another operation is in flight')
@@ -263,7 +242,6 @@ export function CountrySheet({
     }
   }
 
-  /** Hiding is presentation only (PUT /api/passport/hidden/:cc): records and statistics stay. No confirm; Undo is the net. */
   async function hide() {
     if (!code || busy || hiding) return
     const target = code
@@ -297,7 +275,6 @@ export function CountrySheet({
     setWay('other')
   }
 
-  /** Puts the form into edit mode for one visit and moves focus to its year. */
   function startEdit(item: GroundEntry) {
     const stored = data?.groundVisits.find((visit) => visit.id === item.id)
     setEditing(item.id)
@@ -317,13 +294,10 @@ export function CountrySheet({
   const journeys = data?.journeys ?? []
   const claim = data?.entries.find((item) => item.kind === 'claim')
   const outcome = data ? removalOutcome(data) : null
-  // The projection leaves first/last NULL for land/sea-only countries; their years still date the visit.
   const dates = chronology(
     [data?.firstVisit, data?.lastVisit],
     ground.map((visit) => visit.visitYear),
   )
-  // Adding is the whole job for a country outside the passport; otherwise the record comes first and the form waits.
-  // An edit whose visit left the refetched list (deleted elsewhere) is over: the form follows the list.
   const editingEntry = editingId ? ground.find((item) => item.id === editingId) : undefined
   const editing = editingEntry ? editingId : null
   const formOpen = !inPassport || adding || editing !== null
@@ -333,7 +307,6 @@ export function CountrySheet({
     const was = formWasOpen.current
     formWasOpen.current = formOpen
     if (was === formOpen) return
-    // Add visit unmounts as the form opens: land on the form's first choice. Closing it from inside hands focus back.
     if (formOpen && adding)
       form.current
         ?.querySelector<HTMLElement>('[role="radio"][tabindex="0"]')
@@ -370,7 +343,6 @@ export function CountrySheet({
             {ru ? 'Отметить без визита' : 'Claim without a visit'}
           </MenuItem>
         ) : null}
-        {/* Hiding is undone from its toast, so it needs no confirmation and no explanation here. */}
         {status === 'pressed' ? (
           <MenuItem onSelect={() => void hide()}>
             {ru ? 'Скрыть из паспорта' : 'Hide from passport'}
@@ -502,8 +474,6 @@ export function CountrySheet({
                 <h3 id="passport-visits">
                   {ru ? 'Визиты' : 'Visits'} · {formatNumber(locale, data.totalVisits)}
                 </h3>
-                {/* Arc Timeline (uiarc.dev, MIT; docs/research/2026-10-08-arc-source-inventory.md): dated source rows with a marker column.
-              Static evidence, no activity-feed clock, connectors, expansion or fabricated dates for year-only visits and legacy counters. */}
                 {flights.length ? (
                   <ol
                     className="passport-list passport-timeline"
@@ -570,7 +540,6 @@ export function CountrySheet({
                       const label = `${item.visitYear ?? (ru ? 'Год не указан' : 'Year not set')} · ${rowWayLabel(item, locale)}`
                       const visit = data.groundVisits.find((visit) => visit.id === item.id)
                       const visitNote = visit?.note
-                      // The row is the way in: editing opens the form, which also holds Delete.
                       return (
                         <li key={item.id}>
                           <button
@@ -647,7 +616,6 @@ export function CountrySheet({
                           updateGroundVisit(ownerId, editing, {
                             visitYear: yearValue,
                             note: note.trim() || null,
-                            // A legacy land visit keeps its stored way until a segment is picked.
                             ...(way === 'land' ? {} : wayPayload(way)),
                           }),
                         ru ? 'Визит обновлён.' : 'Visit updated.',
@@ -667,14 +635,12 @@ export function CountrySheet({
                       ru ? 'Визит добавлен.' : 'Visit added.',
                       added,
                     ).then(() => {
-                      // Both fields stay editable during the save: clear only what is still the submitted text, on the submitted country.
                       if (!stillShows(submitted.code, submitted.selection)) return
                       const untouched =
                         draft.current.year === submitted.year &&
                         draft.current.note === submitted.note
                       setYear((current) => (current === submitted.year ? '' : current))
                       setNote((current) => (current === submitted.note ? '' : current))
-                      // The new visit is in the list now; a draft typed during the save keeps the form open.
                       if (untouched) setAdding(false)
                     }, ignore)
                   }}
@@ -853,7 +819,6 @@ export function CountrySheet({
           ru ? 'Не удалось удалить визит. Повторите.' : 'Could not delete the visit. Try again.'
         }
         onCloseAutoFocus={(event) => {
-          // Cancelled: back to Delete visit (the opener). Deleted: the form closed, so Add visit takes focus.
           if (!deleteButton.current?.isConnected && addButton.current?.isConnected) {
             event.preventDefault()
             addButton.current.focus()
@@ -902,7 +867,6 @@ export function CountrySheet({
   )
 }
 
-/** What DELETE /api/passport/claims/:cc does, stated exactly: claim and every land/sea visit go, flights stay. */
 export function removalCopy(locale: Locale, outcome: ReturnType<typeof removalOutcome>): string {
   const ru = locale === 'ru'
   const parts: string[] = []
@@ -950,7 +914,6 @@ export function removalCopy(locale: Locale, outcome: ReturnType<typeof removalOu
   return parts.join(' ')
 }
 
-/** Why a stamp cannot be removed here (`fact`) and what removes it instead (`fix`, shown as the disabled reason). */
 function stampHeldCopy(locale: Locale, journeys: boolean): { fact: string; fix: string } {
   const ru = locale === 'ru'
   return journeys

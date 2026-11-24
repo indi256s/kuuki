@@ -1,24 +1,14 @@
 import { X, Zd, flat } from './flat'
 import { Scene, type IsoFigureData, type P3, type Pt } from './scene'
 
-/** Largest code size, in plane units; a code too long for the face shrinks to fit it. */
 const CODE_MAX = 16,
-  /** Advance of one mono glyph, in em, with a little room over Paper Mono's. */
   GLYPH = 0.62
 
 export type GateSignInput = {
-  /** The leader's code as shown on the sign: an airline or airport code (`QR`, `DOH`) or a route (`ROV–VKO`). */
   code: string
-  /** The small line on the unlit strip under the code, for example `#1 ×214` (rank and flights). Empty leaves the strip blank. */
   note?: string
 }
 
-/**
- * Rankings: an airport gate, the jet-bridge door and the podium under a lit sign that shows the leader's code.
- * The sign is the hero: a wide face over the door, the code as large as the face allows, on a short wall and a shallow floor, so the code reads at card size.
- * Under the lit face sits a second, unlit strip with `note`. The gate around it: tiled floor with a queue lane, a belt between two stanchions, a pass-reader podium.
- * Part: `sign` (the lit face and its code). Geometry never depends on `code` or `note`, so a new leader keeps the figure's scale and box. Motion lives in `gate-sign.css`.
- */
 export function gateSign(k: number, { code, note = '' }: GateSignInput): IsoFigureData {
   const s = new Scene(k)
   const G = 2,
@@ -27,7 +17,6 @@ export function gateSign(k: number, { code, note = '' }: GateSignInput): IsoFigu
     WH = 70,
     F = WD
 
-  // Floor slab and its shadow, then the wall the jet bridge docks to.
   s.poly(
     flat(
       [
@@ -42,7 +31,6 @@ export function gateSign(k: number, { code, note = '' }: GateSignInput): IsoFigu
     'none',
   )
   s.rbox(-6, -4, 0, 114, 40, G, 3, { top: 'front' })
-  // Floor tiles: seams run edge to edge of the slab; the queue lane (x = 26) is the heavier line from the wall to the slab's front edge.
   s.segs(
     [10, 42, 58, 74, 90, 106].map((x) => [
       [x, F, G],
@@ -81,7 +69,6 @@ export function gateSign(k: number, { code, note = '' }: GateSignInput): IsoFigu
     'none',
   )
   s.box(0, 0, G, W, WD, WH)
-  // Wall: a skirting along the foot, panel joints from the skirting to the top edge, a cap line under the roof edge.
   s.box(0, F, G, W, 0.8, 3)
   s.segs(
     [50, 98].map((x) => [
@@ -111,11 +98,9 @@ export function gateSign(k: number, { code, note = '' }: GateSignInput): IsoFigu
       ],
       y,
     )
-  /** A screw head: a small disc on a front-facing plane. */
   const screw = (x: number, z: number, y: number) =>
     s.poly(s.circle([x, y, z], X, [0, 0, 1], 0, 0, 0.5, 8), 'line', 'none')
 
-  // The jet-bridge door: frame, two glass leaves, push bars, kick plates.
   const DL = 12,
     DR = 40,
     DH = G + 27,
@@ -146,7 +131,6 @@ export function gateSign(k: number, { code, note = '' }: GateSignInput): IsoFigu
     1.2,
   )
 
-  // A band of terminal glazing right of the door, three panes on a sill.
   const WL = 52,
     WR = 94,
     WB = G + 13,
@@ -164,7 +148,6 @@ export function gateSign(k: number, { code, note = '' }: GateSignInput): IsoFigu
     0.8,
   )
 
-  // The sign: mount straps, a housing with a bevelled bezel and top vents, a lit code face over an unlit note strip.
   const SL = 4,
     SR = 78,
     SZ = G + 32,
@@ -181,7 +164,6 @@ export function gateSign(k: number, { code, note = '' }: GateSignInput): IsoFigu
     screw(x + 3, SZ + SH + 0.8, F + SD - 1.6)
   }
   s.box(SL, F, SZ, SR - SL, SD, SH)
-  // Vents: slots cut into the top face, one run of them near each end of the housing.
   for (let i = 0; i < 6; i++) {
     for (const x0 of [SL + 24, SR - 36]) {
       const x = x0 + i * 2
@@ -197,7 +179,6 @@ export function gateSign(k: number, { code, note = '' }: GateSignInput): IsoFigu
       )
     }
   }
-  // Bezel: a step in from the housing edge, then the face; screws at the four corners.
   s.poly(rect(SL + 0.7, SR - 0.7, SZ + 0.7, SZ + SH - 0.7, FY), 'none', 'crease', undefined, 0.6)
   for (const x of [SL + 1.6, SR - 1.6]) for (const z of [SZ + 1.6, SZ + SH - 1.6]) screw(x, z, FY)
   s.poly(rect(SL + IN, SR - IN, NB, NT, FY), 'shade', 'line', undefined, 0.6)
@@ -234,7 +215,6 @@ export function gateSign(k: number, { code, note = '' }: GateSignInput): IsoFigu
     })
   })
 
-  // Queue posts and their belt, in front of the door: a post is a weighted foot, a pole and a ball cap; the belt sags between a cassette on one and a clip on the other.
   const post = (x: number, y: number) => {
     s.poly(
       flat(
@@ -267,7 +247,6 @@ export function gateSign(k: number, { code, note = '' }: GateSignInput): IsoFigu
   post(38, 26)
   s.box(36.4, 24.4, G + 15, 1.8, 3.2, 3, { stroke: 'line' })
 
-  // The podium: a desk on a plinth, an overhanging top, a pass reader, a screen and a pass laid down; a trim band runs the full width of its face.
   s.poly(
     flat(
       [
@@ -293,11 +272,9 @@ export function gateSign(k: number, { code, note = '' }: GateSignInput): IsoFigu
     0.8,
   )
   s.box(64, 14, G + 20, 28, 18, 2.4)
-  // Screen: a foot, a neck and a glass panel facing the queue.
   s.box(67, 20, G + 22.4, 6, 4, 0.8)
   s.box(69.4, 21.4, G + 23.2, 1.2, 1.2, 2.4)
   s.box(66.6, 21, G + 25.6, 6.8, 1, 4.4, { front: 'glass' })
-  // The reader: a block with its window and a slot, the pass half inside it.
   s.box(80, 19, G + 22.4, 8, 7, 3)
   s.poly(rect(81, 87, G + 23, G + 24.6, 26), 'glass', 'line', undefined, 0.6)
   s.poly(

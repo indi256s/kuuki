@@ -1,11 +1,7 @@
-// Tata Somba (Koutammakou): squat mud houses, each a flat-roofed block with a tall round turret
-// at either end and a smaller one behind, every turret capped by a conical thatch. Houses are
-// listed as [x fraction, scale]; the box bottom is the ground and a low earth wall joins them.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, hatch, hline, rectPts, stroke } from '../grid'
 import { type KitModule, num } from './util'
 
-/** A conical thatch cap: solid tip, fall-line strokes, a bold eave. Lit on the left. */
 export function thatchCone(cx: number, eaveY: number, w: number, h: number): SvgNode[] {
   const L: Pt = [cx - w / 2, eaveY]
   const R: Pt = [cx + w / 2, eaveY]
@@ -52,7 +48,6 @@ function house(cx: number, base: number, s: number, rand: () => number): SvgNode
   const out: SvgNode[] = []
   const bw = 40 * s
   const bh = 13 * s
-  // Rear turret first, then the block, then the two front turrets over its ends.
   out.push(...turret(cx, base - bh, 8 * s, 12 * s, 9 * s, 12 * s))
   out.push(...body(rectPts(cx - bw / 2, base - bh, bw, bh), 'line'))
   out.push(
@@ -73,7 +68,6 @@ export const tataSomba: KitModule = ([x, y, w, h], p) => {
   const base = y + h
   const list = (Array.isArray(p.houses) ? p.houses : [[0.3, 1]]) as [number, number][]
   const out: SvgNode[] = []
-  // Low wall between houses, drawn first so the houses overlap it.
   const wallH = num(p, 'wallH', 6)
   out.push(...body(rectPts(x, base - wallH, w, wallH), 'line'))
   for (let wx = x + 4; wx < x + w - 2; wx += 3.2)

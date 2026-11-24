@@ -1,6 +1,3 @@
-// Ait Benhaddou type ksar: three rows of clay blocks climbing a slope to tall crenellated corner
-// towers. Rows are drawn back to front, each block tapering a little, lit on the left, shaded on the
-// right third in fine vertical hatching, with a few dark openings. The box bottom is the foot row.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, hline, rectPts, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'

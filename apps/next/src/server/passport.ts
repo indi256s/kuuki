@@ -21,12 +21,9 @@ export type {
   GroundVisit,
   PassportData,
 } from '../../../../functions/api/_services/passport'
-/** Published country evidence: `status` is `pressed` or `pending` (awaiting-only, never a stamp). */
 export type PassportCountry = PassportData['countries'][number]
-/** GET /api/passport/countries/:cc/stats: published status plus every contributing entry (ADR 0001 §4). */
 export type CountryDetail = Awaited<ReturnType<typeof readCountryDetail>>
 
-/** Owner page data in one call: the passport, identity, stats, badges and rankings the shared Passport page shows. */
 export async function getOwnPassport() {
   const identity = await getRequestIdentity()
   if (!identity) return null
@@ -64,15 +61,12 @@ export async function getOwnPassport() {
   }
 }
 
-/** What the owner page renders. */
 export type OwnPassport = NonNullable<Awaited<ReturnType<typeof getOwnPassport>>>
 
-/** The visitor view of a public passport (null when the username is unknown). */
 export function getPublicPassport(username: string) {
   return getPublicProfile(username)
 }
 
-/** The owner's public profile as it would read under `scope` (default: the stored publication). */
 export async function getOwnPublicPreview(scope?: PassportPublication) {
   const identity = await getRequestIdentity()
   if (!identity) return null

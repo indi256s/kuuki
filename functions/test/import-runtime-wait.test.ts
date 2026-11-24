@@ -1,12 +1,10 @@
-// The two tests that wait on real runtime clocks (the 30 s subscriber-less window, the heartbeat); split out so
-// they run beside the rest of import-runtime instead of after it.
 import { expect, it } from 'vitest'
 import { closedEvents, dispatch, feed, mf, readRow, runtime } from './import-runtime-fixture'
 import { providerFlight } from './import-fixture'
 
 it('persists before notify, keeps provider I/O alive beyond 30 s without subscribers, then resumes', async () => {
   const { db, send, start, batch, rows, calls } = await runtime()
-  const id = await start() // The accepting HTTP request has finished.
+  const id = await start()
   const disconnectedClient = new AbortController()
   const firstEvents = await globalThis.fetch(
     new URL(
@@ -21,7 +19,7 @@ it('persists before notify, keeps provider I/O alive beyond 30 s without subscri
   expect((await rows(id)).results.map((row) => row.id)).toEqual(first.rowIds)
   expect((await batch(id))?.sequence).toBe(first.sequence)
   disconnectedClient.abort()
-  await reader.cancel().catch(() => undefined) // Real HTTP disconnect; comment frames flush cancellation within 5 s.
+  await reader.cancel().catch(() => undefined)
   await new Promise((resolve) => setTimeout(resolve, 36_100))
   send(',' + JSON.stringify(providerFlight({ origin: 'TBS', destination: 'IST' })))
   await expect.poll(async () => (await rows(id)).results.length).toBe(2)

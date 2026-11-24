@@ -1,4 +1,3 @@
-// Gentoo profiles: dark backs, long stiff tails and clear white eye patches.
 import {
   type Pt,
   type SvgNode,
@@ -45,7 +44,6 @@ export function penguinProfile(
     P(-0.13, -0.04),
   ]
   const out: SvgNode[] = [...body(outline, 'hair'), fill(back)]
-  // The eye patch is a real gap between the cap and cheek fills, not white paint.
   out.push(
     fill([
       P(-0.14, -0.8),

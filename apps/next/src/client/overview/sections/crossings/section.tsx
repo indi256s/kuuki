@@ -59,7 +59,6 @@ export function Section({ span }: { span: Span }) {
   const label = copy(locale, `${count} OF ${TOTAL} PIECES`, `${count} ИЗ ${TOTAL} ЧАСТЕЙ`)
   const reading = rows.find((row) => row.id === r.reading) ?? null
 
-  // The caption: the headline reads like a sentence about the whole tray, a pick about its own continent.
   const newest = byFlights(rows)
     .filter((row) => row.id !== headline && row.firstYear !== null)
     .reduce<(typeof rows)[number] | null>(
@@ -105,13 +104,12 @@ export function Section({ span }: { span: Span }) {
     }
   }
 
-  // Chart: flights, or the year each continent was first reached (the bar is the years since).
   const firsts = view === 'firsts'
   const held = (row: Datum) =>
     row.flights > 0 && row.firstYear !== null ? Math.max(1, year - row.firstYear + 1) : 0
   const chartCaption = firsts
     ? copy(locale, 'First reached', 'Впервые на континенте')
-    : copy(locale, 'Flights by continent', 'Перелёты по континентам')
+    : copy(locale, 'Flights to or from', 'Перелёты туда или оттуда')
   const visible = order.filter((row) => row.flights > 0 || row.id === r.reading)
   const unflown = order.filter((row) => row.flights === 0).length
   const omitted = order.length - visible.length
@@ -133,7 +131,6 @@ export function Section({ span }: { span: Span }) {
     }
   })
 
-  // The tray counts flights per airport, so a flight between continents is in both rows.
   const unplaced = data?.unplaced ?? 0
   const coverage = copy(
     locale,
@@ -143,7 +140,6 @@ export function Section({ span }: { span: Span }) {
   const lines = scope?.crossings.status === 'ready' ? scope.crossings.value : null
   const baseline = all?.crossings.status === 'ready' ? all.crossings.value : lines
   const hit = lines?.offsets.filter((row) => row.hit).length ?? 0
-  // Geographic counts are estimates on shortest airport arcs; with no coordinates they are unknown, not zero.
   const located = (lines?.locatedFlights ?? 0) > 0
   const crossed = (count: number) => (located ? number(locale, count) : '—')
   const route = (count: number, record: { origin: string; destination: string } | null) =>

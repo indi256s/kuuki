@@ -21,30 +21,20 @@ import {
   useTransform,
 } from 'motion/react'
 import { X } from '@keyline-icons/react'
-// Adapted from Arc Bottom sheet (MIT, see ARC-LICENSE.txt).
 import styles from './bottom-sheet.module.css'
 import { rubberBand } from './sheet-physics'
 import { useKeyboardMotion } from './use-keyboard-motion'
 import './ui.css'
 
-/**
- * A sheet that rises from the bottom edge and rests at one or more heights (detents).
- * Use it for secondary tasks where a peek is useful before committing to the full view: trip details, share options, filters.
- * Use a dialog when the decision must interrupt, and a drawer for side panels on wide layouts.
- */
 export interface BottomSheetProps {
-  /** The control that opens the sheet, usually a button. Focus returns to it when the sheet closes. */
   trigger?: ReactNode
   open?: boolean
   defaultOpen?: boolean
   onOpenChange?: (open: boolean) => void
   title: ReactNode
-  /** A control that belongs beside the title (a menu, say), outside the heading so it stays out of the heading's accessible name. */
   titleAction?: ReactNode
   description?: ReactNode
-  /** Resting heights as fractions of the viewport height. The sheet opens at `initialDetent` and never grows past the largest. */
   detents?: number[]
-  /** Index into the sorted detents the sheet opens at. Defaults to the smallest. */
   initialDetent?: number
   onDetentChange?: (index: number) => void
   closeLabel?: string
@@ -53,7 +43,6 @@ export interface BottomSheetProps {
   footer?: ReactNode
   initialFocusRef?: RefObject<HTMLElement | null>
   onCloseAutoFocus?: (event: Event) => void
-  /** Prevent the event to keep the sheet open, say while an editor inside it owns Escape. */
   onEscapeKeyDown?: (event: globalThis.KeyboardEvent) => void
 }
 
@@ -66,23 +55,16 @@ type Drag = {
   samples: { t: number; y: number }[]
 }
 
-/** Extra surface below the viewport, so an upward stretch never shows a gap under the sheet. */
 const EXTENSION = 160
-/** Enough travel below the edge to hide the floating shadow as well as the sheet. */
 const CLOSED_GAP = 40
-/** How far a release coasts, in seconds of its velocity, before the nearest detent is chosen. */
 const PROJECTION = 0.2
-/** A release faster than this (px/s) always moves at least one detent in its direction. */
 const FLICK = 320
-/** The limit an upward stretch approaches past the tallest detent. */
 const STRETCH = 120
-/** How much of the full dim remains at the smallest detent. */
 const LOW_DIM = 0.78
 
 const settle = { type: 'spring' as const, visualDuration: 0.3, bounce: 0.12 }
 const fade = { duration: 0.15, ease: 'linear' as const }
 
-/** Inverse of `rubberBand(stretch, STRETCH)`. */
 const unrubber = (stretch: number) =>
   ((1 / (1 - Math.min(stretch, STRETCH - 1) / STRETCH) - 1) * STRETCH) / 0.55
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
@@ -91,7 +73,6 @@ function velocityOf(samples: Drag['samples'], now: number) {
   const recent = samples.filter((sample) => now - sample.t <= 80)
   const first = recent[0],
     last = recent[recent.length - 1]
-  // A pause before letting go drops the momentum, so a slow, deliberate release settles where it is.
   if (!first || !last || last === first || now - last.t > 60) return 0
   return (last.y - first.y) / ((last.t - first.t) / 1000)
 }
@@ -117,7 +98,6 @@ export function BottomSheet({
   return (
     <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
       {trigger ? <DialogPrimitive.Trigger asChild>{trigger}</DialogPrimitive.Trigger> : null}
-      {/* The sheet stays mounted while it leaves, so a close can be caught and reversed mid-flight. */}
       <AnimatePresence>
         {open && (
           <DialogPrimitive.Portal key="sheet" forceMount>
@@ -181,7 +161,6 @@ function Sheet({
   const sheetRef = useRef<HTMLDivElement>(null)
   const overlayRef = useRef<HTMLDivElement>(null)
   const bodyRef = useRef<HTMLDivElement>(null)
-  /** Offset of the sheet below its tallest detent, in px. Starts far below the fold so the first frame never flashes. */
   const y = useMotionValue(4000)
   const height = useMotionValue(0)
   const presence = useMotionValue(1)
@@ -219,14 +198,12 @@ function Sheet({
     null,
   )
   const arrive = useRef<(() => void) | undefined>(undefined)
-  /** Set while the sheet leaves: only the exit may move it, and only a reopen clears this. */
   const exiting = useRef(!isPresent)
   const dismissVelocity = useRef<number | undefined>(undefined)
   const suppressClick = useRef(false)
   const mounted = useRef(false)
   const removePointerListeners = useRef<(() => void) | undefined>(undefined)
   useEffect(() => () => removePointerListeners.current?.(), [])
-  /** When the sheet last started entering or leaving, so a press that began while it was leaving never dismisses it once it is reopened. */
   const presenceChange = useRef({ present: isPresent, at: 0 })
   useLayoutEffect(() => {
     presenceChange.current = { present: isPresent, at: performance.now() }
@@ -242,7 +219,6 @@ function Sheet({
     [height, stops, top],
   )
 
-  // The backdrop is a function of where the sheet is, so it darkens and clears with a drag instead of on a timer.
   const backdrop = useTransform(
     [y, height, presence],
     ([offsetY = 0, full = 0, shown = 0]: number[]) => {
@@ -271,7 +247,6 @@ function Sheet({
     if (footerRef.current) footerRef.current.style.transform = value
   })
 
-  // Every move retargets the one motion value from wherever it is. A new target drops the previous arrival callback.
   const go = useCallback(
     (stop: Stop, velocity?: number, onArrive?: () => void) => {
       if (exiting.current && stop !== 'closed') return
@@ -319,7 +294,6 @@ function Sheet({
                 : `Sheet at ${Math.round(stops[stop]! * 100)} percent height`,
         )
       }
-      // Collapsing takes the content back to its start, so the peek always shows the top of it.
       const body = bodyRef.current
       if (stop !== top && body && body.scrollTop > 0)
         body.scrollTo({ top: 0, behavior: reduced || instant ? 'auto' : 'smooth' })
@@ -328,7 +302,6 @@ function Sheet({
     [go, onDetentChange, reduced, instant, stops, top, ru],
   )
 
-  // Enter, leave, and a reopen caught mid-exit all retarget the same motion value from wherever it is.
   useLayoutEffect(() => {
     const sheet = sheetRef.current
     if (!sheet) return
@@ -366,7 +339,6 @@ function Sheet({
     dismissVelocity.current = undefined
     if (instant && velocity === undefined) {
       presence.jump(0)
-      // Let Presence register the exit before removing it; a reopen cancels this task.
       const remove = window.setTimeout(() => safeToRemove?.(), 0)
       return () => window.clearTimeout(remove)
     }
@@ -374,11 +346,9 @@ function Sheet({
       animate(presence, 0, { ...fade, onComplete: safeToRemove })
       return
     }
-    // Only accepted closure starts the exit; a swipe contributes its release velocity.
     go('closed', velocity, safeToRemove)
   }, [go, height, instant, isPresent, offset, presence, reduced, safeToRemove, y])
 
-  // A viewport change (rotation, the mobile toolbar) moves every detent. Keep the sheet on its detent, retargeting any flight.
   useEffect(() => {
     const sheet = sheetRef.current
     if (!sheet || typeof ResizeObserver === 'undefined') return
@@ -397,7 +367,6 @@ function Sheet({
 
   const beginDrag = useCallback(
     (clientY: number, time: number) => {
-      // Catch the sheet where it is, even mid-flight; an overstretched sheet converts back to finger distance so nothing jumps.
       dismissVelocity.current = undefined
       y.stop()
       const current = y.get()
@@ -423,7 +392,6 @@ function Sheet({
         sheetRef.current?.setAttribute('data-dragging', '')
       }
       const raw = state.origin + delta
-      // Down follows the finger 1:1 so it can dismiss; up past the tallest detent resists like a rubber band.
       y.set(raw < 0 ? -rubberBand(-raw, STRETCH) : raw)
       state.samples.push({ t: time, y: clientY })
       if (state.samples.length > 12) state.samples.shift()
@@ -444,14 +412,12 @@ function Sheet({
       }
       suppressClick.current = true
       const current = y.get()
-      // A stretched sheet springs back without the finger's speed, so it never launches past the stretch.
       const velocity = current < 0 ? 0 : velocityOf(state.samples, time)
       const projected = current + velocity * PROJECTION
       const candidates: Stop[] = [...stops.map((_, index) => index), 'closed']
       let target = candidates.reduce((best, stop) =>
         Math.abs(offset(stop) - projected) < Math.abs(offset(best) - projected) ? stop : best,
       )
-      // A quick flick always travels at least one detent, and a flick down from the smallest one closes the sheet.
       if (Math.abs(velocity) > FLICK && target === state.from)
         target =
           velocity < 0
@@ -460,7 +426,6 @@ function Sheet({
               ? 'closed'
               : state.from - 1
       if (target === 'closed') {
-        // A controlled owner may veto or defer dismissal. Recover the detent while it decides.
         dismissVelocity.current = velocity
         go(detentRef.current, 0, () => {
           dismissVelocity.current = undefined
@@ -473,7 +438,6 @@ function Sheet({
     [go, offset, onDismiss, rest, stops, top, y],
   )
 
-  // Touch drags on the content move the sheet until it is fully open; once open, the content scrolls and a pull down from its top moves the sheet again.
   useEffect(() => {
     const body = bodyRef.current
     if (!body) return
@@ -556,8 +520,6 @@ function Sheet({
     suppressClick.current = false
     removePointerListeners.current?.()
     beginDrag(event.clientY, event.timeStamp)
-    // Moves arrive once per frame, so a fast flick can leave the header before its first move lands.
-    // Until the header captures the pointer, the window follows it; once captured, the header's own handlers take over.
     const header = event.currentTarget,
       id = event.pointerId
     const outside = (next: PointerEvent) =>
@@ -568,9 +530,7 @@ function Sheet({
       if (drag.current?.moved && !header.hasPointerCapture(id)) {
         try {
           header.setPointerCapture(id)
-        } catch {
-          /* The pointer is already gone. */
-        }
+        } catch {}
       }
     }
     const up = (next: PointerEvent) => {
@@ -591,7 +551,6 @@ function Sheet({
     window.addEventListener('pointerup', up)
     window.addEventListener('pointercancel', up)
   }
-  // Capture only once the pointer has really moved, so a plain click still lands on the grabber button.
   function headerMove(event: ReactPointerEvent<HTMLDivElement>) {
     if (!event.isPrimary || !drag.current) return
     if (event.pointerType === 'mouse' && event.buttons === 0) {
@@ -638,7 +597,6 @@ function Sheet({
     rest(next)
   }
 
-  // Scrolling or tabbing into content that is still below the fold opens the sheet the rest of the way.
   function bodyWheel(event: WheelEvent<HTMLDivElement>) {
     if (detentRef.current !== top && event.deltaY > 4 && !drag.current) rest(top)
   }
@@ -654,7 +612,6 @@ function Sheet({
       rest(top)
   }
 
-  // With focus on the sheet or its content, reading keys open the sheet first and then scroll the content.
   function sheetKey(event: KeyboardEvent<HTMLDivElement>) {
     const body = bodyRef.current
     if (!body || (event.target !== event.currentTarget && event.target !== body)) return
@@ -708,7 +665,6 @@ function Sheet({
             opener.focus()
           }
         }}
-        // Radix waits for the click before treating a press as outside. A press on the trigger while the sheet leaves reopens it first, so that press must not close it again.
         onPointerDownOutside={(event) => {
           const { present, at } = presenceChange.current
           if (!present || event.detail.originalEvent.timeStamp < at) event.preventDefault()

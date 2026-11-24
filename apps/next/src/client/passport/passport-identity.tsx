@@ -17,7 +17,6 @@ export type IdentityProfile = {
   avatar_face?: string | null
 }
 
-/** The owner-only part of the identity row: visibility, Share, the narrator line and the menu. */
 export type IdentityOwner = {
   visibility: 'public' | 'private'
   shareUrl: string | null
@@ -25,7 +24,6 @@ export type IdentityOwner = {
   menu: ReactNode
 }
 
-/** Compact identity: avatar, name (the page's H1), handle and the Founding crew stub when earned. */
 export function PassportIdentity({
   locale,
   profile,
@@ -37,7 +35,6 @@ export function PassportIdentity({
   locale: Locale
   profile: IdentityProfile
   bio: string | null
-  /** The handle from the route when the read carries none. */
   fallbackHandle: string | null
   founding: boolean
   owner: IdentityOwner | null

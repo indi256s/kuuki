@@ -1,4 +1,3 @@
-/* Details of the Aircraft card: the manufacturer key, the body-class bands and the review stack by space alone. */
 .ov3-aircraft-more {
   min-width: 0;
   display: grid;
@@ -32,7 +31,6 @@
   --iso-lit: 1;
 }
 
-/* Keep the sheet stage stable while every maker retains a full touch target. */
 .ov3-aircraft-sheet-rows {
   max-block-size: var(--aircraft-plot-height);
   overflow-y: auto;

@@ -1,11 +1,6 @@
 import { clipPoly } from './rock-b'
-// Darvaza gas crater (Turkmenistan), seen at eye level on a night desert. The crater is a thin dark
-// lens cut into flat ground: a lit near rim (T0, bold lip), a dark lens with the far inner wall in
-// T4 above it and a lit far rim. Seven pointed flame tongues (T0) rise out of the lens into a solid glow.
-// The box is the whole scene: bottom = near rim, top = flame tip, the near rim.
 import { type Pt, type SvgNode, cubic, fill, hatchPoly, occlude, quad, stroke } from '../grid'
 
-/** Polygon with the given winding (1 or -1 by shoelace sign), so fills can cut holes. */
 const orient = (pts: Pt[], dir: 1 | -1): Pt[] => {
   let a = 0
   for (let i = 0; i < pts.length; i++) {
@@ -23,8 +18,6 @@ export const darvaza: KitModule = ([x, y, w, h]) => {
   const lensY = base - 9
   const out: SvgNode[] = []
 
-  // Flame tongues: S-curved leaves rising from the lens, leaning with the wind. [x offset as a
-  // fraction of the width, height as a fraction of the tallest, base half-width, lean].
   const top = y + 2
   const gh = lensY - top
   const yb = lensY + 1
@@ -58,8 +51,6 @@ export const darvaza: KitModule = ([x, y, w, h]) => {
     return { poly: [...l, ...r.slice(1)] as Pt[], tip, fw }
   })
 
-  // Glow: a rounded envelope 4 units around the tongues. The lower part is solid T5 with the
-  // tongues cut out of it (reversed winding); above it the glow thins into vertical T4 hatching.
   const env: Pt[] = []
   const x0 = cx - w * 0.38
   const x1 = cx + w * 0.38
@@ -83,7 +74,6 @@ export const darvaza: KitModule = ([x, y, w, h]) => {
     if (low.length > 2) out.push(fill(orient(low, -1)))
   }
 
-  // Crater: lit far rim, T4 far inner wall, dark lens, lit near rim with a bold lip.
   const lensTop = base - 14
   const half = w * 0.365
   const farRim: Pt[] = [

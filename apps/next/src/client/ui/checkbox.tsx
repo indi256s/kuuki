@@ -13,17 +13,11 @@ import {
 } from 'react'
 import './checkbox.css'
 
-// Adapted from Arc "checkbox" (uiarc.dev, MIT, see ARC-LICENSE.txt): the 18px square with the Keyline check that crossfades into the dash, the label and the description beside it.
-// Dropped: Radix Checkbox and `motion`. The control is a native `<input type="checkbox">` (form value, label, keyboard and `:indeterminate` for free); the square is drawn beside it and the state comes from CSS.
-// Added: a 44px hit area on coarse pointers, `--control-border` and an accent fill, and a visible `:focus-visible` ring. Arc's checkbox has a hard-coded English fallback name; this one needs a label or an `aria-label`.
-
 type CheckboxBase = Omit<InputHTMLAttributes<HTMLInputElement>, 'type' | 'size'> & {
   description?: ReactNode
-  /** The mixed state of a "select all". It is cleared by the browser on click, so the caller owns it with `checked`. */
   indeterminate?: boolean
 }
 
-/** A visible label, or an accessible name for a checkbox that has none (a row selector). */
 export type CheckboxProps = CheckboxBase &
   ({ label: ReactNode } | { label?: undefined; 'aria-label': string })
 
@@ -44,7 +38,6 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
   const descriptionId = `${inputId}-description`
   const inner = useRef<HTMLInputElement>(null)
   useImperativeHandle(ref, () => inner.current as HTMLInputElement)
-  // No dependency list: a click clears the DOM flag, so it is set again after every render the caller made.
   useEffect(() => {
     if (inner.current) inner.current.indeterminate = indeterminate
   })

@@ -1,4 +1,3 @@
-// Thin typed calls to `/api/import/history` (ADR 0008). No retries or copy here: the controller classifies failures.
 import { api } from '@kuuki/client/apiClient'
 import type {
   HistoryChunkBody,
@@ -13,7 +12,6 @@ import type {
 import { sendWithZone, withZone } from '../capture/flight-writes'
 import { awaitPublication } from '../publication'
 
-/** The regular import's passport read and bounded derived-publication wait, so stamps follow the same rule. */
 export { awaitPublication }
 export { fetchPressedCountries } from './import-api'
 
@@ -22,7 +20,6 @@ const base = (runId: string) => `/api/import/history/${encodeURIComponent(runId)
 export const createHistoryRun = (body: HistoryCreateBody) =>
   api.post<{ run: HistoryRunSummary }>('/api/import/history', body)
 
-/** The chunk body is the exact payload its digest was computed over; the server re-hashes it. */
 export const putHistoryChunk = (runId: string, index: number, body: HistoryChunkBody) =>
   api.put<{ run: HistoryRunSummary; inserted: number }>(`${base(runId)}/chunks/${index}`, body, {
     timeoutMs: 60_000,
@@ -52,7 +49,6 @@ export interface HistoryConfirmResponse {
   revision?: number
 }
 
-/** The member's zone goes on every confirm, as the other flight writes do; a rejected zone is retried without it. */
 export const confirmHistoryRows = (runId: string, items: HistoryConfirmItem[]) =>
   sendWithZone((zone) =>
     api.post<HistoryConfirmResponse>(`${base(runId)}/confirm`, withZone({ items }, zone), {
@@ -66,5 +62,4 @@ export const discardHistoryRun = (runId: string) =>
 export const eraseHistorySource = (runId: string) =>
   api.delete<{ erased: true }>(`${base(runId)}/source`)
 
-/** The owner's archive as a same-origin download; the browser keeps it, this page never stores it. */
 export const historyArchiveHref = (runId: string) => `${base(runId)}?representation=archive`

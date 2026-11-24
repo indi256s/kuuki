@@ -1,6 +1,3 @@
-// ADR 0001 §6 (T10): draft conversion. Receipt-first replay, the guarded statement chain, per-item classification,
-// A4 (two tabs, replay after 8 and 36 days, 410 tombstone), partial-conversion retries and the T09 carry-over
-// (the awaiting queue's draft summaries against real conversions).
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import maintenance from '../../workers/maintenance/index'
 import { count, csrfRequest } from './harness'
@@ -196,13 +193,12 @@ describe('conversion', () => {
       items.map((entry, index) => [entry.key, flights[index].id, created.batch.id, USER.id]).sort(),
     )
     expect(await count(db, 'flight_idempotency')).toBe(3)
-    // Only now do the stats move: the drafts alone never did.
     expect(
       await db
         .prepare('SELECT total_flights FROM user_stats WHERE user_id = ?')
         .bind(USER.id)
         .first(),
-    ).toEqual({ total_flights: 2 }) // the upcoming flight does not count yet
+    ).toEqual({ total_flights: 2 })
     expect(
       (await getBatch(db, created.batch.id)).body.drafts.map((d: any) => [
         d.status,
@@ -267,7 +263,7 @@ describe('conversion', () => {
       http_status: 409,
     })
     expect(await count(db, 'flights')).toBe(1)
-    expect(await count(db, 'flight_idempotency')).toBe(1) // tab A's guarded ledger insert wrote nothing
+    expect(await count(db, 'flight_idempotency')).toBe(1)
     expect(await count(db, 'import_conversion_receipts')).toBe(1)
     expect((await receipts())[0].operation_key).toBe('tab-b-key-00002')
   })
@@ -304,8 +300,8 @@ describe('conversion', () => {
 
     clock(daysAfter(36))
     await cycle()
-    expect(await count(db, 'import_drafts')).toBe(0) // expired batch: drafts are gone ...
-    expect(await count(db, 'import_batches')).toBe(1) // ... its row stays until expiry + 7 days
+    expect(await count(db, 'import_drafts')).toBe(0)
+    expect(await count(db, 'import_batches')).toBe(1)
     expect(await count(db, 'import_conversion_receipts')).toBe(1)
     const day36 = await confirm(db, created.batch.id, { items })
     expect(day36.status).toBe(200)
@@ -335,7 +331,6 @@ describe('conversion', () => {
       code: 'CONVERTED_FLIGHT_DELETED',
       flightId,
     })
-    // Another key for the same draft cannot resurrect it either.
     const other = await confirm(db, created.batch.id, {
       items: [item(created.drafts[0], 'tombstone-key-2')],
     })
@@ -357,7 +352,6 @@ describe('conversion', () => {
   })
 
   describe('Quick Add rows that need the flown confirmation', () => {
-    /** Admit one boarding-pass leg per date and give each the explicit year decision; NOW is 2026-10-05 UTC. */
     async function admit(dates: string[]) {
       const admitted = await postJob(db, {
         type: 'boarding_pass',
@@ -396,7 +390,6 @@ describe('conversion', () => {
       expect((await flightRows()).map((row) => row.lifecycle_state)).toEqual(['upcoming'])
       expect((await draftRow(past.id))?.status).toBe('review')
 
-      // Selecting the row is not the answer; only `flownConfirmed` is.
       const selected = await patchDraft(db, past.id, { version: past.version, selected: true })
       expect(
         codes(
@@ -419,7 +412,6 @@ describe('conversion', () => {
 
     it('judges "today" in the request timezone, like the lifecycle rule', async () => {
       clock()
-      // 2026-10-06 is still tomorrow in UTC but already today at UTC+14.
       const { batchId, drafts } = await admit(['2026-10-06'])
       const [row] = drafts
       const kiritimati = await confirm(db, batchId, {
@@ -503,7 +495,7 @@ describe('conversion', () => {
     const fresh = await confirm(db, created.batch.id, { items: [item({ id: one.id, version: 2 })] })
     expect(codes(fresh.body.results)).toEqual(['created'])
     expect((await flightRows())[0].flight_number).toBe('999')
-    expect(fresh.body.batch).toMatchObject({ status: 'completed', reviewRowCount: 0 }) // nothing is left in review: converted and dismissed rows are done
+    expect(fresh.body.batch).toMatchObject({ status: 'completed', reviewRowCount: 0 })
   })
 
   it('keeps an invalid reference as a correctable draft and a retry creates only the failed flight', async () => {
@@ -521,7 +513,6 @@ describe('conversion', () => {
     expect(await draftRow(created.drafts[1].id)).toMatchObject({ status: 'review', version: 1 })
     expect(first.body.batch).toMatchObject({ status: 'review', reviewRowCount: 2 })
 
-    // The member corrects both rows; the retry reuses every key. The converted row is not created twice.
     const fixedAirport = await patchDraft(db, created.drafts[1].id, {
       version: 1,
       fields: { origin: 'TBS' },
@@ -562,7 +553,6 @@ describe('conversion', () => {
     expect(await count(db, 'flights')).toBe(1)
     expect(await count(db, 'flight_idempotency')).toBe(0)
 
-    // A date typed in without the explicit year decision still does not convert; the decision does.
     const typed = await patchDraft(db, noYear.id, { version: 1, fields: { date: '2026-03-12' } })
     expect(
       codes(
@@ -605,7 +595,7 @@ describe('conversion', () => {
     expect((await confirm(db, created.batch.id, { items: [item(two)] })).status).toBe(404)
     expect(codes((await confirm(db, created.batch.id, { items: done })).body.results)).toEqual([
       'replayed',
-    ]) // the receipt outlives the batch
+    ])
   })
 
   it('validates the request, the owner and the batch before writing', async () => {
@@ -640,11 +630,9 @@ describe('conversion', () => {
       key: `many-key-${String(i).padStart(5, '0')}`,
     }))
     expect((await confirm(db, created.batch.id, { items: tooMany })).status).toBe(413)
-    // A draft of another batch of the same owner is not found in this one.
     expect(
       (await confirm(db, created.batch.id, { items: [item(mine.drafts[0])] })).body.results[0],
     ).toMatchObject({ code: 'DRAFT_NOT_FOUND', http_status: 404 })
-    // A processing batch does not convert.
     await db
       .prepare("UPDATE import_batches SET status = 'processing' WHERE id = ?")
       .bind(created.batch.id)
@@ -753,7 +741,6 @@ describe('T15 review fixes', () => {
   it('I2: batch completion commits with the conversion, so a failed completion leaves nothing behind and the retry frees the slot', async () => {
     clock()
     const created = await seed([providerFlight()])
-    // Nine more open batches: with the seeded one the owner is at the open-batch limit.
     await db.batch(
       Array.from({ length: 9 }, (_, index) =>
         db
@@ -786,7 +773,6 @@ describe('T15 review fixes', () => {
     const items = [item(created.drafts[0], 'complete-key-01')]
     const failed = await confirm(db, created.batch.id, { items })
     expect(failed.status).toBe(500)
-    // Nothing of the conversion committed without its completion.
     expect(await count(db, 'flights')).toBe(0)
     expect(await count(db, 'import_conversion_receipts')).toBe(0)
     expect(await draftRow(created.drafts[0].id)).toMatchObject({ status: 'review', version: 1 })
@@ -801,9 +787,7 @@ describe('T15 review fixes', () => {
     expect(await batchRow()).toEqual({ status: 'completed', sequence: retry.body.batch.sequence })
     expect(await count(db, 'flights')).toBe(1)
     expect(await count(db, 'import_conversion_receipts')).toBe(1)
-    // The completed batch no longer holds an open slot.
     expect((await postJob(db, {})).status).toBe(201)
-    // A later receipt-only replay changes nothing.
     const replay = await confirm(db, created.batch.id, { items })
     expect(codes(replay.body.results)).toEqual(['replayed'])
     expect(await batchRow()).toEqual({ status: 'completed', sequence: retry.body.batch.sequence })
@@ -863,7 +847,6 @@ describe('the awaiting queue (T09 carry-over)', () => {
     const done = (await getAwaiting(db, USER)).body
     expect(done).toMatchObject({ draftRowCount: 0, actionableCount: 0, drafts: [] })
     expect((await getBatch(db, created.batch.id)).body.batch.status).toBe('completed')
-    // Another owner's rows never show, and an expired batch drops out.
     expect((await getAwaiting(db, OTHER)).body).toMatchObject({ draftRowCount: 1 })
     clock(daysAfter(31))
     expect((await getAwaiting(db, OTHER)).body).toMatchObject({ draftRowCount: 0, drafts: [] })

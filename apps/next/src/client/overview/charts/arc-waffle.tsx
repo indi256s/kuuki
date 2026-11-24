@@ -3,12 +3,6 @@ import { apportion } from './apportion'
 import { KuukiChart, type ChartPoint, type KuukiChartProps } from './kuuki-chart'
 import './arc-waffle.css'
 
-// Adapted from Arc Waffle, MIT; notice: ../../ui/ARC-LICENSE.txt.
-// Fetched https://uiarc.dev/r/waffle-chart.json on 2026-10-14.
-// Upstream waffle-chart.tsx SHA256: f1538515ae585da3d69e87421841593fa1297d98f73d826104b4771949f021b0.
-// Retain the bottom-up grid and largest-remainder allocation. Use 100 bounded cells,
-// category tokens and exact legend values; KuukiChart owns selection and actions.
-// No category hiding, neighbour dimming, motion runtime or per-flight cell claims.
 const CELLS = 100
 
 type WaffleProps<T> = Pick<
@@ -25,7 +19,6 @@ type WaffleProps<T> = Pick<
   note: string
 }
 
-/** Whole cells approximate shares; the legend retains every category, even below one cell. */
 export function ArcWaffle<T>(props: WaffleProps<T>) {
   const counts = apportion(props.points.map(props.value), CELLS)
   const applied = (point: ChartPoint<T>) => props.appliedKeys.includes(point.key)

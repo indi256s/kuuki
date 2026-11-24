@@ -1,14 +1,9 @@
-/*
- * The passport on the brand side (boards 15.1 to 15.10, 16.14 to 16.18): the bench figure on desktop, the strip on a
- * phone. Colours are tokens only. The whole object is decorative: the card owns the facts.
- */
 .welcome-passport {
   --wp-ink-on-cover: var(--accent-foreground);
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   height: 100%;
-  /* 40px panel padding + 36px wordmark + 8px. */
   padding: 84px 40px 40px;
 }
 .wp-desk {
@@ -30,18 +25,16 @@
   margin: 0;
   text-align: center;
   color: var(--text-muted);
-  font: 400 13px/20px var(--font-sans);
+  font: 400 0.8125rem/1.25rem var(--font-sans);
   letter-spacing: 0.01em;
   text-wrap: balance;
 }
 .wp-label {
   color: var(--text-muted);
-  font: 400 9px/12px var(--font-mono);
+  font: 400 0.5625rem/0.75rem var(--font-mono);
   letter-spacing: 0.24em;
 }
 
-/* ---------- The bench (bench-live.ts; colours in bench.css) ---------- */
-/* The drawing has its own margin inside its viewBox, so it reaches into the panel's padding. */
 .wp-bench {
   width: calc(100% + 56px);
   margin-inline: -28px;
@@ -51,7 +44,6 @@
 .wp-bench[data-ready] {
   opacity: 1;
 }
-/* Review: the card grows with its list; the figure sticks while the list scrolls. */
 .wp-desk[data-tall] {
   justify-content: flex-start;
   padding-top: 56px;
@@ -61,7 +53,6 @@
   top: 32px;
 }
 
-/* ---------- Mobile strip (15.7 to 15.10) ---------- */
 .wp-strip {
   display: none;
 }
@@ -73,8 +64,6 @@
   .wp-desk {
     display: none;
   }
-  /* Reading and the reveal: the desktop bench under the strip, at the card's width. Its drawing keeps its own margin
-     inside the viewBox, so no bleed here; the height cap (34svh) narrows it before it can push the heading down. */
   .welcome-passport[data-bench] .wp-desk {
     display: flex;
     padding-block: 4px 0;
@@ -94,7 +83,6 @@
   .welcome-passport[data-bench] .wp-desk[data-tall] .wp-figure {
     position: static;
   }
-  /* The strip's counts and the step's own copy say it; the caption would repeat them. */
   .welcome-passport[data-bench] .wp-caption {
     display: none;
   }
@@ -138,7 +126,7 @@
   .wp-strip-name {
     overflow: hidden;
     color: var(--text);
-    font: 600 18px/24px var(--font-sans);
+    font: 600 1.125rem/1.5rem var(--font-sans);
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -147,11 +135,10 @@
   }
   .wp-strip-count {
     color: var(--text);
-    font: 500 18px/24px var(--font-mono);
+    font: 500 1.125rem/1.5rem var(--font-mono);
     white-space: nowrap;
   }
 }
-/* Below 360px the labels go; the name keeps one line. */
 @media (max-width: 359px) {
   .wp-strip .wp-label {
     display: none;

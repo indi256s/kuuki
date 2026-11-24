@@ -6,7 +6,6 @@ export type ChartTable = {
   rows: readonly Record<string, string | number>[]
 }
 
-/** Semantic chart data for screen readers, without a visible duplicate of the plot. */
 export function TableView({ table }: { table: ChartTable }) {
   return (
     <div className="sr-only">

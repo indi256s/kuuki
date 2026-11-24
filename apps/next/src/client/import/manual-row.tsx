@@ -10,7 +10,6 @@ import { RowForm } from './row-form'
 import { saveAnchor } from './unconfirmed-saves'
 import { validateValues, type FieldValues } from './review-model'
 
-/** An inline row for a flight the document did not contain. It uses the same form and validation as a draft edit. */
 export function ManualRow({
   locale,
   row,
@@ -28,13 +27,9 @@ export function ManualRow({
   showErrors: boolean
   onChange: (values: FieldValues) => void
   onRemove: () => void
-  /** Resend the stored original payload (uncertain or unconfirmed saves). */
   onRetryOriginal: () => void
-  /** Why the resend is held back (typed corrections elsewhere are not saved yet); shown beside the button. */
   retryBlocked?: ReactNode
-  /** The member checked the journal: forget the old attempt and treat the row as a new save. */
   onNewOperation: () => void
-  /** A held-back row: move to the unresolved save of the same flight (absent when that save is not on the page). */
   onShowHeld?: () => void
   disabled?: boolean
 }) {
@@ -45,7 +40,6 @@ export function ManualRow({
     row.failure?.kind === 'unconfirmed' ||
     row.failure?.kind === 'expired' ||
     row.failure?.kind === 'settled'
-  // The anchor lets a held-back identical row lead here while this row's own save is unresolved.
   return (
     <li
       id={saveAnchor(row.operationId)}

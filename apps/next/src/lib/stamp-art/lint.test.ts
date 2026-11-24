@@ -11,7 +11,6 @@ import { loadRecipes, RECIPE_FILES } from './recipes'
 const recipes = loadRecipes()
 
 describe('stamp lint', () => {
-  // Rasterises every committed recipe, so the time grows with the catalog.
   it('passes every committed recipe, geometric and raster', async () => {
     for (const recipe of recipes) {
       expect(lintGeometry(recipe), recipe.iso2).toEqual([])

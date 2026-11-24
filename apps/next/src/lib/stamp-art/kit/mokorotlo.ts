@@ -1,7 +1,3 @@
-// Basotho hut under a mokorotlo roof: a conical thatch with a concave, flared profile and a knob
-// on the apex, over a short round wall with an arched door. Thatch is hatched along the fall line,
-// dense on the right, sparse on the left, with two binding rings and a fringed eave. Box bottom is
-// the wall foot.
 import { mulberry32 } from '../hash'
 import { type Pt, type SvgNode, body, fill, occlude, rectPts, stroke, toneFill } from '../grid'
 import { type KitModule, num } from './util'
@@ -23,7 +19,6 @@ export const mokorotlo: KitModule = ([x, y, w, h], p) => {
   const left: Pt[] = right.map(([px, py]) => [2 * cx - px, py] as Pt).reverse()
   const roof: Pt[] = [...left, ...right]
   const out: SvgNode[] = []
-  // Wall.
   const ww = w * 0.72
   out.push(...body(rectPts(cx - ww / 2, wallTop - 1, ww, base - wallTop + 1), 'line'))
   out.push(
@@ -39,7 +34,6 @@ export const mokorotlo: KitModule = ([x, y, w, h], p) => {
       [cx - ww * 0.18 + dw / 2, base],
     ]),
   )
-  // Roof.
   out.push(occlude(roof))
   for (let f = 0.04; f < 1; f += 0.06) {
     const px = cx + (f - 0.5) * 2 * half * 0.98
@@ -76,7 +70,6 @@ export const mokorotlo: KitModule = ([x, y, w, h], p) => {
       [cx + half + 0.5, wallTop],
     ]),
   )
-  // Knob and finial.
   out.push(
     fill(
       Array.from(

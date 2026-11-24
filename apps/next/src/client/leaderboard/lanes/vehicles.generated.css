@@ -21,11 +21,11 @@
   --ail:var(--iso-line);--ais:color-mix(in oklab,var(--iso-crease) 80%,var(--iso-line));--aif:var(--iso-crease);
 }
 :root[data-theme='dark'] .lane-vehicle{
-  --ab4:color-mix(in oklab,var(--iso-front) 78%,var(--text));--ab3:color-mix(in oklab,var(--iso-front) 84%,var(--text));
-  --ab2:color-mix(in oklab,var(--iso-front) 90%,var(--text));--ab1:color-mix(in oklab,var(--iso-front) 96%,var(--text));
-  --ab0:color-mix(in oklab,var(--iso-side) 94%,var(--text));--abp:var(--ab2);
-  --am4:color-mix(in oklab,var(--iso-front) 74%,var(--text));--am3:color-mix(in oklab,var(--iso-front) 80%,var(--text));
-  --am2:color-mix(in oklab,var(--iso-front) 88%,var(--text));--am1:var(--iso-front);--am0:var(--iso-side);--amp:var(--am2);
+  --ab4:color-mix(in oklab,var(--iso-front) 40%,var(--text));--ab3:color-mix(in oklab,var(--iso-front) 52%,var(--text));
+  --ab2:color-mix(in oklab,var(--iso-front) 64%,var(--text));--ab1:color-mix(in oklab,var(--iso-front) 78%,var(--text));
+  --ab0:color-mix(in oklab,var(--iso-side) 92%,var(--text));--abp:var(--ab2);
+  --am4:color-mix(in oklab,var(--iso-front) 66%,var(--text));--am3:color-mix(in oklab,var(--iso-front) 74%,var(--text));
+  --am2:color-mix(in oklab,var(--iso-front) 84%,var(--text));--am1:color-mix(in oklab,var(--iso-front) 96%,var(--text));--am0:var(--iso-side);--amp:var(--am2);
   --ar4:color-mix(in oklab,var(--iso-side) 80%,var(--text));--ar3:color-mix(in oklab,var(--iso-side) 88%,var(--text));
   --ar2:color-mix(in oklab,var(--iso-side) 70%,black);--ar1:color-mix(in oklab,var(--iso-side) 60%,black);
   --ar0:color-mix(in oklab,var(--iso-side) 50%,black);--arp:var(--ar1);

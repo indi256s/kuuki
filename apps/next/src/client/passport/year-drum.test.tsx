@@ -10,11 +10,9 @@ it('lists no year first, then the current year down to 1930', () => {
 })
 
 it('snaps a release to the row nearest the projected rest, clamped at both ends', () => {
-  // 10 rows per second coasts about five rows further: from row 3 it rests near row 8.
   expect(snapIndex(project(3, 10), 98)).toBe(8)
   expect(snapIndex(project(3, -10), 98)).toBe(0)
   expect(snapIndex(project(90, 100), 98)).toBe(97)
-  // A slow release stays on the nearest row.
   expect(snapIndex(project(3.4, 0.2), 98)).toBe(3)
 })
 

@@ -1,4 +1,3 @@
-// Explicit release gate. Synthetic inputs stay in memory; only capability metadata is printed.
 import { GoogleGenAI } from '@google/genai'
 import {
   extractionContents,
@@ -47,7 +46,6 @@ async function main() {
   const sources: ParseRequest[] = [
     { type: 'text', content: 'Flight BA178, 10 March 2026, JFK to LHR.' },
     { type: 'pdf', content: syntheticPdf() },
-    // Blank synthetic PNG checks image transport and structured streaming; it should yield no flights.
     {
       type: 'image',
       content:
