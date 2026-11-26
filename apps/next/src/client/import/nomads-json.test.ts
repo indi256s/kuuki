@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
 import { NOMADS_MAX_ROUTES, nomadsSummaryOf, nomadsToText, prepareNomads } from './nomads-json'
-import { nomadsLeftOut, nomadsStory } from './nomads-note'
+import { nomadsLeftOutParts, nomadsStory } from './nomads-note'
 import { parseStructuredText } from '../../../../../functions/api/import/_text'
 
 const stay = (place: string, start: string, end = start, country_code = 'US') => ({
@@ -141,9 +141,10 @@ it('tells the story in real Russian plural forms', () => {
   expect(nomadsStory('en', { ...summary, stays: 1, countries: 1, routes: 1 })).toBe(
     '1 stay in 1 country · 1 possible flight',
   )
-  expect(nomadsLeftOut('ru', summary)).toBe(
-    'Не вошли: 2 переезда короче 250 км, 1 нечитаемое пребывание',
-  )
+  expect(nomadsLeftOutParts('ru', summary)).toEqual([
+    '2 переезда короче 250\u00a0км',
+    '1 нечитаемое пребывание',
+  ])
 })
 
 it('restores only a well-formed summary from session storage', () => {

@@ -67,7 +67,11 @@ export function placeOf(draft: Draft, endpoint: Endpoint): Place {
   const code = draft.fields[endpoint]?.trim().toUpperCase() || null
   const hint = draft.fields[`${endpoint}_hint`]?.trim() || null
   const options = draft.fields[`${endpoint}_options`] ?? []
-  const airport = code ? findAirport(code) : undefined
+  const airport = code
+    ? findAirport(code)
+    : !hint && options.length
+      ? findAirport(options[0])
+      : undefined
   const country = airport
     ? airport.countryCode || null
     : hint
@@ -79,11 +83,10 @@ export function placeOf(draft: Draft, endpoint: Endpoint): Place {
 }
 
 export function placeCity(place: Place, locale: Locale): string | null {
-  if (place.code) {
-    const alias = locale === 'ru' ? airportAliases[place.code] : undefined
-    return (
-      alias?.city ?? findAirport(place.code)?.city ?? (place.hint ? hintCity(place.hint) : null)
-    )
+  const code = place.code ?? (place.hint ? null : (place.options[0] ?? null))
+  if (code) {
+    const alias = locale === 'ru' ? airportAliases[code] : undefined
+    return alias?.city ?? findAirport(code)?.city ?? (place.hint ? hintCity(place.hint) : null)
   }
   return place.hint ? hintCity(place.hint) : null
 }

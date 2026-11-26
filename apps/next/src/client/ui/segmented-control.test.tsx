@@ -42,6 +42,21 @@ describe('SegmentedControl', () => {
     expect(onChange).toHaveBeenLastCalledWith('system')
   })
 
+  it('starts undecided with no checked option and the first one reachable', async () => {
+    const user = userEvent.setup()
+    const onChange = vi.fn()
+    const { container } = render(
+      <SegmentedControl label="Decision" value={null} options={options} onChange={onChange} />,
+    )
+    for (const radio of screen.getAllByRole('radio'))
+      expect(radio).toHaveAttribute('aria-checked', 'false')
+    expect(container.querySelector('.ui-segmented-thumb')).toBeNull()
+    await user.tab()
+    expect(screen.getByRole('radio', { name: 'Light' })).toHaveFocus()
+    await user.click(screen.getByRole('radio', { name: 'System' }))
+    expect(onChange).toHaveBeenLastCalledWith('system')
+  })
+
   it('keeps radio semantics and keyboard selection when dense', async () => {
     const user = userEvent.setup()
     const onChange = vi.fn()

@@ -47,6 +47,8 @@ interface EntryFields {
   online?: BatchRun
   suppressedIds?: string[]
   excludedIds?: string[]
+  landIds?: string[]
+  landDoneIds?: string[]
   file?: File
   source?: ImportSource
   fingerprint?: string
@@ -70,12 +72,19 @@ export interface RetainedEntry {
   complementPending?: boolean
   suppressedIds?: string[]
   excludedIds?: string[]
+  landIds?: string[]
+  landDoneIds?: string[]
   selectionRequired?: boolean
   fingerprint?: string
   problem?: EntryProblem
   empty?: true
   nomads?: SessionEntry['nomads']
 }
+
+const ids = (value: unknown): string[] | undefined =>
+  Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === 'string')
+    : undefined
 
 export class UnifiedSession {
   private entries: SessionEntry[] = []
@@ -123,6 +132,8 @@ export class UnifiedSession {
       complementPending: complementPending(entry),
       suppressedIds: entry.suppressedIds ?? [],
       excludedIds: entry.excludedIds ?? [],
+      ...(entry.landIds?.length ? { landIds: entry.landIds } : {}),
+      ...(entry.landDoneIds?.length ? { landDoneIds: entry.landDoneIds } : {}),
       selectionRequired: this.selectionRequired,
       ...(entry.problem ? { problem: entry.problem } : {}),
       ...(entry.phase === 'empty' && !entry.runs.length ? { empty: true as const } : {}),
@@ -139,10 +150,33 @@ export class UnifiedSession {
   isSuppressed(id: string) {
     return this.entries.some((entry) => entry.suppressedIds?.includes(id))
   }
-  noteSelection(id: string, selected: boolean) {
-    const entry = this.entries.find((entry) =>
+  private ownerOf(id: string) {
+    return this.entries.find((entry) =>
       entry.runs.some((run) => run.getState().drafts.some((draft) => draft.id === id)),
     )
+  }
+  landIds(): ReadonlySet<string> {
+    return new Set(this.entries.flatMap((entry) => entry.landIds ?? []))
+  }
+  landDoneIds(): ReadonlySet<string> {
+    return new Set(this.entries.flatMap((entry) => entry.landDoneIds ?? []))
+  }
+  noteLand(id: string, land: boolean) {
+    const entry = this.ownerOf(id)
+    if (!entry || (entry.landIds ?? []).includes(id) === land) return
+    entry.landIds = land
+      ? [...(entry.landIds ?? []), id]
+      : (entry.landIds ?? []).filter((value) => value !== id)
+    this.publish()
+  }
+  noteLandDone(id: string) {
+    const entry = this.ownerOf(id)
+    if (!entry || entry.landDoneIds?.includes(id)) return
+    entry.landDoneIds = [...(entry.landDoneIds ?? []), id]
+    this.publish()
+  }
+  noteSelection(id: string, selected: boolean) {
+    const entry = this.ownerOf(id)
     if (!entry) return
     entry.excludedIds = selected
       ? (entry.excludedIds ?? []).filter((value) => value !== id)
@@ -179,6 +213,8 @@ export class UnifiedSession {
           runs: [],
           suppressedIds: record.suppressedIds,
           excludedIds: record.excludedIds,
+          landIds: ids(record.landIds),
+          landDoneIds: ids(record.landDoneIds),
           fingerprint: record.fingerprint,
           nomads: nomadsSummaryOf(record.nomads),
         },

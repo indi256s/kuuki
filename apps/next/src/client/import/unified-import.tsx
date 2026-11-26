@@ -14,12 +14,10 @@ import { TextShimmer } from '../ui/text-shimmer'
 import { announceShellNotice } from '../shell-notices'
 import { useWriteFeedback } from '../write-feedback'
 import { useSettingsGuard } from '../account/settings-guard'
-import { DraftSaver, type SaveState } from './draft-saver'
+import { DraftSaver, type DraftChange, type SaveState } from './draft-saver'
 import { patchDraft } from './import-api'
 import { useImportRunsStore } from './import-runs'
 import { ImportTextarea } from './import-textarea'
-import { QuestionDeck } from './question-deck'
-import { ReviewRow } from './review-row'
 import {
   localToday,
   readiness,
@@ -30,10 +28,37 @@ import {
   isDuplicate,
 } from './review-model'
 import { ACCEPT } from './source-step'
+import { addGroundVisit } from '@kuuki/client/passport'
+import type { DerivedAck } from '@kuuki/client/derivedState'
+import type { RowOutcome } from './confirm-runner'
+import type { Draft } from './import-types'
+import { fetchPressedCountries } from './import-api'
+import { newlyPressed, routeCountries, routeKm } from './flight-input'
+import {
+  buildQuestions,
+  questionDrafts,
+  type AirportQuestion,
+  type YearQuestion,
+} from './questions'
+import {
+  buildRoute,
+  decisionChange,
+  landVisits,
+  legOf,
+  stampReach,
+  type Decision,
+  type Leg,
+} from './route-model'
+import { R, rcount } from './route-copy'
+import { RouteView } from './route-view'
+import { LegTicket } from './leg-ticket'
+import { SharedQuestions } from './shared-questions'
+import { StampStrip } from './stamp-strip'
+import { ImportFinish, type Finish } from './import-finish'
 import { failureOf } from './batch-run'
 import { NOMADS_ACCEPT } from './nomads-json'
 import { NomadsNote } from './nomads-note'
-import { FAILURE, ROW_FAILURE, S, count } from './copy'
+import { FAILURE, S, count } from './copy'
 import { UnifiedSession, type RetainedEntry, type SessionEntry } from './unified-session'
 import { HistoryImport } from './history-import'
 import { HistorySession, isHistoryCsv } from './history-session'
@@ -87,15 +112,6 @@ const C = {
     en: 'Couldn’t finish saving. Your remaining flights are kept here.',
     ru: 'Не удалось завершить сохранение. Остальные перелёты остались здесь.',
   },
-  confirm: {
-    en: 'Saving confirms that you took the past flights. Future flights are saved as bookings.',
-    ru: 'Сохраняя, вы подтверждаете прошлые перелёты. Будущие сохраняются как брони.',
-  },
-  confirmPast: {
-    en: 'Saving confirms you took these flights.',
-    ru: 'Сохраняя, вы подтверждаете, что летели этими рейсами.',
-  },
-  confirmFuture: { en: 'Saved as bookings.', ru: 'Сохранятся как брони.' },
   reading: {
     en: 'Wait until recognition finishes.',
     ru: 'Дождитесь завершения распознавания.',
@@ -104,8 +120,6 @@ const C = {
     en: 'Read or clear the entered text.',
     ru: 'Распознайте или очистите введённый текст.',
   },
-  save: { en: 'Save flights', ru: 'Сохранить перелёты' },
-  saveOne: { en: 'Save flight', ru: 'Сохранить перелёт' },
   close: { en: 'Close import', ru: 'Закрыть импорт' },
   pending: { en: 'Wait until the files are submitted.', ru: 'Дождитесь отправки файлов.' },
 } as const
@@ -197,9 +211,10 @@ export function UnifiedImport({
   const [dirty, setDirty] = useState<ReadonlySet<string>>(new Set())
   const [saving, setSaving] = useState(false)
   const savingNow = useRef(false)
-  const [saved, setSaved] = useState(false)
-  const [banded, setBanded] = useState(false)
-  if (entries.length && !banded) setBanded(true)
+  const [finish, setFinish] = useState<Finish | null>(null)
+  const [deferred, setDeferred] = useState<ReadonlySet<string>>(new Set())
+  const [landFailed, setLandFailed] = useState<ReadonlySet<string>>(new Set())
+  const routeHeading = useRef<HTMLHeadingElement>(null)
   const [dragging, setDragging] = useState(false)
   const dragDepth = useRef(0)
   const [error, setError] = useState(false)
@@ -309,16 +324,38 @@ export function UnifiedImport({
     return () => document.removeEventListener('paste', paste)
   }, [addFiles, historyOpen])
 
-  const drafts = withSaved(session.drafts(), session.getOutcomes())
+  const today = localToday()
+  const outcomes = session.getOutcomes()
+  const drafts = withSaved(session.drafts(), outcomes)
+  const landIds = session.landIds()
+  const landDone = session.landDoneIds()
   const shown = drafts.map((draft) => {
     const updated = withUnsent(draft, states[draft.id]?.unsent)
-    return { ...updated, fields: { ...updated.fields, flown_confirmed: true as const } }
+    return {
+      ...updated,
+      fields: {
+        ...updated.fields,
+        flown_confirmed: true as const,
+        airline_was_placeholder: undefined,
+      },
+    }
   })
   const identities = new Map<string, (typeof shown)[number]>()
-  const review = shown
-    .filter((draft) => draft.status === 'review')
+  const presented = shown
+    .filter(
+      (draft) =>
+        draft.status === 'review' ||
+        draft.status === 'converted' ||
+        (draft.status === 'dismissed' && !session.isSuppressed(draft.id)),
+    )
     .map((draft) => {
-      if (!draft.fields.date || !draft.fields.origin || !draft.fields.destination) return draft
+      if (
+        draft.status !== 'review' ||
+        !draft.fields.date ||
+        !draft.fields.origin ||
+        !draft.fields.destination
+      )
+        return draft
       const key = `${draft.fields.date}:${draft.fields.origin}:${draft.fields.destination}`
       const prior = identities.get(key)
       if (!prior) {
@@ -331,7 +368,8 @@ export function UnifiedImport({
         selected: draft.selected && draft.duplicateAcknowledged,
       }
     })
-  const safe = (draft: (typeof review)[number]) =>
+  const review = presented.filter((draft) => draft.status === 'review')
+  const safe = (draft: Draft) =>
     readiness(draft).length === 0 &&
     Object.keys(validateValues(toValues(draft.fields))).length === 0 &&
     (!isDuplicate(draft) || draft.duplicateAcknowledged)
@@ -340,25 +378,41 @@ export function UnifiedImport({
     !isDuplicate(review[0]) &&
     !session.requiresSelection() &&
     !session.isExcluded(review[0].id)
-  const chosen = review.filter((draft) => safe(draft) && (draft.selected || implicitSingleton))
-  const selectedIds = new Set(chosen.map((draft) => draft.id))
-  const selectable = review.filter(
-    (draft) => safe(draft) && session.getOutcomes().get(draft.id)?.status !== 'uncertain',
+  const legs = presented.map((draft) =>
+    legOf(draft, landIds, implicitSingleton && draft.id === review[0].id),
   )
-  const allSelected =
-    selectable.length > 0 && selectable.every((draft) => selectedIds.has(draft.id))
+  const legById = new Map(legs.map((leg) => [leg.id, leg]))
+  const chosen = review.filter((draft) => legById.get(draft.id)?.decision === 'flew' && safe(draft))
+  const visits = landVisits(legs).filter((visit) => !landDone.has(visit.id))
+  const blanks = legs.filter(
+    (leg) =>
+      leg.decision === 'flew' && !leg.saved && leg.draft.status === 'review' && !safe(leg.draft),
+  ).length
+  const undecided = legs.filter((leg) => !leg.saved && leg.decision === null).length
+  const flights = chosen.length
+  const recordable = flights + visits.length
+  const questions = buildQuestions(review, today).filter(
+    (question): question is YearQuestion | AirportQuestion =>
+      question.kind === 'year' || question.kind === 'airport',
+  )
+  const shared = questions.filter(
+    (question) => questionDrafts(question).length >= 2 && !deferred.has(question.key),
+  )
+  const sharedKeys = new Set(shared.map((question) => question.key))
+  const own = questions.filter((question) => !sharedKeys.has(question.key))
+  const yearFor = (id: string) =>
+    own.find(
+      (question): question is YearQuestion =>
+        question.kind === 'year' && question.drafts.some((draft) => draft.id === id),
+    )
+  const airportsFor = (id: string) =>
+    own.filter(
+      (question): question is AirportQuestion =>
+        question.kind === 'airport' && question.items.some((item) => item.draft.id === id),
+    )
+  const route = buildRoute(legs)
+  const reach = stampReach(legs)
   const reading = entries.some((entry) => ['queued', 'local', 'online'].includes(entry.phase))
-  const today = localToday()
-  const hasPast = chosen.some((draft) => draft.fields.date && draft.fields.date <= today)
-  const hasFuture = chosen.some((draft) => draft.fields.date && draft.fields.date > today)
-  const confirmation =
-    hasPast && hasFuture
-      ? C.confirm[locale]
-      : hasFuture
-        ? C.confirmFuture[locale]
-        : hasPast
-          ? C.confirmPast[locale]
-          : null
   useEffect(() => {
     if (entries.length && !hadSources.current) {
       const active = document.activeElement
@@ -368,6 +422,7 @@ export function UnifiedImport({
     }
     hadSources.current = entries.length > 0
   }, [entries.length])
+  const hasBar = legs.length > 0 && !finish
   useEffect(() => {
     const bar = root.current?.querySelector<HTMLElement>('.ui-action-bar')
     if (!bar) return
@@ -397,13 +452,32 @@ export function UnifiedImport({
       document.documentElement.style.removeProperty(property)
       document.documentElement.style.removeProperty(keyboard)
     }
-  }, [review.length])
+  }, [hasBar])
+  useEffect(() => {
+    if (!finish || finish.stamps !== null || feedback.status !== 'ready') return
+    let live = true
+    void fetchPressedCountries().then((after) => {
+      if (!live) return
+      setFinish((current) =>
+        current && current.id === finish.id
+          ? {
+              ...current,
+              stamps:
+                after && current.before ? newlyPressed(current.before, after, current.touched) : [],
+            }
+          : current,
+      )
+    })
+    return () => {
+      live = false
+    }
+  }, [finish, feedback.status])
   const reason = unsent
     ? unsentReason
     : reading
       ? C.reading[locale]
-      : chosen.length === 0
-        ? S.nothingChosen[locale]
+      : recordable === 0
+        ? R.nothing[locale]
         : undefined
   const closeReason = saving
     ? S.pausedWhileSaving[locale]
@@ -412,50 +486,123 @@ export function UnifiedImport({
       : pendingSource
         ? C.pending[locale]
         : undefined
+  const summary = [
+    flights ? rcount(locale, 'flights', flights) : null,
+    visits.length ? rcount(locale, 'land', visits.length) : null,
+    blanks ? rcount(locale, 'notReady', blanks) : null,
+    undecided ? rcount(locale, 'open', undecided) : null,
+  ]
+    .filter(Boolean)
+    .join(' · ')
+
+  const change = (id: string, next: DraftChange) => {
+    const original = drafts.find((item) => item.id === id)
+    if (!original) return
+    void saver.save(original, next)
+  }
+  const decide = (leg: Leg, decision: Decision) => {
+    const original = drafts.find((item) => item.id === leg.id)
+    if (!original) return
+    session.noteLand(leg.id, decision === 'land')
+    session.noteSelection(leg.id, decision === 'flew')
+    const next = decisionChange(leg.draft, decision)
+    if (next) void saver.save(original, next)
+  }
+
   const save = async () => {
     if (savingNow.current || reason) return
     savingNow.current = true
     setSaving(true)
     setError(false)
+    const before = fetchPressedCountries()
+    const pending = visits
     try {
-      const acks = await session.save(chosen.map((draft) => draft.id))
-      if (acks.length) feedback.acknowledge(acks.at(-1)!)
-      const remaining = withSaved(session.drafts(), session.getOutcomes()).some(
+      const acks: DerivedAck[] = chosen.length
+        ? await session.save(chosen.map((draft) => draft.id))
+        : []
+      const failedLand = new Set<string>()
+      for (const visit of pending) {
+        try {
+          const result = await addGroundVisit(
+            ownerId,
+            visit.countryCode,
+            { visitYear: visit.visitYear, entryMethod: 'land' },
+            visit.id,
+          )
+          session.noteLandDone(visit.id)
+          acks.push({ derived_state: result.derived_state, revision: result.revision })
+        } catch {
+          failedLand.add(visit.id)
+        }
+      }
+      setLandFailed(failedLand)
+      const latest =
+        acks
+          .filter((ack) => ack.derived_state === 'pending')
+          .sort((a, b) => (b.revision ?? 0) - (a.revision ?? 0))[0] ?? acks.at(-1)
+      if (latest) feedback.acknowledge(latest)
+      const after = withSaved(session.drafts(), session.getOutcomes())
+      const savedOutcomes = [...session.getOutcomes()].filter(
+        (entry): entry is [string, Extract<RowOutcome, { status: 'saved' }>] =>
+          entry[1].status === 'saved',
+      )
+      const failed = [...session.getOutcomes()].some(
+        ([id, outcome]) =>
+          outcome.status !== 'saved' &&
+          after.some((draft) => draft.id === id && draft.status === 'review'),
+      )
+      const waiting = after.some(
         (draft) =>
           draft.status === 'review' &&
-          (draft.selected ||
-            !safe({ ...draft, fields: { ...draft.fields, flown_confirmed: true } })),
+          draft.selected &&
+          !safe({ ...draft, fields: { ...draft.fields, flown_confirmed: true } }),
       )
-      const failures = entries.some((entry) => entry.phase === 'failed')
-      const savedIds = [
-        ...new Set(
-          withSaved(session.drafts(), session.getOutcomes()).flatMap((draft) =>
-            draft.convertedFlightId ? [draft.convertedFlightId] : [],
-          ),
-        ),
-      ]
-      if (!remaining && !failures && savedIds.length && !saver.hasUnsaved()) {
-        const first = savedIds[0]
-        const destination = `/journal?flight=${first}`
+      const sources = entries.some((entry) => entry.phase === 'failed')
+      if (failed || failedLand.size || sources) setError(failed || failedLand.size > 0)
+      else if (!waiting && !saver.hasUnsaved()) {
+        const landSaved = session.landDoneIds()
+        const savedDrafts = after.filter((draft) => savedOutcomes.some(([id]) => id === draft.id))
+        const touched = [
+          ...new Set([
+            ...savedDrafts.flatMap((draft) =>
+              routeCountries(draft.fields.origin, draft.fields.destination),
+            ),
+            ...pending.filter((visit) => landSaved.has(visit.id)).map((visit) => visit.countryCode),
+          ]),
+        ]
+        const flightCount = savedOutcomes.length
+        const landCount = landSaved.size
         announceShellNotice(ownerId, {
-          message: {
-            en: count('en', 'savedFlights', savedIds.length),
-            ru: count('ru', 'savedFlights', savedIds.length),
-          },
+          message: flightCount
+            ? {
+                en: count('en', 'savedFlights', flightCount),
+                ru: count('ru', 'savedFlights', flightCount),
+              }
+            : {
+                en: rcount('en', 'landSavedNotice', landCount),
+                ru: rcount('ru', 'landSavedNotice', landCount),
+              },
           kind: 'success',
         })
         try {
-          if (
-            !withSaved(session.drafts(), session.getOutcomes()).some(
-              (draft) => draft.status === 'review',
-            )
-          )
+          if (!after.some((draft) => draft.status === 'review'))
             sessionStorage.removeItem(`kuuki-import-session:${ownerId}`)
         } catch {}
-        setSaved(true)
-        router.push(destination)
-        router.refresh()
-      } else if (remaining) setError(true)
+        window.history.replaceState(window.history.state, '', '/import')
+        setFinish({
+          id: crypto.randomUUID(),
+          flights: flightCount,
+          km: savedDrafts.reduce(
+            (total, draft) => total + routeKm(draft.fields.origin, draft.fields.destination),
+            0,
+          ),
+          land: landCount,
+          firstFlightId: savedOutcomes[0]?.[1].flightId ?? null,
+          touched,
+          before: await before,
+          stamps: touched.length ? null : [],
+        })
+      }
     } catch {
       setError(true)
     } finally {
@@ -478,7 +625,7 @@ export function UnifiedImport({
     )
 
   const reviewIds = new Set(review.map((draft) => draft.id))
-  const lane = laneModel({
+  const laneInput = {
     entries: entries.map((entry) => ({
       id: entry.id,
       phase: entry.phase,
@@ -493,14 +640,19 @@ export function UnifiedImport({
           : 0,
     })),
     dragging,
-    history: 'idle',
-    saved,
-  })
+    history: 'idle' as const,
+    saved: Boolean(finish),
+    finished: Boolean(finish),
+  }
+  const lane = laneModel(laneInput)
+  const frozen = saving || reading
+  const sourcesShown = entries.length > 0 || Boolean(finish)
 
   return (
     <div
       ref={root}
       className="import-page unified-import"
+      data-layout={sourcesShown ? 'review' : 'empty'}
       onDragEnter={(event) => {
         if (saving || !carriesFiles(event.dataTransfer)) return
         dragDepth.current += 1
@@ -528,361 +680,323 @@ export function UnifiedImport({
           aria-label={C.close[locale]}
           disabled={Boolean(closeReason)}
           aria-describedby={
-            closeReason
-              ? closeReason === reason && review.length
-                ? reasonId
-                : closeReasonId
-              : undefined
+            closeReason ? (closeReason === reason && hasBar ? reasonId : closeReasonId) : undefined
           }
           onClick={() => router.push('/journal')}
         >
           <X size={20} aria-hidden="true" />
         </Button>
       </div>
-      {closeReason && !(closeReason === reason && review.length) ? (
-        <p id={closeReasonId} className="import-hint">
+      {closeReason && !(closeReason === reason && hasBar) ? (
+        <p id={closeReasonId} className="import-hint unified-import-close-reason">
           {closeReason}
         </p>
       ) : null}
-      <SecurityLane model={banded ? { ...lane, size: 'band' } : lane} />
-      <div ref={sourceActions} className="unified-import-sources">
-        {entries.length ? (
-          <Menu
-            open={sourceMenuOpen && !saving}
-            onOpenChange={(open) => setSourceMenuOpen(open && !saving)}
-            trigger={
-              <Button ref={moreButton} variant="ghost" disabled={saving}>
-                {C.moreSources[locale]} <ChevronIcon size={16} aria-hidden="true" />
-              </Button>
-            }
-          >
-            <MenuItem disabled={saving} onSelect={() => fileInput.current?.click()}>
-              <Upload size={18} aria-hidden="true" />
-              {C.more[locale]}
-            </MenuItem>
-            <MenuItem disabled={saving} onSelect={() => cameraInput.current?.click()}>
-              <Camera className="unified-import-camera" size={18} aria-hidden="true" />
-              {C.photo[locale]}
-            </MenuItem>
-            <MenuItem disabled={saving} onSelect={() => setTextOpen(true)}>
-              <Clipboard size={18} aria-hidden="true" />
-              {C.paste[locale]}
-            </MenuItem>
-          </Menu>
-        ) : (
-          <div className="import-actions unified-import-source-actions">
-            <Button
-              variant="primary"
-              icon={<Upload size={18} aria-hidden="true" />}
-              disabled={saving}
-              onClick={() => fileInput.current?.click()}
-            >
-              {C.choose[locale]}
-            </Button>
-            <Button
-              className="unified-import-camera"
-              icon={<Camera size={18} aria-hidden="true" />}
-              disabled={saving}
-              onClick={() => cameraInput.current?.click()}
-            >
-              {C.photo[locale]}
-            </Button>
-            <Button variant="ghost" disabled={saving} onClick={() => setTextOpen(!textOpen)}>
-              {C.paste[locale]}
-            </Button>
-            <Button variant="ghost" disabled={saving} onClick={() => flightyInput.current?.click()}>
-              {C.flighty[locale]}
-            </Button>
-            <Button variant="ghost" disabled={saving} onClick={() => nomadsInput.current?.click()}>
-              {C.nomads[locale]}
-            </Button>
-          </div>
-        )}
-        <input
-          ref={nomadsInput}
-          className="sr-only"
-          type="file"
-          accept={NOMADS_ACCEPT}
-          tabIndex={-1}
-          aria-hidden="true"
-          onChange={(event) => {
-            session.add([...(event.target.files ?? [])])
-            event.target.value = ''
-          }}
-        />
-        <input
-          ref={fileInput}
-          className="sr-only"
-          type="file"
-          accept={`${ACCEPT},.csv,text/csv,${NOMADS_ACCEPT}`}
-          multiple
-          tabIndex={-1}
-          aria-hidden="true"
-          onChange={(event) => {
-            addFiles([...(event.target.files ?? [])])
-            event.target.value = ''
-          }}
-        />
-        <input
-          ref={cameraInput}
-          className="sr-only"
-          type="file"
-          accept="image/jpeg,image/png"
-          capture="environment"
-          tabIndex={-1}
-          aria-hidden="true"
-          onChange={(event) => {
-            session.add([...(event.target.files ?? [])])
-            event.target.value = ''
-          }}
-        />
-        <input
-          ref={flightyInput}
-          className="sr-only"
-          type="file"
-          accept=".csv,text/csv"
-          tabIndex={-1}
-          aria-hidden="true"
-          onChange={(event) => {
-            addFiles([...(event.target.files ?? [])])
-            event.target.value = ''
-          }}
-        />
-        <div className="unified-import-notes" data-empty={entries.length ? undefined : true}>
-          <p className="import-privacy">{C.online[locale]}</p>
-          {entries.length ? null : (
-            <p className="import-privacy unified-import-drop">{C.drop[locale]}</p>
-          )}
-        </div>
-      </div>
-      {guard.dialog}
-      {textOpen ? (
-        <form
-          className="unified-import-text"
-          onSubmit={(event) => {
-            event.preventDefault()
-            if (!text.trim() || saving) return
-            session.addText(text.trim(), C.paste[locale])
-            setText('')
-            setTextOpen(false)
-          }}
-        >
-          <ImportTextarea
-            label={C.paste[locale]}
-            value={text}
-            maxLength={100000}
-            disabled={saving}
-            onChange={(event) => setText(event.target.value)}
-          />
-          <Button type="submit" disabled={!text.trim() || saving}>
-            {C.readText[locale]}
-          </Button>
-        </form>
-      ) : null}
-      <ul className="unified-import-files" aria-live="polite">
-        {entries.map((entry) => {
-          const failure = entryFailure(entry)
-          return (
-            <li key={entry.id}>
-              <span className="unified-import-file-name" title={entry.label || S.title[locale]}>
-                <span>{(entry.label || S.title[locale]).replace(/\.(pdf|png|jpe?g)$/i, '')}</span>
-                <span>{entry.label.match(/\.(pdf|png|jpe?g)$/i)?.[0]}</span>
-              </span>
-              {entry.nomads && (entry.phase === 'ready' || entry.phase === 'empty') ? (
-                <NomadsNote
-                  locale={locale}
-                  summary={entry.nomads}
-                  empty={entry.phase === 'empty'}
-                />
-              ) : (
-                <span className="import-hint">
-                  {entry.phase === 'queued' ||
-                  entry.phase === 'local' ||
-                  entry.phase === 'online' ? (
-                    <TextShimmer>
-                      {entry.phase === 'online' ? C.onlineReading[locale] : C[entry.phase][locale]}
-                    </TextShimmer>
-                  ) : entry.phase === 'failed' ? (
-                    entry.problem === 'type' ? (
-                      S.fileBad[locale]
-                    ) : entry.problem === 'nomads' ? (
-                      C.nomadsBad[locale]
-                    ) : entry.problem === 'size' ? (
-                      C.tooBig[locale]
-                    ) : entry.problem === 'partial' ? (
-                      C.partial[locale]
-                    ) : entry.problem === 'reselect' ? (
-                      C.reselect[locale]
-                    ) : failure ? (
-                      FAILURE[failure.kind][locale].title
-                    ) : (
-                      S.fileRead[locale]
-                    )
-                  ) : (
-                    C[entry.phase][locale]
-                  )}
-                </span>
-              )}
-              {entry.phase === 'failed' && entry.problem !== 'type' && entry.problem !== 'size' ? (
+      <div className="import-side">
+        <SecurityLane model={lane} />
+        {finish ? null : (
+          <div ref={sourceActions} className="unified-import-sources">
+            {entries.length ? (
+              <Menu
+                open={sourceMenuOpen && !saving}
+                onOpenChange={(open) => setSourceMenuOpen(open && !saving)}
+                trigger={
+                  <Button ref={moreButton} variant="ghost" disabled={saving}>
+                    {C.moreSources[locale]} <ChevronIcon size={16} aria-hidden="true" />
+                  </Button>
+                }
+              >
+                <MenuItem disabled={saving} onSelect={() => fileInput.current?.click()}>
+                  <Upload size={18} aria-hidden="true" />
+                  {C.more[locale]}
+                </MenuItem>
+                <MenuItem disabled={saving} onSelect={() => cameraInput.current?.click()}>
+                  <Camera className="unified-import-camera" size={18} aria-hidden="true" />
+                  {C.photo[locale]}
+                </MenuItem>
+                <MenuItem disabled={saving} onSelect={() => setTextOpen(true)}>
+                  <Clipboard size={18} aria-hidden="true" />
+                  {C.paste[locale]}
+                </MenuItem>
+              </Menu>
+            ) : (
+              <div className="import-actions unified-import-source-actions">
                 <Button
-                  dense
-                  disabledReason={
-                    saving ? S.pausedWhileSaving[locale] : unsent ? unsentReason : undefined
-                  }
-                  onClick={() => session.retry(entry)}
+                  variant="primary"
+                  icon={<Upload size={18} aria-hidden="true" />}
+                  disabled={saving}
+                  onClick={() => fileInput.current?.click()}
                 >
-                  {C.retry[locale]}
+                  {C.choose[locale]}
                 </Button>
-              ) : null}
-              {entry.phase === 'failed' && !entry.runs.length ? (
                 <Button
-                  dense
+                  className="unified-import-camera"
+                  icon={<Camera size={18} aria-hidden="true" />}
+                  disabled={saving}
+                  onClick={() => cameraInput.current?.click()}
+                >
+                  {C.photo[locale]}
+                </Button>
+                <Button variant="ghost" disabled={saving} onClick={() => setTextOpen(!textOpen)}>
+                  {C.paste[locale]}
+                </Button>
+                <Button
                   variant="ghost"
                   disabled={saving}
-                  onClick={() => session.remove(entry)}
+                  onClick={() => flightyInput.current?.click()}
                 >
-                  {C.removeFile[locale]}
+                  {C.flighty[locale]}
                 </Button>
-              ) : null}
-              {entry.phase === 'empty' ? (
-                <Link className="ui-button" data-dense="true" href="/add">
-                  {C.manual[locale]}
-                </Link>
-              ) : null}
-            </li>
-          )
-        })}
-      </ul>
-      {review.length > 1 ? (
-        <div className="import-select-head">
-          <Button
-            variant="ghost"
-            dense
-            disabled={saving || reading || unsent || selectable.length === 0}
-            onClick={() => {
-              for (const draft of selectable) {
-                const selected = !allSelected
-                if (draft.selected === selected) continue
-                session.noteSelection(draft.id, selected)
-                void saver.save(
-                  drafts.find((item) => item.id === draft.id)!,
-                  { selected },
-                )
-              }
+                <Button
+                  variant="ghost"
+                  disabled={saving}
+                  onClick={() => nomadsInput.current?.click()}
+                >
+                  {C.nomads[locale]}
+                </Button>
+              </div>
+            )}
+            <input
+              ref={nomadsInput}
+              className="sr-only"
+              type="file"
+              accept={NOMADS_ACCEPT}
+              tabIndex={-1}
+              aria-hidden="true"
+              onChange={(event) => {
+                session.add([...(event.target.files ?? [])])
+                event.target.value = ''
+              }}
+            />
+            <input
+              ref={fileInput}
+              className="sr-only"
+              type="file"
+              accept={`${ACCEPT},.csv,text/csv,${NOMADS_ACCEPT}`}
+              multiple
+              tabIndex={-1}
+              aria-hidden="true"
+              onChange={(event) => {
+                addFiles([...(event.target.files ?? [])])
+                event.target.value = ''
+              }}
+            />
+            <input
+              ref={cameraInput}
+              className="sr-only"
+              type="file"
+              accept="image/jpeg,image/png"
+              capture="environment"
+              tabIndex={-1}
+              aria-hidden="true"
+              onChange={(event) => {
+                session.add([...(event.target.files ?? [])])
+                event.target.value = ''
+              }}
+            />
+            <input
+              ref={flightyInput}
+              className="sr-only"
+              type="file"
+              accept=".csv,text/csv"
+              tabIndex={-1}
+              aria-hidden="true"
+              onChange={(event) => {
+                addFiles([...(event.target.files ?? [])])
+                event.target.value = ''
+              }}
+            />
+            <div className="unified-import-notes" data-empty={entries.length ? undefined : true}>
+              <p className="import-privacy">{C.online[locale]}</p>
+              {entries.length ? null : (
+                <p className="import-privacy unified-import-drop">{C.drop[locale]}</p>
+              )}
+            </div>
+          </div>
+        )}
+        {guard.dialog}
+        {textOpen && !finish ? (
+          <form
+            className="unified-import-text"
+            onSubmit={(event) => {
+              event.preventDefault()
+              if (!text.trim() || saving) return
+              session.addText(text.trim(), C.paste[locale])
+              setText('')
+              setTextOpen(false)
             }}
           >
-            {allSelected ? S.aircraftDeselectAll[locale] : S.selectAll[locale]}
-          </Button>
-          <span className="import-count" aria-live="polite">
-            {count(locale, 'selected', chosen.length)} {count(locale, 'ofTotal', review.length)}
-          </span>
-        </div>
-      ) : null}
-      <ul className="import-rows unified-import-rows">
-        {review.map((draft) => {
-          const original = drafts.find((item) => item.id === draft.id)!
-          const presented = { ...draft, selected: selectedIds.has(draft.id) }
-          const outcome = session.getOutcomes().get(draft.id)
-          const unknown = outcome?.status === 'uncertain'
-          return (
-            <ReviewRow
-              key={draft.id}
-              locale={locale}
-              draft={presented}
-              stored={original}
-              state={states[draft.id]}
-              mobile={false}
-              compact
-              singleton={review.length === 1}
-              implicitSelection={implicitSingleton}
-              frozen={saving || unknown || reading}
-              onDirty={onDirty}
-              onChange={(change) => {
-                if (change.selected !== undefined) session.noteSelection(draft.id, change.selected)
-                void saver.save(original, change)
-              }}
-              onRetry={() => {
-                void saver.retry(draft.id)
-              }}
-              onDiscard={() => saver.discard(draft.id)}
-            >
-              <QuestionDeck
-                compact
-                locale={locale}
-                drafts={[
-                  {
-                    ...draft,
-                    fields: {
-                      ...draft.fields,
-                      flown_required: undefined,
-                      airline_was_placeholder: undefined,
-                    },
-                  },
-                ]}
-                saveStates={states}
-                frozen={saving || unknown || reading || dirty.size > 0}
-                today={localToday()}
-                onChange={(_, change) => {
-                  void saver.save(
-                    original,
-                    session.isExcluded(draft.id) ? { ...change, selected: false } : change,
-                  )
-                }}
-                onRetry={(id) => {
-                  void saver.retry(id)
-                }}
-              />
-              {outcome && outcome.status !== 'saved' ? (
-                <p className="import-problem" role="status">
-                  <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
-                  <span>
-                    {outcome.status === 'failed'
-                      ? ROW_FAILURE[outcome.failure][locale]
-                      : outcome.status === 'uncertain'
-                        ? S.uncertainRow[locale]
-                        : S.unsentRow[locale]}
+            <ImportTextarea
+              label={C.paste[locale]}
+              value={text}
+              maxLength={100000}
+              disabled={saving}
+              onChange={(event) => setText(event.target.value)}
+            />
+            <Button type="submit" disabled={!text.trim() || saving}>
+              {C.readText[locale]}
+            </Button>
+          </form>
+        ) : null}
+        {finish ? null : (
+          <ul className="unified-import-files" aria-live="polite">
+            {entries.map((entry) => {
+              const failure = entryFailure(entry)
+              return (
+                <li key={entry.id}>
+                  <span className="unified-import-file-name" title={entry.label || S.title[locale]}>
+                    <span>
+                      {(entry.label || S.title[locale]).replace(/\.(pdf|png|jpe?g)$/i, '')}
+                    </span>
+                    <span>{entry.label.match(/\.(pdf|png|jpe?g)$/i)?.[0]}</span>
                   </span>
-                </p>
-              ) : null}
-            </ReviewRow>
-          )
-        })}
-      </ul>
-      {drafts
-        .filter((draft) => draft.status === 'dismissed' && !session.isSuppressed(draft.id))
-        .map((draft) => (
-          <Button
-            key={draft.id}
-            variant="ghost"
-            disabled={saving || reading}
-            onClick={() => {
-              void saver.save(draft, { dismissed: false })
-            }}
-          >
-            {S.statusRestore[locale]} {draft.fields.origin}–{draft.fields.destination}
-          </Button>
-        ))}
-      {error ? (
-        <p className="import-problem" role="alert">
-          <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
-          <span>{C.saveFailed[locale]}</span>
-        </p>
-      ) : null}
-      {drafts.some((draft) => draft.status === 'converted') ? (
-        <p className="import-hint">
-          {count(
-            locale,
-            'alreadySavedN',
-            drafts.filter((draft) => draft.status === 'converted').length,
-          )}
-        </p>
-      ) : null}
-      {review.length ? (
+                  {entry.nomads && (entry.phase === 'ready' || entry.phase === 'empty') ? (
+                    <NomadsNote
+                      locale={locale}
+                      summary={entry.nomads}
+                      empty={entry.phase === 'empty'}
+                    />
+                  ) : (
+                    <span className="import-hint">
+                      {entry.phase === 'queued' ||
+                      entry.phase === 'local' ||
+                      entry.phase === 'online' ? (
+                        <TextShimmer>
+                          {entry.phase === 'online'
+                            ? C.onlineReading[locale]
+                            : C[entry.phase][locale]}
+                        </TextShimmer>
+                      ) : entry.phase === 'failed' ? (
+                        entry.problem === 'type' ? (
+                          S.fileBad[locale]
+                        ) : entry.problem === 'nomads' ? (
+                          C.nomadsBad[locale]
+                        ) : entry.problem === 'size' ? (
+                          C.tooBig[locale]
+                        ) : entry.problem === 'partial' ? (
+                          C.partial[locale]
+                        ) : entry.problem === 'reselect' ? (
+                          C.reselect[locale]
+                        ) : failure ? (
+                          FAILURE[failure.kind][locale].title
+                        ) : (
+                          S.fileRead[locale]
+                        )
+                      ) : (
+                        C[entry.phase][locale]
+                      )}
+                    </span>
+                  )}
+                  {entry.phase === 'failed' &&
+                  entry.problem !== 'type' &&
+                  entry.problem !== 'size' ? (
+                    <Button
+                      dense
+                      disabledReason={
+                        saving ? S.pausedWhileSaving[locale] : unsent ? unsentReason : undefined
+                      }
+                      onClick={() => session.retry(entry)}
+                    >
+                      {C.retry[locale]}
+                    </Button>
+                  ) : null}
+                  {entry.phase === 'failed' && !entry.runs.length ? (
+                    <Button
+                      dense
+                      variant="ghost"
+                      disabled={saving}
+                      onClick={() => session.remove(entry)}
+                    >
+                      {C.removeFile[locale]}
+                    </Button>
+                  ) : null}
+                  {entry.phase === 'empty' ? (
+                    <Link className="ui-button" data-dense="true" href="/add">
+                      {C.manual[locale]}
+                    </Link>
+                  ) : null}
+                </li>
+              )
+            })}
+          </ul>
+        )}
+        {finish ? null : <StampStrip locale={locale} reach={reach} />}
+      </div>
+      <div className="import-main">
+        {finish ? (
+          <ImportFinish
+            locale={locale}
+            finish={finish}
+            publication={feedback.status}
+            remaining={undecided}
+            onReview={() => setFinish(null)}
+          />
+        ) : (
+          <>
+            {error ? (
+              <p className="import-problem" role="alert">
+                <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
+                <span>{C.saveFailed[locale]}</span>
+              </p>
+            ) : null}
+            <SharedQuestions
+              locale={locale}
+              questions={shared}
+              legs={legById}
+              frozen={frozen || dirty.size > 0}
+              today={today}
+              onAnswer={(answers) => {
+                for (const { draft, change: next } of answers) change(draft.id, next)
+              }}
+              onDefer={(key) => setDeferred((current) => new Set(current).add(key))}
+              onDone={() => routeHeading.current?.focus()}
+            />
+            <RouteView
+              locale={locale}
+              items={route}
+              headingRef={routeHeading}
+              renderLeg={(leg) => {
+                const outcome = outcomes.get(leg.id)
+                const original = drafts.find((item) => item.id === leg.id)!
+                return (
+                  <LegTicket
+                    key={leg.id}
+                    locale={locale}
+                    leg={leg}
+                    stored={original}
+                    state={states[leg.id]}
+                    outcome={outcome?.status === 'saved' ? undefined : outcome}
+                    land={
+                      landDone.has(leg.id) && leg.decision === 'land'
+                        ? 'saved'
+                        : landFailed.has(leg.id)
+                          ? 'failed'
+                          : undefined
+                    }
+                    year={leg.draft.status === 'review' ? yearFor(leg.id) : undefined}
+                    airports={leg.draft.status === 'review' ? airportsFor(leg.id) : []}
+                    frozen={frozen || outcome?.status === 'uncertain'}
+                    today={today}
+                    onDecide={(decision) => decide(leg, decision)}
+                    onChange={(next) => change(leg.id, next)}
+                    onDirty={onDirty}
+                    onRetry={() => {
+                      void saver.retry(leg.id)
+                    }}
+                    onDiscard={() => saver.discard(leg.id)}
+                  />
+                )
+              }}
+            />
+          </>
+        )}
+      </div>
+      {hasBar ? (
         <FloatingActionBar
           label={S.barLabel[locale]}
           countLabel={
             <span id={reasonId} className="import-hint">
-              {reason ?? confirmation}
+              {reason ?? summary}
             </span>
           }
         >
@@ -891,14 +1005,10 @@ export function UnifiedImport({
             loading={saving}
             loadingLabel={S.saving[locale]}
             disabled={Boolean(reason)}
-            aria-describedby={reason || confirmation ? reasonId : undefined}
+            aria-describedby={reasonId}
             onClick={() => void save()}
           >
-            {review.length > 1 && chosen.length > 0
-              ? count(locale, 'saveSelected', chosen.length)
-              : review.length === 1 || chosen.length === 1
-                ? C.saveOne[locale]
-                : C.save[locale]}
+            {recordable ? rcount(locale, 'addN', recordable) : R.add[locale]}
           </Button>
         </FloatingActionBar>
       ) : null}

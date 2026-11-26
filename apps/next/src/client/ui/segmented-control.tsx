@@ -19,7 +19,7 @@ const sameThumb = (a: Thumb | null, b: Thumb) =>
   !!a && a.x === b.x && a.y === b.y && a.w === b.w && a.h === b.h && a.base === b.base
 
 export type SegmentedControlProps<T extends string> = {
-  value: T
+  value: T | null
   onChange: (value: T) => void
   options: readonly SegmentOption<T>[]
   label: string
@@ -42,12 +42,14 @@ export function SegmentedControl<T extends string>({
   const [thumb, setThumb] = useState<Thumb | null>(null)
   const [ready, setReady] = useState(false)
   const [keyboard, setKeyboard] = useState(false)
-  const selected = Math.max(
-    0,
-    options.findIndex((option) => option.value === value),
-  )
+  const found = options.findIndex((option) => option.value === value)
+  const selected = Math.max(0, found)
 
   const place = () => {
+    if (current.current < 0) {
+      setThumb(null)
+      return
+    }
     const box = boxes.current[current.current]
     if (!box) return
     const next = { ...box, base: boxes.current[0]?.w ?? box.w }
@@ -55,9 +57,9 @@ export function SegmentedControl<T extends string>({
   }
 
   useLayoutEffect(() => {
-    current.current = selected
+    current.current = found
     place()
-  }, [selected])
+  }, [found])
 
   useLayoutEffect(() => {
     const node = root.current

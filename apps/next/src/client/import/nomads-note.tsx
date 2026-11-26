@@ -1,4 +1,6 @@
 import { formatCount, formatDistanceKm, type CountForms, type Locale } from '../../lib/format'
+import { Disclosure } from '../ui/disclosure'
+import { R } from './route-copy'
 import { LIKELY_GROUND_KM, NOMADS_MAX_ROUTES, type NomadsSummary } from './nomads-json'
 
 const STORY = {
@@ -74,12 +76,7 @@ const LEFT_OUT = {
 } satisfies Record<string, CountForms>
 
 const C = {
-  review: {
-    en: 'Check airports and dates, and leave journeys by land unticked.',
-    ru: 'Проверьте аэропорты и даты, поездки по земле не отмечайте.',
-  },
   empty: { en: 'No possible flights found.', ru: 'Возможных перелётов не нашлось.' },
-  leftOut: { en: 'Left out: ', ru: 'Не вошли: ' },
   stayedPut: {
     en: 'Staying put is a travel style too.',
     ru: 'Оставаться на месте — тоже стиль путешествий.',
@@ -94,15 +91,14 @@ export function nomadsStory(locale: Locale, summary: NomadsSummary): string {
   return `${stays}${where} · ${formatCount(locale, summary.routes, STORY.routes)}`
 }
 
-export function nomadsLeftOut(locale: Locale, summary: NomadsSummary): string | null {
-  const parts = (Object.keys(LEFT_OUT) as (keyof typeof LEFT_OUT)[])
+export function nomadsLeftOutParts(locale: Locale, summary: NomadsSummary): string[] {
+  return (Object.keys(LEFT_OUT) as (keyof typeof LEFT_OUT)[])
     .filter((key) => summary[key] > 0)
     .map((key) =>
       formatCount(locale, summary[key], LEFT_OUT[key])
         .replace('{km}', formatDistanceKm(locale, LIKELY_GROUND_KM))
         .replace('{limit}', String(NOMADS_MAX_ROUTES)),
     )
-  return parts.length ? `${C.leftOut[locale]}${parts.join(', ')}` : null
 }
 
 export function NomadsNote({
@@ -114,13 +110,21 @@ export function NomadsNote({
   summary: NomadsSummary
   empty: boolean
 }) {
-  const leftOut = nomadsLeftOut(locale, summary)
+  const leftOut = nomadsLeftOutParts(locale, summary)
   return (
     <span className="unified-import-nomads">
       <span className="import-count">{nomadsStory(locale, summary)}</span>
-      <span>{empty ? C.empty[locale] : C.review[locale]}</span>
-      {leftOut ? <span>{leftOut}</span> : null}
+      {empty ? <span>{C.empty[locale]}</span> : null}
       {empty && !summary.invalid ? <span>{C.stayedPut[locale]}</span> : null}
+      {leftOut.length ? (
+        <Disclosure summary={R.leftOut[locale]}>
+          <ul className="unified-import-left-out">
+            {leftOut.map((part) => (
+              <li key={part}>{part}</li>
+            ))}
+          </ul>
+        </Disclosure>
+      ) : null}
     </span>
   )
 }

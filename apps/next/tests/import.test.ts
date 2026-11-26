@@ -263,7 +263,14 @@ async function setup(page: Page, baseURL: string | undefined) {
   return server
 }
 
-const rows = (page: Page) => page.locator('.import-row:visible')
+const rows = (page: Page) => page.locator('.route-leg:visible')
+const finished = async (page: Page) => {
+  await expect(page.getByRole('heading', { name: 'Import finished' })).toBeAttached()
+  await expect(page.getByRole('link', { name: 'Open journal' })).toHaveAttribute(
+    'href',
+    /\/journal\?flight=/,
+  )
+}
 const submitText = async (page: Page) => {
   await page.goto('/import')
   await page.getByRole('button', { name: 'Paste text', exact: true }).click()
@@ -299,13 +306,13 @@ test('leaving and reloading during recognition resumes the stored batch without 
     }),
   ])
   await expect(rows(page)).toHaveCount(2, { timeout: 15000 })
-  await expect(page.getByRole('button', { name: 'Save 2 flights' })).not.toHaveAttribute(
+  await expect(page.getByRole('button', { name: 'Add 2 to journal' })).not.toHaveAttribute(
     'aria-disabled',
     'true',
   )
 })
 
-test('reloading review retains member exclusions', async ({ page, baseURL }) => {
+test('reloading review keeps a skipped leg skipped', async ({ page, baseURL }) => {
   const server = await setup(page, baseURL)
   server.ready([
     row('d1'),
@@ -315,20 +322,20 @@ test('reloading review retains member exclusions', async ({ page, baseURL }) => 
   ])
   await page.goto(`/import?batch=${BATCH}`)
   await expect(rows(page)).toHaveCount(2)
-  await rows(page).first().getByRole('checkbox').uncheck()
+  await rows(page).first().getByRole('radio', { name: 'Skip' }).click()
   await expect.poll(() => server.patches.length).toBe(1)
-  expect(server.patches[0].body.selected).toBe(false)
+  expect(server.patches[0].body.dismissed).toBe(true)
   await page.reload()
-  await expect(rows(page).first().getByRole('checkbox')).not.toBeChecked()
-  await page.getByRole('button', { name: 'Save 1 flight', exact: true }).click()
-  await expect(page).toHaveURL(/\/journal\?flight=/)
-  expect(server.confirms[0].items.map((item) => item.draftId)).toEqual(['d2'])
-  await page.goto('/import')
-  await expect(rows(page)).toHaveCount(1)
-  await expect(page.getByRole('button', { name: 'Save flight', exact: true })).toHaveAttribute(
-    'aria-disabled',
+  await expect(rows(page).first().getByRole('radio', { name: 'Skip' })).toHaveAttribute(
+    'aria-checked',
     'true',
   )
+  await page.getByRole('button', { name: 'Add 1 to journal', exact: true }).click()
+  await finished(page)
+  expect(server.confirms[0].items.map((item) => item.draftId)).toEqual(['d2'])
+  await page.goto('/import')
+  await expect(page.getByRole('button', { name: 'Choose files' })).toBeVisible()
+  await expect(rows(page)).toHaveCount(0)
   expect(server.confirms).toHaveLength(1)
   expect(server.jobs).toHaveLength(0)
 })
@@ -349,15 +356,16 @@ test('a partial save keeps failed rows actionable and retries only the original 
   ])
   server.failOnce.add('d2')
   await page.goto(`/import?batch=${BATCH}`)
-  await page.getByRole('button', { name: 'Save 3 flights' }).click()
+  await page.getByRole('button', { name: 'Add 3 to journal' }).click()
   await expect(
     page.getByText('Couldn’t finish saving. Your remaining flights are kept here.'),
   ).toBeVisible()
-  await expect(rows(page)).toHaveCount(1)
+  await expect(rows(page)).toHaveCount(3)
+  await expect(page.getByText('In your journal', { exact: true })).toHaveCount(2)
   expect(server.confirms[0].items.map((item) => item.draftId)).toEqual(['d1', 'd2', 'd3'])
   expect(server.confirms[0].timezone).toMatch(/\S/)
-  await page.getByRole('button', { name: 'Save flight', exact: true }).click()
-  await expect(page).toHaveURL(/\/journal\?flight=/)
+  await page.getByRole('button', { name: 'Add 1 to journal', exact: true }).click()
+  await finished(page)
   expect(server.confirms).toHaveLength(2)
   expect(server.confirms[1].items.map((item) => item.draftId)).toEqual(['d2'])
   expect(server.confirms[1].items[0].key).toBe(server.confirms[0].items[1].key)
@@ -375,28 +383,27 @@ test('typed corrections protect close and save until persisted', async ({ page, 
   await page.goto(`/import?batch=${BATCH}`)
   const first = rows(page).first()
   await first.getByRole('button', { name: 'Edit' }).click()
-  await first.getByRole('combobox', { name: 'To (airport code)' }).click()
+  const editor = page.getByRole('dialog', { name: 'Edit flight' })
+  await editor.getByRole('combobox', { name: 'To (airport code)' }).click()
   const search = page.getByRole('dialog').getByRole('combobox', { name: 'To (airport code)' })
-  await search.fill('Boston')
+  await search.last().fill('Boston')
   await page.getByRole('option', { name: /BOS/ }).click()
-  await expect(page.getByRole('dialog')).toBeHidden()
-  await expect(first.getByRole('combobox', { name: 'To (airport code)' })).toHaveValue('BOS')
-  const save = page.getByRole('button', { name: 'Save 2 flights' })
+  await expect(editor.getByRole('combobox', { name: 'To (airport code)' })).toHaveValue('BOS')
+  const save = page.getByRole('button', { name: 'Add 2 to journal', includeHidden: true })
   await expect(save).toHaveAttribute('aria-disabled', 'true')
-  await expect(page.getByRole('button', { name: 'Close import' })).toHaveAttribute(
-    'aria-disabled',
-    'true',
-  )
+  await expect(
+    page.getByRole('button', { name: 'Close import', includeHidden: true }),
+  ).toHaveAttribute('aria-disabled', 'true')
   expect(server.patches).toHaveLength(0)
-  await first.getByRole('button', { name: 'Save changes' }).click()
+  await editor.getByRole('button', { name: 'Save changes' }).click()
   await expect.poll(() => server.patches.length).toBe(1)
   expect(server.patches[0].body.fields).toMatchObject({ destination: 'BOS' })
   await expect(save).not.toHaveAttribute('aria-disabled', 'true')
   await save.click()
-  await expect(page).toHaveURL(/\/journal\?flight=/)
+  await finished(page)
 })
 
-test('bulk selection persists eligible rows without accepting duplicates or unresolved airports', async ({
+test('each leg takes one decision and duplicates or unresolved airports never join the save', async ({
   page,
   baseURL,
 }) => {
@@ -415,23 +422,99 @@ test('bulk selection persists eligible rows without accepting duplicates or unre
   ])
   await page.goto(`/import?batch=${BATCH}`)
   await expect(rows(page)).toHaveCount(4)
-  await page.getByRole('button', { name: 'Select all', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Deselect all' })).toBeEnabled()
-  await expect(rows(page).nth(0).getByRole('checkbox')).toBeChecked()
-  await expect(rows(page).nth(1).getByRole('checkbox')).toBeChecked()
-  await expect(rows(page).nth(2).getByRole('checkbox')).not.toBeChecked()
-  await expect(rows(page).nth(3).getByRole('checkbox')).not.toBeChecked()
-  expect(server.patches.map((patch) => patch.id).sort()).toEqual(['d1', 'd2'])
-  await page.getByRole('button', { name: 'Deselect all' }).click()
-  await expect(page.getByRole('button', { name: 'Select all', exact: true })).toBeEnabled()
+  await expect(page.getByRole('checkbox')).toHaveCount(0)
+  await expect(page.getByRole('radio', { checked: true })).toHaveCount(0)
+  await expect(rows(page).nth(1)).toContainText('Already in your journal')
+  await rows(page).nth(0).getByRole('radio', { name: 'Flew' }).click()
+  await rows(page).nth(2).getByRole('radio', { name: 'Flew' }).click()
+  await rows(page).nth(3).getByRole('radio', { name: 'Flew' }).click()
+  await expect
+    .poll(() => server.patches.map((patch) => patch.id).sort())
+    .toEqual(['d1', 'd2', 'd4'])
+  expect(server.patches.every((patch) => patch.body.selected === true)).toBe(true)
+  const save = page.getByRole('button', { name: 'Add 2 to journal' })
+  await expect(save).not.toHaveAttribute('aria-disabled', 'true')
+  await expect(page.getByText('1 not ready', { exact: false })).toBeVisible()
   await page.reload()
-  await expect(rows(page).nth(0).getByRole('checkbox')).not.toBeChecked()
-  await expect(rows(page).nth(1).getByRole('checkbox')).not.toBeChecked()
-  await page.getByRole('button', { name: 'Select all', exact: true }).click()
-  await expect(page.getByRole('button', { name: 'Save 2 flights' })).toBeEnabled()
-  await page.getByRole('button', { name: 'Save 2 flights' }).click()
+  await expect(rows(page).nth(0).getByRole('radio', { name: 'Flew' })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  )
+  await expect(rows(page).nth(1).getByRole('radio', { name: 'Flew' })).toHaveAttribute(
+    'aria-checked',
+    'false',
+  )
+  await save.click()
   await expect.poll(() => server.confirms.length).toBe(1)
   expect(server.confirms[0].items.map((item) => item.draftId).sort()).toEqual(['d1', 'd2'])
+})
+
+test('By land records a ground visit for a border crossing and nothing inside one country', async ({
+  page,
+  baseURL,
+}) => {
+  const server = await setup(page, baseURL)
+  const abroad = '00000000-0000-4000-8000-00000000000a'
+  const home = '00000000-0000-4000-8000-00000000000b'
+  server.ready([
+    row(abroad, {
+      ordinal: 1,
+      selected: false,
+      fields: {
+        date: '2026-03-01',
+        origin: '',
+        destination: '',
+        airline_iata: 'ZZ',
+        origin_hint: 'Tbilisi, GE',
+        destination_hint: 'Istanbul, TR',
+        review_required: true,
+      },
+    }),
+    row(home, {
+      ordinal: 2,
+      selected: false,
+      fields: {
+        date: '2026-03-05',
+        origin: 'JFK',
+        destination: 'BOS',
+        airline_iata: 'ZZ',
+        review_required: true,
+      },
+    }),
+  ])
+  const visits: Array<{ body: Record<string, unknown>; status: number }> = []
+  await page.route('**/api/passport/ground-visits', async (route) => {
+    if (route.request().method() !== 'POST') return route.continue()
+    const response = await route.fetch()
+    visits.push({ body: route.request().postDataJSON(), status: response.status() })
+    await route.fulfill({ response })
+  })
+  await page.goto(`/import?batch=${BATCH}`)
+  await expect(rows(page)).toHaveCount(2)
+  await expect(page.getByRole('button', { name: 'Add to journal' })).toHaveAttribute(
+    'aria-disabled',
+    'true',
+  )
+  for (const index of [0, 1])
+    await rows(page).nth(index).getByRole('radio', { name: 'By land' }).click()
+  await expect.poll(() => server.patches.length).toBe(2)
+  expect(server.patches.every((patch) => patch.body.dismissed === true)).toBe(true)
+  await page.reload()
+  await expect(rows(page).nth(0).getByRole('radio', { name: 'By land' })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  )
+  await page.getByRole('button', { name: 'Add 1 to journal' }).click()
+  await expect(page.getByText('trip by land added')).toBeVisible()
+  expect(visits).toHaveLength(1)
+  expect(visits[0].status).toBe(201)
+  expect(visits[0].body).toMatchObject({
+    id: abroad,
+    countryCode: 'TR',
+    visitYear: 2026,
+    entryMethod: 'land',
+  })
+  expect(server.confirms).toHaveLength(0)
 })
 
 const nodeRequire = createRequire(import.meta.url)
@@ -567,14 +650,18 @@ test('barcode reading automatically complements online, asks the year once, and 
   await expect(rows(page).getByRole('button', { name: 'Edit' })).toBeFocused()
   await expect(page.getByText('Have you taken this flight?')).toBeHidden()
   await expect(page.getByRole('checkbox')).toHaveCount(0)
+  await expect(rows(page).getByRole('radio', { name: 'Flew' })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  )
   expect(server.patches[0].body).toMatchObject({
     fields: { date: '2020-11-21' },
     yearConfirmed: true,
   })
   expect(server.confirms).toHaveLength(0)
   expect(server.patches.some((patch) => patch.body.flownConfirmed === true)).toBe(false)
-  await page.getByRole('button', { name: 'Save flight', exact: true }).click()
-  await expect(page).toHaveURL(/\/journal\?flight=/)
+  await page.getByRole('button', { name: 'Add 1 to journal', exact: true }).click()
+  await finished(page)
   expect(server.patches.filter((patch) => patch.body.yearConfirmed)).toHaveLength(1)
   expect(server.patches.some((patch) => patch.body.flownConfirmed === true)).toBe(true)
   expect(server.confirms).toHaveLength(1)
@@ -632,8 +719,8 @@ test('same-day evidence stays a draft until explicit final save confirms the own
   await expect(page.getByRole('button', { name: 'Include', exact: true })).toHaveCount(0)
   expect(server.patches).toHaveLength(0)
   expect(server.confirms).toHaveLength(0)
-  await page.getByRole('button', { name: 'Save flight', exact: true }).click()
-  await expect(page).toHaveURL(/\/journal\?flight=/)
+  await page.getByRole('button', { name: 'Add 1 to journal', exact: true }).click()
+  await finished(page)
   expect(server.patches.at(-1)?.body.flownConfirmed).toBe(true)
   expect(server.confirms).toHaveLength(1)
 })
@@ -761,11 +848,14 @@ test('system barcode copies stay suppressed after reload while user dismissals r
     buffer: await barcodePdf(PASS),
   })
   await expect(page.getByText('Ready to review', { exact: true })).toBeVisible()
-  await expect(rows(page)).toHaveCount(1)
-  await expect(page.getByRole('button', { name: /Bring back.*YUL/ })).toHaveCount(0)
-  await expect(page.getByRole('button', { name: /Bring back.*TBS/ })).toBeVisible()
+  const kept = async () => {
+    await expect(rows(page)).toHaveCount(2)
+    await expect(page.getByRole('article', { name: /^YUL → FRA/ })).toHaveCount(1)
+    await expect(
+      page.getByRole('article', { name: /^TBS → IST/ }).getByRole('radio', { name: 'Skip' }),
+    ).toHaveAttribute('aria-checked', 'true')
+  }
+  await kept()
   await page.reload()
-  await expect(rows(page)).toHaveCount(1)
-  await expect(page.getByRole('button', { name: /Bring back.*YUL/ })).toHaveCount(0)
-  await expect(page.getByRole('button', { name: /Bring back.*TBS/ })).toBeVisible()
+  await kept()
 })

@@ -1002,10 +1002,12 @@
     display: none;
   }
 }
-.unified-import-files,
-.unified-import-rows {
+.unified-import-files {
   list-style: none;
   padding: 0;
+}
+.unified-import-files:empty {
+  display: none;
 }
 .unified-import-files {
   display: grid;
@@ -1052,35 +1054,9 @@
     animation: history-settled-in var(--dur-base) var(--ease-out) backwards;
   }
 }
-.unified-import-files:empty,
-.unified-import-rows:empty {
-  display: none;
-}
-.unified-import .import-row .import-questions {
-  margin-block: var(--space-2);
-}
-.unified-import .import-row {
-  background: transparent;
-}
-.unified-import .import-row-main {
-  flex-wrap: wrap;
-}
-.unified-import .import-row-body {
-  flex: 1 1 12rem;
-}
-.unified-import .import-question-answers[data-columns='3'] {
-  display: flex;
-  flex-wrap: wrap;
-}
-.unified-import .import-question-answers[data-columns='3'] > .import-question-year {
-  flex-basis: 100%;
-}
 .unified-import .ui-action-bar-count {
   max-width: 48ch;
   font-weight: 400;
-}
-.unified-import .import-edit-summary {
-  color: var(--text);
 }
 .unified-import-text {
   display: grid;
@@ -1092,16 +1068,6 @@
     display: none;
   }
 }
-@media (prefers-reduced-motion: no-preference) {
-  .unified-import-rows > .import-row {
-    transition: opacity var(--dur-fast) var(--ease-out);
-  }
-  @starting-style {
-    .unified-import-rows > .import-row {
-      opacity: 0;
-    }
-  }
-}
 @media (max-width: 700px) {
   .unified-import {
     display: flex;
@@ -1110,7 +1076,7 @@
     padding-top: env(safe-area-inset-top);
     padding-bottom: 0;
   }
-  .unified-import > .ui-action-bar {
+  .unified-import .ui-action-bar {
     margin-top: auto;
   }
   .unified-import .ui-action-bar {
@@ -1123,11 +1089,6 @@
     width: 100%;
   }
 }
-.unified-import .import-question {
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
 .unified-import-heading h1 {
   min-width: 0;
   overflow-wrap: break-word;
@@ -1135,4 +1096,99 @@
 
 .import-question-answers .ui-button[aria-pressed='true'] {
   box-shadow: inset 0 0 0 2px var(--selection-contour);
+}
+
+.unified-import {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+.import-side {
+  display: contents;
+}
+.unified-import .stamp-strip {
+  order: 1;
+}
+.import-side > :not(.stamp-strip) {
+  order: 2;
+}
+.import-main {
+  order: 3;
+  display: grid;
+  gap: var(--space-6);
+  min-width: 0;
+}
+.import-main:empty {
+  display: none;
+}
+.unified-import .ui-action-bar {
+  order: 4;
+}
+.unified-import .ui-action-bar-actions {
+  flex: 1 1 12rem;
+}
+.unified-import .ui-action-bar-actions > *,
+.unified-import .ui-action-bar-actions .ui-button {
+  inline-size: 100%;
+}
+.unified-import .ui-action-bar-count .import-hint {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.unified-import-left-out {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.unified-import-nomads .ui-disclosure-trigger {
+  min-block-size: 32px;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+@media (max-width: 959px) {
+  html:has(.unified-import .ui-action-bar) {
+    scroll-padding-block-end: calc(
+      var(--import-footer-height, var(--space-12)) + var(--import-keyboard-inset, 0px) +
+        var(--space-4)
+    );
+  }
+}
+@media (min-width: 960px) {
+  .import-page.unified-import[data-layout='review'] {
+    max-width: 1120px;
+    display: grid;
+    grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-6) var(--space-12);
+  }
+  .unified-import[data-layout='review'] > .unified-import-heading,
+  .unified-import[data-layout='review'] > .unified-import-close-reason {
+    grid-column: 1 / -1;
+  }
+  .unified-import[data-layout='review'] .import-side {
+    position: sticky;
+    inset-block-start: calc(var(--header-h, 0px) + var(--space-6));
+    display: grid;
+    gap: var(--space-5);
+    min-width: 0;
+  }
+  .unified-import[data-layout='review'] .import-side > * {
+    order: 0;
+  }
+  .unified-import[data-layout='review'] .import-main {
+    grid-column: 2;
+    grid-row: 2 / span 2;
+  }
+  .unified-import[data-layout='review'] .import-side {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .unified-import[data-layout='review'] .ui-action-bar {
+    grid-column: 1;
+    grid-row: 3;
+    align-self: end;
+    margin: 0;
+  }
 }

@@ -539,7 +539,7 @@ export function QuestionDeck({
   )
 }
 
-function OtherYear({
+export function OtherYear({
   locale,
   max,
   disabled,

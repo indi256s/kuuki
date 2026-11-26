@@ -45,8 +45,10 @@ describe('places', () => {
     const a = placeOf(fly('d1', { origin: 'BKK' }), 'origin')
     const b = placeOf(fly('d2', { origin: 'DMK' }), 'origin')
     const c = placeOf(fly('d3', { origin_hint: 'Bangkok, TH' }), 'origin')
+    const d = placeOf(fly('d4', { origin_options: ['BKK', 'DMK'] }), 'origin')
     expect(a.key).toBe(b.key)
     expect(a.key).toBe(c.key)
+    expect(d).toMatchObject({ code: null, key: a.key, country: 'TH' })
   })
 })
 
