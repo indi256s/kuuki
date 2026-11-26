@@ -843,6 +843,68 @@ describe('PATCH /api/import/drafts/:id', () => {
     })
   })
 
+  it('records By land on the dismissed draft in one write and clears it on Skip or restore', async () => {
+    const created = await seed([providerFlight()])
+    const id = created.drafts[0].id
+    const land = await patchDraft(db, id, { version: 1, dismissed: true, byLand: true })
+    expect(land.status).toBe(200)
+    expect(land.body.draft).toMatchObject({
+      status: 'dismissed',
+      version: 2,
+      edited: false,
+      fields: { by_land: true },
+    })
+    expect((await draftRows(created.batch.id))[0].fields_json).toContain('"by_land":true')
+    const skip = await patchDraft(db, id, { version: 2, dismissed: true })
+    expect(skip.body.draft).toMatchObject({ status: 'dismissed', version: 3 })
+    expect(skip.body.draft.fields).not.toHaveProperty('by_land')
+    await patchDraft(db, id, { version: 3, dismissed: true, byLand: true })
+    const kept = await patchDraft(db, id, { version: 4, selected: false })
+    expect(kept.body.draft.fields).toMatchObject({ by_land: true })
+    const restored = await patchDraft(db, id, { version: 5, dismissed: false, selected: true })
+    expect(restored.body.draft).toMatchObject({ status: 'review', version: 6, edited: false })
+    expect(restored.body.draft.fields).not.toHaveProperty('by_land')
+    expect((await draftRows(created.batch.id))[0].fields_json).not.toContain('by_land')
+  })
+
+  it('refuses By land without a dismissal, with another value, through fields or past the size limit', async () => {
+    const created = await seed([providerFlight()])
+    const id = created.drafts[0].id
+    for (const body of [
+      { version: 1, byLand: true },
+      { version: 1, dismissed: false, byLand: true },
+      { version: 1, dismissed: true, byLand: false },
+      { version: 1, dismissed: true, byLand: 'yes' },
+      { version: 1, dismissed: true, fields: { by_land: true } },
+    ]) {
+      const refused = await patchDraft(db, id, body)
+      expect(refused.status, JSON.stringify(body)).toBe(400)
+      expect(refused.body.code).toBe('INVALID_DRAFT')
+    }
+    const [untouched] = await draftRows(created.batch.id)
+    expect(untouched).toMatchObject({ version: 1, status: 'review' })
+    expect(untouched.fields_json).not.toContain('by_land')
+
+    const hint = 'x'.repeat(2048 - untouched.fields_json.length - '"destination_hint":"",'.length)
+    await db
+      .prepare(
+        "UPDATE import_drafts SET fields_json = json_set(fields_json, '$.destination_hint', ?) WHERE id = ?",
+      )
+      .bind(hint, id)
+      .run()
+    const full = (await draftRows(created.batch.id))[0].fields_json as string
+    expect(full.length).toBe(2048)
+    const tooLong = await patchDraft(db, id, { version: 1, dismissed: true, byLand: true })
+    expect(tooLong.status).toBe(400)
+    expect(tooLong.body.code).toBe('INVALID_DRAFT')
+    expect((await draftRows(created.batch.id))[0]).toMatchObject({
+      version: 1,
+      status: 'review',
+      fields_json: full,
+    })
+    expect((await patchDraft(db, id, { version: 1, dismissed: true })).status).toBe(200)
+  })
+
   it('dismisses and restores a row, but never edits a converted or expired one', async () => {
     clock()
     const created = await seed([providerFlight(), providerFlight({ date: '2026-03-11' })])

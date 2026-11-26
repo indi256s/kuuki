@@ -42,8 +42,10 @@ export interface DraftFields {
   date_ordinal_day?: number
   flown_required?: true
   flown_confirmed?: true
+  by_land?: true
 }
 
+const MAX_FIELDS_JSON = 2048
 const OPTIONAL_TEXT = ['flight_number', 'aircraft_icao', 'departure_time', 'arrival_time'] as const
 const FIELD_NAMES = ['date', 'origin', 'destination', 'airline_iata', ...OPTIONAL_TEXT] as const
 const clamp = (value: unknown, max: number) =>
@@ -544,6 +546,7 @@ export interface DraftPatch {
   duplicateAcknowledged?: boolean
   dismissed?: boolean
   flownConfirmed?: boolean
+  byLand?: true
 }
 
 const invalidDraft = (message: string) => new HttpError(400, message, 'INVALID_DRAFT')
@@ -560,6 +563,7 @@ export function parseDraftPatch(body: unknown): DraftPatch {
     'duplicateAcknowledged',
     'dismissed',
     'flownConfirmed',
+    'byLand',
   ])
   for (const key of Object.keys(input))
     if (!allowed.has(key)) throw invalidDraft(`Unknown field: ${key}`)
@@ -580,6 +584,11 @@ export function parseDraftPatch(body: unknown): DraftPatch {
     if (input[key] === undefined) continue
     if (typeof input[key] !== 'boolean') throw invalidDraft(`${key} must be a boolean`)
     patch[key] = input[key] as boolean
+  }
+  if (input.byLand !== undefined) {
+    if (input.byLand !== true) throw invalidDraft('byLand must be true')
+    if (input.dismissed !== true) throw invalidDraft('byLand applies only with dismissed: true')
+    patch.byLand = true
   }
   if (input.fields !== undefined) {
     if (!input.fields || typeof input.fields !== 'object' || Array.isArray(input.fields))
@@ -620,7 +629,7 @@ export function mergeFields(current: DraftFields, patch: Record<string, unknown>
   return next as unknown as DraftFields
 }
 
-const canonical = ({ flown_confirmed: _answer, ...fields }: DraftFields) =>
+const canonical = ({ flown_confirmed: _answer, by_land: _land, ...fields }: DraftFields) =>
   JSON.stringify(
     Object.keys(fields)
       .sort()
@@ -676,6 +685,12 @@ export async function patchDraft(
     delete fields.flown_confirmed
   if (patch.flownConfirmed === true) fields.flown_confirmed = true
   else if (patch.flownConfirmed === false) delete fields.flown_confirmed
+  if (patch.dismissed !== undefined) {
+    if (patch.dismissed && patch.byLand) fields.by_land = true
+    else delete fields.by_land
+  }
+  const fieldsJson = JSON.stringify(fields)
+  if (fieldsJson.length > MAX_FIELDS_JSON) throw invalidDraft('Draft fields are too long')
   const status =
     patch.dismissed === undefined ? row.status : patch.dismissed ? 'dismissed' : 'review'
   const results = await db.batch([
@@ -688,7 +703,7 @@ export async function patchDraft(
          AND EXISTS (SELECT 1 FROM import_batches WHERE id = import_drafts.batch_id AND user_id = ? AND expires_at > ?)`,
       )
       .bind(
-        JSON.stringify(fields),
+        fieldsJson,
         (patch.selected ?? row.selected === 1) ? 1 : 0,
         (patch.yearConfirmed ?? row.year_confirmed === 1) ? 1 : 0,
         (patch.duplicateAcknowledged ?? row.duplicate_acknowledged === 1) ? 1 : 0,
