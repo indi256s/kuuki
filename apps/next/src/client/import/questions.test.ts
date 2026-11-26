@@ -5,6 +5,7 @@ import {
   answerTookFlight,
   answerYear,
   buildQuestions,
+  gapQuestions,
   openCauses,
   suggestedYears,
 } from './questions'
@@ -103,6 +104,18 @@ describe('year suggestions for ordinal days', () => {
       'monthDay',
       'ordinal',
     ])
+  })
+})
+
+describe('gap questions', () => {
+  it('asks only for the missing year and airport, largest first', () => {
+    const gaps = [
+      ordinal('a1', 120),
+      ordinal('a2', 121, { fields: { ...ordinal('a2', 121).fields, airline_iata: 'ZZ' } }),
+      dated('b1', '2026-01-02', { origin: '', origin_options: ['BKK', 'DMK'] }),
+    ]
+    expect(kinds(gaps)).toEqual(['year', 'flown', 'airport'])
+    expect(gapQuestions(gaps, TODAY).map((question) => question.kind)).toEqual(['year', 'airport'])
   })
 })
 

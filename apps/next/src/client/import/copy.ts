@@ -3,7 +3,7 @@ import { AIRCRAFT_RESULT } from './aircraft-result-copy'
 import type { FailureAction, FailureKind } from './import-errors'
 import type { RowFailureKind } from './import-errors'
 import type { FieldError, FieldName, Readiness } from './review-model'
-import type { BatchStage } from './import-types'
+import type { BatchStage, Draft } from './import-types'
 
 type Pair = { en: string; ru: string }
 const p = (en: string, ru: string): Pair => ({ en, ru })
@@ -568,16 +568,16 @@ export const DOCK = {
 export type Key = keyof typeof S
 export const tx = (locale: Locale, key: Key): string => S[key][locale]
 
+export const issueText = (draft: Pick<Draft, 'issue'>, locale: Locale): string | null =>
+  !draft.issue
+    ? null
+    : draft.issue.code === 'UNKNOWN_AIRPORT'
+      ? S.issueUnknownAirport[locale]
+      : draft.issue.code === 'UNKNOWN_AIRCRAFT'
+        ? S.issueUnknownAircraft[locale]
+        : S.issueGeneric[locale]
+
 export const COUNTS = {
-  saveSelected: {
-    en: { one: 'Save {count} flight', other: 'Save {count} flights' },
-    ru: {
-      one: 'Сохранить {count} перелёт',
-      few: 'Сохранить {count} перелёта',
-      many: 'Сохранить {count} перелётов',
-      other: 'Сохранить {count} перелёта',
-    },
-  },
   savedFlights: {
     en: { one: '{count} flight saved', other: '{count} flights saved' },
     ru: {

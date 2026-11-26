@@ -1,0 +1,181 @@
+import type { RowOutcome } from './confirm-runner'
+import type { SaveState } from './draft-saver'
+import { routeCountries, routeKm } from './flight-input'
+import type { Finish } from './import-finish'
+import type { Draft } from './import-types'
+import {
+  gapQuestions,
+  questionDrafts,
+  type AirportQuestion,
+  type SharedQuestion,
+  type YearQuestion,
+} from './questions'
+import { isDuplicate, withSaved, withUnsent } from './review-model'
+import {
+  buildRoute,
+  copiesOf,
+  landOutcome,
+  landVisits,
+  legDraft,
+  legOf,
+  legReady,
+  stampReach,
+  type Leg,
+} from './route-model'
+import type { SessionEntry } from './unified-session'
+
+export interface ReviewInput {
+  drafts: Draft[]
+  outcomes: ReadonlyMap<string, RowOutcome>
+  states: Readonly<Record<string, SaveState>>
+  entries: readonly SessionEntry[]
+  requiresSelection: boolean
+  deferred: ReadonlySet<string>
+  today: string
+}
+
+const idsOf = (entries: readonly SessionEntry[], pick: (entry: SessionEntry) => string[]) =>
+  new Set(entries.flatMap(pick))
+
+export function buildReview({
+  drafts: stored,
+  outcomes,
+  states,
+  entries,
+  requiresSelection,
+  deferred,
+  today,
+}: ReviewInput) {
+  const drafts = withSaved(stored, outcomes)
+  const byId = new Map(drafts.map((draft) => [draft.id, draft]))
+  const suppressed = idsOf(entries, (entry) => entry.suppressedIds ?? [])
+  const excluded = idsOf(entries, (entry) => entry.excludedIds ?? [])
+  const landIds = idsOf(entries, (entry) => entry.landIds ?? [])
+  const landDone = idsOf(entries, (entry) => entry.landDoneIds ?? [])
+  const presented = drafts.flatMap((draft) =>
+    draft.status === 'review' ||
+    draft.status === 'converted' ||
+    (draft.status === 'dismissed' && !suppressed.has(draft.id))
+      ? [legDraft(withUnsent(draft, states[draft.id]?.unsent))]
+      : [],
+  )
+  const review = presented.filter((draft) => draft.status === 'review')
+  const copies = copiesOf(presented)
+  const implicit =
+    review.length === 1 &&
+    !isDuplicate(review[0]) &&
+    !requiresSelection &&
+    !excluded.has(review[0].id)
+      ? review[0].id
+      : null
+  const legs = presented.map((draft) =>
+    legOf(draft, landIds, draft.id === implicit, copies.get(draft.id) ?? null),
+  )
+  const legById = new Map(legs.map((leg) => [leg.id, leg]))
+
+  const chosen: string[] = []
+  let blanks = 0
+  let undecided = 0
+  for (const leg of legs) {
+    if (leg.saved) continue
+    if (leg.decision === null) undecided++
+    if (leg.decision !== 'flew' || leg.draft.status !== 'review') continue
+    if (legReady(leg)) chosen.push(leg.id)
+    else blanks++
+  }
+  const visits = landVisits(legs).filter((visit) => !landDone.has(visit.id))
+  const pendingLand = legs.filter(
+    (leg) => leg.decision === 'land' && !leg.saved && !landDone.has(leg.id),
+  )
+  const recorded =
+    [...outcomes.values()].some((outcome) => outcome.status === 'saved') || landDone.size > 0
+
+  const questions = gapQuestions(
+    review.filter((draft) => !copies.has(draft.id)),
+    today,
+  )
+  const shared: SharedQuestion[] = []
+  const yearOf = new Map<string, YearQuestion>()
+  const airportsOf = new Map<string, AirportQuestion[]>()
+  for (const question of questions) {
+    if (questionDrafts(question).length >= 2 && !deferred.has(question.key)) {
+      shared.push(question)
+      continue
+    }
+    if (question.kind === 'year') {
+      for (const draft of question.drafts) if (!yearOf.has(draft.id)) yearOf.set(draft.id, question)
+      continue
+    }
+    for (const id of new Set(question.items.map((item) => item.draft.id))) {
+      const list = airportsOf.get(id)
+      if (list) list.push(question)
+      else airportsOf.set(id, [question])
+    }
+  }
+
+  return {
+    drafts,
+    byId,
+    reviewIds: new Set(review.map((draft) => draft.id)),
+    legs,
+    legById,
+    chosen,
+    blanks,
+    undecided,
+    visits,
+    pendingLand,
+    landDone,
+    recorded,
+    shared,
+    yearOf,
+    airportsOf,
+    route: buildRoute(legs),
+    reach: stampReach(legs),
+  }
+}
+
+export type Review = ReturnType<typeof buildReview>
+
+export function finishOf({
+  drafts,
+  outcomes,
+  landSaved,
+  legs,
+}: {
+  drafts: Draft[]
+  outcomes: ReadonlyMap<string, RowOutcome>
+  landSaved: ReadonlySet<string>
+  legs: readonly Leg[]
+}): Omit<Finish, 'before'> {
+  const saved = [...outcomes].filter(
+    (entry): entry is [string, Extract<RowOutcome, { status: 'saved' }>] =>
+      entry[1].status === 'saved',
+  )
+  const savedIds = new Set(saved.map(([id]) => id))
+  const savedDrafts = drafts.filter((draft) => savedIds.has(draft.id))
+  const touched = [
+    ...new Set([
+      ...savedDrafts.flatMap((draft) =>
+        routeCountries(draft.fields.origin, draft.fields.destination),
+      ),
+      ...legs.flatMap((leg) =>
+        landSaved.has(leg.id) && leg.destination.country ? [leg.destination.country] : [],
+      ),
+    ]),
+  ]
+  return {
+    id: crypto.randomUUID(),
+    flights: saved.length,
+    km: savedDrafts.reduce(
+      (total, draft) => total + routeKm(draft.fields.origin, draft.fields.destination),
+      0,
+    ),
+    land: landSaved.size,
+    firstFlightId: saved[0]?.[1].flightId ?? null,
+    touched,
+    stamps: touched.length ? null : [],
+  }
+}
+
+export const landReason = (pending: readonly Leg[]) =>
+  pending.some((leg) => landOutcome(leg) === 'unknown-country') ? 'unknown-country' : 'same-country'

@@ -1,28 +1,60 @@
 'use client'
 
-import { useEffect, useId, useRef } from 'react'
-import { findAirportLabel } from '@kuuki/data/airport-labels'
+import { useEffect, useId, useRef, type ReactNode } from 'react'
 import type { Locale } from '../../lib/format'
 import { Button } from '../ui/button'
+import { AirportChoices, YearChoices } from './answer-chips'
 import { S } from './copy'
 import type { DraftChange } from './draft-saver'
 import type { Draft } from './import-types'
-import { formatDay, legRoute } from './leg-ticket'
-import { formatMonthDay, OtherYear } from './question-deck'
-import {
-  answerAirport,
-  answerYear,
-  monthDayOf,
-  ordinalOf,
-  questionDrafts,
-  type AirportQuestion,
-  type YearQuestion,
-} from './questions'
+import { answerAirport, answerYear, questionDrafts, type SharedQuestion } from './questions'
 import { R, rcount } from './route-copy'
 import { cityOf } from './reference'
-import { hintCity, placeCity, type Leg } from './route-model'
+import { dayLabel, endpointLabel, legRoute, placeCity, type Leg } from './route-model'
 
-export type SharedQuestion = YearQuestion | AirportQuestion
+type Answer = { draft: Draft; change: DraftChange | null }
+
+function QuestionCard({
+  locale,
+  titleId,
+  title,
+  count,
+  frozen,
+  legs,
+  choices,
+  onDefer,
+}: {
+  locale: Locale
+  titleId: string
+  title: string
+  count: number
+  frozen: boolean
+  legs: ReactNode
+  choices: ReactNode
+  onDefer: () => void
+}) {
+  return (
+    <li className="shared-q" aria-labelledby={titleId}>
+      <div className="shared-q-head">
+        <h3 id={titleId} tabIndex={-1}>
+          {title}
+        </h3>
+        <span className="shared-q-count">{rcount(locale, 'legs', count)}</span>
+      </div>
+      <ul className="shared-q-legs">{legs}</ul>
+      {choices}
+      <Button
+        variant="ghost"
+        dense
+        className="import-text-action"
+        disabled={frozen}
+        onClick={onDefer}
+      >
+        {R.each[locale]}
+      </Button>
+    </li>
+  )
+}
 
 export function SharedQuestions({
   locale,
@@ -54,18 +86,8 @@ export function SharedQuestions({
     if (target) target.focus()
     else onDone()
   })
-  const when = (draft: Draft) => {
-    const monthDay = monthDayOf(draft)
-    const ordinal = ordinalOf(draft)
-    return monthDay
-      ? formatMonthDay(locale, monthDay, 'short')
-      : ordinal !== null
-        ? S.ordinalDay[locale].replace('{day}', String(ordinal))
-        : draft.fields.date
-          ? formatDay(locale, draft.fields.date)
-          : S.noDate[locale]
-  }
-  const answer = (index: number, answers: { draft: Draft; change: DraftChange | null }[]) => {
+  const when = (draft: Draft) => dayLabel(draft, locale) ?? S.noDate[locale]
+  const answer = (index: number, answers: Answer[]) => {
     const sent = answers.filter(
       (entry): entry is { draft: Draft; change: DraftChange } => entry.change !== null,
     )
@@ -83,51 +105,38 @@ export function SharedQuestions({
       </h2>
       <ol className="shared-list">
         {questions.map((question, index) => {
-          const drafts = questionDrafts(question)
-          const titleId = `${id}-${index}`
+          const card = {
+            locale,
+            titleId: `${id}-${index}`,
+            count: questionDrafts(question).length,
+            frozen,
+            onDefer: () => {
+              focusAt.current = index
+              onDefer(question.key)
+            },
+          }
           if (question.kind === 'year')
             return (
-              <li key={question.key} className="shared-q" aria-labelledby={titleId}>
-                <div className="shared-q-head">
-                  <h3 id={titleId} tabIndex={-1}>
-                    {S.yearQuestion[locale]}
-                  </h3>
-                  <span className="shared-q-count">{rcount(locale, 'legs', drafts.length)}</span>
-                </div>
-                <ul className="shared-q-legs">
-                  {question.drafts.map((draft) => {
-                    const leg = legs.get(draft.id)
-                    return (
-                      <li key={draft.id}>
-                        <span className="import-code">{leg ? legRoute(leg) : ''}</span>
-                        <span>{when(draft)}</span>
-                      </li>
-                    )
-                  })}
-                </ul>
-                <div className="leg-chip-row">
-                  {question.years.map((year) => (
-                    <Button
-                      key={year}
-                      disabled={frozen}
-                      onClick={() =>
-                        answer(
-                          index,
-                          question.drafts.map((draft) => ({
-                            draft,
-                            change: answerYear(draft, year, today),
-                          })),
-                        )
-                      }
-                    >
-                      <span className="import-code">{year}</span>
-                    </Button>
-                  ))}
-                  <OtherYear
+              <QuestionCard
+                key={question.key}
+                {...card}
+                title={S.yearQuestion[locale]}
+                legs={question.drafts.map((draft) => {
+                  const leg = legs.get(draft.id)
+                  return (
+                    <li key={draft.id}>
+                      <span className="import-code">{leg ? legRoute(leg, locale) : ''}</span>
+                      <span>{when(draft)}</span>
+                    </li>
+                  )
+                })}
+                choices={
+                  <YearChoices
                     locale={locale}
-                    max={Number(today.slice(0, 4)) + 1}
+                    years={question.years}
+                    today={today}
                     disabled={frozen}
-                    onApply={(year) =>
+                    onAnswer={(year) =>
                       answer(
                         index,
                         question.drafts.map((draft) => ({
@@ -137,89 +146,55 @@ export function SharedQuestions({
                       )
                     }
                   />
-                </div>
-                <Button
-                  variant="ghost"
-                  dense
-                  className="import-text-action"
-                  disabled={frozen}
-                  onClick={() => {
-                    focusAt.current = index
-                    onDefer(question.key)
-                  }}
-                >
-                  {R.each[locale]}
-                </Button>
-              </li>
+                }
+              />
             )
           const sample = legs.get(question.items[0].draft.id)
           const place = sample?.[question.items[0].endpoint]
           const city = (place ? placeCity(place, locale) : null) ?? cityOf(question.options[0])
           return (
-            <li key={question.key} className="shared-q" aria-labelledby={titleId}>
-              <div className="shared-q-head">
-                <h3 id={titleId} tabIndex={-1}>
-                  {S.airportTitle[locale].replace('{city}', city)}
-                </h3>
-                <span className="shared-q-count">{rcount(locale, 'legs', drafts.length)}</span>
-              </div>
-              <ul className="shared-q-legs">
-                {question.items.map(({ draft, endpoint }) => {
-                  const leg = legs.get(draft.id)
-                  const other = endpoint === 'origin' ? leg?.destination : leg?.origin
-                  const otherText = other?.code ?? (other?.hint ? hintCity(other.hint) : '—')
-                  return (
-                    <li key={`${draft.id}:${endpoint}`}>
-                      <span className="import-code">
-                        {endpoint === 'origin' ? (
-                          <>
-                            <span className="shared-q-gap" aria-label={city} /> → {otherText}
-                          </>
-                        ) : (
-                          <>
-                            {otherText} → <span className="shared-q-gap" aria-label={city} />
-                          </>
-                        )}
-                      </span>
-                      <span>{when(draft)}</span>
-                    </li>
-                  )
-                })}
-              </ul>
-              <div className="leg-chip-row" data-airports="">
-                {question.options.map((code) => (
-                  <Button
-                    key={code}
-                    disabled={frozen}
-                    aria-label={`${code}, ${findAirportLabel(code)?.name ?? code}`}
-                    onClick={() =>
-                      answer(
-                        index,
-                        question.items.map(({ draft, endpoint }) => ({
-                          draft,
-                          change: answerAirport(draft, endpoint, code, today),
-                        })),
-                      )
-                    }
-                  >
-                    <span className="leg-chip-code">{code}</span>
-                    <span className="leg-chip-name">{findAirportLabel(code)?.name ?? ''}</span>
-                  </Button>
-                ))}
-              </div>
-              <Button
-                variant="ghost"
-                dense
-                className="import-text-action"
-                disabled={frozen}
-                onClick={() => {
-                  focusAt.current = index
-                  onDefer(question.key)
-                }}
-              >
-                {R.each[locale]}
-              </Button>
-            </li>
+            <QuestionCard
+              key={question.key}
+              {...card}
+              title={S.airportTitle[locale].replace('{city}', city)}
+              legs={question.items.map(({ draft, endpoint }) => {
+                const leg = legs.get(draft.id)
+                const other = endpoint === 'origin' ? leg?.destination : leg?.origin
+                const otherText = other ? endpointLabel(other, locale) : '—'
+                const gap = <span className="shared-q-gap" aria-label={city} />
+                return (
+                  <li key={`${draft.id}:${endpoint}`}>
+                    <span className="import-code">
+                      {endpoint === 'origin' ? (
+                        <>
+                          {gap} → {otherText}
+                        </>
+                      ) : (
+                        <>
+                          {otherText} → {gap}
+                        </>
+                      )}
+                    </span>
+                    <span>{when(draft)}</span>
+                  </li>
+                )
+              })}
+              choices={
+                <AirportChoices
+                  options={question.options}
+                  disabled={frozen}
+                  onPick={(code) =>
+                    answer(
+                      index,
+                      question.items.map(({ draft, endpoint }) => ({
+                        draft,
+                        change: answerAirport(draft, endpoint, code, today),
+                      })),
+                    )
+                  }
+                />
+              }
+            />
           )
         })}
       </ol>

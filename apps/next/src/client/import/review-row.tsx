@@ -2,23 +2,21 @@
 
 import clsx from 'clsx'
 import { TriangleAlert, CircleAlert } from '@keyline-icons/react'
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
+import { useId, useRef, useState, type ReactNode } from 'react'
 import { formatDateOnly, type Locale } from '../../lib/format'
 import { Button } from '../ui/button'
 import { Disclosure } from '../ui/disclosure'
 import { Sheet } from '../ui/sheet'
 import { Ticket } from '../signature/ticket'
 import { airlineName, cityOf } from './reference'
-import { BLOCK, FIELD_LABEL, S, tx } from './copy'
+import { BLOCK, FIELD_LABEL, issueText, S, tx } from './copy'
 import type { DraftChange, SaveState } from './draft-saver'
 import type { Draft } from './import-types'
 import { RowForm } from './row-form'
 import { RouteEndpoint, routeText } from './route-endpoint'
-import { formatMonthDay } from './question-deck'
+import { formatMonthDay } from './day-format'
 import { monthDayOf, ordinalOf } from './questions'
 import {
-  changedFields,
-  FIELDS,
   isChosenOn,
   isDuplicate,
   localToday,
@@ -26,12 +24,8 @@ import {
   percent,
   readiness,
   rowConfidence,
-  toValues,
-  validateValues,
-  type FieldError,
-  type FieldName,
-  type FieldValues,
 } from './review-model'
+import { useDraftEdit } from './use-draft-edit'
 
 export interface ReviewRowProps {
   locale: Locale
@@ -82,33 +76,21 @@ export function ReviewRow({
     !quiet && draft.fields.verification && draft.fields.verification !== 'verified'
   const confidence = rowConfidence(draft)
   const low = lowFields(draft)
-  const [values, setValues] = useState(() => toValues(draft.fields))
-  const [seen, setSeen] = useState(draft.version)
-  const [base, setBase] = useState<{ values: FieldValues; year: boolean }>(() => ({
-    values: toValues(draft.fields),
-    year: draft.yearConfirmed,
-  }))
-  const [yearChecked, setYearChecked] = useState(draft.yearConfirmed)
-  const [errors, setErrors] = useState<Partial<Record<FieldName, FieldError>>>({})
+  const edit = useDraftEdit({
+    locale,
+    draft,
+    stored,
+    state,
+    year: true,
+    confirmYear: compact,
+    onChange,
+    onDirty,
+    onDiscard,
+  })
+  const { values, errors, yearChecked, dirty } = edit
   const [open, setOpen] = useState(false)
   const [sheet, setSheet] = useState(false)
   const editRef = useRef<HTMLButtonElement>(null)
-  if (draft.version !== seen && !state) {
-    const next = toValues(draft.fields)
-    setSeen(draft.version)
-    setValues(
-      (current) =>
-        Object.fromEntries(
-          FIELDS.map((name) => [
-            name,
-            current[name] !== base.values[name] ? current[name] : next[name],
-          ]),
-        ) as FieldValues,
-    )
-    setYearChecked((current) => (current !== base.year ? current : draft.yearConfirmed))
-    setBase({ values: next, year: draft.yearConfirmed })
-  }
-
   const city = cityOf
   const airline = draft.fields.airline_iata
     ? (airlineName(draft.fields.airline_iata) ?? draft.fields.airline_iata)
@@ -130,27 +112,6 @@ export function ReviewRow({
     ? `${draft.fields.airline_iata}${draft.fields.flight_number}`.trim()
     : undefined
   const needsYear = !draft.yearExplicit && !draft.yearConfirmed
-  const dirty =
-    Object.keys(changedFields(draft.fields, values)).length > 0 ||
-    (needsYear && yearChecked !== draft.yearConfirmed)
-  useEffect(() => {
-    onDirty(draft.id, dirty)
-  }, [draft.id, dirty, onDirty])
-  useEffect(() => () => onDirty(draft.id, false), [draft.id, onDirty])
-
-  const save = () => {
-    const found = validateValues(values)
-    setErrors(found)
-    if (Object.keys(found).length > 0) return false
-    const fields = changedFields(draft.fields, values)
-    const change: DraftChange = {}
-    if (Object.keys(fields).length > 0) change.fields = fields
-    if (needsYear && yearChecked !== draft.yearConfirmed) change.yearConfirmed = yearChecked
-    if (compact && change.fields?.date && !draft.yearExplicit) change.yearConfirmed = true
-    if (!change.fields && change.yearConfirmed === undefined) return true
-    onChange(change)
-    return true
-  }
 
   const toggle = (checked: boolean) =>
     onChange(
@@ -158,23 +119,8 @@ export function ReviewRow({
     )
 
   const blockText = blocked.length ? tx(locale, BLOCK[blocked[0]]) : null
-  const issueText = draft.issue
-    ? draft.issue.code === 'UNKNOWN_AIRPORT'
-      ? S.issueUnknownAirport[locale]
-      : draft.issue.code === 'UNKNOWN_AIRCRAFT'
-        ? S.issueUnknownAircraft[locale]
-        : S.issueGeneric[locale]
-    : null
-  const stateText = !state
-    ? ''
-    : state.status === 'saving'
-      ? S.saving[locale]
-      : state.status === 'conflict'
-        ? S.editConflict[locale]
-        : state.rejected
-          ? S.editRejected[locale]
-          : S.editFailed[locale]
-  const failedState = state && state.status !== 'saving'
+  const issue = issueText(draft, locale)
+  const { stateText, failed: failedState } = edit
 
   const checkLabel = duplicate ? S.saveAnyway[locale] : S.selectRow[locale]
   const checkbox =
@@ -254,7 +200,7 @@ export function ReviewRow({
         </p>
       ) : null}
       {!compact && yearToConfirm ? <p className="import-note">{S.ordinalNote[locale]}</p> : null}
-      {issueText ? <p className="import-note">{issueText}</p> : null}
+      {issue ? <p className="import-note">{issue}</p> : null}
       <p
         className="import-note"
         role="status"
@@ -268,17 +214,7 @@ export function ReviewRow({
           <Button dense disabled={frozen} onClick={onRetry}>
             {S.retrySave[locale]}
           </Button>
-          <Button
-            dense
-            variant="ghost"
-            disabled={frozen}
-            onClick={() => {
-              onDiscard()
-              setValues(toValues(stored.fields))
-              setYearChecked(stored.yearConfirmed)
-              setErrors({})
-            }}
-          >
+          <Button dense variant="ghost" disabled={frozen} onClick={edit.discard}>
             {S.discardEdit[locale]}
           </Button>
         </div>
@@ -292,7 +228,7 @@ export function ReviewRow({
         locale={locale}
         idPrefix={prefix}
         values={values}
-        onChange={setValues}
+        onChange={edit.setValues}
         errors={errors}
         low={low}
         disabled={state?.status === 'saving' || frozen}
@@ -301,7 +237,7 @@ export function ReviewRow({
             ? {
                 missing: !draft.fields.date && !values.date,
                 checked: yearChecked,
-                onChange: setYearChecked,
+                onChange: edit.setYearChecked,
               }
             : undefined
         }
@@ -366,7 +302,7 @@ export function ReviewRow({
           open={sheet}
           onOpenChange={(next) => {
             setSheet(next)
-            if (!next) setErrors({})
+            if (!next) edit.setErrors({})
           }}
           title={S.editTitle[locale]}
           description={`${routeLabel} · ${dateText}`}
@@ -380,7 +316,7 @@ export function ReviewRow({
                 loadingLabel={S.saving[locale]}
                 disabledReason={frozen ? S.pausedWhileSaving[locale] : undefined}
                 onClick={() => {
-                  if (save()) setSheet(false)
+                  if (edit.submit()) setSheet(false)
                 }}
               >
                 {S.saveRow[locale]}
@@ -442,7 +378,7 @@ export function ReviewRow({
             loading={state?.status === 'saving'}
             loadingLabel={S.saving[locale]}
             disabledReason={frozen ? S.pausedWhileSaving[locale] : undefined}
-            onClick={() => void save()}
+            onClick={() => void edit.submit()}
           >
             {S.saveRow[locale]}
           </Button>

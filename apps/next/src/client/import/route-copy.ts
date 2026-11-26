@@ -25,7 +25,6 @@ export const R = {
   year: p('Choose year', 'Выбрать год'),
   date: p('Add date', 'Указать дату'),
   each: p('Answer on each leg', 'Ответить для каждого'),
-  countries: p('Countries in this import', 'Страны этого импорта'),
   add: p('Add to journal', 'Добавить в журнал'),
   done: p('Finish import', 'Завершить импорт'),
   unsaved: p('Save or discard your edit first.', 'Сначала сохраните или отмените правку.'),
@@ -34,11 +33,11 @@ export const R = {
     'Trips inside one country add no stamps.',
     'Поездки внутри одной страны не дают штампов.',
   ),
+  unknownCountry: p('Country unknown', 'Страна неизвестна'),
   nothing: p('Mark a leg Flew or By land.', 'Отметьте «Летал» или «По земле».'),
   openJournal: p('Open journal', 'Открыть журнал'),
   leftOut: p('Left out', 'Не вошли'),
   finished: p('Import finished', 'Импорт завершён'),
-  importMore: p('Import more', 'Импортировать ещё'),
   ghost: p('not marked yet', 'пока не отмечена'),
 } as const
 
@@ -50,15 +49,6 @@ export const RC = {
       few: 'Добавить {count} в журнал',
       many: 'Добавить {count} в журнал',
       other: 'Добавить {count} в журнал',
-    },
-  },
-  flights: {
-    en: { one: '{count} flight', other: '{count} flights' },
-    ru: {
-      one: '{count} перелёт',
-      few: '{count} перелёта',
-      many: '{count} перелётов',
-      other: '{count} перелёта',
     },
   },
   land: {
@@ -133,14 +123,7 @@ export const RC = {
       other: 'Сохранено {count} поездки по земле',
     },
   },
-  moreCountries: {
-    en: { one: '+{count}', other: '+{count}' },
-    ru: { one: '+{count}', few: '+{count}', many: '+{count}', other: '+{count}' },
-  },
 } satisfies Record<string, CountForms>
 
 export const rcount = (locale: Locale, key: keyof typeof RC, n: number) =>
   formatCount(locale, n, RC[key])
-
-export const fill = (text: string, values: Record<string, string>) =>
-  Object.entries(values).reduce((out, [key, value]) => out.replaceAll(`{${key}}`, value), text)

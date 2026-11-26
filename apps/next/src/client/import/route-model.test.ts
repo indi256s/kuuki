@@ -3,8 +3,10 @@ import { draft } from './fixtures'
 import type { Draft, DraftFields } from './import-types'
 import {
   buildRoute,
+  copiesOf,
   decisionChange,
   decisionOf,
+  landOutcome,
   landVisits,
   legOf,
   placeOf,
@@ -164,6 +166,23 @@ describe('decisions', () => {
     expect(decisionChange(gone, 'land')).toBeNull()
     expect(decisionChange(gone, 'skip')).toBeNull()
   })
+
+  it('treats a second identical leg in the import as a copy of the first', () => {
+    const first = fly('d1', { date: '2025-02-01', origin: 'LIS', destination: 'OPO' })
+    const again = fly(
+      'd2',
+      { date: '2025-02-01', origin: 'LIS', destination: 'OPO' },
+      { selected: true },
+    )
+    const copies = copiesOf([first, again])
+    expect([...copies]).toEqual([['d2', 'd1']])
+    const leg = legOf(again, NONE, false, copies.get('d2'))
+    expect(leg).toMatchObject({ copyOf: 'd1', decision: null })
+    expect(decisionChange(again, 'flew', true)).toEqual({
+      selected: true,
+      duplicateAcknowledged: true,
+    })
+  })
 })
 
 describe('land visits', () => {
@@ -191,6 +210,16 @@ describe('land visits', () => {
     expect(landVisits(route)).toEqual([
       { id: 'd2', countryCode: 'ES', visitYear: 2025 },
       { id: 'd4', countryCode: 'FR', visitYear: null },
+    ])
+  })
+
+  it('tells a crossing from a trip inside one country or into an unknown one', () => {
+    expect(route.map(landOutcome)).toEqual([
+      'same-country',
+      'visit',
+      'unknown-country',
+      'visit',
+      'visit',
     ])
   })
 

@@ -173,6 +173,9 @@ export function readiness(draft: Draft, today: string = localToday()): Readiness
   return blocked
 }
 
+export const flewReadiness = (draft: Draft, today: string = localToday()): Readiness[] =>
+  readiness(draft, today).filter((reason) => reason !== 'flown')
+
 export const isDuplicate = (draft: Draft) => draft.duplicateFlightId !== null
 
 export const isChosenOn = (draft: Draft, today: string) =>

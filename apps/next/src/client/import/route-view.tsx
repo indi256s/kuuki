@@ -1,26 +1,15 @@
 'use client'
 
 import { Fragment, useEffect, useRef, type ReactNode, type Ref } from 'react'
-import type { Locale } from '../../lib/format'
+import { monthName, type Locale } from '../../lib/format'
 import { S } from './copy'
+import { dayFormat } from './day-format'
 import { R } from './route-copy'
-import { hintCity, lineOf, placeCity, type Leg, type RouteItem } from './route-model'
+import { endpointLabel, lineOf, type Leg, type RouteItem } from './route-model'
 import './route.css'
 
-const monthNames: Partial<Record<Locale, Intl.DateTimeFormat>> = {}
-const monthName = (locale: Locale, month: number) =>
-  (monthNames[locale] ??= new Intl.DateTimeFormat(locale, {
-    month: 'long',
-    timeZone: 'UTC',
-  })).format(new Date(Date.UTC(2000, month - 1, 15)))
-
-const rangeFormats: Partial<Record<Locale, Intl.DateTimeFormat>> = {}
 const stay = (locale: Locale, from: string | null, to: string | null) => {
-  const format = (rangeFormats[locale] ??= new Intl.DateTimeFormat(locale, {
-    day: 'numeric',
-    month: 'short',
-    timeZone: 'UTC',
-  }))
+  const format = dayFormat(locale)
   const at = (value: string) => new Date(`${value}T12:00:00Z`)
   if (from && to)
     return from === to ? format.format(at(from)) : format.formatRange(at(from), at(to))
@@ -68,10 +57,7 @@ export function RouteView({
                 </h3>
               </li>
             )
-          const name =
-            placeCity(item.place, locale) ??
-            item.place.code ??
-            (item.place.hint ? hintCity(item.place.hint) : '—')
+          const name = endpointLabel(item.place, locale, 'city')
           const dates = stay(locale, item.arrived, item.left)
           return (
             <li

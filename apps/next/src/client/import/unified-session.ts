@@ -17,9 +17,10 @@ import { runConfirm, type RowOutcome } from './confirm-runner'
 import { checkFile, MAX_FILE_BYTES } from './source-step'
 import { isNomadsFile, nomadsSummaryOf, prepareNomads, type NomadsSummary } from './nomads-json'
 import { uploadSource } from './quick-add-source'
+import type { Decision } from './route-model'
 import {
+  flewReadiness,
   localToday,
-  readiness,
   toValues,
   validateValues,
   isDuplicate,
@@ -161,26 +162,27 @@ export class UnifiedSession {
   landDoneIds(): ReadonlySet<string> {
     return new Set(this.entries.flatMap((entry) => entry.landDoneIds ?? []))
   }
-  noteLand(id: string, land: boolean) {
+  decide(id: string, decision: Decision) {
     const entry = this.ownerOf(id)
-    if (!entry || (entry.landIds ?? []).includes(id) === land) return
-    entry.landIds = land
-      ? [...(entry.landIds ?? []), id]
-      : (entry.landIds ?? []).filter((value) => value !== id)
-    this.publish()
+    if (!entry) return
+    const land = entry.landIds ?? []
+    const excluded = entry.excludedIds ?? []
+    let changed = false
+    if (land.includes(id) !== (decision === 'land')) {
+      entry.landIds = decision === 'land' ? [...land, id] : land.filter((value) => value !== id)
+      changed = true
+    }
+    if (excluded.includes(id) === (decision === 'flew')) {
+      entry.excludedIds =
+        decision === 'flew' ? excluded.filter((value) => value !== id) : [...excluded, id]
+      changed = true
+    }
+    if (changed) this.publish()
   }
   noteLandDone(id: string) {
     const entry = this.ownerOf(id)
     if (!entry || entry.landDoneIds?.includes(id)) return
     entry.landDoneIds = [...(entry.landDoneIds ?? []), id]
-    this.publish()
-  }
-  noteSelection(id: string, selected: boolean) {
-    const entry = this.ownerOf(id)
-    if (!entry) return
-    entry.excludedIds = selected
-      ? (entry.excludedIds ?? []).filter((value) => value !== id)
-      : [...new Set([...(entry.excludedIds ?? []), id])]
     this.publish()
   }
   private attach(entry: SessionEntry, run: BatchRun) {
@@ -529,8 +531,7 @@ export class UnifiedSession {
             !this.isExcluded(draft.id) &&
             !draft.fields.review_required &&
             !isDuplicate(draft) &&
-            readiness({ ...draft, fields: { ...draft.fields, flown_confirmed: true } }).length ===
-              0 &&
+            flewReadiness(draft).length === 0 &&
             Object.keys(validateValues(toValues(draft.fields))).length === 0 &&
             (draft.confidence === null || draft.confidence >= LOW_CONFIDENCE) &&
             !lowFields(draft).some((field) =>
@@ -587,10 +588,7 @@ export class UnifiedSession {
         for (const draft of selected) {
           this.assertCurrent()
           if (
-            readiness(
-              { ...draft, fields: { ...draft.fields, flown_confirmed: true } },
-              localToday(),
-            ).length ||
+            flewReadiness(draft).length ||
             Object.keys(validateValues(toValues(draft.fields))).length
           )
             continue

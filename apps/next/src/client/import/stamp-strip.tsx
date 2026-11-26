@@ -4,6 +4,7 @@ import { useId, useState } from 'react'
 import { formatCount, formatNumber, type Locale } from '../../lib/format'
 import { countryNamer } from '../passport/model'
 import { CountryStamp } from '../stamps'
+import { count } from './copy'
 import { R, RC } from './route-copy'
 import type { Reach } from './route-model'
 
@@ -59,9 +60,7 @@ export function StampStrip({ locale, reach }: { locale: Locale; reach: Reach[] }
             </span>
           </li>
         ))}
-        {hidden > 0 ? (
-          <li className="stamp-strip-more">{formatCount(locale, hidden, RC.moreCountries)}</li>
-        ) : null}
+        {hidden > 0 ? <li className="stamp-strip-more">{count(locale, 'more', hidden)}</li> : null}
       </ul>
     </div>
   )

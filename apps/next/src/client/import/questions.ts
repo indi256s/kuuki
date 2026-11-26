@@ -49,6 +49,7 @@ export type Question =
   | AirlineQuestion
   | AirportQuestion
   | StatusQuestion
+export type SharedQuestion = YearQuestion | AirportQuestion
 
 const MONTH_DAY = /^(\d{2})-(\d{2})$/
 export function monthDayOf(draft: Draft): { month: number; day: number } | null {
@@ -144,13 +145,8 @@ function splitAcrossNewYear(drafts: Draft[]): Draft[][] {
   ]
 }
 
-export function buildQuestions(drafts: Draft[], today: string): Question[] {
-  const review = [...drafts]
-    .filter((draft) => draft.status === 'review')
-    .sort((a, b) => a.ordinal - b.ordinal)
-  const open = review.filter((draft) => !isDuplicate(draft))
-  const questions: Question[] = []
-
+function yearQuestions(open: Draft[], today: string): YearQuestion[] {
+  const questions: YearQuestion[] = []
   for (const evidence of ['monthDay', 'ordinal'] as const) {
     const withEvidence = open.filter(
       (draft) => needsYear(draft) && 'ordinal' in evidenceOf(draft)! === (evidence === 'ordinal'),
@@ -170,13 +166,10 @@ export function buildQuestions(drafts: Draft[], today: string): Question[] {
       })
     }
   }
+  return questions
+}
 
-  const flown = review.filter((draft) => needsFlown(draft, today))
-  if (flown.length > 0) questions.push({ kind: 'flown', key: 'flown', drafts: flown })
-
-  const airline = open.filter(needsAirline)
-  if (airline.length > 0) questions.push({ kind: 'airline', key: 'airline', drafts: airline })
-
+function airportQuestions(open: Draft[]): AirportQuestion[] {
   const airports = new Map<string, AirportQuestion>()
   for (const draft of open)
     for (const endpoint of ['origin', 'destination'] as const) {
@@ -187,14 +180,38 @@ export function buildQuestions(drafts: Draft[], today: string): Question[] {
       question.items.push({ draft, endpoint })
       airports.set(key, question)
     }
-  questions.push(...airports.values())
+  return [...airports.values()]
+}
+
+const reviewed = (drafts: Draft[]) =>
+  drafts.filter((draft) => draft.status === 'review').sort((a, b) => a.ordinal - b.ordinal)
+const questionSize = (question: Question) =>
+  question.kind === 'airport' ? question.items.length : question.drafts.length
+const bySize = <T extends Question>(questions: T[]) =>
+  questions.sort((a, b) => questionSize(b) - questionSize(a))
+
+export function buildQuestions(drafts: Draft[], today: string): Question[] {
+  const review = reviewed(drafts)
+  const open = review.filter((draft) => !isDuplicate(draft))
+  const questions: Question[] = yearQuestions(open, today)
+
+  const flown = review.filter((draft) => needsFlown(draft, today))
+  if (flown.length > 0) questions.push({ kind: 'flown', key: 'flown', drafts: flown })
+
+  const airline = open.filter(needsAirline)
+  if (airline.length > 0) questions.push({ kind: 'airline', key: 'airline', drafts: airline })
+
+  questions.push(...airportQuestions(open))
 
   const status = open.filter(needsStatus)
   if (status.length > 0) questions.push({ kind: 'status', key: 'status', drafts: status })
 
-  const size = (question: Question) =>
-    question.kind === 'airport' ? question.items.length : question.drafts.length
-  return questions.sort((a, b) => size(b) - size(a))
+  return bySize(questions)
+}
+
+export function gapQuestions(drafts: Draft[], today: string): SharedQuestion[] {
+  const open = reviewed(drafts).filter((draft) => !isDuplicate(draft))
+  return bySize<SharedQuestion>([...yearQuestions(open, today), ...airportQuestions(open)])
 }
 
 export const questionDrafts = (question: Question): Draft[] =>

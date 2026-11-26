@@ -1,10 +1,12 @@
 import { findAirport } from '@kuuki/data/airport-lookup'
-import { airportAliases } from '@kuuki/shared'
+import { airportAliases, foldSearchText } from '@kuuki/shared'
 import type { Locale } from '../../lib/format'
+import { S } from './copy'
+import { formatDay, formatMonthDay } from './day-format'
 import type { DraftChange } from './draft-saver'
 import type { Draft } from './import-types'
-import type { Endpoint } from './questions'
-import { isDuplicate } from './review-model'
+import { monthDayOf, ordinalOf, type Endpoint } from './questions'
+import { flewReadiness, isDuplicate, toValues, validateValues } from './review-model'
 
 export type Decision = 'flew' | 'land' | 'skip'
 export type LegLine = Decision | 'saved' | 'open'
@@ -25,6 +27,7 @@ export interface Leg {
   date: string | null
   decision: Decision | null
   saved: boolean
+  copyOf: string | null
 }
 
 export type RouteItem =
@@ -54,12 +57,13 @@ export interface LandVisit {
   visitYear: number | null
 }
 
+export type LandOutcome = 'visit' | 'same-country' | 'unknown-country'
+
 const HINT_COUNTRY = /,\s*([A-Za-z]{2})\s*$/
 
-const fold = (value: string) =>
-  value.normalize('NFKD').replace(/\p{M}/gu, '').trim().toLocaleLowerCase('en')
+const fold = (value: string) => foldSearchText(value).trim()
 
-export function hintCity(hint: string): string {
+function hintCity(hint: string): string {
   return hint.replace(HINT_COUNTRY, '').trim()
 }
 
@@ -91,43 +95,104 @@ export function placeCity(place: Place, locale: Locale): string | null {
   return place.hint ? hintCity(place.hint) : null
 }
 
+export const endpointLabel = (place: Place, locale: Locale, first: 'code' | 'city' = 'code') =>
+  (first === 'code'
+    ? (place.code ?? placeCity(place, locale))
+    : (placeCity(place, locale) ?? place.code)) ?? '—'
+
+export const legRoute = (leg: Leg, locale: Locale) =>
+  `${endpointLabel(leg.origin, locale)} → ${endpointLabel(leg.destination, locale)}`
+
+export const airlineOf = (draft: Draft): string | null => {
+  const code = draft.fields.airline_iata
+  return code && code !== 'ZZ' && !draft.fields.airline_was_placeholder ? code : null
+}
+
+export const legDraft = (draft: Draft): Draft =>
+  draft.fields.flown_confirmed === true && draft.fields.airline_was_placeholder === undefined
+    ? draft
+    : {
+        ...draft,
+        fields: { ...draft.fields, flown_confirmed: true, airline_was_placeholder: undefined },
+      }
+
 export const settledDate = (draft: Draft): string | null =>
   /^\d{4}-\d{2}-\d{2}$/.test(draft.fields.date ?? '') && (draft.yearExplicit || draft.yearConfirmed)
     ? draft.fields.date
     : null
 
+export function dayLabel(draft: Draft, locale: Locale): string | null {
+  const settled = settledDate(draft)
+  if (settled) return formatDay(locale, settled)
+  const monthDay = monthDayOf(draft)
+  if (monthDay) return formatMonthDay(locale, monthDay, 'short')
+  const ordinal = ordinalOf(draft)
+  return ordinal === null ? null : S.ordinalDay[locale].replace('{day}', String(ordinal))
+}
+
 export function decisionOf(
   draft: Draft,
   land: ReadonlySet<string>,
   implicit = false,
+  copy = false,
 ): Decision | null {
   if (draft.status === 'dismissed') return land.has(draft.id) ? 'land' : 'skip'
   if (draft.status !== 'review') return null
-  if (isDuplicate(draft)) return draft.selected && draft.duplicateAcknowledged ? 'flew' : null
+  if (isDuplicate(draft) || copy)
+    return draft.selected && draft.duplicateAcknowledged ? 'flew' : null
   return draft.selected || implicit ? 'flew' : null
 }
 
-export function decisionChange(draft: Draft, next: Decision): DraftChange | null {
+export function decisionChange(draft: Draft, next: Decision, copy = false): DraftChange | null {
   if (next === 'flew') {
     const change: DraftChange = { selected: true }
     if (draft.status === 'dismissed') change.dismissed = false
-    if (isDuplicate(draft)) change.duplicateAcknowledged = true
+    if (isDuplicate(draft) || copy) change.duplicateAcknowledged = true
     return change
   }
   return draft.status === 'dismissed' ? null : { dismissed: true }
 }
 
-export function legOf(draft: Draft, land: ReadonlySet<string>, implicit = false): Leg {
+export function legOf(
+  draft: Draft,
+  land: ReadonlySet<string>,
+  implicit = false,
+  copyOf: string | null = null,
+): Leg {
   return {
     id: draft.id,
     draft,
     origin: placeOf(draft, 'origin'),
     destination: placeOf(draft, 'destination'),
     date: settledDate(draft),
-    decision: decisionOf(draft, land, implicit),
+    decision: decisionOf(draft, land, implicit, copyOf !== null),
     saved: draft.status === 'converted',
+    copyOf,
   }
 }
+
+export function copiesOf(drafts: readonly Draft[]): Map<string, string> {
+  const first = new Map<string, string>()
+  const copies = new Map<string, string>()
+  for (const draft of drafts) {
+    const { date, origin, destination } = draft.fields
+    if (draft.status !== 'review' || !date || !origin || !destination) continue
+    const key = `${date}:${origin}:${destination}`
+    const prior = first.get(key)
+    if (prior) copies.set(draft.id, prior)
+    else first.set(key, draft.id)
+  }
+  return copies
+}
+
+export const duplicated = (leg: Leg) => isDuplicate(leg.draft) || leg.copyOf !== null
+
+export const draftReady = (draft: Draft, duplicate = isDuplicate(draft)) =>
+  flewReadiness(draft).length === 0 &&
+  Object.keys(validateValues(toValues(draft.fields))).length === 0 &&
+  (!duplicate || draft.duplicateAcknowledged)
+
+export const legReady = (leg: Leg) => draftReady(leg.draft, duplicated(leg))
 
 export const lineOf = (leg: Leg): LegLine => (leg.saved ? 'saved' : (leg.decision ?? 'open'))
 
@@ -208,19 +273,24 @@ export function buildRoute(legs: readonly Leg[]): RouteItem[] {
   return items
 }
 
+export function landOutcome(leg: Leg): LandOutcome {
+  const country = leg.destination.country
+  if (!country) return 'unknown-country'
+  return leg.origin.country === country ? 'same-country' : 'visit'
+}
+
 export function landVisits(legs: readonly Leg[]): LandVisit[] {
-  return legs.flatMap((leg) => {
-    const country = leg.destination.country
-    if (leg.decision !== 'land' || leg.saved || !country) return []
-    if (leg.origin.country === country) return []
-    return [
-      {
-        id: leg.id,
-        countryCode: country,
-        visitYear: leg.date ? Number(leg.date.slice(0, 4)) : null,
-      },
-    ]
-  })
+  return legs.flatMap((leg) =>
+    leg.decision === 'land' && !leg.saved && landOutcome(leg) === 'visit'
+      ? [
+          {
+            id: leg.id,
+            countryCode: leg.destination.country!,
+            visitYear: leg.date ? Number(leg.date.slice(0, 4)) : null,
+          },
+        ]
+      : [],
+  )
 }
 
 export interface Reach {

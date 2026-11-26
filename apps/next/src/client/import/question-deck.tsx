@@ -5,7 +5,6 @@ import { findAirportLabel as findAirport } from '@kuuki/data/airport-labels'
 import { formatDateOnly, type Locale } from '../../lib/format'
 import { Button } from '../ui/button'
 import { Disclosure } from '../ui/disclosure'
-import { Field } from '../ui/field'
 import { S, count } from './copy'
 import type { DraftChange, SaveState } from './draft-saver'
 import type { Draft } from './import-types'
@@ -27,6 +26,8 @@ import {
 } from './questions'
 import { cityOf } from './reference'
 import { endpointText, RouteEndpoint } from './route-endpoint'
+import { OtherYear } from './answer-chips'
+import { formatMonthDay } from './day-format'
 
 export interface QuestionDeckProps {
   compact?: boolean
@@ -43,16 +44,6 @@ interface Resolved {
   key: string
   label: string
   ids: string[]
-}
-
-export function formatMonthDay(
-  locale: Locale,
-  monthDay: { month: number; day: number },
-  month: 'long' | 'short' = 'long',
-): string {
-  return new Intl.DateTimeFormat(locale, { day: 'numeric', month, timeZone: 'UTC' }).format(
-    new Date(Date.UTC(2000, monthDay.month - 1, monthDay.day, 12)),
-  )
 }
 
 export function QuestionDeck({
@@ -536,66 +527,5 @@ export function QuestionDeck({
         {notice}
       </p>
     </section>
-  )
-}
-
-export function OtherYear({
-  locale,
-  max,
-  disabled,
-  onApply,
-}: {
-  locale: Locale
-  max: number
-  disabled: boolean
-  onApply: (year: number) => boolean
-}) {
-  const [open, setOpen] = useState(false)
-  const [value, setValue] = useState('')
-  const [error, setError] = useState('')
-  const input = useRef<HTMLInputElement>(null)
-  useEffect(() => {
-    if (open) input.current?.focus()
-  }, [open])
-  if (!open)
-    return (
-      <Button disabled={disabled} aria-expanded={false} onClick={() => setOpen(true)}>
-        {S.yearOther[locale]}
-      </Button>
-    )
-  const submit = () => {
-    const year = Number(value)
-    if (!/^\d{4}$/.test(value) || year < 1950 || year > max) {
-      setError(S.yearInvalid[locale].replace('{max}', String(max)))
-      return
-    }
-    if (!onApply(year)) setError(S.yearNoSuchDay[locale].replace('{year}', String(year)))
-  }
-  return (
-    <form
-      className="import-question-year"
-      onSubmit={(event) => {
-        event.preventDefault()
-        submit()
-      }}
-    >
-      <Field
-        ref={input}
-        label={S.yearLabel[locale]}
-        inputMode="numeric"
-        autoComplete="off"
-        maxLength={4}
-        value={value}
-        error={error}
-        onChange={(event) => {
-          setValue(event.target.value.trim())
-          setError('')
-        }}
-        disabled={disabled}
-      />
-      <Button type="submit" disabled={disabled}>
-        {S.yearApply[locale]}
-      </Button>
-    </form>
   )
 }

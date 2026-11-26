@@ -12,7 +12,6 @@ import { R } from './route-copy'
 export function AirportPicker({
   locale,
   endpoint,
-  query: initialQuery,
   mobile,
   onPick,
   onClose,
@@ -21,7 +20,6 @@ export function AirportPicker({
 }: {
   locale: Locale
   endpoint: Endpoint | null
-  query: string
   mobile: boolean
   onPick: (endpoint: Endpoint, code: string) => void
   onClose: (restoreFocus: boolean) => void
@@ -29,7 +27,7 @@ export function AirportPicker({
   city?: string | null
 }) {
   const id = useId()
-  const [query, setQuery] = useState(initialQuery)
+  const [query, setQuery] = useState('')
   const [seen, setSeen] = useState<Endpoint | null>(null)
   const [active, setActive] = useState(0)
   const [last, setLast] = useState<Endpoint | null>(null)
@@ -37,11 +35,7 @@ export function AirportPicker({
     setSeen(endpoint)
     if (endpoint) {
       setLast(endpoint)
-      setQuery(
-        initialQuery && searchChoices(airportChoices(locale), initialQuery).matches.length
-          ? initialQuery
-          : '',
-      )
+      setQuery(city && searchChoices(airportChoices(locale), city).matches.length ? city : '')
       setActive(0)
     }
   }

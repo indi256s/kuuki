@@ -21,9 +21,9 @@ Every review candidate is a leg with exactly one decision: Flew, By land or Skip
 
 ### By land creates a ground visit on save
 
-On save, each By land leg whose destination country is known (an airport code through the catalog, or the `CC` suffix of a `City, CC` hint) and differs from its origin country creates a ground visit through `POST /api/passport/ground-visits`: `countryCode` is the destination country, `visitYear` the leg's year when its date is settled, otherwise `null`, `entryMethod: 'land'`, `mode: null`, and the visit `id` is the draft id. An unknown origin country counts as different, since reaching the destination by land is still true. A leg inside one country creates nothing.
+On save, each By land leg whose destination country is known (an airport code through the catalog, or the `CC` suffix of a `City, CC` hint) and differs from its origin country creates a ground visit through `POST /api/passport/ground-visits`: `countryCode` is the destination country, `visitYear` the leg's year when its date is settled, otherwise `null`, `entryMethod: 'land'`, `mode: null`, and the visit `id` is the draft id. An unknown origin country counts as different, since reaching the destination by land is still true. A leg inside one country, or one whose destination country is unknown, creates nothing; the leg and the save bar name which of the two it is (`landOutcome` in `route-model.ts`).
 
-The draft id is the idempotency key: a retry after an unknown outcome replays (200) instead of adding a second visit. Created ids are kept as `landDoneIds` in the same session record, so the leg shows as recorded after a reload. A failed visit keeps its leg actionable and the page on the review. No server endpoint or draft contract changes.
+Visits are sent up to four at a time, alongside the flight save, since neither depends on the other. The draft id is the idempotency key: a retry after an unknown outcome replays (200) instead of adding a second visit. Created ids are kept as `landDoneIds` in the same session record, so the leg shows as recorded after a reload. A failed visit keeps its leg actionable and the page on the review. No server endpoint or draft contract changes.
 
 ## Consequences
 
