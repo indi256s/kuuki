@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { draft } from './fixtures'
 import type { Draft } from './import-types'
-import { buildReview, finishOf, type ReviewInput } from './import-review'
+import { buildReview, completionOf, finishOf, type ReviewInput } from './import-review'
 
 const review = (drafts: Draft[], over: Partial<ReviewInput> = {}) =>
   buildReview({
@@ -82,5 +82,44 @@ describe('finish', () => {
         firstFlightId: 13,
       },
     )
+  })
+})
+
+describe('completion', () => {
+  const ready = { text: false, unsent: false, reading: false, sourceFailed: false }
+  const state = (over: Partial<Parameters<typeof completionOf>[0]> = {}) => ({
+    chosen: [],
+    visits: [],
+    blanks: 0,
+    recorded: false,
+    pendingLand: [],
+    ...over,
+  })
+
+  it('saves what is decided and finishes only when everything decided is recorded', () => {
+    expect(completionOf(state({ chosen: ['d1'] }), ready)).toEqual({ kind: 'save', count: 1 })
+    expect(completionOf(state({ recorded: true }), ready)).toEqual({ kind: 'finish' })
+    expect(completionOf(state(), ready)).toEqual({ kind: 'blocked', reason: 'nothing' })
+    expect(completionOf(state({ recorded: true, blanks: 1 }), ready)).toEqual({
+      kind: 'blocked',
+      reason: 'not-ready',
+    })
+  })
+
+  it('names the reason a finish is refused, so the bar and the handler agree', () => {
+    const recorded = state({ recorded: true })
+    expect(completionOf(recorded, { ...ready, sourceFailed: true })).toEqual({
+      kind: 'blocked',
+      reason: 'source',
+    })
+    expect(completionOf(recorded, { ...ready, unsent: true })).toMatchObject({ reason: 'unsent' })
+    expect(completionOf(recorded, { ...ready, reading: true })).toMatchObject({ reason: 'reading' })
+    expect(
+      completionOf(state({ chosen: ['d1'] }), { ...ready, text: true, unsent: true }),
+    ).toMatchObject({ reason: 'text' })
+    expect(completionOf(state({ chosen: ['d1'] }), { ...ready, sourceFailed: true })).toEqual({
+      kind: 'save',
+      count: 1,
+    })
   })
 })

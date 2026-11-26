@@ -26,7 +26,7 @@ import { localToday, withSaved } from './review-model'
 import type { DerivedAck } from '@kuuki/client/derivedState'
 import type { Draft } from './import-types'
 import { newlyPressed } from './flight-input'
-import { decisionChange, draftReady, type Decision } from './route-model'
+import { decisionChange, type Decision } from './route-model'
 import { R, rcount } from './route-copy'
 import { RouteView } from './route-view'
 import { LegTicket } from './leg-ticket'
@@ -34,7 +34,14 @@ import { SharedQuestions } from './shared-questions'
 import { StampStrip } from './stamp-strip'
 import { ImportFinish, type Finish } from './import-finish'
 import { ImportSources } from './import-sources'
-import { buildReview, finishOf, landReason } from './import-review'
+import {
+  buildReview,
+  completionOf,
+  failedSaves,
+  finishOf,
+  type Blocked,
+  type Review,
+} from './import-review'
 import { useFooterInsets } from './use-footer-insets'
 import { recordLandVisits } from './land-visits'
 import { S, count } from './copy'
@@ -255,24 +262,27 @@ export function UnifiedImport({
   }, [addFiles, historyOpen])
 
   const today = localToday()
-  const review = useMemo(
-    () =>
+  const reviewOf = useCallback(
+    (current: Record<string, SaveState>, list: typeof entries) =>
       buildReview({
         drafts: session.drafts(),
         outcomes: session.getOutcomes(),
-        states,
-        entries,
+        states: current,
+        entries: list,
         requiresSelection: session.requiresSelection(),
         deferred,
         today,
       }),
-    [session, entries, states, deferred, today],
+    [session, deferred, today],
   )
+  const review = useMemo(() => reviewOf(states, entries), [reviewOf, states, entries])
   const { legs, chosen, blanks, undecided, visits, landDone } = review
   const outcomes = session.getOutcomes()
   const flights = chosen.length
   const recordable = flights + visits.length
-  const reading = entries.some((entry) => ['queued', 'local', 'online'].includes(entry.phase))
+  const readingOf = (list: typeof entries) =>
+    list.some((entry) => ['queued', 'local', 'online'].includes(entry.phase))
+  const reading = readingOf(entries)
   const hasBar = legs.length > 0 && !finish
   useFooterInsets(root, hasBar)
   useEffect(() => {
@@ -294,19 +304,23 @@ export function UnifiedImport({
       live = false
     }
   }, [finish, feedback.status])
-  const finishOnly = recordable === 0 && blanks === 0 && review.recorded
-  const blockReason = () => {
-    if (unsent) return unsentReason
-    if (reading) return C.reading[locale]
-    if (recordable > 0 || finishOnly) return undefined
-    if (blanks) return rcount(locale, 'notReady', blanks)
-    if (review.pendingLand.length)
-      return landReason(review.pendingLand) === 'unknown-country'
-        ? R.unknownCountry[locale]
-        : R.sameCountry[locale]
-    return R.nothing[locale]
+  const completion = completionOf(review, {
+    text: textPending,
+    unsent: dirty.size > 0 || Object.keys(states).length > 0,
+    reading,
+    sourceFailed: entries.some((entry) => entry.phase === 'failed'),
+  })
+  const blockedText: Record<Blocked, string> = {
+    text: C.unsentText[locale],
+    unsent: R.unsaved[locale],
+    reading: C.reading[locale],
+    'not-ready': rcount(locale, 'notReady', blanks),
+    source: R.failedSource[locale],
+    'same-country': R.sameCountry[locale],
+    'unknown-country': R.unknownCountry[locale],
+    nothing: R.nothing[locale],
   }
-  const reason = blockReason()
+  const reason = completion.kind === 'blocked' ? blockedText[completion.reason] : undefined
   const closeReason = saving
     ? S.pausedWhileSaving[locale]
     : unsent
@@ -362,12 +376,16 @@ export function UnifiedImport({
     }
   }
 
-  const complete = async (after: Draft[], before: Promise<ReadonlySet<string> | null>) => {
+  const complete = async (
+    after: Draft[],
+    fresh: Review,
+    before: Promise<ReadonlySet<string> | null>,
+  ) => {
     const result = finishOf({
       drafts: after,
       outcomes: session.getOutcomes(),
       landSaved: session.landDoneIds(),
-      legs,
+      legs: fresh.legs,
     })
     announceShellNotice(ownerId, {
       message: result.flights
@@ -394,18 +412,16 @@ export function UnifiedImport({
     failedLand: ReadonlySet<string>,
   ) => {
     const after = withSaved(session.drafts(), session.getOutcomes())
-    const inReview = new Set(
-      after.filter((draft) => draft.status === 'review').map((draft) => draft.id),
-    )
-    const failed = [...session.getOutcomes()].some(
-      ([id, outcome]) => outcome.status !== 'saved' && inReview.has(id),
-    )
-    const waiting = after.some(
-      (draft) => inReview.has(draft.id) && draft.selected && !draftReady(draft),
-    )
-    if (failed || failedLand.size || entries.some((entry) => entry.phase === 'failed'))
-      setError(failed || failedLand.size > 0)
-    else if (!waiting && !saver.hasUnsaved()) await complete(after, before)
+    const current = session.getEntries()
+    const fresh = reviewOf({}, current)
+    const state = completionOf(fresh, {
+      text: textPending,
+      unsent: saver.hasUnsaved(),
+      reading: readingOf(current),
+      sourceFailed: current.some((entry) => entry.phase === 'failed'),
+    })
+    if (state.kind === 'finish') await complete(after, fresh, before)
+    else setError(failedSaves(after, session.getOutcomes()) || failedLand.size > 0)
   }
 
   const save = () =>
@@ -614,11 +630,11 @@ export function UnifiedImport({
             loadingLabel={S.saving[locale]}
             disabled={Boolean(reason)}
             aria-describedby={reasonId}
-            onClick={() => void (finishOnly ? finishImport() : save())}
+            onClick={() => void (completion.kind === 'finish' ? finishImport() : save())}
           >
             {recordable
               ? rcount(locale, 'addN', recordable)
-              : finishOnly
+              : review.recorded && !blanks
                 ? R.done[locale]
                 : R.add[locale]}
           </Button>

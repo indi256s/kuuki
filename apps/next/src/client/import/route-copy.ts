@@ -35,6 +35,10 @@ export const R = {
   ),
   unknownCountry: p('Country unknown', 'Страна неизвестна'),
   nothing: p('Mark a leg Flew or By land.', 'Отметьте «Летал» или «По земле».'),
+  failedSource: p(
+    'Try the failed file again or remove it.',
+    'Повторите или уберите файл с ошибкой.',
+  ),
   openJournal: p('Open journal', 'Открыть журнал'),
   leftOut: p('Left out', 'Не вошли'),
   finished: p('Import finished', 'Импорт завершён'),

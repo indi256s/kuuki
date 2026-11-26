@@ -179,3 +179,47 @@ export function finishOf({
 
 export const landReason = (pending: readonly Leg[]) =>
   pending.some((leg) => landOutcome(leg) === 'unknown-country') ? 'unknown-country' : 'same-country'
+
+export type Blocked =
+  | 'text'
+  | 'unsent'
+  | 'reading'
+  | 'not-ready'
+  | 'source'
+  | 'same-country'
+  | 'unknown-country'
+  | 'nothing'
+
+export type Completion =
+  | { kind: 'save'; count: number }
+  | { kind: 'finish' }
+  | { kind: 'blocked'; reason: Blocked }
+
+export interface CompletionInput {
+  text: boolean
+  unsent: boolean
+  reading: boolean
+  sourceFailed: boolean
+}
+
+export function completionOf(
+  review: Pick<Review, 'chosen' | 'visits' | 'blanks' | 'recorded' | 'pendingLand'>,
+  { text, unsent, reading, sourceFailed }: CompletionInput,
+): Completion {
+  const blocked = (reason: Blocked): Completion => ({ kind: 'blocked', reason })
+  if (text) return blocked('text')
+  if (unsent) return blocked('unsent')
+  if (reading) return blocked('reading')
+  const count = review.chosen.length + review.visits.length
+  if (count > 0) return { kind: 'save', count }
+  if (review.blanks) return blocked('not-ready')
+  if (!review.recorded)
+    return blocked(review.pendingLand.length ? landReason(review.pendingLand) : 'nothing')
+  if (sourceFailed) return blocked('source')
+  return { kind: 'finish' }
+}
+
+export const failedSaves = (drafts: readonly Draft[], outcomes: ReadonlyMap<string, RowOutcome>) =>
+  drafts.some(
+    (draft) => draft.status === 'review' && (outcomes.get(draft.id)?.status ?? 'saved') !== 'saved',
+  )

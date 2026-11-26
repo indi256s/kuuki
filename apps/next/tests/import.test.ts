@@ -377,6 +377,38 @@ test('a partial save keeps failed rows actionable and retries only the original 
   await expect(page.getByText('3 flights saved', { exact: true })).toBeVisible()
 })
 
+test('after a reload, skipping the failed leg finishes with the flights already saved', async ({
+  page,
+  baseURL,
+}) => {
+  const server = await setup(page, baseURL)
+  server.ready([
+    row('d1'),
+    row('d2', {
+      fields: { date: '2026-04-02', origin: 'LAX', destination: 'SFO', airline_iata: 'AA' },
+    }),
+    row('d3', {
+      fields: { date: '2026-05-03', origin: 'SFO', destination: 'JFK', airline_iata: 'AA' },
+    }),
+  ])
+  server.failOnce.add('d2')
+  await page.goto(`/import?batch=${BATCH}`)
+  await page.getByRole('button', { name: 'Add 3 to journal' }).click()
+  await expect(
+    page.getByRole('alert').filter({ hasText: 'Not every flight was saved' }),
+  ).toBeVisible()
+  await page.reload()
+  await expect(page.getByText('In your journal', { exact: true })).toHaveCount(2)
+  await rows(page).nth(1).getByRole('radio', { name: 'Skip' }).click()
+  await expect.poll(() => server.patches.length).toBe(1)
+  await page.getByRole('button', { name: 'Finish import' }).click()
+  await finished(page)
+  await expect(page.locator('.import-finish-hero .sr-only')).toHaveText('2')
+  await expect(page.locator('.import-finish-hero .import-hero-label')).toHaveText('flights added')
+  await expect(page.getByText('2 flights saved', { exact: true })).toBeVisible()
+  expect(server.confirms).toHaveLength(1)
+})
+
 test('typed corrections protect close and save until persisted', async ({ page, baseURL }) => {
   const server = await setup(page, baseURL)
   server.ready([
@@ -452,6 +484,28 @@ test('each leg takes one decision and duplicates or unresolved airports never jo
   await save.click()
   await expect.poll(() => server.confirms.length).toBe(1)
   expect(server.confirms[0].items.map((item) => item.draftId).sort()).toEqual(['d1', 'd2'])
+})
+
+test('a preselected second copy of a leg stays undecided when the first is skipped', async ({
+  page,
+  baseURL,
+}) => {
+  const server = await setup(page, baseURL)
+  server.ready([row('d1'), row('d2')])
+  await page.goto(`/import?batch=${BATCH}`)
+  await expect(rows(page)).toHaveCount(2)
+  await expect(rows(page).nth(1)).toContainText('Twice in this import')
+  await rows(page).nth(0).getByRole('radio', { name: 'Skip' }).click()
+  await expect.poll(() => server.patches.length).toBe(1)
+  await expect(rows(page).nth(0).getByRole('radio', { name: 'Skip' })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  )
+  await expect(rows(page).nth(1).getByRole('radio', { checked: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Add to journal' })).toHaveAttribute(
+    'aria-disabled',
+    'true',
+  )
 })
 
 test('By land records a ground visit for a border crossing and nothing inside one country', async ({
