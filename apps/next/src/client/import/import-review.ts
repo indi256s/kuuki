@@ -87,8 +87,7 @@ export function buildReview({
   const pendingLand = legs.filter(
     (leg) => leg.decision === 'land' && !leg.saved && !landDone.has(leg.id),
   )
-  const recorded =
-    [...outcomes.values()].some((outcome) => outcome.status === 'saved') || landDone.size > 0
+  const recorded = legs.some((leg) => leg.saved) || landDone.size > 0
 
   const reviewIds = new Set(review.map((draft) => draft.id))
   const questions = gapQuestions(
@@ -152,8 +151,8 @@ export function finishOf({
     (entry): entry is [string, Extract<RowOutcome, { status: 'saved' }>] =>
       entry[1].status === 'saved',
   )
-  const savedIds = new Set(saved.map(([id]) => id))
-  const savedDrafts = drafts.filter((draft) => savedIds.has(draft.id))
+  const savedDrafts = withSaved(drafts, outcomes).filter((draft) => draft.status === 'converted')
+  const savedIds = new Set([...saved.map(([id]) => id), ...savedDrafts.map((draft) => draft.id)])
   const touched = [
     ...new Set([
       ...savedDrafts.flatMap((draft) =>
@@ -166,13 +165,13 @@ export function finishOf({
   ]
   return {
     id: crypto.randomUUID(),
-    flights: saved.length,
+    flights: savedIds.size,
     km: savedDrafts.reduce(
       (total, draft) => total + routeKm(draft.fields.origin, draft.fields.destination),
       0,
     ),
     land: landSaved.size,
-    firstFlightId: saved[0]?.[1].flightId ?? null,
+    firstFlightId: saved[0]?.[1].flightId ?? savedDrafts[0]?.convertedFlightId ?? null,
     touched,
     stamps: touched.length ? null : [],
   }
