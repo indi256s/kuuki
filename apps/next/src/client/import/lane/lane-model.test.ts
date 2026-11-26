@@ -37,7 +37,7 @@ describe('laneModel', () => {
   })
 
   it('lights the monitor for online recognition, not for the local barcode read', () => {
-    expect(model([entry('a', 'local')])).toMatchObject({ monitor: false, size: 'band' })
+    expect(model([entry('a', 'local')])).toMatchObject({ monitor: false, size: 'stage' })
     expect(places([entry('a', 'local')])).toEqual(['a:frame:0'])
     expect(model([entry('a', 'online')]).monitor).toBe(true)
     expect(places([entry('a', 'online')])).toEqual(['a:tunnel:0'])
@@ -90,7 +90,7 @@ describe('laneModel', () => {
     expect(monitor).toBe(false)
   })
 
-  it('puts the Flighty logbook on the inspection table as a band, then stacks its tray', () => {
+  it('puts the Flighty logbook on the inspection table on the stage, then stacks its tray', () => {
     expect(model([], { history: 'reading' })).toEqual({
       trays: [
         { id: 'history', slot: 'table', index: 0, cargo: 'logbook', stubs: 0, rejected: null },
@@ -98,8 +98,30 @@ describe('laneModel', () => {
       monitor: false,
       rollers: false,
       flaps: false,
-      size: 'band',
+      size: 'stage',
     })
     expect(places([], { history: 'done' })).toEqual(['history:stack:0'])
+    expect(model([], { history: 'done' }).size).toBe('band')
+  })
+
+  it('is a stage while any source is queued or read, a band once none is', () => {
+    for (const phase of ['queued', 'local', 'online'] as const) {
+      expect(model([entry('a', phase)]).size).toBe('stage')
+      expect(model([entry('r', 'ready', { drafts: 2 }), entry('a', phase)]).size).toBe('stage')
+    }
+    expect(model([entry('a', 'ready', { drafts: 2 }), entry('b', 'empty')]).size).toBe('band')
+    expect(model([entry('a', 'failed', { problem: 'type' })]).size).toBe('band')
+    expect(model([entry('a', 'failed', { problem: 'read' })]).size).toBe('band')
+    expect(model([entry('a', 'queued')], { saved: true }).size).toBe('band')
+    expect(model([entry('a', 'queued')], { dragging: true }).size).toBe('stage')
+    expect(model([], { dragging: true }).size).toBe('hero')
+  })
+
+  it('marks the finish and keeps the exit tray with its stubs for its last trip, over saved', () => {
+    const ready = [entry('a', 'ready', { drafts: 1 }), entry('b', 'ready', { drafts: 3 })]
+    const finished = model(ready, { finished: true, saved: true })
+    expect(finished).toMatchObject({ finished: true, size: 'band', monitor: false })
+    expect(finished.trays).toEqual(model(ready).trays)
+    expect(model(ready)).not.toHaveProperty('finished')
   })
 })

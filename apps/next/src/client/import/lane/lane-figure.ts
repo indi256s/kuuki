@@ -1,5 +1,5 @@
 import { X, Y, cylZ, rrOn, shadowRect } from '../../overview/iso/solids'
-import { Scene, fitBox, hull, type IsoFigureData, type P3 } from '../../overview/iso/scene'
+import { Scene, fitBox, hull, type IsoFigureData, type P3, type Pt } from '../../overview/iso/scene'
 import type { LaneModel, LaneSlot, LaneTray } from './lane-model'
 
 const Z: P3 = [0, 0, 1]
@@ -22,6 +22,7 @@ const GANTRY_U = 159
 const MONITOR = { v: 32.5, u: 220, z: 30, w: 19, h: 15 }
 const MOUTH = { v: 3, u: 44, z: TOP }
 const QUEUE_PITCH = TRAY.l + 2
+const GONE = { u: EXIT.u1 + 40, z: TOP + 6 }
 
 function slotAt(tray: Pick<LaneTray, 'slot' | 'index' | 'rejected'>) {
   const lane = (u: number) => ({ v: MOUTH.v, u, z: TOP })
@@ -55,11 +56,69 @@ const REST: LaneModel = {
 }
 const scales = new Map<string, number>()
 
-export function buildLane(box: { w: number; h: number }, model: LaneModel): IsoFigureData {
+export const FOCUS: readonly LaneSlot[] = [
+  'tunnel',
+  'frame',
+  'queue',
+  'table',
+  'exit',
+  'side',
+  'mouth',
+]
+const LOOK: Record<LaneSlot, { v: number; u: number; z: number }> = {
+  mouth: { v: 14, u: 72, z: 20 },
+  queue: { v: 14, u: 138, z: 20 },
+  frame: { v: 14, u: 174, z: 22 },
+  tunnel: { v: 20, u: 210, z: 26 },
+  exit: { v: 16, u: 280, z: 22 },
+  side: { v: 44, u: 258, z: 20 },
+  stack: { v: 14, u: 14, z: 10 },
+  table: { v: -28, u: 120, z: 18 },
+}
+const SPAN = { w: 172, h: 118 }
+
+export type LaneBox = { w: number; h: number }
+export type LaneFigure = { figure: IsoFigureData; camera: Pt; focus: LaneSlot | null }
+
+export function focusOf(model: Pick<LaneModel, 'trays'>): LaneSlot | null {
+  return FOCUS.find((slot) => model.trays.some((tray) => tray.slot === slot)) ?? null
+}
+
+export function stageScale(box: LaneBox): number {
+  return Math.round(Math.min(box.w / SPAN.w, box.h / SPAN.h) * 200) / 200
+}
+
+export function buildLane(box: LaneBox, model: LaneModel): LaneFigure {
+  if (model.size === 'stage') {
+    const k = stageScale(box)
+    const figure = draw(k, model)
+    const focus = focusOf(model)
+    const at = focus && LOOK[focus]
+    return {
+      figure,
+      focus,
+      camera: aim(box, figure, at && new Scene(k).project([at.v, -at.u, at.z])),
+    }
+  }
   const key = `${box.w}x${box.h}`
   let k = scales.get(key)
   if (!k) scales.set(key, (k = fitBox(box.w, box.h, (scale) => draw(scale, REST))))
-  return draw(k, model)
+  const figure = draw(k, model)
+  return { figure, focus: null, camera: aim(box, figure, null) }
+}
+
+function aim(box: LaneBox, figure: IsoFigureData, focus: Pt | null): Pt {
+  const [x0, y0] = figure.viewBox.split(' ').map(Number)
+  const axis = (size: number, full: number, at: number | undefined) =>
+    Math.round(
+      full <= size || at === undefined
+        ? (size - full) / 2
+        : Math.min(0, Math.max(size - full, size / 2 - at)),
+    )
+  return [
+    axis(box.w, figure.width, focus ? focus[0] - x0 : undefined),
+    axis(box.h, figure.height, focus ? focus[1] - y0 : undefined),
+  ]
 }
 
 function draw(k: number, model: LaneModel): IsoFigureData {
@@ -80,7 +139,8 @@ function draw(k: number, model: LaneModel): IsoFigureData {
 
   const trays = (part: string) => () => {
     for (const tray of model.trays) {
-      const to = slotAt(tray)
+      const gone = model.finished && tray.slot === 'exit'
+      const to = gone ? { ...slotAt(tray), ...GONE } : slotAt(tray)
       const [x, y] = s.vector(to.v - MOUTH.v, MOUTH.u - to.u, to.z - MOUTH.z)
       s.group(
         `${part}:${tray.id}`,
@@ -91,7 +151,13 @@ function draw(k: number, model: LaneModel): IsoFigureData {
             vars: { '--bump-x': `${bx}px`, '--bump-y': `${by}px` },
           })
         },
-        { vars: { '--tray-x': `${x}px`, '--tray-y': `${y}px` } },
+        {
+          vars: {
+            '--tray-x': `${x}px`,
+            '--tray-y': `${y}px`,
+            ...(gone ? { '--tray-o': '0' } : {}),
+          },
+        },
       )
     }
   }

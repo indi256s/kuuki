@@ -15,8 +15,10 @@ export interface LaneModel {
   monitor: boolean
   rollers: boolean
   flaps: boolean
-  size: 'hero' | 'band'
+  size: LaneSize
+  finished?: boolean
 }
+export type LaneSize = 'hero' | 'stage' | 'band'
 export interface LaneInput {
   entries: readonly {
     id: string
@@ -27,6 +29,7 @@ export interface LaneInput {
   dragging: boolean
   history: 'idle' | 'reading' | 'done'
   saved: boolean
+  finished?: boolean
 }
 
 export const QUEUE_SLOTS = 3
@@ -63,9 +66,11 @@ function place(entry: Entry): LaneTray {
   }
 }
 
-export function laneModel({ entries, dragging, history, saved }: LaneInput): LaneModel {
+const IN_FLIGHT: readonly Entry['phase'][] = ['queued', 'local', 'online']
+
+export function laneModel({ entries, dragging, history, saved, finished }: LaneInput): LaneModel {
   let trays = entries.map(place)
-  if (saved) trays = trays.map(({ id }) => tray(id, 'stack'))
+  if (saved && !finished) trays = trays.map(({ id }) => tray(id, 'stack'))
   else {
     const latest = new Map<LaneSlot, string>()
     for (const { id, slot } of trays) latest.set(slot, id)
@@ -89,11 +94,15 @@ export function laneModel({ entries, dragging, history, saved }: LaneInput): Lan
   })
 
   const idle = entries.length === 0 && history === 'idle'
+  const open = !saved && !finished
+  const reading =
+    open && (history === 'reading' || entries.some((entry) => IN_FLIGHT.includes(entry.phase)))
   return {
     trays: idle ? [tray('idle', 'mouth')] : trays,
-    monitor: !saved && entries.some((entry) => entry.phase === 'online'),
+    monitor: open && entries.some((entry) => entry.phase === 'online'),
     rollers: dragging,
     flaps: dragging,
-    size: idle ? 'hero' : 'band',
+    size: idle ? 'hero' : reading ? 'stage' : 'band',
+    ...(finished ? { finished: true } : {}),
   }
 }

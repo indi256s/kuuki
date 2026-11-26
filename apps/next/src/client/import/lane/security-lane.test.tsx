@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render } from '@testing-library/react'
+import { act, render } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { laneModel } from './lane-model'
 import { SecurityLane } from './security-lane'
@@ -29,10 +29,54 @@ describe('SecurityLane', () => {
     expect(lane(container).dataset.flaps).toBeUndefined()
     expect(lane(container).style.height).toBe('216px')
     rerender(<SecurityLane model={reading} />)
-    expect(lane(container).dataset).toMatchObject({ size: 'band', flaps: 'true', rolling: 'true' })
-    expect(lane(container).style.height).toBe('120px')
+    expect(lane(container).dataset).toMatchObject({ size: 'stage', flaps: 'true', rolling: 'true' })
+    expect(lane(container).style.height).toBe('300px')
     expect(container.querySelector("[data-part='tray:a']")).not.toBeNull()
     expect(container.querySelector("[data-part='lit']")).not.toBeNull()
+  })
+
+  it('points the camera at the active tray, and lingers on the exit before becoming a band', () => {
+    vi.useFakeTimers()
+    try {
+      const at = (phase: 'queued' | 'online' | 'ready') =>
+        laneModel({
+          entries: [{ id: 'a', phase, drafts: 2 }],
+          dragging: false,
+          history: 'idle',
+          saved: false,
+        })
+      const { container, rerender } = render(<SecurityLane model={at('queued')} />)
+      const view = () => container.querySelector<HTMLElement>('.security-lane-view')!
+      const camera = () =>
+        ['--cam-x', '--cam-y'].map((name) => parseFloat(view().style.getPropertyValue(name)))
+      const queue = camera()
+      rerender(<SecurityLane model={at('online')} />)
+      const tunnel = camera()
+      expect(tunnel[0]).toBeLessThan(queue[0])
+      expect(tunnel[1]).toBeGreaterThan(queue[1])
+      rerender(<SecurityLane model={at('ready')} />)
+      expect(lane(container).dataset.size).toBe('stage')
+      expect(camera()[0]).toBeLessThanOrEqual(tunnel[0])
+      act(() => vi.runAllTimers())
+      expect(lane(container).dataset.size).toBe('band')
+      expect(lane(container).style.height).toBe('120px')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('goes straight to a band when no new tray reaches the exit', () => {
+    const at = (...entries: Parameters<typeof laneModel>[0]['entries']) =>
+      laneModel({ entries, dragging: false, history: 'idle', saved: false })
+    const done = { id: 'a', phase: 'ready', drafts: 1 } as const
+    const { container, rerender } = render(
+      <SecurityLane model={at(done, { id: 'b', phase: 'online', drafts: 0 })} />,
+    )
+    expect(lane(container).dataset.size).toBe('stage')
+    rerender(
+      <SecurityLane model={at(done, { id: 'b', phase: 'failed', problem: 'read', drafts: 0 })} />,
+    )
+    expect(lane(container).dataset.size).toBe('band')
   })
 
   it('plays the wrong-type bump once per source, and never for one already there on arrival', () => {
