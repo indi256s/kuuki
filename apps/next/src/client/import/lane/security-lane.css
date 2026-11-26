@@ -3,9 +3,24 @@
   place-items: center;
   pointer-events: none;
 }
+.security-lane-view {
+  position: relative;
+  max-inline-size: 100%;
+}
+.security-lane[data-size='stage'] .security-lane-view {
+  overflow: hidden;
+  contain: paint;
+}
+.security-lane-view > .iso {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  transform: translate(var(--cam-x), var(--cam-y));
+}
 .security-lane [data-part^='tray:'],
 .security-lane [data-part^='front:'] {
   transform: translate(var(--tray-x), var(--tray-y));
+  opacity: var(--tray-o, 1);
 }
 .security-lane[data-flaps] [data-part='flaps'] {
   transform: translate(var(--flap-x), var(--flap-y));
@@ -14,9 +29,17 @@
   .security-lane:not([data-still]) {
     transition: height var(--dur-base) var(--ease-out);
   }
+  .security-lane:not([data-still]) .security-lane-view {
+    transition: height var(--dur-base) var(--ease-out);
+  }
+  .security-lane:not([data-still]) .security-lane-view > .iso {
+    transition: transform var(--dur-moment) var(--ease-out);
+  }
   .security-lane:not([data-still]) [data-part^='tray:'],
   .security-lane:not([data-still]) [data-part^='front:'] {
-    transition: transform var(--dur-moment) var(--ease-out);
+    transition:
+      transform var(--dur-moment) var(--ease-out),
+      opacity var(--dur-moment) var(--ease-in-out);
   }
   .security-lane:not([data-still]) [data-part='flaps'] {
     transition: transform var(--dur-base) var(--ease-out);
