@@ -358,7 +358,7 @@ test('a partial save keeps failed rows actionable and retries only the original 
   await page.goto(`/import?batch=${BATCH}`)
   await page.getByRole('button', { name: 'Add 3 to journal' }).click()
   await expect(
-    page.getByText('Couldn’t finish saving. Your remaining flights are kept here.'),
+    page.getByRole('alert').filter({ hasText: 'Not every flight was saved' }),
   ).toBeVisible()
   await expect(rows(page)).toHaveCount(3)
   await expect(page.getByText('In your journal', { exact: true })).toHaveCount(2)
