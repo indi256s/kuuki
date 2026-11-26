@@ -6,102 +6,58 @@ import { formatDistanceKm, type Locale } from '../../lib/format'
 import { Button } from '../ui/button'
 import { SegmentedControl } from '../ui/segmented-control'
 import { fill } from '../overview/copy'
-import { AirportPicker } from './airport-picker'
 import { AirportChoices, YearChoices } from './answer-chips'
-import type { RowOutcome } from './confirm-runner'
-import { issueText, ROW_FAILURE, S } from './copy'
-import type { DraftChange, SaveState } from './draft-saver'
+import { S } from './copy'
+import type { DraftChange } from './draft-saver'
 import { routeKm } from './flight-input'
-import type { Draft } from './import-types'
-import { LegEditor, useLegEdit } from './leg-editor'
-import {
-  answerAirport,
-  answerYear,
-  type AirportQuestion,
-  type Endpoint,
-  type YearQuestion,
-} from './questions'
+import type { LegView } from './import-review'
+import { LegEditorSheet, useLegEdit } from './leg-editor'
+import { LegPicker } from './leg-picker'
+import { answerAirport, answerYear, type Endpoint } from './questions'
 import { airlineName } from './reference'
 import { R } from './route-copy'
-import {
-  airlineOf,
-  dayLabel,
-  landOutcome,
-  legRoute,
-  lineOf,
-  placeCity,
-  type Decision,
-  type Leg,
-} from './route-model'
-import { isDuplicate } from './review-model'
+import { airlineOf, dayLabel, legRoute, placeCity, type Decision } from './route-model'
 
-export type LandState = 'saved' | 'failed'
-
-const NO_AIRPORTS: readonly AirportQuestion[] = []
-
-function useHeld(open: boolean) {
-  const [held, setHeld] = useState(false)
-  if (open && !held) setHeld(true)
-  return [open || held, () => setHeld(false)] as const
+export interface LegActions {
+  decide: (id: string, decision: Decision) => void
+  change: (id: string, change: DraftChange) => void
+  dirty: (id: string, dirty: boolean) => void
+  retry: (id: string) => void
+  discard: (id: string) => void
 }
 
 export const LegTicket = memo(function LegTicket({
   locale,
-  leg,
-  stored,
-  state,
-  outcome,
-  land,
-  year,
-  airports = NO_AIRPORTS,
-  frozen,
+  view,
+  frozen: paused,
   today,
   mobile,
-  onDecide,
-  onChange,
-  onDirty,
-  onRetry,
-  onDiscard,
+  actions,
 }: {
   locale: Locale
-  leg: Leg
-  stored: Draft
-  state?: SaveState
-  outcome?: RowOutcome
-  land?: LandState
-  year?: YearQuestion
-  airports?: readonly AirportQuestion[]
+  view: LegView
   frozen: boolean
   today: string
   mobile: boolean
-  onDecide: (id: string, decision: Decision) => void
-  onChange: (id: string, change: DraftChange) => void
-  onDirty: (id: string, dirty: boolean) => void
-  onRetry: (id: string) => void
-  onDiscard: (id: string) => void
+  actions: LegActions
 }) {
+  const { leg, stored, state, blank, done } = view
   const { draft } = leg
+  const frozen = paused || view.locked
   const root = useRef<HTMLLIElement>(null)
   const [picking, setPicking] = useState<Endpoint | null>(null)
   const [editing, setEditing] = useState(false)
-  const [editorShown, releaseEditor] = useHeld(editing)
-  const [pickerShown, releasePicker] = useHeld(mobile && picking !== null)
   const focusAfter = useRef<'blank' | 'edit' | null>(null)
-  const change = (next: DraftChange) => onChange(leg.id, next)
+  const change = (next: DraftChange) => actions.change(leg.id, next)
   const edit = useLegEdit({
     locale,
     draft,
     stored,
     state,
     onChange: change,
-    onDirty,
-    onDiscard: () => onDiscard(leg.id),
+    onDirty: actions.dirty,
+    onDiscard: () => actions.discard(leg.id),
   })
-  const blank = {
-    origin: !leg.origin.code,
-    destination: !leg.destination.code,
-    year: !leg.date,
-  }
   const [wasBlank, setWasBlank] = useState(blank)
   if (
     (blank.origin && !wasBlank.origin) ||
@@ -130,7 +86,6 @@ export const LegTicket = memo(function LegTicket({
     focusLeg(kind)
   })
 
-  const line = lineOf(leg)
   const flew = leg.decision === 'flew'
   const future = Boolean(draft.fields.date && draft.fields.date > today)
   const routeLabel = legRoute(leg, locale)
@@ -150,9 +105,6 @@ export const LegTicket = memo(function LegTicket({
     .filter(Boolean)
     .map((time) => time!.slice(0, 5))
     .join('–')
-  const duplicate = (isDuplicate(draft) || leg.copyOf !== null) && !leg.saved
-  const done = leg.saved || land === 'saved'
-  const landNote = leg.decision === 'land' && !done ? landOutcome(leg) : null
   const settle = (key: 'origin' | 'destination' | 'year') =>
     wasBlank[key] && !blank[key] ? '' : undefined
 
@@ -194,17 +146,8 @@ export const LegTicket = memo(function LegTicket({
     { value: 'skip' as const, label: R.skip[locale] },
   ]
 
-  const problems: string[] = []
-  if (outcome?.status === 'failed') problems.push(ROW_FAILURE[outcome.failure][locale])
-  if (outcome?.status === 'uncertain') problems.push(S.uncertainRow[locale])
-  if (outcome?.status === 'unsent') problems.push(S.unsentRow[locale])
-  if (land === 'failed') problems.push(R.landFailed[locale])
-  const issue = issueText(draft, locale)
-  if (issue && !leg.saved && !blank.origin && !blank.destination && !blank.year)
-    problems.push(issue)
-
   return (
-    <li ref={root} className="route-leg" data-line={line}>
+    <li ref={root} className="route-leg" data-line={view.line}>
       <article
         className="leg"
         data-decision={leg.decision ?? undefined}
@@ -250,12 +193,12 @@ export const LegTicket = memo(function LegTicket({
             {times ? <span className="import-code">{times}</span> : null}
           </p>
         ) : null}
-        {!done && year ? (
+        {view.year ? (
           <div className="leg-chips" role="group" aria-label={S.yearQuestion[locale]}>
             <p className="leg-chips-label">{S.yearQuestion[locale]}</p>
             <YearChoices
               locale={locale}
-              years={year.years}
+              years={view.year.years}
               today={today}
               disabled={frozen}
               dense
@@ -269,40 +212,23 @@ export const LegTicket = memo(function LegTicket({
             />
           </div>
         ) : null}
-        {done
-          ? null
-          : airports.flatMap((question) =>
-              question.items
-                .filter((item) => item.draft.id === draft.id)
-                .map(({ endpoint }) => {
-                  const city = placeCity(leg[endpoint], locale) ?? question.options[0]
-                  const label = S.airportTitle[locale].replace('{city}', city)
-                  return (
-                    <div
-                      key={`${question.key}:${endpoint}`}
-                      className="leg-chips"
-                      role="group"
-                      aria-label={label}
-                    >
-                      <AirportChoices
-                        options={question.options}
-                        disabled={frozen}
-                        dense
-                        onPick={(code) => pickAirport(endpoint, code)}
-                      />
-                    </div>
-                  )
-                }),
-            )}
-        {duplicate ? (
-          <p className="leg-note">{isDuplicate(draft) ? R.duplicate[locale] : R.copy[locale]}</p>
-        ) : null}
-        {landNote && landNote !== 'visit' ? (
-          <p className="leg-note">
-            {landNote === 'same-country' ? R.sameCountry[locale] : R.unknownCountry[locale]}
-          </p>
-        ) : null}
-        {problems.map((problem) => (
+        {view.airports.map(({ key, endpoint, options }) => {
+          const city = placeCity(leg[endpoint], locale) ?? options[0]
+          const label = S.airportTitle[locale].replace('{city}', city)
+          return (
+            <div key={key} className="leg-chips" role="group" aria-label={label}>
+              <AirportChoices
+                options={options}
+                disabled={frozen}
+                dense
+                onPick={(code) => pickAirport(endpoint, code)}
+              />
+            </div>
+          )
+        })}
+        {view.duplicate ? <p className="leg-note">{view.duplicate}</p> : null}
+        {view.landNote ? <p className="leg-note">{view.landNote}</p> : null}
+        {view.problems.map((problem) => (
           <p key={problem} className="leg-note" data-tone="danger" role="status">
             <CircleAlert size={16} strokeWidth={2} aria-hidden="true" />
             <span>{problem}</span>
@@ -316,7 +242,7 @@ export const LegTicket = memo(function LegTicket({
         ) : null}
         {edit.failed ? (
           <div className="leg-actions">
-            <Button dense disabled={frozen} onClick={() => onRetry(leg.id)}>
+            <Button dense disabled={frozen} onClick={() => actions.retry(leg.id)}>
               {S.retrySave[locale]}
             </Button>
             <Button dense variant="ghost" disabled={frozen} onClick={edit.discard}>
@@ -337,7 +263,7 @@ export const LegTicket = memo(function LegTicket({
                 value={leg.decision}
                 options={decisionOptions}
                 equal
-                onChange={(decision) => onDecide(leg.id, decision)}
+                onChange={(decision) => actions.decide(leg.id, decision)}
               />
             </fieldset>
             <Button
@@ -351,43 +277,31 @@ export const LegTicket = memo(function LegTicket({
             </Button>
           </div>
         )}
-        {picking || pickerShown ? (
-          <AirportPicker
-            locale={locale}
-            endpoint={picking}
-            mobile={mobile}
-            city={picking ? placeCity(leg[picking], locale) : null}
-            onPick={pickAirport}
-            onClose={(restore) => {
-              if (restore) focusAfter.current = 'blank'
-              setPicking(null)
-            }}
-            onCloseAutoFocus={(event) => {
-              event.preventDefault()
-              releasePicker()
-              focusLeg('blank')
-            }}
-          />
-        ) : null}
-      </article>
-      {editorShown ? (
-        <LegEditor
+        <LegPicker
           locale={locale}
-          draft={draft}
-          edit={edit}
-          state={state}
-          open={editing}
+          leg={leg}
+          picking={picking}
           mobile={mobile}
-          frozen={frozen}
-          title={`${routeLabel}${dayText ? ` · ${dayText}` : ''}`}
-          onOpenChange={setEditing}
-          onCloseAutoFocus={(event) => {
-            event.preventDefault()
-            releaseEditor()
-            root.current?.querySelector<HTMLElement>('.leg-edit')?.focus()
+          onPick={pickAirport}
+          onClose={(restore) => {
+            if (restore) focusAfter.current = 'blank'
+            setPicking(null)
           }}
+          onClosed={() => focusLeg('blank')}
         />
-      ) : null}
+      </article>
+      <LegEditorSheet
+        locale={locale}
+        draft={draft}
+        edit={edit}
+        state={state}
+        open={editing}
+        mobile={mobile}
+        frozen={frozen}
+        title={`${routeLabel}${dayText ? ` · ${dayText}` : ''}`}
+        onOpenChange={setEditing}
+        onClosed={() => focusLeg('edit')}
+      />
     </li>
   )
 })

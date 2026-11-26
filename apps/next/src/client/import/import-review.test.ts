@@ -12,6 +12,7 @@ const review = (drafts: Draft[], over: Partial<ReviewInput> = {}) =>
     requiresSelection: true,
     deferred: new Set(),
     today: '2026-11-26',
+    locale: 'en',
     ...over,
   })
 
@@ -120,6 +121,48 @@ describe('completion', () => {
     expect(completionOf(state({ chosen: ['d1'] }), { ...ready, sourceFailed: true })).toEqual({
       kind: 'save',
       count: 1,
+    })
+  })
+})
+
+describe('leg views', () => {
+  it('hands each ticket its outcome, notes and questions', () => {
+    const drafts = [
+      draft({ id: 'd1', ordinal: 1, fields: same }),
+      draft({ id: 'd2', ordinal: 2, fields: same }),
+      draft({ id: 'd3', ordinal: 3, fields: { ...same, destination: 'LAX' } }),
+      draft({
+        id: 'd4',
+        ordinal: 4,
+        status: 'dismissed',
+        fields: { ...same, origin: 'LAX', destination: 'SFO', by_land: true },
+      }),
+    ]
+    const { views } = review(drafts, {
+      outcomes: new Map([
+        [
+          'd1',
+          {
+            status: 'failed' as const,
+            code: 'INTERNAL',
+            httpStatus: 503,
+            failure: 'transient' as const,
+            retryable: true,
+          },
+        ],
+        ['d3', { status: 'uncertain' as const }],
+      ]),
+      landFailed: new Set(['d4']),
+    })
+    expect(views.get('d1')).toMatchObject({ locked: false, done: false, line: 'flew' })
+    expect(views.get('d1')!.problems).toHaveLength(1)
+    expect(views.get('d2')).toMatchObject({ duplicate: 'Twice in this import', problems: [] })
+    expect(views.get('d3')).toMatchObject({ locked: true })
+    expect(views.get('d4')).toMatchObject({
+      line: 'land',
+      land: 'failed',
+      landNote: 'Trips inside one country add no stamps.',
+      problems: ['Not added to your Passport yet.'],
     })
   })
 })

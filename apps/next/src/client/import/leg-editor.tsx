@@ -13,6 +13,7 @@ import { RowForm } from './row-form'
 import { lowFields } from './review-model'
 import { airlineOf } from './route-model'
 import { useDraftEdit } from './use-draft-edit'
+import { useHeld } from './use-held'
 
 const legFields = (draft: Draft): DraftFields => ({
   ...draft.fields,
@@ -51,7 +52,34 @@ export function useLegEdit({
   return { ...edit, statusText }
 }
 
-export function LegEditor({
+interface LegEditorProps {
+  locale: Locale
+  draft: Draft
+  edit: ReturnType<typeof useLegEdit>
+  state?: SaveState
+  open: boolean
+  mobile: boolean
+  frozen: boolean
+  title: string
+  onOpenChange: (open: boolean) => void
+}
+
+export function LegEditorSheet({ onClosed, ...props }: LegEditorProps & { onClosed: () => void }) {
+  const [shown, release] = useHeld(props.open)
+  if (!shown) return null
+  return (
+    <LegEditor
+      {...props}
+      onCloseAutoFocus={(event) => {
+        event.preventDefault()
+        release()
+        onClosed()
+      }}
+    />
+  )
+}
+
+function LegEditor({
   locale,
   draft,
   edit,
@@ -62,18 +90,7 @@ export function LegEditor({
   title,
   onOpenChange,
   onCloseAutoFocus,
-}: {
-  locale: Locale
-  draft: Draft
-  edit: ReturnType<typeof useLegEdit>
-  state?: SaveState
-  open: boolean
-  mobile: boolean
-  frozen: boolean
-  title: string
-  onOpenChange: (open: boolean) => void
-  onCloseAutoFocus?: (event: Event) => void
-}) {
+}: LegEditorProps & { onCloseAutoFocus: (event: Event) => void }) {
   const id = useId()
   return (
     <Sheet

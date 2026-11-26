@@ -29,7 +29,7 @@ import { newlyPressed } from './flight-input'
 import { decisionChange, type Decision } from './route-model'
 import { R, rcount } from './route-copy'
 import { RouteView } from './route-view'
-import { LegTicket } from './leg-ticket'
+import { LegTicket, type LegActions } from './leg-ticket'
 import { SharedQuestions } from './shared-questions'
 import { StampStrip } from './stamp-strip'
 import { ImportFinish, type Finish } from './import-finish'
@@ -272,12 +272,13 @@ export function UnifiedImport({
         requiresSelection: session.requiresSelection(),
         deferred,
         today,
+        locale,
+        landFailed,
       }),
-    [session, deferred, today],
+    [session, deferred, today, locale, landFailed],
   )
   const review = useMemo(() => reviewOf(states, entries), [reviewOf, states, entries])
-  const { legs, chosen, blanks, undecided, visits, landDone } = review
-  const outcomes = session.getOutcomes()
+  const { legs, chosen, blanks, undecided, visits } = review
   const flights = chosen.length
   const recordable = flights + visits.length
   const readingOf = (list: typeof entries) =>
@@ -339,26 +340,26 @@ export function UnifiedImport({
     .join(' · ')
 
   const { byId, legById } = review
-  const change = useCallback(
-    (id: string, next: DraftChange) => {
-      const original = byId.get(id)
-      if (original) void saver.save(original, next)
-    },
-    [byId, saver],
+  const actions = useMemo<LegActions>(
+    () => ({
+      change: (id: string, next: DraftChange) => {
+        const original = byId.get(id)
+        if (original) void saver.save(original, next)
+      },
+      decide: (id: string, decision: Decision) => {
+        const original = byId.get(id)
+        const leg = legById.get(id)
+        if (!original || !leg) return
+        session.decide(id, decision)
+        const next = decisionChange(leg.draft, decision, leg.copyOf !== null)
+        if (next) void saver.save(original, next)
+      },
+      dirty: onDirty,
+      retry: (id: string) => void saver.retry(id),
+      discard: (id: string) => saver.discard(id),
+    }),
+    [byId, legById, saver, session, onDirty],
   )
-  const decide = useCallback(
-    (id: string, decision: Decision) => {
-      const original = byId.get(id)
-      const leg = legById.get(id)
-      if (!original || !leg) return
-      session.decide(id, decision)
-      const next = decisionChange(leg.draft, decision, leg.copyOf !== null)
-      if (next) void saver.save(original, next)
-    },
-    [byId, legById, saver, session],
-  )
-  const retry = useCallback((id: string) => void saver.retry(id), [saver])
-  const discard = useCallback((id: string) => saver.discard(id), [saver])
 
   const run = async (task: (before: Promise<ReadonlySet<string> | null>) => Promise<void>) => {
     if (savingNow.current || reason) return
@@ -572,7 +573,7 @@ export function UnifiedImport({
               frozen={frozen || dirty.size > 0}
               today={today}
               onAnswer={(answers) => {
-                for (const { draft, change: next } of answers) change(draft.id, next)
+                for (const { draft, change: next } of answers) actions.change(draft.id, next)
               }}
               onDefer={(key) => setDeferred((current) => new Set(current).add(key))}
               onDone={() => routeHeading.current?.focus()}
@@ -581,36 +582,17 @@ export function UnifiedImport({
               locale={locale}
               items={review.route}
               headingRef={routeHeading}
-              renderLeg={(leg) => {
-                const outcome = outcomes.get(leg.id)
-                return (
-                  <LegTicket
-                    key={leg.id}
-                    locale={locale}
-                    leg={leg}
-                    stored={byId.get(leg.id)!}
-                    state={states[leg.id]}
-                    outcome={outcome?.status === 'saved' ? undefined : outcome}
-                    land={
-                      landDone.has(leg.id) && leg.decision === 'land'
-                        ? 'saved'
-                        : landFailed.has(leg.id)
-                          ? 'failed'
-                          : undefined
-                    }
-                    year={review.yearOf.get(leg.id)}
-                    airports={review.airportsOf.get(leg.id)}
-                    frozen={frozen || outcome?.status === 'uncertain'}
-                    today={today}
-                    mobile={mobile}
-                    onDecide={decide}
-                    onChange={change}
-                    onDirty={onDirty}
-                    onRetry={retry}
-                    onDiscard={discard}
-                  />
-                )
-              }}
+              renderLeg={(leg) => (
+                <LegTicket
+                  key={leg.id}
+                  locale={locale}
+                  view={review.views.get(leg.id)!}
+                  frozen={frozen}
+                  today={today}
+                  mobile={mobile}
+                  actions={actions}
+                />
+              )}
             />
           </>
         )}

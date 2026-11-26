@@ -1,4 +1,6 @@
+import type { Locale } from '../../lib/format'
 import type { RowOutcome } from './confirm-runner'
+import { issueText, ROW_FAILURE, S } from './copy'
 import type { SaveState } from './draft-saver'
 import { routeCountries, routeKm } from './flight-input'
 import type { Finish } from './import-finish'
@@ -6,7 +8,7 @@ import type { Draft } from './import-types'
 import {
   gapQuestions,
   questionDrafts,
-  type AirportQuestion,
+  type Endpoint,
   type SharedQuestion,
   type YearQuestion,
 } from './questions'
@@ -19,9 +21,12 @@ import {
   legDraft,
   legOf,
   legReady,
+  lineOf,
   stampReach,
   type Leg,
+  type LegLine,
 } from './route-model'
+import { R } from './route-copy'
 import type { SessionEntry } from './unified-session'
 
 export interface ReviewInput {
@@ -32,7 +37,36 @@ export interface ReviewInput {
   requiresSelection: boolean
   deferred: ReadonlySet<string>
   today: string
+  locale: Locale
+  landFailed?: ReadonlySet<string>
 }
+
+export type LandState = 'saved' | 'failed'
+
+export interface AirportChip {
+  key: string
+  endpoint: Endpoint
+  options: readonly string[]
+}
+
+export interface LegView {
+  leg: Leg
+  stored: Draft
+  state: SaveState | undefined
+  line: LegLine
+  land: LandState | undefined
+  done: boolean
+  locked: boolean
+  blank: { origin: boolean; destination: boolean; year: boolean }
+  year: YearQuestion | undefined
+  airports: readonly AirportChip[]
+  duplicate: string | null
+  landNote: string | null
+  problems: readonly string[]
+}
+
+const NO_CHIPS: readonly AirportChip[] = []
+const NOTHING: ReadonlySet<string> = new Set()
 
 const idsOf = (entries: readonly SessionEntry[], pick: (entry: SessionEntry) => string[]) =>
   new Set(entries.flatMap(pick))
@@ -45,6 +79,8 @@ export function buildReview({
   requiresSelection,
   deferred,
   today,
+  locale,
+  landFailed = NOTHING,
 }: ReviewInput) {
   const drafts = withSaved(stored, outcomes)
   const byId = new Map(drafts.map((draft) => [draft.id, draft]))
@@ -96,7 +132,7 @@ export function buildReview({
   )
   const shared: SharedQuestion[] = []
   const yearOf = new Map<string, YearQuestion>()
-  const airportsOf = new Map<string, AirportQuestion[]>()
+  const airportsOf = new Map<string, AirportChip[]>()
   for (const question of questions) {
     if (questionDrafts(question).length >= 2 && !deferred.has(question.key)) {
       shared.push(question)
@@ -106,10 +142,60 @@ export function buildReview({
       for (const draft of question.drafts) if (!yearOf.has(draft.id)) yearOf.set(draft.id, question)
       continue
     }
-    for (const id of new Set(question.items.map((item) => item.draft.id))) {
-      const list = airportsOf.get(id)
-      if (list) list.push(question)
-      else airportsOf.set(id, [question])
+    for (const { draft, endpoint } of question.items) {
+      const chip = { key: `${question.key}:${endpoint}`, endpoint, options: question.options }
+      const list = airportsOf.get(draft.id)
+      if (list) list.push(chip)
+      else airportsOf.set(draft.id, [chip])
+    }
+  }
+
+  const viewOf = (leg: Leg): LegView => {
+    const outcome = outcomes.get(leg.id)
+    const land: LandState | undefined =
+      landDone.has(leg.id) && leg.decision === 'land'
+        ? 'saved'
+        : landFailed.has(leg.id)
+          ? 'failed'
+          : undefined
+    const done = leg.saved || land === 'saved'
+    const blank = {
+      origin: !leg.origin.code,
+      destination: !leg.destination.code,
+      year: !leg.date,
+    }
+    const problems: string[] = []
+    if (outcome?.status === 'failed') problems.push(ROW_FAILURE[outcome.failure][locale])
+    if (outcome?.status === 'uncertain') problems.push(S.uncertainRow[locale])
+    if (outcome?.status === 'unsent') problems.push(S.unsentRow[locale])
+    if (land === 'failed') problems.push(R.landFailed[locale])
+    const issue = issueText(leg.draft, locale)
+    if (issue && !leg.saved && !blank.origin && !blank.destination && !blank.year)
+      problems.push(issue)
+    const journal = isDuplicate(leg.draft)
+    const outcomeOfLand = leg.decision === 'land' && !done ? landOutcome(leg) : null
+    return {
+      leg,
+      stored: byId.get(leg.id)!,
+      state: states[leg.id],
+      line: lineOf(leg),
+      land,
+      done,
+      locked: outcome?.status === 'uncertain',
+      blank,
+      year: done ? undefined : yearOf.get(leg.id),
+      airports: done ? NO_CHIPS : (airportsOf.get(leg.id) ?? NO_CHIPS),
+      duplicate:
+        (journal || leg.copyOf !== null) && !leg.saved
+          ? (journal ? R.duplicate : R.copy)[locale]
+          : null,
+      landNote:
+        outcomeOfLand === 'same-country'
+          ? R.sameCountry[locale]
+          : outcomeOfLand === 'unknown-country'
+            ? R.unknownCountry[locale]
+            : null,
+      problems,
     }
   }
 
@@ -127,8 +213,7 @@ export function buildReview({
     landDone,
     recorded,
     shared,
-    yearOf,
-    airportsOf,
+    views: new Map(legs.map((leg) => [leg.id, viewOf(leg)])),
     route: buildRoute(legs),
     reach: stampReach(legs),
   }
