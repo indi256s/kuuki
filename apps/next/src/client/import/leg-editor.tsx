@@ -6,8 +6,9 @@ import type { Locale } from '../../lib/format'
 import { Button } from '../ui/button'
 import { Sheet } from '../ui/sheet'
 import { S } from './copy'
+import { R } from './route-copy'
 import type { DraftChange, SaveState } from './draft-saver'
-import type { Draft } from './import-types'
+import type { Draft, DraftFields } from './import-types'
 import { RowForm } from './row-form'
 import {
   changedFields,
@@ -19,6 +20,9 @@ import {
   type FieldName,
   type FieldValues,
 } from './review-model'
+
+const shownFields = (fields: DraftFields): DraftFields =>
+  fields.airline_iata === 'ZZ' ? { ...fields, airline_iata: '' } : fields
 
 export function useLegEdit({
   locale,
@@ -35,12 +39,13 @@ export function useLegEdit({
   onDirty: (id: string, dirty: boolean) => void
   onDiscard: () => void
 }) {
-  const [values, setValues] = useState(() => toValues(draft.fields))
+  const fields = shownFields(draft.fields)
+  const [values, setValues] = useState(() => toValues(fields))
   const [seen, setSeen] = useState(draft.version)
-  const [base, setBase] = useState(() => toValues(draft.fields))
+  const [base, setBase] = useState(() => toValues(fields))
   const [errors, setErrors] = useState<Partial<Record<FieldName, FieldError>>>({})
   if (draft.version !== seen && !state) {
-    const next = toValues(draft.fields)
+    const next = toValues(fields)
     setSeen(draft.version)
     setValues(
       (current) =>
@@ -50,7 +55,7 @@ export function useLegEdit({
     )
     setBase(next)
   }
-  const dirty = Object.keys(changedFields(draft.fields, values)).length > 0
+  const dirty = Object.keys(changedFields(fields, values)).length > 0
   useEffect(() => {
     onDirty(draft.id, dirty)
   }, [draft.id, dirty, onDirty])
@@ -60,16 +65,16 @@ export function useLegEdit({
     const found = validateValues(values)
     setErrors(found)
     if (Object.keys(found).length > 0) return false
-    const fields = changedFields(draft.fields, values)
-    if (Object.keys(fields).length === 0) return null
-    const result: DraftChange = { fields }
-    if (fields.date && !draft.yearExplicit) result.yearConfirmed = true
+    const changed = changedFields(fields, values)
+    if (Object.keys(changed).length === 0) return null
+    const result: DraftChange = { fields: changed }
+    if (changed.date && !draft.yearExplicit) result.yearConfirmed = true
     return result
   }
   const failed = Boolean(state && state.status !== 'saving')
   const statusText = !state
     ? dirty
-      ? S.unsavedRow[locale]
+      ? R.unsavedLeg[locale]
       : ''
     : state.status === 'saving'
       ? S.saving[locale]
@@ -80,7 +85,7 @@ export function useLegEdit({
           : S.editFailed[locale]
   const discard = () => {
     onDiscard()
-    setValues(toValues(stored.fields))
+    setValues(toValues(shownFields(stored.fields)))
     setErrors({})
   }
   return { values, setValues, errors, setErrors, dirty, failed, statusText, change, discard }

@@ -27,6 +27,12 @@ export const R = {
   each: p('Answer on each leg', 'Ответить для каждого'),
   countries: p('Countries in this import', 'Страны этого импорта'),
   add: p('Add to journal', 'Добавить в журнал'),
+  unsaved: p('Save or discard your edit first.', 'Сначала сохраните или отмените правку.'),
+  unsavedLeg: p('Edit not saved.', 'Правка не сохранена.'),
+  sameCountry: p(
+    'Trips inside one country add no stamps.',
+    'Поездки внутри одной страны не дают штампов.',
+  ),
   nothing: p('Mark a leg Flew or By land.', 'Отметьте «Летал» или «По земле».'),
   openJournal: p('Open journal', 'Открыть журнал'),
   leftOut: p('Left out', 'Не вошли'),

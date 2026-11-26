@@ -84,8 +84,8 @@ const C = {
     ru: 'Документы и текст распознаются онлайн. Файлы Flighty и Nomads.com читаются на устройстве.',
   },
   drop: {
-    en: 'You can also drop or paste files here.',
-    ru: 'Файлы можно перетащить или вставить сюда.',
+    en: 'Drop or paste files here.',
+    ru: 'Перетащите или вставьте файлы сюда.',
   },
   tooBig: {
     en: 'The file is over 10 MB. Same as liquids: it stays behind.',
@@ -101,12 +101,12 @@ const C = {
   manual: { en: 'Enter manually', ru: 'Ввести вручную' },
   retry: { en: 'Try again', ru: 'Повторить' },
   reselect: {
-    en: 'Choose the file or paste the text again to continue.',
-    ru: 'Выберите файл или вставьте текст снова, чтобы продолжить.',
+    en: 'Choose the file or paste the text again.',
+    ru: 'Выберите файл или вставьте текст снова.',
   },
   partial: {
-    en: 'Recognition stopped early. Found flights remain for review. Try recognition again.',
-    ru: 'Распознавание прервано. Найденные перелёты остались для проверки. Повторите распознавание.',
+    en: 'Reading stopped early. Found flights are kept.',
+    ru: 'Чтение прервалось. Найденные перелёты остались.',
   },
   saveFailed: {
     en: 'Couldn’t finish saving. Your remaining flights are kept here.',
@@ -297,7 +297,7 @@ export function UnifiedImport({
         !entry.runs.some((run) => run !== entry.barcode && run.batchId())),
   )
   const unsent = dirty.size > 0 || Object.keys(states).length > 0 || text.trim().length > 0
-  const unsentReason = text.trim() ? C.unsentText[locale] : S.unsavedBlock[locale]
+  const unsentReason = text.trim() ? C.unsentText[locale] : R.unsaved[locale]
   const guard = useSettingsGuard(unsent, pendingSource || saving, locale)
   useEffect(() => {
     const reset = () => {
@@ -477,7 +477,11 @@ export function UnifiedImport({
     : reading
       ? C.reading[locale]
       : recordable === 0
-        ? R.nothing[locale]
+        ? blanks
+          ? rcount(locale, 'notReady', blanks)
+          : legs.some((leg) => leg.decision === 'land' && !landDone.has(leg.id) && !leg.saved)
+            ? R.sameCountry[locale]
+            : R.nothing[locale]
         : undefined
   const closeReason = saving
     ? S.pausedWhileSaving[locale]

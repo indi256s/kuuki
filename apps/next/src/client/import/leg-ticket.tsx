@@ -39,7 +39,8 @@ export const formatDay = (locale: Locale, date: string) =>
   })).format(new Date(`${date}T12:00:00Z`))
 
 export const legRoute = (leg: Leg) => {
-  const end = (place: Place) => place.code ?? (place.hint ? hintCity(place.hint) : '—')
+  const end = (place: Place) =>
+    place.code ?? (place.hint ? hintCity(place.hint) : placeCity(place, 'en')) ?? '—'
   return `${end(leg.origin)} → ${end(leg.destination)}`
 }
 
@@ -106,15 +107,21 @@ export function LegTicket({
       destination: wasBlank.destination || blank.destination,
       year: wasBlank.year || blank.year,
     })
-  useEffect(() => {
-    if (!focusAfter.current || !root.current) return
+  const focusLeg = (kind: 'blank' | 'edit') => {
+    const node = root.current
+    if (!node) return
     const target =
-      focusAfter.current === 'edit'
-        ? root.current.querySelector<HTMLElement>('.leg-edit')
-        : (root.current.querySelector<HTMLElement>('.leg-blank, .leg-chips button') ??
-          root.current.querySelector<HTMLElement>('[role="radio"][tabindex="0"]'))
-    focusAfter.current = null
+      kind === 'edit'
+        ? node.querySelector<HTMLElement>('.leg-edit')
+        : (node.querySelector<HTMLElement>('button.leg-blank, .leg-chips button') ??
+          node.querySelector<HTMLElement>('[role="radio"][tabindex="0"]'))
     target?.focus()
+  }
+  useEffect(() => {
+    if (!focusAfter.current) return
+    const kind = focusAfter.current
+    focusAfter.current = null
+    focusLeg(kind)
   })
 
   const line = lineOf(leg)
@@ -382,6 +389,7 @@ export function LegTicket({
                 ? (placeCity(leg[picking], locale) ?? '')
                 : ''
           }
+          city={picking ? placeCity(leg[picking], locale) : null}
           onPick={pickAirport}
           onClose={(restore) => {
             if (restore) focusAfter.current = 'blank'
@@ -389,7 +397,7 @@ export function LegTicket({
           }}
           onCloseAutoFocus={(event) => {
             event.preventDefault()
-            focusAfter.current = 'blank'
+            focusLeg('blank')
           }}
         />
       </article>

@@ -6,6 +6,7 @@ import { airportChoices } from '../capture/reference-choices'
 import { ChoiceOptions, searchChoices, useListClaimsEscape, type Choice } from '../ui/combobox'
 import { Sheet } from '../ui/sheet'
 import type { Endpoint } from './questions'
+import { S } from './copy'
 import { R } from './route-copy'
 
 export function AirportPicker({
@@ -16,6 +17,7 @@ export function AirportPicker({
   onPick,
   onClose,
   onCloseAutoFocus,
+  city,
 }: {
   locale: Locale
   endpoint: Endpoint | null
@@ -24,6 +26,7 @@ export function AirportPicker({
   onPick: (endpoint: Endpoint, code: string) => void
   onClose: (restoreFocus: boolean) => void
   onCloseAutoFocus?: (event: Event) => void
+  city?: string | null
 }) {
   const id = useId()
   const [query, setQuery] = useState(initialQuery)
@@ -34,7 +37,11 @@ export function AirportPicker({
     setSeen(endpoint)
     if (endpoint) {
       setLast(endpoint)
-      setQuery(initialQuery)
+      setQuery(
+        initialQuery && searchChoices(airportChoices(locale), initialQuery).matches.length
+          ? initialQuery
+          : '',
+      )
       setActive(0)
     }
   }
@@ -54,6 +61,7 @@ export function AirportPicker({
   }, [endpoint, mobile])
   useListClaimsEscape(Boolean(endpoint) && !mobile, () => onClose(true))
   const label = shown === 'destination' ? R.to[locale] : R.from[locale]
+  const title = city ? S.airportTitle[locale].replace('{city}', city) : label
   const choose = (choice: Choice) => {
     if (endpoint) onPick(endpoint, choice.code)
   }
@@ -116,7 +124,7 @@ export function AirportPicker({
         onOpenChange={(next) => {
           if (!next) onClose(false)
         }}
-        title={label}
+        title={title}
         initialFocusRef={searchRef}
         onCloseAutoFocus={onCloseAutoFocus}
         closeLabel={R.closeSearch[locale]}

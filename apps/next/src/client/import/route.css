@@ -148,6 +148,7 @@
 
 .leg {
   position: relative;
+  container: leg / inline-size;
   display: grid;
   gap: var(--space-3);
   padding: var(--space-3) 14px 14px;
@@ -377,6 +378,18 @@
 .leg-decision .ui-segment {
   padding-inline: 6px;
   font-size: 0.875rem;
+  line-height: 1.125rem;
+  overflow-wrap: normal;
+  hyphens: none;
+}
+@container leg (max-width: 300px) {
+  .leg-decision .ui-segment {
+    padding-inline: 2px;
+    font-size: 0.8125rem;
+  }
+  .leg-foot {
+    gap: 0;
+  }
 }
 .leg-decision:disabled .ui-segment {
   color: var(--disabled-text);
@@ -554,6 +567,6 @@
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
-.import-finish-hero {
+.import-hero.import-finish-hero {
   align-items: center;
 }
