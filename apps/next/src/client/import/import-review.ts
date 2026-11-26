@@ -64,6 +64,7 @@ export function buildReview({
   const implicit =
     review.length === 1 &&
     !isDuplicate(review[0]) &&
+    !copies.has(review[0].id) &&
     !requiresSelection &&
     !excluded.has(review[0].id)
       ? review[0].id
@@ -90,8 +91,9 @@ export function buildReview({
   const recorded =
     [...outcomes.values()].some((outcome) => outcome.status === 'saved') || landDone.size > 0
 
+  const reviewIds = new Set(review.map((draft) => draft.id))
   const questions = gapQuestions(
-    review.filter((draft) => !copies.has(draft.id)),
+    review.filter((draft) => !reviewIds.has(copies.get(draft.id) ?? '')),
     today,
   )
   const shared: SharedQuestion[] = []
@@ -116,7 +118,7 @@ export function buildReview({
   return {
     drafts,
     byId,
-    reviewIds: new Set(review.map((draft) => draft.id)),
+    reviewIds,
     legs,
     legById,
     chosen,

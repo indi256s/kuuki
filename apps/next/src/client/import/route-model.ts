@@ -176,11 +176,11 @@ export function copiesOf(drafts: readonly Draft[]): Map<string, string> {
   const copies = new Map<string, string>()
   for (const draft of drafts) {
     const { date, origin, destination } = draft.fields
-    if (draft.status !== 'review' || !date || !origin || !destination) continue
+    if (!date || !origin || !destination) continue
     const key = `${date}:${origin}:${destination}`
     const prior = first.get(key)
-    if (prior) copies.set(draft.id, prior)
-    else first.set(key, draft.id)
+    if (!prior) first.set(key, draft.id)
+    else if (draft.status === 'review') copies.set(draft.id, prior)
   }
   return copies
 }
