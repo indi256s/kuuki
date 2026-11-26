@@ -636,7 +636,7 @@ export function UnifiedImport({
     )
 
   const reviewIds = new Set(review.map((draft) => draft.id))
-  const laneInput = {
+  const lane = laneModel({
     entries: entries.map((entry) => ({
       id: entry.id,
       phase: entry.phase,
@@ -651,11 +651,10 @@ export function UnifiedImport({
           : 0,
     })),
     dragging,
-    history: 'idle' as const,
+    history: 'idle',
     saved: Boolean(finish),
     finished: Boolean(finish),
-  }
-  const lane = laneModel(laneInput)
+  })
   const frozen = saving || reading
   const sourcesShown = entries.length > 0 || Boolean(finish)
 
