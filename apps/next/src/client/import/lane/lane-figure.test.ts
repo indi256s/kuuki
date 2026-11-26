@@ -11,7 +11,7 @@ const entry = (id: string, phase: Entry['phase'], extra: Partial<Entry> = {}): E
   ...extra,
 })
 const model = (entries: Entry[], extra: Partial<LaneInput> = {}) =>
-  laneModel({ entries, dragging: false, history: 'idle', saved: false, ...extra })
+  laneModel({ entries, dragging: false, history: 'idle', ...extra })
 
 const STATES = [
   model([]),
@@ -25,7 +25,7 @@ const STATES = [
   ]),
   model([entry('a', 'failed', { problem: 'size' }), entry('b', 'failed', { problem: 'partial' })]),
   model([entry('a', 'failed', { problem: 'type' })]),
-  model([entry('a', 'ready', { drafts: 2 })], { saved: true }),
+  model([entry('a', 'ready', { drafts: 2 })], { finished: true }),
   model([], { history: 'reading' }),
   model([], { history: 'done' }),
 ]
@@ -162,7 +162,6 @@ describe('the stage', () => {
     expect(focusOf(model([entry('q', 'queued'), entry('f', 'local')]))).toBe('frame')
     expect(focusOf(model([entry('q', 'queued'), entry('r', 'ready')]))).toBe('queue')
     expect(focusOf(model([entry('r', 'ready', { drafts: 1 })]))).toBe('exit')
-    expect(buildLane(STAGES[1], many).focus).toBe('tunnel')
   })
 
   it('frames the active tray whole and large, and pans as it moves down the lane', () => {

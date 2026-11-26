@@ -4,12 +4,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { laneModel } from './lane-model'
 import { SecurityLane } from './security-lane'
 
-const idle = laneModel({ entries: [], dragging: false, history: 'idle', saved: false })
+const idle = laneModel({ entries: [], dragging: false, history: 'idle' })
 const reading = laneModel({
   entries: [{ id: 'a', phase: 'online', drafts: 0 }],
   dragging: true,
   history: 'idle',
-  saved: false,
 })
 const lane = (container: HTMLElement) => container.querySelector<HTMLElement>('.security-lane')!
 
@@ -43,7 +42,6 @@ describe('SecurityLane', () => {
           entries: [{ id: 'a', phase, drafts: 2 }],
           dragging: false,
           history: 'idle',
-          saved: false,
         })
       const { container, rerender } = render(<SecurityLane model={at('queued')} />)
       const view = () => container.querySelector<HTMLElement>('.security-lane-view')!
@@ -67,7 +65,7 @@ describe('SecurityLane', () => {
 
   it('goes straight to a band when no new tray reaches the exit', () => {
     const at = (...entries: Parameters<typeof laneModel>[0]['entries']) =>
-      laneModel({ entries, dragging: false, history: 'idle', saved: false })
+      laneModel({ entries, dragging: false, history: 'idle' })
     const done = { id: 'a', phase: 'ready', drafts: 1 } as const
     const { container, rerender } = render(
       <SecurityLane model={at(done, { id: 'b', phase: 'online', drafts: 0 })} />,
@@ -88,7 +86,6 @@ describe('SecurityLane', () => {
         entries: ids.map((id) => ({ id, phase: 'failed', problem: 'type', drafts: 0 })),
         dragging: false,
         history: 'idle',
-        saved: false,
       })
     try {
       const { rerender } = render(<SecurityLane model={rejected('a')} />)

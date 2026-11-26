@@ -648,7 +648,6 @@ export function UnifiedImport({
     })),
     dragging,
     history: 'idle',
-    saved: Boolean(finish),
     finished: Boolean(finish),
   })
   const frozen = saving || reading

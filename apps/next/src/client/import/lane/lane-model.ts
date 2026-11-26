@@ -28,7 +28,6 @@ export interface LaneInput {
   }[]
   dragging: boolean
   history: 'idle' | 'reading' | 'done'
-  saved: boolean
   finished?: boolean
 }
 
@@ -68,17 +67,14 @@ function place(entry: Entry): LaneTray {
 
 const IN_FLIGHT: readonly Entry['phase'][] = ['queued', 'local', 'online']
 
-export function laneModel({ entries, dragging, history, saved, finished }: LaneInput): LaneModel {
-  let trays = entries.map(place)
-  if (saved && !finished) trays = trays.map(({ id }) => tray(id, 'stack'))
-  else {
-    const latest = new Map<LaneSlot, string>()
-    for (const { id, slot } of trays) latest.set(slot, id)
-    trays = trays.flatMap((item) => {
-      if (item.slot === 'queue' || latest.get(item.slot) === item.id) return [item]
-      return item.slot === 'exit' ? [tray(item.id, 'stack')] : []
-    })
-  }
+export function laneModel({ entries, dragging, history, finished }: LaneInput): LaneModel {
+  const placed = entries.map(place)
+  const latest = new Map<LaneSlot, string>()
+  for (const { id, slot } of placed) latest.set(slot, id)
+  let trays = placed.flatMap((item) => {
+    if (item.slot === 'queue' || latest.get(item.slot) === item.id) return [item]
+    return item.slot === 'exit' ? [tray(item.id, 'stack')] : []
+  })
   if (history === 'reading') trays.push(tray('history', 'table', 'logbook'))
   if (history === 'done') trays.push(tray('history', 'stack'))
 
@@ -94,12 +90,11 @@ export function laneModel({ entries, dragging, history, saved, finished }: LaneI
   })
 
   const idle = entries.length === 0 && history === 'idle'
-  const open = !saved && !finished
   const reading =
-    open && (history === 'reading' || entries.some((entry) => IN_FLIGHT.includes(entry.phase)))
+    !finished && (history === 'reading' || entries.some((entry) => IN_FLIGHT.includes(entry.phase)))
   return {
     trays: idle ? [tray('idle', 'mouth')] : trays,
-    monitor: open && entries.some((entry) => entry.phase === 'online'),
+    monitor: !finished && entries.some((entry) => entry.phase === 'online'),
     rollers: dragging,
     flaps: dragging,
     size: idle ? 'hero' : reading ? 'stage' : 'band',

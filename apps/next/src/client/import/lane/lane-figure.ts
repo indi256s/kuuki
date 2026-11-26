@@ -78,7 +78,7 @@ const LOOK: Record<LaneSlot, { v: number; u: number; z: number }> = {
 const SPAN = { w: 172, h: 118 }
 
 export type LaneBox = { w: number; h: number }
-export type LaneFigure = { figure: IsoFigureData; camera: Pt; focus: LaneSlot | null }
+export type LaneFigure = { figure: IsoFigureData; camera: Pt }
 
 export function focusOf(model: Pick<LaneModel, 'trays'>): LaneSlot | null {
   return FOCUS.find((slot) => model.trays.some((tray) => tray.slot === slot)) ?? null
@@ -96,7 +96,6 @@ export function buildLane(box: LaneBox, model: LaneModel): LaneFigure {
     const at = focus && LOOK[focus]
     return {
       figure,
-      focus,
       camera: aim(box, figure, at && new Scene(k).project([at.v, -at.u, at.z])),
     }
   }
@@ -104,7 +103,7 @@ export function buildLane(box: LaneBox, model: LaneModel): LaneFigure {
   let k = scales.get(key)
   if (!k) scales.set(key, (k = fitBox(box.w, box.h, (scale) => draw(scale, REST))))
   const figure = draw(k, model)
-  return { figure, focus: null, camera: aim(box, figure, null) }
+  return { figure, camera: aim(box, figure, null) }
 }
 
 function aim(box: LaneBox, figure: IsoFigureData, focus: Pt | null): Pt {

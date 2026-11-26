@@ -9,7 +9,7 @@ const entry = (id: string, phase: Entry['phase'], extra: Partial<Entry> = {}): E
   ...extra,
 })
 const model = (entries: Entry[], extra: Partial<LaneInput> = {}) =>
-  laneModel({ entries, dragging: false, history: 'idle', saved: false, ...extra })
+  laneModel({ entries, dragging: false, history: 'idle', ...extra })
 const places = (entries: Entry[], extra: Partial<LaneInput> = {}) =>
   model(entries, extra).trays.map((tray) => `${tray.id}:${tray.slot}:${tray.index}`)
 
@@ -77,19 +77,6 @@ describe('laneModel', () => {
       expect(places([entry('a', 'failed', { problem })])).toEqual(['a:side:0'])
   })
 
-  it('stacks every tray, emptied, once everything is saved', () => {
-    const { trays, monitor } = model(
-      [entry('a', 'ready', { drafts: 1 }), entry('b', 'online'), entry('c', 'queued')],
-      { saved: true },
-    )
-    expect(trays.map((tray) => [tray.slot, tray.index, tray.cargo])).toEqual([
-      ['stack', 0, 'none'],
-      ['stack', 1, 'none'],
-      ['stack', 2, 'none'],
-    ])
-    expect(monitor).toBe(false)
-  })
-
   it('puts the Flighty logbook on the inspection table on the stage, then stacks its tray', () => {
     expect(model([], { history: 'reading' })).toEqual({
       trays: [
@@ -112,14 +99,14 @@ describe('laneModel', () => {
     expect(model([entry('a', 'ready', { drafts: 2 }), entry('b', 'empty')]).size).toBe('band')
     expect(model([entry('a', 'failed', { problem: 'type' })]).size).toBe('band')
     expect(model([entry('a', 'failed', { problem: 'read' })]).size).toBe('band')
-    expect(model([entry('a', 'queued')], { saved: true }).size).toBe('band')
+    expect(model([entry('a', 'queued')], { finished: true }).size).toBe('band')
     expect(model([entry('a', 'queued')], { dragging: true }).size).toBe('stage')
     expect(model([], { dragging: true }).size).toBe('hero')
   })
 
-  it('marks the finish and keeps the exit tray with its stubs for its last trip, over saved', () => {
+  it('marks the finish and keeps the exit tray with its stubs for its last trip', () => {
     const ready = [entry('a', 'ready', { drafts: 1 }), entry('b', 'ready', { drafts: 3 })]
-    const finished = model(ready, { finished: true, saved: true })
+    const finished = model(ready, { finished: true })
     expect(finished).toMatchObject({ finished: true, size: 'band', monitor: false })
     expect(finished.trays).toEqual(model(ready).trays)
     expect(model(ready)).not.toHaveProperty('finished')

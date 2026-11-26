@@ -207,9 +207,7 @@ export function HistoryImport({
       onKeyDownCapture={() => (lastInput.current = 'key')}
     >
       {laneHistory ? (
-        <SecurityLane
-          model={laneModel({ entries: [], dragging: false, history: laneHistory, saved: false })}
-        />
+        <SecurityLane model={laneModel({ entries: [], dragging: false, history: laneHistory })} />
       ) : null}
       <div className="unified-import-heading">
         <h1 tabIndex={-1}>{state.fileName ?? H.title[locale]}</h1>
