@@ -1,6 +1,6 @@
 'use client'
 
-import { Camera, Clipboard, Upload, X, CircleAlert } from '@keyline-icons/react'
+import { Camera, CircleAlert, Clipboard, Cloud, Upload, X } from '@keyline-icons/react'
 import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Locale } from '../../lib/format'
@@ -76,20 +76,16 @@ const C = {
   flighty: { en: 'Flighty history', ru: 'История из Flighty' },
   nomads: { en: 'Nomads.com trips', ru: 'Поездки из Nomads.com' },
   nomadsBad: {
-    en: 'This file does not look like a Nomads.com trips export.',
-    ru: 'Этот файл не похож на экспорт поездок из Nomads.com.',
+    en: 'Not a Nomads.com export',
+    ru: 'Это не экспорт Nomads.com',
   },
   online: {
-    en: 'Documents and text are read online. Flighty and Nomads.com files are read on this device.',
-    ru: 'Документы и текст распознаются онлайн. Файлы Flighty и Nomads.com читаются на устройстве.',
-  },
-  drop: {
-    en: 'Drop or paste files here.',
-    ru: 'Перетащите или вставьте файлы сюда.',
+    en: 'Documents and text are read online',
+    ru: 'Документы и текст распознаются онлайн',
   },
   tooBig: {
-    en: 'The file is over 10 MB. Same as liquids: it stays behind.',
-    ru: 'Файл больше 10 МБ. С жидкостями так же: не пронесёте.',
+    en: 'Over 10 MB',
+    ru: 'Больше 10 МБ',
   },
   removeFile: { en: 'Remove file', ru: 'Убрать файл' },
   readText: { en: 'Read text', ru: 'Распознать текст' },
@@ -101,27 +97,27 @@ const C = {
   manual: { en: 'Enter manually', ru: 'Ввести вручную' },
   retry: { en: 'Try again', ru: 'Повторить' },
   reselect: {
-    en: 'Choose the file or paste the text again.',
-    ru: 'Выберите файл или вставьте текст снова.',
+    en: 'Choose the file again',
+    ru: 'Выберите файл заново',
   },
   partial: {
-    en: 'Reading stopped early. Found flights are kept.',
-    ru: 'Чтение прервалось. Найденные перелёты остались.',
+    en: 'Stopped early',
+    ru: 'Чтение прервалось',
   },
   saveFailed: {
-    en: 'Couldn’t finish saving. Your remaining flights are kept here.',
-    ru: 'Не удалось завершить сохранение. Остальные перелёты остались здесь.',
+    en: 'Not every flight was saved',
+    ru: 'Сохранились не все перелёты',
   },
   reading: {
-    en: 'Wait until recognition finishes.',
-    ru: 'Дождитесь завершения распознавания.',
+    en: 'Still reading',
+    ru: 'Ещё распознаём',
   },
   unsentText: {
     en: 'Read or clear the entered text.',
     ru: 'Распознайте или очистите введённый текст.',
   },
   close: { en: 'Close import', ru: 'Закрыть импорт' },
-  pending: { en: 'Wait until the files are submitted.', ru: 'Дождитесь отправки файлов.' },
+  pending: { en: 'Still sending files', ru: 'Файлы ещё отправляются' },
 } as const
 
 const entryFailure = (entry: SessionEntry) =>
@@ -817,10 +813,10 @@ export function UnifiedImport({
               }}
             />
             <div className="unified-import-notes" data-empty={entries.length ? undefined : true}>
-              <p className="import-privacy">{C.online[locale]}</p>
-              {entries.length ? null : (
-                <p className="import-privacy unified-import-drop">{C.drop[locale]}</p>
-              )}
+              <p className="import-privacy">
+                <Cloud size={16} aria-hidden="true" />
+                {C.online[locale]}
+              </p>
             </div>
           </div>
         )}

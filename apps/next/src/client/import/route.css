@@ -570,3 +570,6 @@
 .import-hero.import-finish-hero {
   align-items: center;
 }
+.import-finish .import-final-actions > :first-child {
+  grid-column: auto;
+}

@@ -76,7 +76,6 @@ const LEFT_OUT = {
 } satisfies Record<string, CountForms>
 
 const C = {
-  empty: { en: 'No possible flights found.', ru: 'Возможных перелётов не нашлось.' },
   stayedPut: {
     en: 'Staying put is a travel style too.',
     ru: 'Оставаться на месте — тоже стиль путешествий.',
@@ -114,7 +113,6 @@ export function NomadsNote({
   return (
     <span className="unified-import-nomads">
       <span className="import-count">{nomadsStory(locale, summary)}</span>
-      {empty ? <span>{C.empty[locale]}</span> : null}
       {empty && !summary.invalid ? <span>{C.stayedPut[locale]}</span> : null}
       {leftOut.length ? (
         <Disclosure summary={R.leftOut[locale]}>
