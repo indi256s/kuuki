@@ -48,7 +48,6 @@ interface EntryFields {
   online?: BatchRun
   suppressedIds?: string[]
   excludedIds?: string[]
-  landIds?: string[]
   landDoneIds?: string[]
   file?: File
   source?: ImportSource
@@ -73,7 +72,6 @@ export interface RetainedEntry {
   complementPending?: boolean
   suppressedIds?: string[]
   excludedIds?: string[]
-  landIds?: string[]
   landDoneIds?: string[]
   selectionRequired?: boolean
   fingerprint?: string
@@ -133,7 +131,6 @@ export class UnifiedSession {
       complementPending: complementPending(entry),
       suppressedIds: entry.suppressedIds ?? [],
       excludedIds: entry.excludedIds ?? [],
-      ...(entry.landIds?.length ? { landIds: entry.landIds } : {}),
       ...(entry.landDoneIds?.length ? { landDoneIds: entry.landDoneIds } : {}),
       selectionRequired: this.selectionRequired,
       ...(entry.problem ? { problem: entry.problem } : {}),
@@ -148,16 +145,10 @@ export class UnifiedSession {
   isExcluded(id: string) {
     return this.entries.some((entry) => entry.excludedIds?.includes(id))
   }
-  isSuppressed(id: string) {
-    return this.entries.some((entry) => entry.suppressedIds?.includes(id))
-  }
   private ownerOf(id: string) {
     return this.entries.find((entry) =>
       entry.runs.some((run) => run.getState().drafts.some((draft) => draft.id === id)),
     )
-  }
-  landIds(): ReadonlySet<string> {
-    return new Set(this.entries.flatMap((entry) => entry.landIds ?? []))
   }
   landDoneIds(): ReadonlySet<string> {
     return new Set(this.entries.flatMap((entry) => entry.landDoneIds ?? []))
@@ -165,19 +156,11 @@ export class UnifiedSession {
   decide(id: string, decision: Decision) {
     const entry = this.ownerOf(id)
     if (!entry) return
-    const land = entry.landIds ?? []
     const excluded = entry.excludedIds ?? []
-    let changed = false
-    if (land.includes(id) !== (decision === 'land')) {
-      entry.landIds = decision === 'land' ? [...land, id] : land.filter((value) => value !== id)
-      changed = true
-    }
-    if (excluded.includes(id) === (decision === 'flew')) {
-      entry.excludedIds =
-        decision === 'flew' ? excluded.filter((value) => value !== id) : [...excluded, id]
-      changed = true
-    }
-    if (changed) this.publish()
+    if (excluded.includes(id) !== (decision === 'flew')) return
+    entry.excludedIds =
+      decision === 'flew' ? excluded.filter((value) => value !== id) : [...excluded, id]
+    this.publish()
   }
   noteLandDone(id: string) {
     const entry = this.ownerOf(id)
@@ -215,7 +198,6 @@ export class UnifiedSession {
           runs: [],
           suppressedIds: record.suppressedIds,
           excludedIds: record.excludedIds,
-          landIds: ids(record.landIds),
           landDoneIds: ids(record.landDoneIds),
           fingerprint: record.fingerprint,
           nomads: nomadsSummaryOf(record.nomads),

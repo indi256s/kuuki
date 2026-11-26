@@ -104,6 +104,27 @@ describe('DraftSaver', () => {
     expect(patch).toHaveBeenLastCalledWith('d1', { version: 4, fields: { destination: 'LAX' } })
   })
 
+  it('lets a later decision replace a failed By land, so the leg never lands by accident', async () => {
+    const patch = vi
+      .fn()
+      .mockRejectedValueOnce(new ApiError(503, 'down', 'UNAVAILABLE'))
+      .mockRejectedValueOnce(new ApiError(503, 'down', 'UNAVAILABLE'))
+      .mockImplementation(async (_id: string, body: DraftPatchBody) =>
+        draft({ id: 'd1', version: body.version + 1 }),
+      )
+    const { saver, states } = setup(patch)
+    await saver.save(draft({ id: 'd1' }), { dismissed: true, byLand: true })
+    await saver.save(draft({ id: 'd1' }), { dismissed: true })
+    expect(patch).toHaveBeenLastCalledWith('d1', { version: 1, dismissed: true })
+    await saver.save(draft({ id: 'd1' }), { selected: true, dismissed: false })
+    expect(patch).toHaveBeenLastCalledWith('d1', {
+      version: 1,
+      selected: true,
+      dismissed: false,
+    })
+    expect(states.at(-1)![1]).toBeNull()
+  })
+
   it('discard drops the unsent change without a request', async () => {
     const patch = vi.fn().mockRejectedValue(new ApiError(503, 'down', 'UNAVAILABLE'))
     const { saver, states } = setup(patch)

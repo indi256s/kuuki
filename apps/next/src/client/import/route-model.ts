@@ -130,13 +130,8 @@ export function dayLabel(draft: Draft, locale: Locale): string | null {
   return ordinal === null ? null : S.ordinalDay[locale].replace('{day}', String(ordinal))
 }
 
-export function decisionOf(
-  draft: Draft,
-  land: ReadonlySet<string>,
-  implicit = false,
-  copy = false,
-): Decision | null {
-  if (draft.status === 'dismissed') return land.has(draft.id) ? 'land' : 'skip'
+export function decisionOf(draft: Draft, implicit = false, copy = false): Decision | null {
+  if (draft.status === 'dismissed') return draft.fields.by_land ? 'land' : 'skip'
   if (draft.status !== 'review') return null
   if (isDuplicate(draft) || copy)
     return draft.selected && draft.duplicateAcknowledged ? 'flew' : null
@@ -145,27 +140,23 @@ export function decisionOf(
 
 export function decisionChange(draft: Draft, next: Decision, copy = false): DraftChange | null {
   if (next === 'flew') {
-    const change: DraftChange = { selected: true }
-    if (draft.status === 'dismissed') change.dismissed = false
+    const change: DraftChange = { selected: true, dismissed: false }
     if (isDuplicate(draft) || copy) change.duplicateAcknowledged = true
     return change
   }
-  return draft.status === 'dismissed' ? null : { dismissed: true }
+  const land = next === 'land'
+  if (draft.status === 'dismissed' && Boolean(draft.fields.by_land) === land) return null
+  return land ? { dismissed: true, byLand: true } : { dismissed: true }
 }
 
-export function legOf(
-  draft: Draft,
-  land: ReadonlySet<string>,
-  implicit = false,
-  copyOf: string | null = null,
-): Leg {
+export function legOf(draft: Draft, implicit = false, copyOf: string | null = null): Leg {
   return {
     id: draft.id,
     draft,
     origin: placeOf(draft, 'origin'),
     destination: placeOf(draft, 'destination'),
     date: settledDate(draft),
-    decision: decisionOf(draft, land, implicit, copyOf !== null),
+    decision: decisionOf(draft, implicit, copyOf !== null),
     saved: draft.status === 'converted',
     copyOf,
   }

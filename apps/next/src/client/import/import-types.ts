@@ -16,6 +16,7 @@ export interface DraftFields {
   date_ordinal_day?: number
   flown_required?: true
   flown_confirmed?: true
+  by_land?: true
   origin_options?: string[]
   destination_options?: string[]
   origin_hint?: string
@@ -80,6 +81,7 @@ export interface DraftPatchBody {
   flownConfirmed?: boolean
   duplicateAcknowledged?: boolean
   dismissed?: boolean
+  byLand?: true
 }
 
 export type ConfirmItemResult =

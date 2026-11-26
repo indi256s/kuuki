@@ -23,8 +23,9 @@ const fly = (id: string, fields: Partial<DraftFields>, over: Partial<Draft> = {}
     fields: { date: '', origin: '', destination: '', airline_iata: '', ...fields },
     ...over,
   })
+const byLand = (item: Draft): Draft => ({ ...item, fields: { ...item.fields, by_land: true } })
 const legs = (drafts: Draft[], land: ReadonlySet<string> = NONE) =>
-  drafts.map((item) => legOf(item, land))
+  drafts.map((item) => legOf(land.has(item.id) ? byLand(item) : item))
 const shape = (items: RouteItem[]) =>
   items.map((item) =>
     item.kind === 'leg'
@@ -138,16 +139,16 @@ describe('route grouping', () => {
 
 describe('decisions', () => {
   it('reads one decision from the draft state', () => {
-    expect(decisionOf(fly('d1', {}, { selected: true }), NONE)).toBe('flew')
-    expect(decisionOf(fly('d1', {}, { selected: false }), NONE)).toBeNull()
-    expect(decisionOf(fly('d1', {}, { selected: false }), NONE, true)).toBe('flew')
-    expect(decisionOf(fly('d1', {}, { status: 'dismissed' }), NONE)).toBe('skip')
-    expect(decisionOf(fly('d1', {}, { status: 'dismissed' }), new Set(['d1']))).toBe('land')
-    expect(decisionOf(fly('d1', {}, { duplicateFlightId: 4, selected: true }), NONE)).toBeNull()
+    expect(decisionOf(fly('d1', {}, { selected: true }))).toBe('flew')
+    expect(decisionOf(fly('d1', {}, { selected: false }))).toBeNull()
+    expect(decisionOf(fly('d1', {}, { selected: false }), true)).toBe('flew')
+    expect(decisionOf(fly('d1', {}, { status: 'dismissed' }))).toBe('skip')
+    expect(decisionOf(fly('d1', { by_land: true }, { status: 'dismissed' }))).toBe('land')
+    expect(decisionOf(fly('d1', { by_land: true }, { selected: true }))).toBe('flew')
+    expect(decisionOf(fly('d1', {}, { duplicateFlightId: 4, selected: true }))).toBeNull()
     expect(
       decisionOf(
         fly('d1', {}, { duplicateFlightId: 4, selected: true, duplicateAcknowledged: true }),
-        NONE,
       ),
     ).toBe('flew')
   })
@@ -155,15 +156,20 @@ describe('decisions', () => {
   it('maps a decision to the existing draft change', () => {
     const open = fly('d1', {}, { selected: false })
     const gone = fly('d1', {}, { status: 'dismissed' })
-    expect(decisionChange(open, 'flew')).toEqual({ selected: true })
+    const landed = fly('d1', { by_land: true }, { status: 'dismissed' })
+    expect(decisionChange(open, 'flew')).toEqual({ selected: true, dismissed: false })
     expect(decisionChange(gone, 'flew')).toEqual({ selected: true, dismissed: false })
+    expect(decisionChange(landed, 'flew')).toEqual({ selected: true, dismissed: false })
     expect(decisionChange(fly('d1', {}, { duplicateFlightId: 7 }), 'flew')).toEqual({
       selected: true,
+      dismissed: false,
       duplicateAcknowledged: true,
     })
     expect(decisionChange(open, 'skip')).toEqual({ dismissed: true })
-    expect(decisionChange(open, 'land')).toEqual({ dismissed: true })
-    expect(decisionChange(gone, 'land')).toBeNull()
+    expect(decisionChange(open, 'land')).toEqual({ dismissed: true, byLand: true })
+    expect(decisionChange(gone, 'land')).toEqual({ dismissed: true, byLand: true })
+    expect(decisionChange(landed, 'skip')).toEqual({ dismissed: true })
+    expect(decisionChange(landed, 'land')).toBeNull()
     expect(decisionChange(gone, 'skip')).toBeNull()
   })
 
@@ -176,10 +182,11 @@ describe('decisions', () => {
     )
     const copies = copiesOf([first, again])
     expect([...copies]).toEqual([['d2', 'd1']])
-    const leg = legOf(again, NONE, false, copies.get('d2'))
+    const leg = legOf(again, false, copies.get('d2'))
     expect(leg).toMatchObject({ copyOf: 'd1', decision: null })
     expect(decisionChange(again, 'flew', true)).toEqual({
       selected: true,
+      dismissed: false,
       duplicateAcknowledged: true,
     })
   })

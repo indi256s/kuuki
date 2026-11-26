@@ -175,6 +175,7 @@ class FakeImport {
           version: number
           flownConfirmed?: boolean
           dismissed?: boolean
+          byLand?: boolean
           fields?: Record<string, string>
         }
         const draft = [...this.drafts, ...this.localDrafts].find((item) => item.id === patch[1])
@@ -191,7 +192,11 @@ class FakeImport {
         }
         for (const key of ['selected', 'yearConfirmed', 'duplicateAcknowledged'] as const)
           if (typeof body[key] === 'boolean') draft[key] = body[key] as boolean
-        if (body.dismissed !== undefined) draft.status = body.dismissed ? 'dismissed' : 'review'
+        if (body.dismissed !== undefined) {
+          draft.status = body.dismissed ? 'dismissed' : 'review'
+          if (body.dismissed && body.byLand === true) draft.fields.by_land = true
+          else delete draft.fields.by_land
+        }
         draft.version++
         this.sequence++
         return json(route, 200, { draft })
@@ -498,12 +503,21 @@ test('By land records a ground visit for a border crossing and nothing inside on
   for (const index of [0, 1])
     await rows(page).nth(index).getByRole('radio', { name: 'By land' }).click()
   await expect.poll(() => server.patches.length).toBe(2)
-  expect(server.patches.every((patch) => patch.body.dismissed === true)).toBe(true)
+  expect(
+    server.patches.every((patch) => patch.body.dismissed === true && patch.body.byLand === true),
+  ).toBe(true)
   await page.reload()
   await expect(rows(page).nth(0).getByRole('radio', { name: 'By land' })).toHaveAttribute(
     'aria-checked',
     'true',
   )
+  await page.evaluate(() => sessionStorage.clear())
+  await page.goto(`/import?batch=${BATCH}`)
+  for (const index of [0, 1])
+    await expect(rows(page).nth(index).getByRole('radio', { name: 'By land' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
   await page.getByRole('button', { name: 'Add 1 to journal' }).click()
   await expect(page.getByText('trip by land added')).toBeVisible()
   expect(visits).toHaveLength(1)

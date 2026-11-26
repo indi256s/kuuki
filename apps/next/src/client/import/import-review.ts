@@ -50,7 +50,6 @@ export function buildReview({
   const byId = new Map(drafts.map((draft) => [draft.id, draft]))
   const suppressed = idsOf(entries, (entry) => entry.suppressedIds ?? [])
   const excluded = idsOf(entries, (entry) => entry.excludedIds ?? [])
-  const landIds = idsOf(entries, (entry) => entry.landIds ?? [])
   const landDone = idsOf(entries, (entry) => entry.landDoneIds ?? [])
   const presented = drafts.flatMap((draft) =>
     draft.status === 'review' ||
@@ -70,7 +69,7 @@ export function buildReview({
       ? review[0].id
       : null
   const legs = presented.map((draft) =>
-    legOf(draft, landIds, draft.id === implicit, copies.get(draft.id) ?? null),
+    legOf(draft, draft.id === implicit, copies.get(draft.id) ?? null),
   )
   const legById = new Map(legs.map((leg) => [leg.id, leg]))
 

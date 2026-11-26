@@ -8,6 +8,7 @@ export interface DraftChange {
   flownConfirmed?: boolean
   duplicateAcknowledged?: boolean
   dismissed?: boolean
+  byLand?: true
 }
 export interface SaveState {
   status: 'saving' | 'error' | 'conflict'
@@ -34,7 +35,9 @@ interface Deps {
 const merge = (a: DraftChange | null, b: DraftChange | null): DraftChange | null => {
   if (!a || !b) return a ?? b
   const fields = a.fields || b.fields ? { ...a.fields, ...b.fields } : undefined
-  return { ...a, ...b, ...(fields ? { fields } : {}) }
+  const merged: DraftChange = { ...a, ...b, ...(fields ? { fields } : {}) }
+  if (b.dismissed !== undefined && !b.byLand) delete merged.byLand
+  return merged
 }
 
 export class DraftSaver {

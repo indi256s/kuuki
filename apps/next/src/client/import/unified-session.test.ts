@@ -599,3 +599,22 @@ it('retains barcode drafts and source recovery when online complement is cancell
   expect(session.retained()[0].complementPending).toBe(true)
   expect(confirm).not.toHaveBeenCalled()
 })
+
+it('drops a By land list kept by an older session and keeps the recorded land visits', async () => {
+  const { api } = server()
+  const session = new UnifiedSession(api)
+  session.resume([
+    {
+      id: 'e1',
+      label: 'nomads.json',
+      operationId: 'op1',
+      batchIds: [],
+      empty: true,
+      landIds: ['d1'],
+      landDoneIds: ['d2', 7],
+    } as unknown as Parameters<UnifiedSession['resume']>[0][number],
+  ])
+  const [record] = session.retained()
+  expect(record).not.toHaveProperty('landIds')
+  expect(record.landDoneIds).toEqual(['d2'])
+})
