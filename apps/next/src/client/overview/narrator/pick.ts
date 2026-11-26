@@ -1,7 +1,12 @@
 import type { OverviewScope } from '@kuuki/shared/overview/figures'
 import type { OverviewFilter } from '@kuuki/shared/overview/model'
-import { formatDateOnly, formatMonthYear, formatNumber, type Locale } from '../../../lib/format'
-import { monthName } from '../page/scope-title'
+import {
+  formatDateOnly,
+  formatMonthYear,
+  formatNumber,
+  monthName,
+  type Locale,
+} from '../../../lib/format'
 import { fill, t } from '../copy'
 import { CORPUS } from './corpus'
 import { TRIGGERS, type HeroRecord, type NarratorSlot, type Trigger } from './triggers'

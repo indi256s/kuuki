@@ -25,6 +25,7 @@ export type SegmentedControlProps<T extends string> = {
   label: string
   dense?: boolean
   toolbar?: boolean
+  equal?: boolean
 }
 
 export function SegmentedControl<T extends string>({
@@ -34,6 +35,7 @@ export function SegmentedControl<T extends string>({
   label,
   dense,
   toolbar,
+  equal = false,
 }: SegmentedControlProps<T>) {
   const root = useRef<HTMLDivElement>(null)
   const refs = useRef<(HTMLButtonElement | null)[]>([])
@@ -57,13 +59,14 @@ export function SegmentedControl<T extends string>({
   }
 
   useLayoutEffect(() => {
+    if (equal) return
     current.current = found
     place()
-  }, [found])
+  }, [found, equal])
 
   useLayoutEffect(() => {
     const node = root.current
-    if (!node) return
+    if (!node || equal) return
     const measure = () => {
       boxes.current = refs.current.slice(0, options.length).map((option) =>
         option
@@ -84,12 +87,13 @@ export function SegmentedControl<T extends string>({
     const observer = new ResizeObserver(() => flushSync(measure))
     observer.observe(node)
     return () => observer.disconnect()
-  }, [options.length])
+  }, [options.length, equal])
 
   useLayoutEffect(() => {
+    if (equal) return
     const id = requestAnimationFrame(() => setReady(true))
     return () => cancelAnimationFrame(id)
-  }, [])
+  }, [equal])
 
   const select = (index: number) => {
     const next = (index + options.length) % options.length
@@ -117,15 +121,18 @@ export function SegmentedControl<T extends string>({
       className="ui-segmented"
       role="radiogroup"
       aria-label={label}
-      data-ready={ready ? 'true' : undefined}
+      data-ready={ready || equal ? 'true' : undefined}
       data-dense={dense ? 'true' : undefined}
       data-toolbar={toolbar && !dense ? 'true' : undefined}
-      style={{ '--n': options.length } as CSSProperties}
+      data-equal={equal ? 'true' : undefined}
+      style={{ '--n': options.length, ...(equal ? { '--i': found } : {}) } as CSSProperties}
       data-instant={keyboard ? '' : undefined}
       onPointerDown={() => setKeyboard(false)}
       onKeyDown={onKeyDown}
     >
-      {thumb ? (
+      {equal && found >= 0 ? (
+        <span className="ui-segmented-thumb" aria-hidden="true" />
+      ) : !equal && thumb ? (
         <span
           className="ui-segmented-thumb"
           aria-hidden="true"

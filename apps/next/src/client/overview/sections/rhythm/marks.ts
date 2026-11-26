@@ -1,6 +1,5 @@
 import type { Rhythm } from '@kuuki/shared/overview/rhythm'
-import type { Locale } from '../../../../lib/format'
-import { monthName } from '../../page/scope-title'
+import { monthName, type Locale } from '../../../../lib/format'
 import { flights } from '../rankings/display'
 
 export type Mark = { band: string; print: string; flights: string }

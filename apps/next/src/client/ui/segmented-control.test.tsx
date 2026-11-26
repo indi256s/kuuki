@@ -77,4 +77,25 @@ describe('SegmentedControl', () => {
     await user.keyboard('{End}')
     expect(onChange).toHaveBeenLastCalledWith('system')
   })
+
+  it('places the thumb of equal segments by index alone, with no thumb while undecided', () => {
+    const observe = vi.fn()
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        observe = observe
+        disconnect() {}
+      },
+    )
+    const props = { label: 'Decision', options, onChange: vi.fn(), equal: true } as const
+    const { container, rerender } = render(<SegmentedControl {...props} value={null} />)
+    const group = screen.getByRole('radiogroup', { name: 'Decision' })
+    expect(container.querySelector('.ui-segmented-thumb')).toBeNull()
+    rerender(<SegmentedControl {...props} value="dark" />)
+    expect(container.querySelector('.ui-segmented-thumb')).not.toBeNull()
+    expect(group.style.getPropertyValue('--i')).toBe('1')
+    expect(group).toHaveAttribute('data-equal', 'true')
+    expect(observe).not.toHaveBeenCalled()
+    vi.unstubAllGlobals()
+  })
 })

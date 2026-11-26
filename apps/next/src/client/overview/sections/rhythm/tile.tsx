@@ -2,7 +2,7 @@
 import { IsoFigure } from '../../iso/iso-figure'
 import type { TileSpan } from '../../mobile/tiles'
 import { useFigure } from '../../iso/use-figure'
-import { monthName } from '../../page/scope-title'
+import { monthName } from '../../../../lib/format'
 import { useOverview } from '../../store/overview-context'
 import { copy, flights } from '../rankings/display'
 import { stamperFigure } from './figure'

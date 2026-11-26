@@ -20,6 +20,17 @@ export function pluralCategory(locale: Locale, n: number): PluralCategory {
   return (pluralRules[locale] ??= new Intl.PluralRules(locale)).select(n) as PluralCategory
 }
 
+const monthNameFormats: Partial<Record<Locale, Intl.DateTimeFormat>> = {}
+export function monthName(locale: Locale, month: number): string {
+  const date = new Date(Date.UTC(2001, month - 1, 1))
+  return Number.isInteger(month) && month >= 1 && month <= 12
+    ? (monthNameFormats[locale] ??= new Intl.DateTimeFormat(locale, {
+        month: 'long',
+        timeZone: 'UTC',
+      })).format(date)
+    : String(month)
+}
+
 export function formatNumber(locale: Locale, n: number): string {
   return (numberFormats[locale] ??= new Intl.NumberFormat(locale)).format(n)
 }

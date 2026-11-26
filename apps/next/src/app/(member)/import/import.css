@@ -1003,16 +1003,14 @@
   text-align: center;
 }
 .unified-import-files {
-  list-style: none;
-  padding: 0;
-}
-.unified-import-files:empty {
-  display: none;
-}
-.unified-import-files {
   display: grid;
   gap: var(--space-3);
   margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.unified-import-files:empty {
+  display: none;
 }
 .unified-import-files > li {
   display: grid;
@@ -1070,23 +1068,17 @@
 }
 @media (max-width: 700px) {
   .unified-import {
-    display: flex;
-    flex-direction: column;
     min-height: calc(100dvh - var(--space-8) - env(safe-area-inset-bottom));
     padding-top: env(safe-area-inset-top);
     padding-bottom: 0;
   }
   .unified-import .ui-action-bar {
-    margin-top: auto;
-  }
-  .unified-import .ui-action-bar {
     bottom: calc(env(safe-area-inset-bottom) + var(--import-keyboard-inset, 0px));
     flex-wrap: wrap;
+    margin-top: auto;
   }
-  .unified-import .ui-action-bar-actions,
-  .unified-import .ui-action-bar-actions > *,
-  .unified-import .ui-action-bar-actions .ui-button {
-    width: 100%;
+  .unified-import .ui-action-bar-actions {
+    inline-size: 100%;
   }
 }
 .unified-import-heading h1 {
@@ -1171,6 +1163,8 @@
     position: sticky;
     inset-block-start: calc(var(--header-h, 0px) + var(--space-6));
     display: grid;
+    grid-column: 1;
+    grid-row: 2;
     gap: var(--space-5);
     min-width: 0;
   }
@@ -1180,10 +1174,6 @@
   .unified-import[data-layout='review'] .import-main {
     grid-column: 2;
     grid-row: 2 / span 2;
-  }
-  .unified-import[data-layout='review'] .import-side {
-    grid-column: 1;
-    grid-row: 2;
   }
   .unified-import[data-layout='review'] .ui-action-bar {
     grid-column: 1;
