@@ -23,7 +23,6 @@ import { DraftSaver, type DraftChange, type SaveState } from './draft-saver'
 import { fetchPressedCountries, patchDraft } from './import-api'
 import { useImportRunsStore } from './import-runs'
 import { localToday, withSaved } from './review-model'
-import { addGroundVisit } from '@kuuki/client/passport'
 import type { DerivedAck } from '@kuuki/client/derivedState'
 import type { Draft } from './import-types'
 import { newlyPressed } from './flight-input'
@@ -37,6 +36,7 @@ import { ImportFinish, type Finish } from './import-finish'
 import { ImportSources } from './import-sources'
 import { buildReview, finishOf, landReason } from './import-review'
 import { useFooterInsets } from './use-footer-insets'
+import { recordLandVisits } from './land-visits'
 import { S, count } from './copy'
 import { UnifiedSession, type RetainedEntry } from './unified-session'
 import { HistoryImport } from './history-import'
@@ -62,23 +62,6 @@ const C = {
   close: { en: 'Close import', ru: 'Закрыть импорт' },
   pending: { en: 'Still sending files', ru: 'Файлы ещё отправляются' },
 } as const
-
-const GROUND_VISITS_AT_ONCE = 4
-
-function limited(limit: number) {
-  let active = 0
-  const waiting: Array<() => void> = []
-  return async function run<T>(task: () => Promise<T>): Promise<T> {
-    while (active >= limit) await new Promise<void>((resolve) => waiting.push(resolve))
-    active++
-    try {
-      return await task()
-    } finally {
-      active--
-      waiting.shift()?.()
-    }
-  }
-}
 
 function retained(ownerId: string, batchId: string | null): RetainedEntry[] {
   try {
@@ -427,23 +410,9 @@ export function UnifiedImport({
 
   const save = () =>
     run(async (before) => {
-      const limit = limited(GROUND_VISITS_AT_ONCE)
       const [[flightSave], land] = await Promise.all([
         Promise.allSettled([chosen.length ? session.save(chosen) : Promise.resolve([])]),
-        Promise.allSettled(
-          visits.map((visit) =>
-            limit(async () => {
-              const result = await addGroundVisit(
-                ownerId,
-                visit.countryCode,
-                { visitYear: visit.visitYear, entryMethod: 'land' },
-                visit.id,
-              )
-              session.noteLandDone(visit.id)
-              return result
-            }),
-          ),
-        ),
+        recordLandVisits(ownerId, visits, (id) => session.noteLandDone(id)),
       ])
       const failedLand = new Set(
         visits.flatMap((visit, index) => (land[index].status === 'rejected' ? [visit.id] : [])),
