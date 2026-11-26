@@ -11,6 +11,7 @@ import { answerAirport, answerYear, questionDrafts, type SharedQuestion } from '
 import { R, rcount } from './route-copy'
 import { cityOf } from './reference'
 import { dayLabel, endpointLabel, legRoute, placeCity, type Leg } from './route-model'
+import './shared-questions.css'
 
 type Answer = { draft: Draft; change: DraftChange | null }
 

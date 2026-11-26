@@ -9,6 +9,7 @@ import { SplitFlap } from '../ui/split-flap'
 import { count, S } from './copy'
 import { R, rcount } from './route-copy'
 import { MAX_STAMPS, StampSection, type NewStamp } from './stamp-section'
+import './import-finish.css'
 
 export interface Finish {
   id: string

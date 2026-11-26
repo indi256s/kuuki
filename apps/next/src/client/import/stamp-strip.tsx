@@ -7,6 +7,7 @@ import { CountryStamp } from '../stamps'
 import { count } from './copy'
 import { R, RC } from './route-copy'
 import type { Reach } from './route-model'
+import './stamp-strip.css'
 
 const SHOWN = 10
 const SIZE = 44
