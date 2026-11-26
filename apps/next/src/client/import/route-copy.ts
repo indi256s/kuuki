@@ -27,6 +27,7 @@ export const R = {
   each: p('Answer on each leg', 'Ответить для каждого'),
   countries: p('Countries in this import', 'Страны этого импорта'),
   add: p('Add to journal', 'Добавить в журнал'),
+  done: p('Finish import', 'Завершить импорт'),
   unsaved: p('Save or discard your edit first.', 'Сначала сохраните или отмените правку.'),
   unsavedLeg: p('Edit not saved.', 'Правка не сохранена.'),
   sameCountry: p(

@@ -215,6 +215,7 @@ export function UnifiedImport({
   const [deferred, setDeferred] = useState<ReadonlySet<string>>(new Set())
   const [landFailed, setLandFailed] = useState<ReadonlySet<string>>(new Set())
   const routeHeading = useRef<HTMLHeadingElement>(null)
+  const baseline = useRef<Promise<ReadonlySet<string> | null> | null>(null)
   const [dragging, setDragging] = useState(false)
   const dragDepth = useRef(0)
   const [error, setError] = useState(false)
@@ -472,11 +473,14 @@ export function UnifiedImport({
       live = false
     }
   }, [finish, feedback.status])
+  const recorded =
+    [...outcomes.values()].some((outcome) => outcome.status === 'saved') || landDone.size > 0
+  const finishOnly = recordable === 0 && blanks === 0 && recorded
   const reason = unsent
     ? unsentReason
     : reading
       ? C.reading[locale]
-      : recordable === 0
+      : recordable === 0 && !finishOnly
         ? blanks
           ? rcount(locale, 'notReady', blanks)
           : legs.some((leg) => leg.decision === 'land' && !landDone.has(leg.id) && !leg.saved)
@@ -518,7 +522,8 @@ export function UnifiedImport({
     savingNow.current = true
     setSaving(true)
     setError(false)
-    const before = fetchPressedCountries()
+    baseline.current ??= fetchPressedCountries()
+    const before = baseline.current
     const pending = visits
     try {
       const acks: DerivedAck[] = chosen.length
@@ -571,7 +576,9 @@ export function UnifiedImport({
             ...savedDrafts.flatMap((draft) =>
               routeCountries(draft.fields.origin, draft.fields.destination),
             ),
-            ...pending.filter((visit) => landSaved.has(visit.id)).map((visit) => visit.countryCode),
+            ...legs.flatMap((leg) =>
+              landSaved.has(leg.id) && leg.destination.country ? [leg.destination.country] : [],
+            ),
           ]),
         ]
         const flightCount = savedOutcomes.length
@@ -1012,7 +1019,11 @@ export function UnifiedImport({
             aria-describedby={reasonId}
             onClick={() => void save()}
           >
-            {recordable ? rcount(locale, 'addN', recordable) : R.add[locale]}
+            {recordable
+              ? rcount(locale, 'addN', recordable)
+              : finishOnly
+                ? R.done[locale]
+                : R.add[locale]}
           </Button>
         </FloatingActionBar>
       ) : null}
